@@ -148,7 +148,6 @@ const EventsCalendar = () => {
                         key={event.id} 
                         event={event} 
                         index={index}
-                        onExpressInterest={() => handleExpressInterest(event.clubId)}
                       />
                     ))}
                   </div>
