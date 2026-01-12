@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles, Users, Calendar, LayoutGrid, HelpCircle } from "lucide-react";
+import { Menu, X, Sparkles, Users, Calendar, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "@/assets/unicircle-logo-new.png";
 
@@ -18,10 +18,9 @@ const Header = () => {
   }, []);
 
   const navLinks = [
+    { href: "/", label: "Home", icon: Sparkles },
     { href: "/clubs", label: "Clubs", icon: Users },
     { href: "/events", label: "Events", icon: Calendar },
-    { href: "/features", label: "Features", icon: LayoutGrid },
-    { href: "/faq", label: "FAQ", icon: HelpCircle },
   ];
 
   return (
@@ -34,20 +33,20 @@ const Header = () => {
     >
       <div className="container mx-auto flex items-center justify-between px-4 md:px-6 h-14 md:h-16">
         {/* Logo - left-aligned */}
-        <motion.a 
-          href="#" 
-          className="flex items-center flex-shrink-0"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          whileHover={{ scale: 1.02 }}
-        >
-          <img 
-            src={logoImage} 
-            alt="UniCircle" 
-            className="h-10 md:h-14 w-auto object-contain"
-          />
-        </motion.a>
+        <Link to="/" className="flex items-center flex-shrink-0">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            whileHover={{ scale: 1.02 }}
+          >
+            <img 
+              src={logoImage} 
+              alt="UniCircle" 
+              className="h-10 md:h-14 w-auto object-contain"
+            />
+          </motion.div>
+        </Link>
 
         {/* Navigation with animated underlines */}
         <nav className="hidden md:flex items-center gap-10">
@@ -85,7 +84,7 @@ const Header = () => {
             whileTap={{ scale: 0.98 }}
           >
             <Button variant="gold" size="default" className="relative group overflow-hidden" asChild>
-              <a href="#cta">
+              <Link to="/#cta">
                 <span className="relative z-10 flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
                   Join Waitlist
@@ -96,7 +95,7 @@ const Header = () => {
                   animate={{ translateX: ["-100%", "200%"] }}
                   transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 1 }}
                 />
-              </a>
+              </Link>
             </Button>
           </motion.div>
         </div>
@@ -169,10 +168,10 @@ const Header = () => {
                   className="mt-4"
                 >
                   <Button variant="gold" size="lg" className="w-full" asChild>
-                    <a href="/#cta" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link to="/#cta" onClick={() => setIsMobileMenuOpen(false)}>
                       <Sparkles className="w-4 h-4 mr-2" />
                       Join Waitlist
-                    </a>
+                    </Link>
                   </Button>
                 </motion.div>
               </nav>
