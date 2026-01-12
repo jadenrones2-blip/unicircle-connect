@@ -9,6 +9,7 @@ import FeaturesPage from "./pages/FeaturesPage";
 import ClubsDirectory from "./pages/ClubsDirectory";
 import ClubDetail from "./pages/ClubDetail";
 import EventsCalendar from "./pages/EventsCalendar";
+import ExpressInterest from "./pages/ExpressInterest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/clubs" element={<ClubsDirectory />} />
           <Route path="/clubs/:id" element={<ClubDetail />} />
           <Route path="/events" element={<EventsCalendar />} />
+          <Route path="/express-interest" element={<ExpressInterest />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
