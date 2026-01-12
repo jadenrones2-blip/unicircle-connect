@@ -6,20 +6,20 @@ const steps = [
   {
     icon: Search,
     number: "01",
-    title: "Explore",
-    description: "Browse clubs, events, and communities that match your interests and goals.",
+    title: "Browse",
+    description: "Explore clubs and events in one clean directory. Filter by category or interest.",
   },
   {
     icon: Zap,
     number: "02",
-    title: "Join",
-    description: "Instantly connect with clubs or students - no complicated signups required.",
+    title: "Discover",
+    description: "Find events happening this week — socials, workshops, info sessions, and more.",
   },
   {
     icon: CircleDot,
     number: "03",
-    title: "Build",
-    description: "Grow your circle with people who share your ambitions and trajectory.",
+    title: "Join",
+    description: "Express interest directly and get connected. No scavenger hunt required.",
   },
 ];
 
@@ -96,9 +96,8 @@ const HowItWorksSection = () => {
             className="mt-10 text-center"
           >
             <p className="text-primary-foreground/80 font-display text-lg">
-              College should be the easiest place to make friends.
-              <br />
-              <span className="text-gold">Unicircle makes that true.</span>
+              No complicated signups.{" "}
+              <span className="text-gold">Just start exploring.</span>
             </p>
           </motion.div>
         </div>
