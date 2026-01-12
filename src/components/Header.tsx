@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles, AlertCircle, Lightbulb, Route, LayoutGrid, HelpCircle } from "lucide-react";
+import { Menu, X, Sparkles, Users, Calendar, LayoutGrid, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "@/assets/unicircle-logo-new.png";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLogoHovered, setIsLogoHovered] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,9 +18,8 @@ const Header = () => {
   }, []);
 
   const navLinks = [
-    { href: "/#problem", label: "Problem", icon: AlertCircle },
-    { href: "/#solution", label: "Solution", icon: Lightbulb },
-    { href: "/#how", label: "How", icon: Route },
+    { href: "/clubs", label: "Clubs", icon: Users },
+    { href: "/events", label: "Events", icon: Calendar },
     { href: "/features", label: "Features", icon: LayoutGrid },
     { href: "/faq", label: "FAQ", icon: HelpCircle },
   ];
@@ -53,43 +51,28 @@ const Header = () => {
 
         {/* Navigation with animated underlines */}
         <nav className="hidden md:flex items-center gap-10">
-          {navLinks.map((link, index) => {
-            const isRoute = link.href.startsWith("/");
-            const linkClass = "text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 relative group";
-            
-            return (
-              <motion.div
-                key={link.href}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index }}
+          {navLinks.map((link, index) => (
+            <motion.div
+              key={link.href}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index }}
+            >
+              <Link 
+                to={link.href} 
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 relative group"
               >
-                {isRoute ? (
-                  <Link to={link.href} className={linkClass}>
-                    <link.icon className="w-3.5 h-3.5 inline-block mr-1.5 opacity-70 group-hover:opacity-100 transition-opacity" />
-                    {link.label}
-                    <motion.span 
-                      className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-gold to-gold-light rounded-full"
-                      initial={{ width: 0 }}
-                      whileHover={{ width: "100%" }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </Link>
-                ) : (
-                  <a href={link.href} className={linkClass}>
-                    <link.icon className="w-3.5 h-3.5 inline-block mr-1.5 opacity-70 group-hover:opacity-100 transition-opacity" />
-                    {link.label}
-                    <motion.span 
-                      className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-gold to-gold-light rounded-full"
-                      initial={{ width: 0 }}
-                      whileHover={{ width: "100%" }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </a>
-                )}
-              </motion.div>
-            );
-          })}
+                <link.icon className="w-3.5 h-3.5 inline-block mr-1.5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                {link.label}
+                <motion.span 
+                  className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-gold to-gold-light rounded-full"
+                  initial={{ width: 0 }}
+                  whileHover={{ width: "100%" }}
+                  transition={{ duration: 0.3 }}
+                />
+              </Link>
+            </motion.div>
+          ))}
         </nav>
 
         {/* CTA Button with glow */}
@@ -162,39 +145,23 @@ const Header = () => {
           >
             <div className="bg-card/95 backdrop-blur-xl border-b border-gold/10 px-4 py-6 mt-2">
               <nav className="flex flex-col gap-2">
-                {navLinks.map((link, index) => {
-                  const isRoute = link.href.startsWith("/");
-                  const linkClass = "block text-base text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 border border-transparent hover:border-gold/10";
-                  
-                  return (
-                    <motion.div
-                      key={link.href}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                {navLinks.map((link, index) => (
+                  <motion.div
+                    key={link.href}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Link
+                      to={link.href}
+                      className="block text-base text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 border border-transparent hover:border-gold/10"
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      {isRoute ? (
-                        <Link
-                          to={link.href}
-                          className={linkClass}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <link.icon className="w-4 h-4 inline-block mr-2 opacity-70" />
-                          {link.label}
-                        </Link>
-                      ) : (
-                        <a
-                          href={link.href}
-                          className={linkClass}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <link.icon className="w-4 h-4 inline-block mr-2 opacity-70" />
-                          {link.label}
-                        </a>
-                      )}
-                    </motion.div>
-                  );
-                })}
+                      <link.icon className="w-4 h-4 inline-block mr-2 opacity-70" />
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                ))}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -202,7 +169,7 @@ const Header = () => {
                   className="mt-4"
                 >
                   <Button variant="gold" size="lg" className="w-full" asChild>
-                    <a href="#cta" onClick={() => setIsMobileMenuOpen(false)}>
+                    <a href="/#cta" onClick={() => setIsMobileMenuOpen(false)}>
                       <Sparkles className="w-4 h-4 mr-2" />
                       Join Waitlist
                     </a>
