@@ -1,8 +1,10 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Users } from "lucide-react";
+import { Clock, MapPin, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Event } from "@/data/mockData";
+import { clubs } from "@/data/mockData";
 
 interface EventCardProps {
   event: Event;
@@ -24,10 +26,14 @@ const typeLabels = {
   social: "Social"
 };
 
-const EventCard = ({ event, index, onExpressInterest }: EventCardProps) => {
+const EventCard = ({ event, index }: EventCardProps) => {
   const eventDate = new Date(event.date);
   const day = eventDate.getDate();
   const month = eventDate.toLocaleDateString('en-US', { month: 'short' });
+  
+  // Get club's recruiting status
+  const club = clubs.find(c => c.id === event.clubId);
+  const recruitingStatus = club?.recruitingStatus;
 
   return (
     <motion.div
@@ -49,9 +55,25 @@ const EventCard = ({ event, index, onExpressInterest }: EventCardProps) => {
             <h3 className="font-display text-base font-semibold text-foreground group-hover:text-gold transition-colors line-clamp-1">
               {event.title}
             </h3>
-            <Badge className={`${typeColors[event.type]} border-0 text-xs flex-shrink-0`}>
-              {typeLabels[event.type]}
-            </Badge>
+            <div className="flex gap-1.5 flex-shrink-0">
+              <Badge className={`${typeColors[event.type]} border-0 text-xs`}>
+                {typeLabels[event.type]}
+              </Badge>
+              {event.type === 'recruitment' && recruitingStatus && (
+                <Badge 
+                  variant="outline"
+                  className={`text-xs ${
+                    recruitingStatus === 'open' 
+                      ? 'bg-green-500/10 text-green-600 border-green-500/20' 
+                      : recruitingStatus === 'upcoming'
+                        ? 'bg-gold/10 text-gold border-gold/20'
+                        : 'bg-muted text-muted-foreground border-border'
+                  }`}
+                >
+                  {recruitingStatus === 'open' ? 'Open' : recruitingStatus === 'upcoming' ? 'Upcoming' : 'Closed'}
+                </Badge>
+              )}
+            </div>
           </div>
 
           <p className="text-xs text-gold font-medium mb-2">{event.clubName}</p>
@@ -73,17 +95,17 @@ const EventCard = ({ event, index, onExpressInterest }: EventCardProps) => {
           </div>
 
           {/* Action */}
-          {event.type === 'recruitment' && onExpressInterest && (
-            <Button 
-              variant="gold" 
-              size="sm" 
-              className="w-full"
-              onClick={onExpressInterest}
-            >
-              <Users className="w-3.5 h-3.5 mr-2" />
-              Express Interest
-            </Button>
-          )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            asChild
+          >
+            <Link to={`/clubs/${event.clubId}`}>
+              <ExternalLink className="w-3.5 h-3.5 mr-2" />
+              View Club
+            </Link>
+          </Button>
         </div>
       </div>
     </motion.div>
