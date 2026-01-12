@@ -1,5 +1,7 @@
 // Mock data for UniCircle MVP
 
+export type RecruitingStatus = 'open' | 'upcoming' | 'closed';
+
 export interface Club {
   id: string;
   name: string;
@@ -8,7 +10,7 @@ export interface Club {
   memberCount: number;
   imageUrl: string;
   tags: string[];
-  isRecruiting: boolean;
+  recruitingStatus: RecruitingStatus;
   meetingSchedule: string;
 }
 
@@ -28,91 +30,113 @@ export interface Event {
 export const clubs: Club[] = [
   {
     id: "1",
-    name: "Tech Innovators Club",
-    category: "Technology",
-    description: "A community of tech enthusiasts exploring cutting-edge technologies, from AI to blockchain. We host hackathons, workshops, and industry speaker events.",
-    memberCount: 156,
-    imageUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=400&h=300&fit=crop",
-    tags: ["AI", "Hackathons", "Coding"],
-    isRecruiting: true,
+    name: "Triton Engineering Student Council",
+    category: "STEM",
+    description: "The hub for engineering students at UCSD. We host industry panels, career fairs, and connect students with internship opportunities.",
+    memberCount: 342,
+    imageUrl: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400&h=300&fit=crop",
+    tags: ["Engineering", "Career", "Networking"],
+    recruitingStatus: "open",
     meetingSchedule: "Wednesdays, 6PM"
   },
   {
     id: "2",
-    name: "Debate Society",
-    category: "Academic",
-    description: "Sharpen your critical thinking and public speaking skills. We compete in national tournaments and host weekly practice sessions.",
+    name: "UCSD Consulting Group",
+    category: "Business",
+    description: "A student-run consulting organization providing pro-bono services to startups and nonprofits. Gain real client experience.",
     memberCount: 89,
-    imageUrl: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=400&h=300&fit=crop",
-    tags: ["Public Speaking", "Competitions", "Critical Thinking"],
-    isRecruiting: true,
-    meetingSchedule: "Tuesdays & Thursdays, 5PM"
+    imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop",
+    tags: ["Consulting", "Strategy", "Case Studies"],
+    recruitingStatus: "upcoming",
+    meetingSchedule: "Tuesdays, 7PM"
   },
   {
     id: "3",
-    name: "Photography Club",
-    category: "Arts & Creative",
-    description: "Capture the world through your lens. We organize photo walks, exhibitions, and workshops for all skill levels.",
-    memberCount: 124,
-    imageUrl: "https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=400&h=300&fit=crop",
-    tags: ["Photography", "Art", "Exhibitions"],
-    isRecruiting: false,
-    meetingSchedule: "Saturdays, 10AM"
+    name: "Triton Gaming",
+    category: "Recreation",
+    description: "The largest gaming community on campus. Weekly game nights, esports tournaments, and a welcoming space for all gamers.",
+    memberCount: 567,
+    imageUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=300&fit=crop",
+    tags: ["Gaming", "Esports", "Community"],
+    recruitingStatus: "open",
+    meetingSchedule: "Fridays, 8PM"
   },
   {
     id: "4",
-    name: "Entrepreneurship Society",
-    category: "Business",
-    description: "For aspiring founders and business minds. Pitch competitions, mentorship programs, and networking with industry leaders.",
-    memberCount: 203,
-    imageUrl: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop",
-    tags: ["Startups", "Networking", "Pitch Competitions"],
-    isRecruiting: true,
-    meetingSchedule: "Mondays, 7PM"
+    name: "Design Co",
+    category: "Arts",
+    description: "UCSD's premier design community. Portfolio reviews, design workshops, and connections to the San Diego design industry.",
+    memberCount: 234,
+    imageUrl: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=300&fit=crop",
+    tags: ["UX/UI", "Graphic Design", "Portfolio"],
+    recruitingStatus: "closed",
+    meetingSchedule: "Mondays, 6PM"
   },
   {
     id: "5",
-    name: "Environmental Action",
-    category: "Community Service",
-    description: "Making our campus and community greener. Join us for sustainability initiatives, clean-ups, and advocacy campaigns.",
-    memberCount: 78,
-    imageUrl: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400&h=300&fit=crop",
-    tags: ["Sustainability", "Volunteering", "Advocacy"],
-    isRecruiting: true,
-    meetingSchedule: "Fridays, 4PM"
+    name: "Vietnamese Student Association",
+    category: "Cultural",
+    description: "Celebrating Vietnamese culture through food, music, and community. Open to everyone interested in learning about our heritage.",
+    memberCount: 412,
+    imageUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop",
+    tags: ["Culture", "Food", "Community"],
+    recruitingStatus: "open",
+    meetingSchedule: "Thursdays, 5PM"
   },
   {
     id: "6",
-    name: "Dance Crew",
-    category: "Performing Arts",
-    description: "Express yourself through movement! We cover various dance styles and perform at university events throughout the year.",
-    memberCount: 67,
-    imageUrl: "https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=400&h=300&fit=crop",
-    tags: ["Dance", "Performance", "Hip-Hop"],
-    isRecruiting: true,
-    meetingSchedule: "Mon, Wed, Fri - 8PM"
+    name: "ACM at UCSD",
+    category: "STEM",
+    description: "Association for Computing Machinery - the largest CS org on campus. Hackathons, coding workshops, and tech talks.",
+    memberCount: 678,
+    imageUrl: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=300&fit=crop",
+    tags: ["Computer Science", "Hackathons", "Coding"],
+    recruitingStatus: "open",
+    meetingSchedule: "Wednesdays, 7PM"
   },
   {
     id: "7",
-    name: "Investment Club",
+    name: "Triton Entrepreneur Network",
     category: "Business",
-    description: "Learn about financial markets, portfolio management, and investment strategies. We manage a real student investment fund.",
-    memberCount: 145,
-    imageUrl: "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400&h=300&fit=crop",
-    tags: ["Finance", "Investing", "Markets"],
-    isRecruiting: false,
+    description: "For founders and aspiring entrepreneurs. Pitch nights, startup mentorship, and connections to San Diego's startup ecosystem.",
+    memberCount: 156,
+    imageUrl: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop",
+    tags: ["Startups", "Pitching", "Mentorship"],
+    recruitingStatus: "open",
     meetingSchedule: "Thursdays, 6PM"
   },
   {
     id: "8",
-    name: "Cultural Exchange Society",
+    name: "UCSD Dance Team",
+    category: "Arts",
+    description: "Competitive dance team representing UCSD at regional and national competitions. All styles welcome at tryouts.",
+    memberCount: 48,
+    imageUrl: "https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=400&h=300&fit=crop",
+    tags: ["Dance", "Competition", "Performance"],
+    recruitingStatus: "upcoming",
+    meetingSchedule: "Mon/Wed/Fri, 8PM"
+  },
+  {
+    id: "9",
+    name: "Pre-Medical Association",
+    category: "STEM",
+    description: "Supporting pre-med students with MCAT prep, clinical volunteering opportunities, and medical school application guidance.",
+    memberCount: 523,
+    imageUrl: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop",
+    tags: ["Pre-Med", "Healthcare", "Volunteering"],
+    recruitingStatus: "closed",
+    meetingSchedule: "Tuesdays, 5PM"
+  },
+  {
+    id: "10",
+    name: "Filipino Cultural Society",
     category: "Cultural",
-    description: "Celebrating diversity through cultural festivals, language exchanges, and international food events.",
-    memberCount: 189,
-    imageUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop",
-    tags: ["Culture", "Languages", "Events"],
-    isRecruiting: true,
-    meetingSchedule: "Sundays, 3PM"
+    description: "Sharing Filipino culture through dance performances, cultural events, and community service. Everyone is welcome!",
+    memberCount: 289,
+    imageUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=300&fit=crop",
+    tags: ["Filipino", "Dance", "Culture"],
+    recruitingStatus: "open",
+    meetingSchedule: "Saturdays, 2PM"
   }
 ];
 
@@ -121,101 +145,98 @@ export const events: Event[] = [
     id: "1",
     title: "Spring Recruitment Fair",
     clubId: "1",
-    clubName: "Tech Innovators Club",
+    clubName: "Triton Engineering Student Council",
     date: "2025-02-15",
     time: "10:00 AM - 4:00 PM",
-    location: "Student Union Hall",
+    location: "Price Center Ballroom",
     type: "recruitment",
-    description: "Meet all the tech-focused clubs on campus! Perfect opportunity to find your community.",
+    description: "Meet all the engineering clubs on campus! Perfect opportunity to find your community.",
     imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=300&fit=crop"
   },
   {
     id: "2",
-    title: "Hackathon 2025",
-    clubId: "1",
-    clubName: "Tech Innovators Club",
+    title: "TritonHacks 2025",
+    clubId: "6",
+    clubName: "ACM at UCSD",
     date: "2025-02-22",
     time: "9:00 AM - 9:00 PM",
-    location: "Engineering Building",
+    location: "Qualcomm Room",
     type: "event",
-    description: "24-hour coding challenge with amazing prizes. Form teams and build something incredible!"
+    description: "24-hour coding challenge with prizes from top tech companies. Beginners welcome!"
   },
   {
     id: "3",
-    title: "Public Speaking Workshop",
+    title: "Case Competition Prep Workshop",
     clubId: "2",
-    clubName: "Debate Society",
+    clubName: "UCSD Consulting Group",
     date: "2025-02-10",
     time: "5:00 PM - 7:00 PM",
-    location: "Library Room 204",
+    location: "Rady School Room 204",
     type: "workshop",
-    description: "Overcome your fear of public speaking with practical exercises and expert tips."
+    description: "Learn frameworks and strategies for case competitions. Great for recruitment prep."
   },
   {
     id: "4",
-    title: "Campus Photo Walk",
+    title: "Game Night at PC",
     clubId: "3",
-    clubName: "Photography Club",
+    clubName: "Triton Gaming",
     date: "2025-02-08",
-    time: "2:00 PM - 5:00 PM",
-    location: "Meet at Main Gate",
+    time: "7:00 PM - 11:00 PM",
+    location: "Price Center Game Room",
     type: "social",
-    description: "Explore hidden gems on campus and capture beautiful shots together."
+    description: "Weekly game night! Smash Bros tournament, board games, and snacks provided."
   },
   {
     id: "5",
     title: "Startup Pitch Night",
-    clubId: "4",
-    clubName: "Entrepreneurship Society",
+    clubId: "7",
+    clubName: "Triton Entrepreneur Network",
     date: "2025-02-20",
     time: "6:00 PM - 9:00 PM",
-    location: "Business School Auditorium",
+    location: "The Basement at Rady",
     type: "event",
     description: "Watch student startups pitch to real investors. Network with founders and VCs."
   },
   {
     id: "6",
-    title: "Beach Cleanup Drive",
+    title: "Lunar New Year Celebration",
     clubId: "5",
-    clubName: "Environmental Action",
+    clubName: "Vietnamese Student Association",
     date: "2025-02-12",
-    time: "8:00 AM - 12:00 PM",
-    location: "City Beach",
-    type: "social",
-    description: "Join us for our monthly beach cleanup. Transportation and refreshments provided!"
+    time: "6:00 PM - 10:00 PM",
+    location: "Price Center Ballroom",
+    type: "event",
+    description: "Celebrate Lunar New Year with food, performances, and games. Free admission!"
   },
   {
     id: "7",
-    title: "Dance Showcase Auditions",
-    clubId: "6",
-    clubName: "Dance Crew",
+    title: "Spring Showcase Auditions",
+    clubId: "8",
+    clubName: "UCSD Dance Team",
     date: "2025-02-18",
     time: "7:00 PM - 10:00 PM",
-    location: "Student Center Dance Studio",
+    location: "RIMAC Arena",
     type: "recruitment",
     description: "Audition for our spring showcase! All dance styles welcome."
   },
   {
     id: "8",
-    title: "International Food Festival",
-    clubId: "8",
-    clubName: "Cultural Exchange Society",
+    title: "Barrio Logan Cultural Night",
+    clubId: "10",
+    clubName: "Filipino Cultural Society",
     date: "2025-02-25",
-    time: "11:00 AM - 6:00 PM",
-    location: "Campus Quad",
-    type: "event",
-    description: "Taste cuisines from around the world! Each country booth features authentic dishes."
+    time: "5:00 PM - 9:00 PM",
+    location: "Barrio Logan, San Diego",
+    type: "social",
+    description: "Explore Filipino culture in San Diego's Barrio Logan. Transportation provided."
   }
 ];
 
 export const categories = [
   "All",
-  "Technology",
-  "Academic",
-  "Arts & Creative",
+  "STEM",
   "Business",
-  "Community Service",
-  "Performing Arts",
+  "Arts",
   "Cultural",
-  "Sports & Fitness"
+  "Recreation"
 ];
