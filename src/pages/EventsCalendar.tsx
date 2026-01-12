@@ -27,7 +27,13 @@ const EventsCalendar = () => {
   const filteredEvents = events.filter((event) => {
     const matchesType = selectedType === "All" || 
       event.type.toLowerCase() === selectedType.toLowerCase();
-    return matchesType;
+    
+    // Filter by current month
+    const eventDate = new Date(event.date);
+    const matchesMonth = eventDate.getMonth() === currentMonth.getMonth() && 
+                         eventDate.getFullYear() === currentMonth.getFullYear();
+    
+    return matchesType && matchesMonth;
   });
 
   // Group events by date
@@ -197,7 +203,7 @@ const EventsCalendar = () => {
                     </div>
 
                     {/* Events for this date */}
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className={`grid gap-4 ${eventsByDate[date].length === 1 ? 'md:grid-cols-1 max-w-md' : eventsByDate[date].length === 2 ? 'md:grid-cols-2 max-w-2xl' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
                       {eventsByDate[date].map((event, index) => (
                         <EventCard 
                           key={event.id} 
