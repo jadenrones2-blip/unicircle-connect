@@ -1,1 +1,7 @@
 project_id = "gojqmerruiimkbbiajwf"
+
+[functions.notify-waitlist-signup]
+verify_jwt = false
+
+[functions.airtable-proxy]
+verify_jwt = false
