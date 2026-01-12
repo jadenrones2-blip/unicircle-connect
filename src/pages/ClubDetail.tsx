@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
@@ -9,7 +9,8 @@ import {
   Clock, 
   Share2, 
   Heart,
-  ExternalLink 
+  ExternalLink,
+  Loader2
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -17,15 +18,31 @@ import ExpressInterestModal from "@/components/ExpressInterestModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { clubs, events } from "@/data/mockData";
+import { useClubs, useEvents } from "@/hooks/useAirtable";
 
 const ClubDetail = () => {
   const { id } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  const club = clubs.find(c => c.id === id);
-  const clubEvents = events.filter(e => e.clubId === id);
+  const { data: clubs, loading: clubsLoading } = useClubs();
+  const { data: events, loading: eventsLoading } = useEvents(clubs);
+
+  const club = useMemo(() => clubs.find(c => c.id === id), [clubs, id]);
+  const clubEvents = useMemo(() => events.filter(e => e.clubId === id), [events, id]);
+
+  if (clubsLoading) {
+    return (
+      <main className="min-h-screen bg-background">
+        <Header />
+        <div className="pt-32 flex flex-col items-center justify-center">
+          <Loader2 className="w-8 h-8 text-gold animate-spin mb-4" />
+          <p className="text-muted-foreground">Loading club details...</p>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   if (!club) {
     return (
@@ -153,7 +170,9 @@ const ClubDetail = () => {
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 text-gold mb-1">
                   <Calendar className="w-5 h-5" />
-                  <span className="text-2xl font-display font-bold">{clubEvents.length}</span>
+                  <span className="text-2xl font-display font-bold">
+                    {eventsLoading ? "..." : clubEvents.length}
+                  </span>
                 </div>
                 <p className="text-sm text-muted-foreground">Upcoming Events</p>
               </div>
@@ -186,7 +205,9 @@ const ClubDetail = () => {
           <Tabs defaultValue="about" className="w-full">
             <TabsList className="mb-8">
               <TabsTrigger value="about">About</TabsTrigger>
-              <TabsTrigger value="events">Events ({clubEvents.length})</TabsTrigger>
+              <TabsTrigger value="events">
+                Events ({eventsLoading ? "..." : clubEvents.length})
+              </TabsTrigger>
               <TabsTrigger value="gallery">Gallery</TabsTrigger>
             </TabsList>
 
@@ -221,7 +242,12 @@ const ClubDetail = () => {
             </TabsContent>
 
             <TabsContent value="events">
-              {clubEvents.length > 0 ? (
+              {eventsLoading ? (
+                <div className="flex flex-col items-center py-12">
+                  <Loader2 className="w-8 h-8 text-gold animate-spin mb-4" />
+                  <p className="text-muted-foreground">Loading events...</p>
+                </div>
+              ) : clubEvents.length > 0 ? (
                 <div className="grid gap-4">
                   {clubEvents.map((event, index) => (
                     <motion.div
