@@ -97,15 +97,6 @@ export function useClubs(): UseAirtableResult<Club> {
     setError(null);
 
     try {
-      const { data: responseData, error: fnError } = await supabase.functions.invoke(
-        "airtable-proxy",
-        {
-          body: null,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      // Construct URL with query params
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/airtable-proxy?table=clubs`,
         {
