@@ -122,7 +122,7 @@ const ClubDetail = () => {
                   className="w-full"
                   onClick={() => setIsModalOpen(true)}
                 >
-                  Express Interest
+                  I'm Interested
                 </Button>
                 <div className="flex gap-2">
                   <Button 
@@ -169,6 +169,12 @@ const ClubDetail = () => {
                 </div>
                 <p className="text-sm text-muted-foreground">Student Center</p>
               </div>
+            </div>
+
+            {/* Meeting Style */}
+            <div className="mt-6 pt-6 border-t border-border">
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Style</h3>
+              <p className="text-foreground">{club.meetingStyle}</p>
             </div>
           </motion.div>
         </div>
