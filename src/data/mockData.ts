@@ -12,6 +12,7 @@ export interface Club {
   tags: string[];
   recruitingStatus: RecruitingStatus;
   meetingSchedule: string;
+  meetingStyle: string;
 }
 
 export interface Event {
@@ -37,7 +38,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400&h=300&fit=crop",
     tags: ["Engineering", "Career", "Networking"],
     recruitingStatus: "open",
-    meetingSchedule: "Wednesdays, 6PM"
+    meetingSchedule: "Wednesdays, 6PM",
+    meetingStyle: "Weekly in-person meetings + online Slack community"
   },
   {
     id: "2",
@@ -48,7 +50,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop",
     tags: ["Consulting", "Strategy", "Case Studies"],
     recruitingStatus: "upcoming",
-    meetingSchedule: "Tuesdays, 7PM"
+    meetingSchedule: "Tuesdays, 7PM",
+    meetingStyle: "Weekly team meetings + project-based work sessions"
   },
   {
     id: "3",
@@ -59,7 +62,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&h=300&fit=crop",
     tags: ["Gaming", "Esports", "Community"],
     recruitingStatus: "open",
-    meetingSchedule: "Fridays, 8PM"
+    meetingSchedule: "Fridays, 8PM",
+    meetingStyle: "Casual drop-in game nights + Discord community"
   },
   {
     id: "4",
@@ -70,7 +74,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=300&fit=crop",
     tags: ["UX/UI", "Graphic Design", "Portfolio"],
     recruitingStatus: "closed",
-    meetingSchedule: "Mondays, 6PM"
+    meetingSchedule: "Mondays, 6PM",
+    meetingStyle: "Workshops + design critiques + studio time"
   },
   {
     id: "5",
@@ -81,7 +86,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop",
     tags: ["Culture", "Food", "Community"],
     recruitingStatus: "open",
-    meetingSchedule: "Thursdays, 5PM"
+    meetingSchedule: "Thursdays, 5PM",
+    meetingStyle: "General meetings + event planning committees"
   },
   {
     id: "6",
@@ -92,7 +98,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=300&fit=crop",
     tags: ["Computer Science", "Hackathons", "Coding"],
     recruitingStatus: "open",
-    meetingSchedule: "Wednesdays, 7PM"
+    meetingSchedule: "Wednesdays, 7PM",
+    meetingStyle: "Open events + specialized project teams"
   },
   {
     id: "7",
@@ -103,7 +110,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=300&fit=crop",
     tags: ["Startups", "Pitching", "Mentorship"],
     recruitingStatus: "open",
-    meetingSchedule: "Thursdays, 6PM"
+    meetingSchedule: "Thursdays, 6PM",
+    meetingStyle: "Monthly speaker events + weekly office hours"
   },
   {
     id: "8",
@@ -114,7 +122,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=400&h=300&fit=crop",
     tags: ["Dance", "Competition", "Performance"],
     recruitingStatus: "upcoming",
-    meetingSchedule: "Mon/Wed/Fri, 8PM"
+    meetingSchedule: "Mon/Wed/Fri, 8PM",
+    meetingStyle: "Regular practice sessions + competitions"
   },
   {
     id: "9",
@@ -125,7 +134,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop",
     tags: ["Pre-Med", "Healthcare", "Volunteering"],
     recruitingStatus: "closed",
-    meetingSchedule: "Tuesdays, 5PM"
+    meetingSchedule: "Tuesdays, 5PM",
+    meetingStyle: "Biweekly meetings + volunteer shifts"
   },
   {
     id: "10",
@@ -136,7 +146,8 @@ export const clubs: Club[] = [
     imageUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&h=300&fit=crop",
     tags: ["Filipino", "Dance", "Culture"],
     recruitingStatus: "open",
-    meetingSchedule: "Saturdays, 2PM"
+    meetingSchedule: "Saturdays, 2PM",
+    meetingStyle: "Weekly practice + cultural shows"
   }
 ];
 
