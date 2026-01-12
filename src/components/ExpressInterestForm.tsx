@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Check } from "lucide-react";
+import { Sparkles, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { clubs } from "@/data/mockData";
+import { useClubs, submitInterest } from "@/hooks/useAirtable";
 
 interface ExpressInterestFormProps {
   preselectedClubId?: string;
@@ -36,27 +36,50 @@ const ExpressInterestForm = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
 
+  const { data: clubs, loading: clubsLoading } = useClubs();
+
   const selectedClub = clubs.find(c => c.id === formData.clubId);
+
+  // Update clubId when preselectedClubId changes
+  useEffect(() => {
+    if (preselectedClubId) {
+      setFormData(prev => ({ ...prev, clubId: preselectedClubId }));
+    }
+  }, [preselectedClubId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const result = await submitInterest({
+      name: formData.name,
+      email: formData.email,
+      clubId: formData.clubId,
+      clubName: selectedClub?.name || "",
+      message: formData.message,
+    });
     
     setIsSubmitting(false);
-    setIsSubmitted(true);
-    
-    toast({
-      title: "Interest Submitted!",
-      description: selectedClub 
-        ? `${selectedClub.name} will reach out to you soon.`
-        : "We'll connect you with the right club soon.",
-    });
 
-    if (onSuccess) {
-      setTimeout(onSuccess, 2000);
+    if (result.success) {
+      setIsSubmitted(true);
+      
+      toast({
+        title: "Interest Submitted!",
+        description: selectedClub 
+          ? `${selectedClub.name} will reach out to you soon.`
+          : "We'll connect you with the right club soon.",
+      });
+
+      if (onSuccess) {
+        setTimeout(onSuccess, 2000);
+      }
+    } else {
+      toast({
+        title: "Submission Failed",
+        description: result.error || "Please try again later.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -128,29 +151,36 @@ const ExpressInterestForm = ({
       {showClubSelector && (
         <div className="space-y-2">
           <Label htmlFor="club">Select Club *</Label>
-          <Select 
-            value={formData.clubId} 
-            onValueChange={handleClubChange}
-            required
-          >
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Choose a club to join" />
-            </SelectTrigger>
-            <SelectContent className="bg-card border-border z-50">
-              {clubs.map((club) => (
-                <SelectItem 
-                  key={club.id} 
-                  value={club.id}
-                  className="cursor-pointer"
-                >
-                  <div className="flex items-center gap-2">
-                    <span>{club.name}</span>
-                    <span className="text-xs text-muted-foreground">({club.category})</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {clubsLoading ? (
+            <div className="flex items-center gap-2 h-10 px-3 border rounded-md text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Loading clubs...</span>
+            </div>
+          ) : (
+            <Select 
+              value={formData.clubId} 
+              onValueChange={handleClubChange}
+              required
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="Choose a club to join" />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border z-50">
+                {clubs.map((club) => (
+                  <SelectItem 
+                    key={club.id} 
+                    value={club.id}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span>{club.name}</span>
+                      <span className="text-xs text-muted-foreground">({club.category})</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       )}
       
@@ -172,7 +202,7 @@ const ExpressInterestForm = ({
         variant="gold"
         size="lg"
         className="w-full"
-        disabled={isSubmitting || (!preselectedClubId && showClubSelector && !formData.clubId)}
+        disabled={isSubmitting || clubsLoading || (!preselectedClubId && showClubSelector && !formData.clubId)}
       >
         {isSubmitting ? (
           <motion.div

@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Filter, ChevronLeft, ChevronRight, List, Grid3X3, Clock, MapPin } from "lucide-react";
+import { Calendar, Filter, ChevronLeft, ChevronRight, List, Grid3X3, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import EventCard from "@/components/EventCard";
 import ExpressInterestModal from "@/components/ExpressInterestModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { events, clubs } from "@/data/mockData";
+import { useClubs, useEvents } from "@/hooks/useAirtable";
 
 const eventTypes = ["All", "Recruitment", "Event", "Workshop", "Social"];
 
@@ -24,26 +24,35 @@ const EventsCalendar = () => {
     clubId: ""
   });
 
-  const filteredEvents = events.filter((event) => {
-    const matchesType = selectedType === "All" || 
-      event.type.toLowerCase() === selectedType.toLowerCase();
-    
-    // Filter by current month
-    const eventDate = new Date(event.date);
-    const matchesMonth = eventDate.getMonth() === currentMonth.getMonth() && 
-                         eventDate.getFullYear() === currentMonth.getFullYear();
-    
-    return matchesType && matchesMonth;
-  });
+  const { data: clubs, loading: clubsLoading } = useClubs();
+  const { data: events, loading: eventsLoading } = useEvents(clubs);
+
+  const loading = clubsLoading || eventsLoading;
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      const matchesType = selectedType === "All" || 
+        event.type.toLowerCase() === selectedType.toLowerCase();
+      
+      // Filter by current month
+      const eventDate = new Date(event.date);
+      const matchesMonth = eventDate.getMonth() === currentMonth.getMonth() && 
+                           eventDate.getFullYear() === currentMonth.getFullYear();
+      
+      return matchesType && matchesMonth;
+    });
+  }, [events, selectedType, currentMonth]);
 
   // Group events by date
-  const eventsByDate = filteredEvents.reduce((acc, event) => {
-    if (!acc[event.date]) {
-      acc[event.date] = [];
-    }
-    acc[event.date].push(event);
-    return acc;
-  }, {} as Record<string, typeof events>);
+  const eventsByDate = useMemo(() => {
+    return filteredEvents.reduce((acc, event) => {
+      if (!acc[event.date]) {
+        acc[event.date] = [];
+      }
+      acc[event.date].push(event);
+      return acc;
+    }, {} as Record<string, typeof events>);
+  }, [filteredEvents]);
 
   const sortedDates = Object.keys(eventsByDate).sort();
 
@@ -178,7 +187,12 @@ const EventsCalendar = () => {
       {/* Events View */}
       <section className="pb-20 px-4">
         <div className="container mx-auto">
-          {viewMode === 'list' ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 text-gold animate-spin mb-4" />
+              <p className="text-muted-foreground">Loading events...</p>
+            </div>
+          ) : viewMode === 'list' ? (
             // List View
             sortedDates.length > 0 ? (
               <div className="space-y-8">
