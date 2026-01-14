@@ -194,12 +194,10 @@ export async function submitInterest(data: {
         },
         body: JSON.stringify({
           fields: {
-            "Name": data.name,
-            "Email": data.email,
-            "Club": [data.clubId], // Airtable linked record format
-            "Club Name": data.clubName,
-            "Message": data.message || "",
-            "Submitted At": new Date().toISOString(),
+            "name": data.name,
+            "email": data.email,
+            "notes": `Club: ${data.clubName}${data.message ? `\n\n${data.message}` : ""}`,
+            "status": "New",
           },
         }),
       }
