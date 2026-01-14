@@ -204,10 +204,11 @@ export async function submitInterest(data: {
         },
         body: JSON.stringify({
           fields: {
-            "name": data.name,
-            "email": data.email,
-            "notes": `Club: ${data.clubName}${data.message ? `\n\n${data.message}` : ""}`,
-            "status": "New",
+            "Name": data.name,
+            "Email": data.email,
+            "Club Name": data.clubName,
+            "Message": data.message || "",
+            "Submitted At": new Date().toISOString(),
           },
         }),
       }
