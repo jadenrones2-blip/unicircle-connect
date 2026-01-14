@@ -26,12 +26,99 @@ interface AirtableResponse {
   offset?: string;
 }
 
+// Simple in-memory rate limiting
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 30; // 30 requests per minute
+
+function isRateLimited(clientIp: string): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(clientIp);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  
+  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+  
+  record.count++;
+  return false;
+}
+
+// Input validation for interest submissions
+function validateInterestFields(fields: unknown): { valid: boolean; error?: string; sanitized?: Record<string, string> } {
+  if (!fields || typeof fields !== 'object') {
+    return { valid: false, error: 'Fields must be an object' };
+  }
+  
+  const f = fields as Record<string, unknown>;
+  
+  // Validate Name
+  if (typeof f.Name !== 'string' || f.Name.trim().length === 0) {
+    return { valid: false, error: 'Name is required and must be a non-empty string' };
+  }
+  if (f.Name.length > 100) {
+    return { valid: false, error: 'Name must be 100 characters or less' };
+  }
+  
+  // Validate Email
+  if (typeof f.Email !== 'string' || f.Email.trim().length === 0) {
+    return { valid: false, error: 'Email is required and must be a non-empty string' };
+  }
+  if (f.Email.length > 254) {
+    return { valid: false, error: 'Email must be 254 characters or less' };
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(f.Email)) {
+    return { valid: false, error: 'Email must be a valid email address' };
+  }
+  
+  // Validate Notes (optional but has length limit)
+  if (f.Notes !== undefined && f.Notes !== null) {
+    if (typeof f.Notes !== 'string') {
+      return { valid: false, error: 'Notes must be a string' };
+    }
+    if (f.Notes.length > 1000) {
+      return { valid: false, error: 'Notes must be 1000 characters or less' };
+    }
+  }
+  
+  // Return only allowed fields (sanitized)
+  return {
+    valid: true,
+    sanitized: {
+      Name: f.Name.trim(),
+      Email: f.Email.trim().toLowerCase(),
+      ...(f.Notes ? { Notes: f.Notes.trim() } : {}),
+    },
+  };
+}
+
+function getClientIp(req: Request): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('x-real-ip') || 
+         'unknown';
+}
+
 const handler = async (req: Request): Promise<Response> => {
   console.log("Airtable proxy request received");
 
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Rate limiting check
+  const clientIp = getClientIp(req);
+  if (isRateLimited(clientIp)) {
+    console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please try again later." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   if (!AIRTABLE_API_KEY) {
@@ -119,9 +206,26 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (req.method === "POST" && action === "create") {
-      // Create a new record
+      // Only allow creates on the interests table
+      if (tableKey !== "interests" && tableKey !== "interest-submissions") {
+        return new Response(
+          JSON.stringify({ error: "Create action is only allowed for interest submissions" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       const body = await req.json();
       console.log(`Creating record in table: ${tableConfig.tableId}`);
+
+      // Validate and sanitize input
+      const validation = validateInterestFields(body.fields);
+      if (!validation.valid) {
+        console.warn(`Validation failed: ${validation.error}`);
+        return new Response(
+          JSON.stringify({ error: validation.error }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       const response = await fetch(airtableUrl, {
         method: "POST",
@@ -129,20 +233,20 @@ const handler = async (req: Request): Promise<Response> => {
           Authorization: `Bearer ${AIRTABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ fields: body.fields }),
+        body: JSON.stringify({ fields: validation.sanitized }),
       });
 
-       if (!response.ok) {
-         const errorText = await response.text();
-         console.error(`Airtable API error: ${response.status} - ${errorText}`);
-         return new Response(
-           JSON.stringify({
-             error: `Airtable API error: ${response.status}`,
-             details: errorText,
-           }),
-           { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-         );
-       }
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Airtable API error: ${response.status} - ${errorText}`);
+        return new Response(
+          JSON.stringify({
+            error: `Airtable API error: ${response.status}`,
+            details: errorText,
+          }),
+          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
 
       const data = await response.json();
       console.log(`Successfully created record in ${tableConfig.tableId}`);
