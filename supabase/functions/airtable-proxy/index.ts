@@ -48,9 +48,10 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Map friendly table names to Airtable table names
+    // Map friendly table names to Airtable table names (table IDs are the most reliable)
     const tableMap: Record<string, string> = {
-      clubs: "UniCircle Club Discovery",
+      // Airtable table ID from URL: https://airtable.com/appWLPeogJR4JIGQj/tblWFqLCSDZev4p25/...
+      clubs: "tblWFqLCSDZev4p25",
       events: "Events",
       interests: "Interest Submissions",
       "interest-submissions": "Interest Submissions",
