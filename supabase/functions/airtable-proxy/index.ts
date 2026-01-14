@@ -82,7 +82,10 @@ const handler = async (req: Request): Promise<Response> => {
           const errorText = await response.text();
           console.error(`Airtable API error: ${response.status} - ${errorText}`);
           return new Response(
-            JSON.stringify({ error: `Airtable API error: ${response.status}` }),
+            JSON.stringify({
+              error: `Airtable API error: ${response.status}`,
+              details: errorText,
+            }),
             { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
@@ -114,14 +117,17 @@ const handler = async (req: Request): Promise<Response> => {
         body: JSON.stringify({ fields: body.fields }),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Airtable API error: ${response.status} - ${errorText}`);
-        return new Response(
-          JSON.stringify({ error: `Airtable API error: ${response.status}` }),
-          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+       if (!response.ok) {
+         const errorText = await response.text();
+         console.error(`Airtable API error: ${response.status} - ${errorText}`);
+         return new Response(
+           JSON.stringify({
+             error: `Airtable API error: ${response.status}`,
+             details: errorText,
+           }),
+           { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+         );
+       }
 
       const data = await response.json();
       console.log(`Successfully created record in ${airtableTable}`);
