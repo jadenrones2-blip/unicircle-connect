@@ -184,11 +184,8 @@ const handler = async (req: Request): Promise<Response> => {
           const errorText = await response.text();
           console.error(`Airtable API error: ${response.status} - ${errorText}`);
           return new Response(
-            JSON.stringify({
-              error: `Airtable API error: ${response.status}`,
-              details: errorText,
-            }),
-            { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            JSON.stringify({ error: "Unable to fetch data" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
@@ -240,11 +237,8 @@ const handler = async (req: Request): Promise<Response> => {
         const errorText = await response.text();
         console.error(`Airtable API error: ${response.status} - ${errorText}`);
         return new Response(
-          JSON.stringify({
-            error: `Airtable API error: ${response.status}`,
-            details: errorText,
-          }),
-          { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "Unable to process request" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
