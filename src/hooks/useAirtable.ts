@@ -20,7 +20,7 @@ const transformClub = (record: AirtableRecord): Club => {
   const fields = record.fields;
   
   // Map recruiting status - normalize to lowercase
-  const rawStatus = String(fields["Recruiting Status"] || fields["recruitingStatus"] || "closed").toLowerCase();
+  const rawStatus = String(fields["Recruiting Status"] || "closed").toLowerCase();
   let recruitingStatus: RecruitingStatus = "closed";
   if (rawStatus === "open" || rawStatus === "actively recruiting") {
     recruitingStatus = "open";
@@ -30,24 +30,22 @@ const transformClub = (record: AirtableRecord): Club => {
 
   return {
     id: record.id,
-    name: String(fields["Name"] || fields["name"] || ""),
-    category: String(fields["Category"] || fields["category"] || ""),
-    description: String(fields["Description"] || fields["description"] || ""),
-    memberCount: Number(fields["Member Count"] || fields["memberCount"] || 0),
+    name: String(fields["Club Name"] || fields["Name"] || ""),
+    category: String(fields["Category"] || ""),
+    description: String(fields["Description"] || ""),
+    memberCount: Number(fields["# Events Hosted"] || 0),
     imageUrl: String(
       // Handle Airtable attachment fields
       Array.isArray(fields["Image"]) && fields["Image"][0]?.url 
         ? fields["Image"][0].url 
-        : fields["imageUrl"] || fields["Image URL"] || "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop"
+        : fields["Image URL"] || "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop"
     ),
     tags: Array.isArray(fields["Tags"]) 
       ? fields["Tags"] as string[]
-      : typeof fields["tags"] === "string" 
-        ? (fields["tags"] as string).split(",").map(t => t.trim())
-        : [],
+      : [],
     recruitingStatus,
-    meetingSchedule: String(fields["Meeting Schedule"] || fields["meetingSchedule"] || "TBD"),
-    meetingStyle: String(fields["Meeting Style"] || fields["meetingStyle"] || ""),
+    meetingSchedule: String(fields["Meeting Notes"] || "TBD"),
+    meetingStyle: String(fields["Contact Link"] || ""),
   };
 };
 
