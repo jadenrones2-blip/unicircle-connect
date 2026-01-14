@@ -1,7 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const AIRTABLE_API_KEY = Deno.env.get("AIRTABLE_API_KEY");
-const AIRTABLE_BASE_ID = "appWLPeogJR4JIGQj";
+
+// Different bases for different tables
+const AIRTABLE_BASES = {
+  clubs: "appWLPeogJR4JIGQj",
+  events: "appWLPeogJR4JIGQj",
+  interests: "appLDj0Vw8TIw1WC2",
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,21 +54,29 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Map friendly table names to Airtable table names (table IDs are the most reliable)
-    const tableMap: Record<string, string> = {
-      // Airtable table ID from URL: https://airtable.com/appWLPeogJR4JIGQj/tblWFqLCSDZev4p25/...
-      clubs: "tblWFqLCSDZev4p25",
-      events: "Events",
-      interests: "Interest Submissions",
-      "interest-submissions": "Interest Submissions",
+    // Map friendly table names to Airtable table IDs
+    const tableMap: Record<string, { baseId: string; tableId: string }> = {
+      clubs: { baseId: AIRTABLE_BASES.clubs, tableId: "tblWFqLCSDZev4p25" },
+      events: { baseId: AIRTABLE_BASES.events, tableId: "Events" },
+      interests: { baseId: AIRTABLE_BASES.interests, tableId: "tblVLS0M1JCEAsqmQ" },
+      "interest-submissions": { baseId: AIRTABLE_BASES.interests, tableId: "tblVLS0M1JCEAsqmQ" },
     };
 
-    const airtableTable = tableMap[table.toLowerCase()] || table;
-    const airtableUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(airtableTable)}`;
+    const tableKey = table.toLowerCase();
+    const tableConfig = tableMap[tableKey];
+    
+    if (!tableConfig) {
+      return new Response(
+        JSON.stringify({ error: `Unknown table: ${table}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const airtableUrl = `https://api.airtable.com/v0/${tableConfig.baseId}/${encodeURIComponent(tableConfig.tableId)}`;
 
     if (req.method === "GET" && action === "list") {
       // Fetch all records from the table
-      console.log(`Fetching records from table: ${airtableTable}`);
+      console.log(`Fetching records from table: ${tableConfig.tableId}`);
       
       let allRecords: AirtableRecord[] = [];
       let offset: string | undefined;
@@ -96,7 +110,7 @@ const handler = async (req: Request): Promise<Response> => {
         offset = data.offset;
       } while (offset);
 
-      console.log(`Successfully fetched ${allRecords.length} records from ${airtableTable}`);
+      console.log(`Successfully fetched ${allRecords.length} records from ${tableConfig.tableId}`);
 
       return new Response(
         JSON.stringify({ records: allRecords }),
@@ -107,7 +121,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (req.method === "POST" && action === "create") {
       // Create a new record
       const body = await req.json();
-      console.log(`Creating record in table: ${airtableTable}`);
+      console.log(`Creating record in table: ${tableConfig.tableId}`);
 
       const response = await fetch(airtableUrl, {
         method: "POST",
@@ -131,7 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
        }
 
       const data = await response.json();
-      console.log(`Successfully created record in ${airtableTable}`);
+      console.log(`Successfully created record in ${tableConfig.tableId}`);
 
       return new Response(
         JSON.stringify(data),
