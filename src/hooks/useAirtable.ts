@@ -100,13 +100,18 @@ export function useClubs(): UseAirtableResult<Club> {
         {
           headers: {
             "Content-Type": "application/json",
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch clubs: ${response.status}`);
+        const text = await response.text().catch(() => "");
+        throw new Error(
+          text
+            ? `Failed to fetch clubs: ${response.status} - ${text}`
+            : `Failed to fetch clubs: ${response.status}`
+        );
       }
 
       const result = await response.json();
@@ -147,17 +152,22 @@ export function useEvents(clubs: Club[]): UseAirtableResult<Event> {
         {
           headers: {
             "Content-Type": "application/json",
-            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
         }
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch events: ${response.status}`);
+        const text = await response.text().catch(() => "");
+        throw new Error(
+          text
+            ? `Failed to fetch events: ${response.status} - ${text}`
+            : `Failed to fetch events: ${response.status}`
+        );
       }
 
       const result = await response.json();
-      const events = (result.records || []).map((record: AirtableRecord) => 
+      const events = (result.records || []).map((record: AirtableRecord) =>
         transformEvent(record, clubs)
       );
       setData(events);
@@ -204,7 +214,12 @@ export async function submitInterest(data: {
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to submit interest: ${response.status}`);
+      const text = await response.text().catch(() => "");
+      throw new Error(
+        text
+          ? `Failed to submit interest: ${response.status} - ${text}`
+          : `Failed to submit interest: ${response.status}`
+      );
     }
 
     return { success: true };
