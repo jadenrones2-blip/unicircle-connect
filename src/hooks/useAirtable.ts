@@ -206,9 +206,7 @@ export async function submitInterest(data: {
           fields: {
             "Name": data.name,
             "Email": data.email,
-            "Club Name": data.clubName,
-            "Message": data.message || "",
-            "Submitted At": new Date().toISOString(),
+            "Message": data.message || `Interested in: ${data.clubName}`,
           },
         }),
       }
