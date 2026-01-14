@@ -50,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Map friendly table names to Airtable table names
     const tableMap: Record<string, string> = {
-      clubs: "Clubs",
+      clubs: "UniCircle Club Discovery",
       events: "Events",
       interests: "Interest Submissions",
       "interest-submissions": "Interest Submissions",
