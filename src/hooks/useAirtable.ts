@@ -207,7 +207,6 @@ export async function submitInterest(data: {
             "Name": data.name,
             "Email": data.email,
             "Notes": `Club: ${data.clubName}${data.message ? `\n\n${data.message}` : ""}`,
-            "Status": "New",
           },
         }),
       }
