@@ -24,6 +24,7 @@ const transformClub = (record: Record<string, unknown>): Club => {
   const recruitingStatus: RecruitingStatus = "closed";
 
   const category = cleanText(record.category);
+  const categoryBucket = cleanText(record.category_bucket);
 
   // Build tags from category if available
   const tags: string[] = [];
@@ -35,6 +36,7 @@ const transformClub = (record: Record<string, unknown>): Club => {
     id: cleanText(record.id || ""),
     name: cleanText(record.name),
     category,
+    categoryBucket, // Used for dropdown filtering
     description: cleanText(record.description),
     memberCount: 0, // Not available in external DB
     imageUrl:
