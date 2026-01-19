@@ -46,14 +46,11 @@ const ClubsDirectory = () => {
 
     return sorted.map((club) => {
       const categoryKey = normalizeText(club.category || "");
-      const parts = [
-        club.name,
-        club.description,
-        club.category,
-        ...(club.tags ?? []),
-      ].filter((v): v is string => Boolean(v));
-
-      const searchKey = normalizeText(parts.join(" "));
+      // Search only filters name and description (not category)
+      const searchParts = [club.name, club.description].filter(
+        (v): v is string => Boolean(v)
+      );
+      const searchKey = normalizeText(searchParts.join(" "));
 
       return { club, categoryKey, searchKey };
     });
