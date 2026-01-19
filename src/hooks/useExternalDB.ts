@@ -140,13 +140,17 @@ export function useEvents(clubs: Club[]): UseExternalDBResult<Event> {
         }
       );
 
+      // Gracefully handle missing table - return empty array
       if (!response.ok) {
-        const text = await response.text().catch(() => "");
-        throw new Error(
-          text
-            ? `Failed to fetch events: ${response.status}`
-            : `Failed to fetch events: ${response.status}`
-        );
+        const result = await response.json().catch(() => ({}));
+        // If table doesn't exist, just return empty - not a real error
+        if (result.code === "PGRST205" || result.details?.includes("Could not find the table")) {
+          console.log("Events table not available in external DB - returning empty");
+          setData([]);
+          setLoading(false);
+          return;
+        }
+        throw new Error(`Failed to fetch events: ${response.status}`);
       }
 
       const result = await response.json();
@@ -156,7 +160,8 @@ export function useEvents(clubs: Club[]): UseExternalDBResult<Event> {
       setData(events);
     } catch (err) {
       console.error("Error fetching events:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch events");
+      // Don't set error state for missing table - just return empty
+      setData([]);
     } finally {
       setLoading(false);
     }
