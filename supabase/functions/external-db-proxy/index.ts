@@ -13,23 +13,54 @@ serve(async (req) => {
   }
 
   try {
-    const externalUrl = Deno.env.get("EXTERNAL_SUPABASE_URL");
-    const externalKey = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_ROLE_KEY");
+    const rawExternalUrl = (Deno.env.get("EXTERNAL_SUPABASE_URL") ?? "").trim();
+    const externalKey = (Deno.env.get("EXTERNAL_SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
 
-    console.log("External URL configured:", externalUrl ? "Yes" : "No");
+    const normalizeExternalUrl = (value: string): string | null => {
+      let v = value.trim();
+      if (!v) return null;
+
+      // Users sometimes paste a full API path (e.g. .../auth/v1). supabase-js expects the base URL only.
+      v = v.replace(/\/(auth|rest|functions)\/v1.*$/i, "");
+      v = v.replace(/\/+$/, "");
+
+      // Accept either:
+      // - full base URL (https://...)
+      // - host without protocol (...supabase.co)
+      // - project ref (e.g. abcdefghijklmnop)
+      if (!v.startsWith("http://") && !v.startsWith("https://")) {
+        if (v.includes(".") || v.includes("supabase.co")) {
+          v = `https://${v}`;
+        } else {
+          v = `https://${v}.supabase.co`;
+        }
+      }
+
+      try {
+        // Validate it parses as a URL.
+        new URL(v);
+        return v;
+      } catch {
+        return null;
+      }
+    };
+
+    const externalUrl = normalizeExternalUrl(rawExternalUrl);
+
+    console.log("External URL configured:", rawExternalUrl ? "Yes" : "No");
+    console.log("External URL normalized:", externalUrl ?? "Invalid");
     console.log("External Key configured:", externalKey ? "Yes" : "No");
 
-    if (!externalUrl || !externalKey) {
-      console.error("Missing external Supabase credentials");
+    if (!rawExternalUrl || !externalKey) {
+      console.error("Missing external database credentials");
       return new Response(
         JSON.stringify({ error: "External database not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Validate URL format
-    if (!externalUrl.startsWith("https://")) {
-      console.error("Invalid EXTERNAL_SUPABASE_URL format - must start with https://");
+    if (!externalUrl) {
+      console.error("Invalid EXTERNAL_SUPABASE_URL (expected base URL, host, or project ref)");
       return new Response(
         JSON.stringify({ error: "Invalid external database configuration" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
