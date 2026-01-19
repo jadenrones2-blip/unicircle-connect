@@ -16,10 +16,22 @@ serve(async (req) => {
     const externalUrl = Deno.env.get("EXTERNAL_SUPABASE_URL");
     const externalKey = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_ROLE_KEY");
 
+    console.log("External URL configured:", externalUrl ? "Yes" : "No");
+    console.log("External Key configured:", externalKey ? "Yes" : "No");
+
     if (!externalUrl || !externalKey) {
       console.error("Missing external Supabase credentials");
       return new Response(
         JSON.stringify({ error: "External database not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate URL format
+    if (!externalUrl.startsWith("https://")) {
+      console.error("Invalid EXTERNAL_SUPABASE_URL format - must start with https://");
+      return new Response(
+        JSON.stringify({ error: "Invalid external database configuration" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

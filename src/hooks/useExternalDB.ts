@@ -83,7 +83,7 @@ export function useClubs(): UseExternalDBResult<Club> {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=clubs&select=id,name,category,description,recruiting_status,image_url,member_count,meeting_schedule,tags&order=name.asc&limit=100`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=clubs&select=id,name,category,description,recruiting_status,image_url,member_count,meeting_schedule,tags&orderBy=name&orderAsc=true&limit=100`,
         {
           headers: {
             "Content-Type": "application/json",
