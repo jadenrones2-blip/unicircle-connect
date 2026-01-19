@@ -11,33 +11,29 @@ interface UseExternalDBResult<T> {
 
 // Transform external DB club record to app Club type
 const transformClub = (record: Record<string, unknown>): Club => {
-  // Map recruiting status - normalize to lowercase
-  const rawStatus = String(record.recruiting_status || record.recruitingStatus || "closed").toLowerCase();
-  let recruitingStatus: RecruitingStatus = "closed";
-  if (rawStatus === "open" || rawStatus === "actively recruiting") {
-    recruitingStatus = "open";
-  } else if (rawStatus === "upcoming" || rawStatus === "coming soon") {
-    recruitingStatus = "upcoming";
+  // Default to closed recruiting status since this data doesn't have it
+  const recruitingStatus: RecruitingStatus = "closed";
+
+  // Build tags from category if available
+  const tags: string[] = [];
+  if (record.category) {
+    tags.push(String(record.category));
   }
 
   return {
     id: String(record.id || ""),
-    name: String(record.name || record.club_name || ""),
+    name: String(record.name || ""),
     category: String(record.category || ""),
     description: String(record.description || ""),
-    memberCount: Number(record.member_count || record.memberCount || record.events_hosted || 0),
-    imageUrl: String(
-      record.image_url || record.imageUrl || 
-      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop"
-    ),
-    tags: Array.isArray(record.tags) 
-      ? record.tags as string[]
-      : typeof record.tags === "string" 
-        ? (record.tags as string).split(",").map(t => t.trim())
-        : [],
+    memberCount: 0, // Not available in external DB
+    imageUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop",
+    tags,
     recruitingStatus,
-    meetingSchedule: String(record.meeting_schedule || record.meetingSchedule || "TBD"),
-    meetingStyle: String(record.meeting_style || record.meetingStyle || record.contact_link || ""),
+    meetingSchedule: "TBD",
+    // Store additional external fields for potential use
+    email: String(record.email || ""),
+    instagram: String(record.instagram || ""),
+    website: String(record.website || ""),
   };
 };
 
@@ -83,7 +79,7 @@ export function useClubs(): UseExternalDBResult<Club> {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=clubs&select=id,name,category,description,recruiting_status,image_url,member_count,meeting_schedule,tags&orderBy=name&orderAsc=true&limit=100`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=clubs&select=*&orderBy=name&orderAsc=true&limit=500`,
         {
           headers: {
             "Content-Type": "application/json",
