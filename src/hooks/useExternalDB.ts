@@ -11,29 +11,38 @@ interface UseExternalDBResult<T> {
 
 // Transform external DB club record to app Club type
 const transformClub = (record: Record<string, unknown>): Club => {
+  const cleanText = (value: unknown) =>
+    String(value ?? "")
+      // Collapse newlines / tabs / repeated spaces so search matches what users see
+      .replace(/\s+/g, " ")
+      .trim();
+
   // Default to closed recruiting status since this data doesn't have it
   const recruitingStatus: RecruitingStatus = "closed";
 
+  const category = cleanText(record.category);
+
   // Build tags from category if available
   const tags: string[] = [];
-  if (record.category) {
-    tags.push(String(record.category));
+  if (category) {
+    tags.push(category);
   }
 
   return {
-    id: String(record.id || ""),
-    name: String(record.name || ""),
-    category: String(record.category || ""),
-    description: String(record.description || ""),
+    id: cleanText(record.id || ""),
+    name: cleanText(record.name),
+    category,
+    description: cleanText(record.description),
     memberCount: 0, // Not available in external DB
-    imageUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop",
+    imageUrl:
+      "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop",
     tags,
     recruitingStatus,
     meetingSchedule: "TBD",
     // Store additional external fields for potential use
-    email: String(record.email || ""),
-    instagram: String(record.instagram || ""),
-    website: String(record.website || ""),
+    email: cleanText(record.email),
+    instagram: cleanText(record.instagram),
+    website: cleanText(record.website),
   };
 };
 
