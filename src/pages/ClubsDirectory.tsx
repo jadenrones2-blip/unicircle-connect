@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
 import { Badge } from "@/components/ui/badge";
-import { useClubs } from "@/hooks/useAirtable";
+import { useClubs } from "@/hooks/useExternalDB";
 
 const categories = ["All", "STEM", "Business", "Arts", "Cultural", "Recreation"];
 
