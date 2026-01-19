@@ -126,6 +126,15 @@ serve(async (req) => {
       const { data, error } = await query;
 
       if (error) {
+        // Handle missing table gracefully - return empty array instead of error
+        if (error.code === "PGRST205") {
+          console.log(`Table ${table} not found - returning empty array`);
+          return new Response(
+            JSON.stringify({ data: [] }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
         console.error(`Error fetching from ${table}:`, JSON.stringify(error));
         return new Response(
           JSON.stringify({ error: "Failed to fetch data", details: error.message, code: error.code }),
