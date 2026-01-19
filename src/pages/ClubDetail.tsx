@@ -115,10 +115,12 @@ const ClubDetail = () => {
                   </Badge>
                 </div>
 
-                <Badge variant="secondary" className="mb-4">{club.category}</Badge>
+                {club.category && (
+                  <Badge variant="secondary" className="mb-4">{club.category}</Badge>
+                )}
 
                 <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
-                  {club.description}
+                  {club.description || "This club profile is community-maintained. Leaders can claim and update it."}
                 </p>
 
                 {/* Tags */}
