@@ -109,18 +109,19 @@ const ClubDetail = () => {
                   <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
                     {club.name}
                   </h1>
-                  <Badge 
-                    variant="outline"
-                    className={`mt-2 ${
-                      club.recruitingStatus === 'open' 
-                        ? 'bg-green-500/10 text-green-600 border-green-500/20' 
-                        : club.recruitingStatus === 'upcoming'
-                          ? 'bg-gold/10 text-gold border-gold/20'
-                          : 'bg-muted text-muted-foreground border-border'
-                    }`}
-                  >
-                    {club.recruitingStatus === 'open' ? 'Open' : club.recruitingStatus === 'upcoming' ? 'Upcoming' : 'Closed'}
-                  </Badge>
+                  {/* Only show Open/Upcoming status, hide Closed */}
+                  {club.recruitingStatus !== 'closed' && (
+                    <Badge 
+                      variant="outline"
+                      className={`mt-2 ${
+                        club.recruitingStatus === 'open' 
+                          ? 'bg-green-500/10 text-green-600 border-green-500/20' 
+                          : 'bg-gold/10 text-gold border-gold/20'
+                      }`}
+                    >
+                      {club.recruitingStatus === 'open' ? 'Open' : 'Upcoming'}
+                    </Badge>
+                  )}
                 </div>
 
                 {/* Category - only show if exists */}

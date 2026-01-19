@@ -66,13 +66,15 @@ const ClubCard = ({ club, index }: ClubCardProps) => {
           <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-gold transition-colors leading-tight">
             {club.name}
           </h3>
-          {/* Recruiting Status */}
-          <Badge 
-            variant="outline" 
-            className={`flex-shrink-0 text-xs ${getStatusStyles(club.recruitingStatus)}`}
-          >
-            {getStatusLabel(club.recruitingStatus)}
-          </Badge>
+          {/* Only show Open/Upcoming status, hide Closed */}
+          {club.recruitingStatus !== 'closed' && (
+            <Badge 
+              variant="outline" 
+              className={`flex-shrink-0 text-xs ${getStatusStyles(club.recruitingStatus)}`}
+            >
+              {getStatusLabel(club.recruitingStatus)}
+            </Badge>
+          )}
         </div>
         
         {club.description && (
