@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Search, X, AlertCircle } from "lucide-react";
 import Header from "@/components/Header";
@@ -26,30 +26,56 @@ const CATEGORY_OPTIONS = [
   "Tech / STEM",
 ];
 
+const normalizeText = (value: string) =>
+  value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
 const ClubsDirectory = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
 
-  // Filter and sort clubs
-  const filteredClubs = useMemo(() => {
-    return clubs
-      .filter((club) => {
-        // Category filter
-        const matchesCategory =
-          selectedCategory === "All" || club.category === selectedCategory;
+  // Precompute normalized search/category keys once per dataset refresh
+  const indexedClubs = useMemo(() => {
+    const sorted = clubs.slice().sort((a, b) => a.name.localeCompare(b.name));
 
-        // Search filter (case-insensitive)
-        const searchLower = searchText.toLowerCase().trim();
-        const matchesSearch =
-          !searchLower ||
-          club.name.toLowerCase().includes(searchLower) ||
-          club.description?.toLowerCase().includes(searchLower);
+    return sorted.map((club) => {
+      const categoryKey = normalizeText(club.category || "");
+      const parts = [
+        club.name,
+        club.description,
+        club.category,
+        ...(club.tags ?? []),
+      ].filter((v): v is string => Boolean(v));
+
+      const searchKey = normalizeText(parts.join(" "));
+
+      return { club, categoryKey, searchKey };
+    });
+  }, [clubs]);
+
+  // Filter clubs (deferred so typing stays responsive)
+  const filteredClubs = useMemo(() => {
+    const selectedCategoryKey =
+      selectedCategory === "All" ? "" : normalizeText(selectedCategory);
+    const query = normalizeText(deferredSearchText);
+
+    return indexedClubs
+      .filter(({ categoryKey, searchKey }) => {
+        const matchesCategory =
+          selectedCategory === "All" || categoryKey === selectedCategoryKey;
+
+        const matchesSearch = !query || searchKey.includes(query);
 
         return matchesCategory && matchesSearch;
       })
-      .sort((a, b) => a.name.localeCompare(b.name)); // Sort A-Z by name
-  }, [clubs, selectedCategory, searchText]);
+      .map(({ club }) => club);
+  }, [deferredSearchText, indexedClubs, selectedCategory]);
 
   const clearFilters = () => {
     setSearchText("");
@@ -163,8 +189,8 @@ const ClubsDirectory = () => {
               {/* Clubs Grid */}
               {filteredClubs.length > 0 ? (
                 <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {filteredClubs.map((club, index) => (
-                    <ClubCard key={club.id} club={club} index={index} />
+                  {filteredClubs.map((club) => (
+                    <ClubCard key={club.id} club={club} />
                   ))}
                 </div>
               ) : (
