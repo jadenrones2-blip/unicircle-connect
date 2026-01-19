@@ -50,12 +50,14 @@ const ClubCard = ({ club, index }: ClubCardProps) => {
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 to-transparent" />
         
         {/* Category Badge */}
-        <Badge 
-          variant="secondary" 
-          className="absolute top-3 left-3 bg-background/80 backdrop-blur-sm text-foreground border-0"
-        >
-          {club.category}
-        </Badge>
+        {club.category && (
+          <Badge 
+            variant="secondary" 
+            className="absolute top-3 left-3 bg-background/80 backdrop-blur-sm text-foreground border-0"
+          >
+            {club.category}
+          </Badge>
+        )}
       </div>
 
       {/* Content */}
@@ -73,9 +75,11 @@ const ClubCard = ({ club, index }: ClubCardProps) => {
           </Badge>
         </div>
         
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-          {club.description}
-        </p>
+        {club.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+            {club.description}
+          </p>
+        )}
 
         {/* Action */}
         <Button variant="outline" size="sm" className="w-full group/btn" asChild>
