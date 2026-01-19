@@ -126,12 +126,14 @@ serve(async (req) => {
       const { data, error } = await query;
 
       if (error) {
-        console.error(`Error fetching from ${table}:`, error);
+        console.error(`Error fetching from ${table}:`, JSON.stringify(error));
         return new Response(
-          JSON.stringify({ error: "Failed to fetch data" }),
+          JSON.stringify({ error: "Failed to fetch data", details: error.message, code: error.code }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      console.log(`Query result for ${table}:`, JSON.stringify(data?.slice(0, 2) || []));
 
       console.log(`Successfully fetched ${data?.length || 0} records from ${table}`);
 
