@@ -15,6 +15,9 @@ const transformClub = (record: Record<string, unknown>): Club => {
     String(value ?? "")
       // Collapse newlines / tabs / repeated spaces so search matches what users see
       .replace(/\s+/g, " ")
+      .trim()
+      // Remove trailing " at" or " at at" that appears in source data
+      .replace(/( at)+$/i, "")
       .trim();
 
   // Default to closed recruiting status since this data doesn't have it
