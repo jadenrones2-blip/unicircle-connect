@@ -6,6 +6,7 @@ export interface Club {
   id: string;
   name: string;
   category: string;
+  categoryBucket?: string; // Used for dropdown filtering
   description: string;
   memberCount: number;
   imageUrl: string;
