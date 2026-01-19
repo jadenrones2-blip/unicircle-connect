@@ -12,7 +12,10 @@ export interface Club {
   tags: string[];
   recruitingStatus: RecruitingStatus;
   meetingSchedule: string;
-  meetingStyle: string;
+  meetingStyle?: string;
+  email?: string;
+  instagram?: string;
+  website?: string;
 }
 
 export interface Event {
