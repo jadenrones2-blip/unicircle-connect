@@ -82,7 +82,7 @@ serve(async (req) => {
     }
 
     // Whitelist allowed tables for security
-    const allowedTables = ["clubs", "events", "categories", "interests"];
+    const allowedTables = ["clubs", "events", "categories", "interests", "raw_club_pages"];
     if (!allowedTables.includes(table)) {
       console.error(`Attempted access to unauthorized table: ${table}`);
       return new Response(
