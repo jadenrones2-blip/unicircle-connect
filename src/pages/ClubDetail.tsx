@@ -3,18 +3,22 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   ArrowLeft, 
-  Users, 
   Calendar, 
   MapPin, 
   Clock, 
   Share2, 
   Heart,
   ExternalLink,
-  Loader2
+  Loader2,
+  Shield,
+  Mail,
+  Instagram,
+  Globe
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ExpressInterestModal from "@/components/ExpressInterestModal";
+import ClaimClubModal from "@/components/ClaimClubModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +27,7 @@ import { useClubs, useEvents } from "@/hooks/useExternalDB";
 const ClubDetail = () => {
   const { id } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   const { data: clubs, loading: clubsLoading } = useClubs();
@@ -30,6 +35,9 @@ const ClubDetail = () => {
 
   const club = useMemo(() => clubs.find(c => c.id === id), [clubs, id]);
   const clubEvents = useMemo(() => events.filter(e => e.clubId === id), [events, id]);
+
+  // Check if club has real contact info
+  const hasContactInfo = club?.email || club?.instagram || club?.website;
 
   if (clubsLoading) {
     return (
@@ -96,7 +104,7 @@ const ClubDetail = () => {
                   Back to Clubs
                 </Link>
 
-                {/* Title & Category */}
+                {/* Title & Status */}
                 <div className="flex items-start gap-3 mb-4">
                   <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
                     {club.name}
@@ -115,22 +123,63 @@ const ClubDetail = () => {
                   </Badge>
                 </div>
 
+                {/* Category - only show if exists */}
                 {club.category && (
                   <Badge variant="secondary" className="mb-4">{club.category}</Badge>
                 )}
 
+                {/* Description with fallback */}
                 <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
                   {club.description || "This club profile is community-maintained. Leaders can claim and update it."}
                 </p>
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 mt-6">
-                  {club.tags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-sm">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
+                {/* Tags - only show if there are non-empty tags */}
+                {club.tags.filter(t => t && t.trim()).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-6">
+                    {club.tags.filter(t => t && t.trim()).map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-sm">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                {/* Contact Info - only show if available */}
+                {hasContactInfo && (
+                  <div className="flex flex-wrap gap-4 mt-6">
+                    {club.email && (
+                      <a 
+                        href={`mailto:${club.email}`}
+                        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Mail className="w-4 h-4" />
+                        {club.email}
+                      </a>
+                    )}
+                    {club.instagram && (
+                      <a 
+                        href={club.instagram.startsWith('http') ? club.instagram : `https://instagram.com/${club.instagram.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Instagram className="w-4 h-4" />
+                        Instagram
+                      </a>
+                    )}
+                    {club.website && (
+                      <a 
+                        href={club.website.startsWith('http') ? club.website : `https://${club.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Globe className="w-4 h-4" />
+                        Website
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
@@ -157,45 +206,17 @@ const ClubDetail = () => {
                     <Share2 className="w-4 h-4" />
                   </Button>
                 </div>
+                {/* Claim Club Button */}
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsClaimModalOpen(true)}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Claim this club
+                </Button>
               </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-border">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-gold mb-1">
-                  <Users className="w-5 h-5" />
-                  <span className="text-2xl font-display font-bold">{club.memberCount}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">Members</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-gold mb-1">
-                  <Calendar className="w-5 h-5" />
-                  <span className="text-2xl font-display font-bold">
-                    {eventsLoading ? "..." : clubEvents.length}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">Upcoming Events</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-gold mb-1">
-                  <Clock className="w-5 h-5" />
-                </div>
-                <p className="text-sm text-muted-foreground">{club.meetingSchedule}</p>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-gold mb-1">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <p className="text-sm text-muted-foreground">Student Center</p>
-              </div>
-            </div>
-
-            {/* Meeting Style */}
-            <div className="mt-6 pt-6 border-t border-border">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Meeting Style</h3>
-              <p className="text-foreground">{club.meetingStyle}</p>
             </div>
           </motion.div>
         </div>
@@ -210,19 +231,33 @@ const ClubDetail = () => {
               <TabsTrigger value="events">
                 Events ({eventsLoading ? "..." : clubEvents.length})
               </TabsTrigger>
-              <TabsTrigger value="gallery">Gallery</TabsTrigger>
             </TabsList>
 
             <TabsContent value="about">
               <div className="grid md:grid-cols-2 gap-8">
-                <div className="premium-card p-6">
-                  <h3 className="font-display text-xl font-semibold mb-4">What We Do</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {club.description} We welcome students from all backgrounds and skill levels. 
-                    Our goal is to create a supportive community where members can learn, 
-                    grow, and make lasting connections.
-                  </p>
-                </div>
+                {club.description ? (
+                  <div className="premium-card p-6">
+                    <h3 className="font-display text-xl font-semibold mb-4">What We Do</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      {club.description}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="premium-card p-6 border-dashed">
+                    <h3 className="font-display text-xl font-semibold mb-4">About This Club</h3>
+                    <p className="text-muted-foreground leading-relaxed mb-4">
+                      This club profile is community-maintained and doesn't have detailed information yet.
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsClaimModalOpen(true)}
+                    >
+                      <Shield className="w-4 h-4 mr-2" />
+                      Are you a leader? Claim to update
+                    </Button>
+                  </div>
+                )}
                 <div className="premium-card p-6">
                   <h3 className="font-display text-xl font-semibold mb-4">How to Join</h3>
                   <ol className="space-y-3 text-muted-foreground">
@@ -295,21 +330,6 @@ const ClubDetail = () => {
                 </div>
               )}
             </TabsContent>
-
-            <TabsContent value="gallery">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="aspect-square rounded-lg overflow-hidden">
-                  <img 
-                    src={club.imageUrl} 
-                    alt="Gallery" 
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="aspect-square rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
-                  More photos coming soon
-                </div>
-              </div>
-            </TabsContent>
           </Tabs>
         </div>
       </section>
@@ -320,6 +340,14 @@ const ClubDetail = () => {
       <ExpressInterestModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        clubName={club.name}
+        clubId={club.id}
+      />
+
+      {/* Claim Club Modal */}
+      <ClaimClubModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
         clubName={club.name}
         clubId={club.id}
       />
