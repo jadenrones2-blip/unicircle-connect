@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useClubs, submitInterest } from "@/hooks/useAirtable";
+import { useClubs, submitInterest } from "@/hooks/useExternalDB";
 
 interface ExpressInterestFormProps {
   preselectedClubId?: string;
