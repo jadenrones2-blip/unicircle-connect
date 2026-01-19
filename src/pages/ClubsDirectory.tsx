@@ -1,46 +1,67 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Filter, Loader2, Search, X } from "lucide-react";
+import { Loader2, Search, X, AlertCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useClubs } from "@/hooks/useExternalDB";
 
+const CATEGORY_OPTIONS = [
+  "All",
+  "Academic",
+  "Cultural",
+  "Professional",
+  "Social",
+  "Service",
+  "Sports",
+  "Tech / STEM",
+];
+
 const ClubsDirectory = () => {
+  const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [searchQuery, setSearchQuery] = useState("");
   const { data: clubs, loading, error } = useClubs();
 
-  // Filter clubs by search and category
+  // Filter and sort clubs
   const filteredClubs = useMemo(() => {
-    return clubs.filter((club) => {
-      const matchesCategory = selectedCategory === "All" || club.category === selectedCategory;
-      const matchesSearch = !searchQuery || 
-        club.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        club.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }, [clubs, selectedCategory, searchQuery]);
+    return clubs
+      .filter((club) => {
+        // Category filter
+        const matchesCategory =
+          selectedCategory === "All" || club.category === selectedCategory;
 
-  // Extract unique categories from data (filter out empty ones)
-  const dynamicCategories = useMemo(() => {
-    const uniqueCategories = new Set(
-      clubs
-        .map(c => c.category)
-        .filter(cat => cat && cat.trim() && !cat.toLowerCase().includes('viewing'))
-    );
-    return ["All", ...Array.from(uniqueCategories).sort()];
-  }, [clubs]);
+        // Search filter (case-insensitive)
+        const searchLower = searchText.toLowerCase().trim();
+        const matchesSearch =
+          !searchLower ||
+          club.name.toLowerCase().includes(searchLower) ||
+          club.description?.toLowerCase().includes(searchLower);
 
-  const showCategoryFilter = dynamicCategories.length > 1;
+        return matchesCategory && matchesSearch;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name)); // Sort A-Z by name
+  }, [clubs, selectedCategory, searchText]);
+
+  const clearFilters = () => {
+    setSearchText("");
+    setSelectedCategory("All");
+  };
+
+  const hasActiveFilters = searchText || selectedCategory !== "All";
 
   return (
     <main className="min-h-screen bg-background">
       <Header />
-      
+
       {/* Hero Section */}
       <section className="pt-28 pb-6 md:pt-32 md:pb-8 px-4">
         <div className="container mx-auto">
@@ -53,63 +74,59 @@ const ClubsDirectory = () => {
               Clubs Directory
             </h1>
             <p className="text-muted-foreground">
-              {loading 
-                ? "Loading clubs..." 
+              {loading
+                ? "Loading clubs..."
                 : `Explore ${clubs.length} student organizations at UCSD`}
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Search Bar */}
-      <section className="pb-4 px-4">
-        <div className="container mx-auto max-w-xl">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search by name or description..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-10 h-12"
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
-                onClick={() => setSearchQuery("")}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            )}
+      {/* Search and Filter Controls */}
+      <section className="pb-8 px-4">
+        <div className="container mx-auto max-w-3xl">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search clubs"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="pl-10 pr-10 h-12"
+              />
+              {searchText && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                  onClick={() => setSearchText("")}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* Category Dropdown */}
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
+              <SelectTrigger className="w-full sm:w-[180px] h-12">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORY_OPTIONS.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </section>
-
-      {/* Category Filter - only show if we have categories */}
-      {showCategoryFilter && (
-        <section className="pb-8 px-4">
-          <div className="container mx-auto">
-            <div className="flex flex-wrap justify-center gap-2">
-              {dynamicCategories.map((category) => (
-                <Badge
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  className={`cursor-pointer transition-all px-4 py-1.5 text-sm ${
-                    selectedCategory === category 
-                      ? "bg-gold text-primary-foreground hover:bg-gold/90" 
-                      : "hover:border-gold/50"
-                  }`}
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Results */}
       <section className="pb-20 px-4">
@@ -126,7 +143,7 @@ const ClubsDirectory = () => {
               className="text-center py-16"
             >
               <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-                <Filter className="w-8 h-8 text-destructive" />
+                <AlertCircle className="w-8 h-8 text-destructive" />
               </div>
               <h3 className="text-lg font-display font-semibold text-foreground mb-2">
                 Error loading clubs
@@ -137,9 +154,10 @@ const ClubsDirectory = () => {
             <>
               {/* Results Count */}
               <p className="text-sm text-muted-foreground mb-6 text-center">
-                Showing {filteredClubs.length} club{filteredClubs.length !== 1 ? 's' : ''}
+                Showing {filteredClubs.length} club
+                {filteredClubs.length !== 1 ? "s" : ""}
                 {selectedCategory !== "All" && ` in ${selectedCategory}`}
-                {searchQuery && ` matching "${searchQuery}"`}
+                {searchText && ` matching "${searchText}"`}
               </p>
 
               {/* Clubs Grid */}
@@ -159,19 +177,13 @@ const ClubsDirectory = () => {
                     <Search className="w-8 h-8 text-muted-foreground" />
                   </div>
                   <h3 className="text-lg font-display font-semibold text-foreground mb-2">
-                    No clubs found
+                    No clubs match your search.
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    Try adjusting your search or filters
+                    Try adjusting your search or category filter
                   </p>
-                  {(searchQuery || selectedCategory !== "All") && (
-                    <Button 
-                      variant="outline"
-                      onClick={() => {
-                        setSearchQuery("");
-                        setSelectedCategory("All");
-                      }}
-                    >
+                  {hasActiveFilters && (
+                    <Button variant="outline" onClick={clearFilters}>
                       Clear filters
                     </Button>
                   )}
