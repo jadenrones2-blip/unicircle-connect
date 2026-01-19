@@ -1,38 +1,48 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Filter, Loader2 } from "lucide-react";
+import { Filter, Loader2, Search, X } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useClubs } from "@/hooks/useExternalDB";
-
-const categories = ["All", "STEM", "Business", "Arts", "Cultural", "Recreation"];
 
 const ClubsDirectory = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: clubs, loading, error } = useClubs();
 
+  // Filter clubs by search and category
   const filteredClubs = useMemo(() => {
     return clubs.filter((club) => {
-      return selectedCategory === "All" || club.category === selectedCategory;
+      const matchesCategory = selectedCategory === "All" || club.category === selectedCategory;
+      const matchesSearch = !searchQuery || 
+        club.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        club.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
     });
-  }, [clubs, selectedCategory]);
+  }, [clubs, selectedCategory, searchQuery]);
 
-  // Extract unique categories from data
+  // Extract unique categories from data (filter out empty ones)
   const dynamicCategories = useMemo(() => {
-    const uniqueCategories = new Set(clubs.map(c => c.category));
+    const uniqueCategories = new Set(
+      clubs
+        .map(c => c.category)
+        .filter(cat => cat && cat.trim() && !cat.toLowerCase().includes('viewing'))
+    );
     return ["All", ...Array.from(uniqueCategories).sort()];
   }, [clubs]);
 
-  const displayCategories = clubs.length > 0 ? dynamicCategories : categories;
+  const showCategoryFilter = dynamicCategories.length > 1;
 
   return (
     <main className="min-h-screen bg-background">
       <Header />
       
       {/* Hero Section */}
-      <section className="pt-28 pb-8 md:pt-32 md:pb-10 px-4">
+      <section className="pt-28 pb-6 md:pt-32 md:pb-8 px-4">
         <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -51,27 +61,55 @@ const ClubsDirectory = () => {
         </div>
       </section>
 
-      {/* Category Filter */}
-      <section className="pb-8 px-4">
-        <div className="container mx-auto">
-          <div className="flex flex-wrap justify-center gap-2">
-            {displayCategories.map((category) => (
-              <Badge
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                className={`cursor-pointer transition-all px-4 py-1.5 text-sm ${
-                  selectedCategory === category 
-                    ? "bg-gold text-primary-foreground hover:bg-gold/90" 
-                    : "hover:border-gold/50"
-                }`}
-                onClick={() => setSelectedCategory(category)}
+      {/* Search Bar */}
+      <section className="pb-4 px-4">
+        <div className="container mx-auto max-w-xl">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search clubs by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10 h-12"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                onClick={() => setSearchQuery("")}
               >
-                {category}
-              </Badge>
-            ))}
+                <X className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </section>
+
+      {/* Category Filter - only show if we have categories */}
+      {showCategoryFilter && (
+        <section className="pb-8 px-4">
+          <div className="container mx-auto">
+            <div className="flex flex-wrap justify-center gap-2">
+              {dynamicCategories.map((category) => (
+                <Badge
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  className={`cursor-pointer transition-all px-4 py-1.5 text-sm ${
+                    selectedCategory === category 
+                      ? "bg-gold text-primary-foreground hover:bg-gold/90" 
+                      : "hover:border-gold/50"
+                  }`}
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Results */}
       <section className="pb-20 px-4">
@@ -101,6 +139,7 @@ const ClubsDirectory = () => {
               <p className="text-sm text-muted-foreground mb-6 text-center">
                 Showing {filteredClubs.length} club{filteredClubs.length !== 1 ? 's' : ''}
                 {selectedCategory !== "All" && ` in ${selectedCategory}`}
+                {searchQuery && ` matching "${searchQuery}"`}
               </p>
 
               {/* Clubs Grid */}
@@ -117,14 +156,25 @@ const ClubsDirectory = () => {
                   className="text-center py-16"
                 >
                   <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                    <Filter className="w-8 h-8 text-muted-foreground" />
+                    <Search className="w-8 h-8 text-muted-foreground" />
                   </div>
                   <h3 className="text-lg font-display font-semibold text-foreground mb-2">
                     No clubs found
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground mb-4">
                     Try adjusting your search or filters
                   </p>
+                  {(searchQuery || selectedCategory !== "All") && (
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSelectedCategory("All");
+                      }}
+                    >
+                      Clear filters
+                    </Button>
+                  )}
                 </motion.div>
               )}
             </>

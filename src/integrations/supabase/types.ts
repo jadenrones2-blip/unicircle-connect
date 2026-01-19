@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      club_claim_requests: {
+        Row: {
+          club_id: string
+          club_name: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          proof_link: string | null
+          status: string
+        }
+        Insert: {
+          club_id: string
+          club_name: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          proof_link?: string | null
+          status?: string
+        }
+        Update: {
+          club_id?: string
+          club_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          proof_link?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       waitlist: {
         Row: {
           created_at: string
