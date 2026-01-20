@@ -2,12 +2,9 @@ import { motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { MonthlyCalendar } from '@/components/calendar/MonthlyCalendar';
-import { useExternalEvents } from '@/hooks/useExternalEvents';
+import ClubsCalendar from '@/components/calendar/ClubsCalendar';
 
 const CalendarApp = () => {
-  const { events, loading, error, refetch } = useExternalEvents();
-
   return (
     <main className="min-h-screen bg-background">
       <Header />
@@ -36,12 +33,7 @@ const CalendarApp = () => {
       {/* Calendar Section */}
       <section className="pb-20 px-4">
         <div className="container mx-auto max-w-6xl">
-          <MonthlyCalendar
-            events={events}
-            loading={loading}
-            error={error}
-            onRefetch={refetch}
-          />
+          <ClubsCalendar />
         </div>
       </section>
 
