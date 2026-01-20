@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import ClubsDirectory from "./pages/ClubsDirectory";
 import ClubDetail from "./pages/ClubDetail";
 import EventsCalendar from "./pages/EventsCalendar";
+import CalendarApp from "./pages/CalendarApp";
 import ExpressInterest from "./pages/ExpressInterest";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/clubs" element={<ClubsDirectory />} />
           <Route path="/clubs/:id" element={<ClubDetail />} />
           <Route path="/events" element={<EventsCalendar />} />
+          <Route path="/calendar" element={<CalendarApp />} />
           <Route path="/express-interest" element={<ExpressInterest />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
