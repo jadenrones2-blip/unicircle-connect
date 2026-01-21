@@ -32,6 +32,7 @@ export default function ClubsCalendar() {
     const { data, error } = await externalSupabase
       .from('events')
       .select('*')
+      .eq('source', 'instagram')
       .order('start_time', { ascending: true });
 
     if (!error && data) {
