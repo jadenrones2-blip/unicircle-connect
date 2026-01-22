@@ -247,9 +247,9 @@ export default function ClubsCalendar() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Start Time</TableHead>
-                  <TableHead>Club Handle</TableHead>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Club</TableHead>
+                  <TableHead>Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -263,7 +263,6 @@ export default function ClubsCalendar() {
                     }}
                   >
                     <TableCell className="font-medium">{getListDisplayTitle(event)}</TableCell>
-                    <TableCell>{formatEventTime(event.start_time)}</TableCell>
                     <TableCell>
                       {event.club_handle ? (
                         <span className="text-gold">@{event.club_handle}</span>
@@ -271,6 +270,7 @@ export default function ClubsCalendar() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
+                    <TableCell className="text-muted-foreground">{formatEventTime(event.start_time)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
