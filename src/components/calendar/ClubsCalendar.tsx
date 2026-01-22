@@ -4,9 +4,30 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
-import { externalSupabase, ExternalEvent } from '@/integrations/external-supabase/client';
+import { externalSupabase } from '@/integrations/external-supabase/client';
 import { EventDetailModal } from './EventDetailModal';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Calendar, MapPin } from 'lucide-react';
+import { format } from 'date-fns';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+interface ExternalEventWithHandle {
+  id: string;
+  title: string;
+  description: string | null;
+  start_time: string;
+  end_time: string | null;
+  location: string | null;
+  source: string | null;
+  club_id: string | null;
+  club_handle: string | null;
+}
 
 interface CalendarEvent {
   id: string;
@@ -18,34 +39,48 @@ interface CalendarEvent {
     location: string | null;
     clubId: string | null;
     source: string | null;
+    clubHandle: string | null;
   };
 }
 
 export default function ClubsCalendar() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [rawEvents, setRawEvents] = useState<ExternalEventWithHandle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedEvent, setSelectedEvent] = useState<ExternalEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<ExternalEventWithHandle | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
+    
+    // Calculate date range: 30 days ago to 30 days from now
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysFromNow = new Date(now);
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+    
     const { data, error } = await externalSupabase
       .from('events')
       .select('*')
-      .eq('source', 'instagram')
+      .gte('start_time', thirtyDaysAgo.toISOString())
+      .lte('start_time', thirtyDaysFromNow.toISOString())
       .order('start_time', { ascending: true });
 
     if (!error && data) {
-      const formattedEvents: CalendarEvent[] = data.map((event: ExternalEvent) => ({
+      setRawEvents(data as ExternalEventWithHandle[]);
+      
+      const formattedEvents: CalendarEvent[] = data.map((event: ExternalEventWithHandle) => ({
         id: event.id,
         title: event.title,
         start: event.start_time,
-        end: event.end_time,
+        end: event.end_time, // null end_time will render as single-time event
         extendedProps: {
           description: event.description,
           location: event.location,
           clubId: event.club_id,
-          source: event.source
+          source: event.source,
+          clubHandle: event.club_handle
         }
       }));
       setEvents(formattedEvents);
@@ -91,7 +126,8 @@ export default function ClubsCalendar() {
       description: event.extendedProps.description,
       location: event.extendedProps.location,
       club_id: event.extendedProps.clubId,
-      source: event.extendedProps.source
+      source: event.extendedProps.source,
+      club_handle: event.extendedProps.clubHandle
     });
     setIsModalOpen(true);
   };
@@ -104,8 +140,16 @@ export default function ClubsCalendar() {
     );
   }
 
+  const formatEventTime = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM d, yyyy h:mm a');
+    } catch {
+      return dateString;
+    }
+  };
+
   return (
-    <div className="clubs-calendar">
+    <div className="clubs-calendar space-y-8">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -121,6 +165,56 @@ export default function ClubsCalendar() {
         dayMaxEvents={3}
         moreLinkClick="popover"
       />
+
+      {/* Events List View */}
+      <div className="premium-card p-6">
+        <h3 className="text-xl font-display font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-gold" />
+          All Events
+        </h3>
+        
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 text-gold animate-spin" />
+          </div>
+        ) : rawEvents.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">No events found</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Start Time</TableHead>
+                  <TableHead>Club Handle</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rawEvents.map((event) => (
+                  <TableRow 
+                    key={event.id} 
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      setSelectedEvent(event);
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    <TableCell className="font-medium">{event.title}</TableCell>
+                    <TableCell>{formatEventTime(event.start_time)}</TableCell>
+                    <TableCell>
+                      {event.club_handle ? (
+                        <span className="text-gold">@{event.club_handle}</span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
 
       <EventDetailModal
         event={selectedEvent}
