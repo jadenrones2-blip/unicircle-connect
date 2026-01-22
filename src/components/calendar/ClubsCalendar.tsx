@@ -189,9 +189,17 @@ export default function ClubsCalendar() {
     );
   }
 
+  const formatEventDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'EEE, MMM d');
+    } catch {
+      return dateString;
+    }
+  };
+
   const formatEventTime = (dateString: string) => {
     try {
-      return format(new Date(dateString), 'MMM d, yyyy h:mm a');
+      return format(new Date(dateString), 'h:mm a');
     } catch {
       return dateString;
     }
@@ -250,6 +258,7 @@ export default function ClubsCalendar() {
                   <TableHead>Event</TableHead>
                   <TableHead>Club</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Time</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -270,7 +279,8 @@ export default function ClubsCalendar() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{formatEventTime(event.start_time)}</TableCell>
+                    <TableCell>{formatEventDate(event.start_time)}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{formatEventTime(event.start_time)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
