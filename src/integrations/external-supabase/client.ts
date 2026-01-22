@@ -28,4 +28,9 @@ export interface ExternalEvent {
   club_handle: string | null;
   source_url: string | null;
   caption: string | null;
+  verified: boolean | null;
+  corrected_title: string | null;
+  corrected_start_time: string | null;
+  corrected_end_time: string | null;
+  corrected_location: string | null;
 }
