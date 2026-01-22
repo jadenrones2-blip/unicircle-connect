@@ -39,6 +39,34 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
   // Only show caption if it's not error data
   const displayCaption = isErrorData(event.caption) ? null : event.caption;
 
+  const openExternal = (url: string) => {
+    // Instagram often blocks being loaded inside iframes. In the Lovable preview,
+    // opening a link can still be treated as an iframe navigation, so we:
+    // 1) Try a new tab on the current window
+    // 2) Try a new tab from the top window (escape the iframe)
+    // 3) Fall back to navigating the top window
+    try {
+      const w = window.open(url, '_blank', 'noopener,noreferrer');
+      if (w) return;
+    } catch {
+      // ignore
+    }
+
+    try {
+      const topWindow = window.top;
+      const w = topWindow?.open?.(url, '_blank', 'noopener,noreferrer');
+      if (w) return;
+    } catch {
+      // ignore
+    }
+
+    try {
+      if (window.top) window.top.location.href = url;
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg">
@@ -79,8 +107,13 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
           {event.source_url && (
             <div className="flex items-start gap-3">
               <ExternalLink className="w-5 h-5 text-gold mt-0.5 flex-shrink-0" />
-              <button 
-                onClick={() => window.open(event.source_url!, '_blank', 'noopener,noreferrer')}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openExternal(event.source_url!);
+                }}
                 className="text-gold hover:text-gold/80 underline underline-offset-2 transition-colors text-left"
               >
                 View Original Post
