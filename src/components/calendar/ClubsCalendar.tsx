@@ -69,10 +69,11 @@ export default function ClubsCalendar() {
     const thirtyDaysFromNow = new Date(now);
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
     
+    // Show events that are verified OR haven't been reviewed yet (verified is null)
     const { data, error } = await externalSupabase
       .from('events')
       .select('*')
-      .eq('verified', true)
+      .or('verified.eq.true,verified.is.null')
       .gte('start_time', thirtyDaysAgo.toISOString())
       .lte('start_time', thirtyDaysFromNow.toISOString())
       .order('start_time', { ascending: true });
