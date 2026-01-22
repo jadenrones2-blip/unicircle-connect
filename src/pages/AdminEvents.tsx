@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Check, ExternalLink, RefreshCw, X, Instagram } from 'lucide-react';
+import { Loader2, Check, ExternalLink, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -22,13 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-interface ScrapeResult {
-  clubsProcessed: number;
-  postsFetched: number;
-  upserted: number;
-  skipped: number;
-}
 
 interface EditingEvent {
   id: string;
@@ -51,8 +44,6 @@ export default function AdminEvents() {
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState<EditingEvent | null>(null);
   const [saving, setSaving] = useState(false);
-  const [scraping, setScraping] = useState(false);
-  const [scrapeResult, setScrapeResult] = useState<ScrapeResult | null>(null);
 
   const fetchUnverifiedEvents = useCallback(async () => {
     setLoading(true);
@@ -75,36 +66,6 @@ export default function AdminEvents() {
   useEffect(() => {
     fetchUnverifiedEvents();
   }, [fetchUnverifiedEvents]);
-
-  const handleScrapeInstagram = async () => {
-    setScraping(true);
-    setScrapeResult(null);
-    
-    try {
-      const response = await fetch('https://kiwxgzhnsmkeyggkxrsy.supabase.co/functions/v1/scrape-instagram', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setScrapeResult(data);
-      toast.success(`Scraped ${data.postsFetched} posts from ${data.clubsProcessed} clubs`);
-      
-      // Refresh the events list after scraping
-      fetchUnverifiedEvents();
-    } catch (error) {
-      console.error('Error scraping Instagram:', error);
-      toast.error('Failed to scrape Instagram');
-    } finally {
-      setScraping(false);
-    }
-  };
 
   const openEditModal = (event: ExternalEvent) => {
     setEditingEvent({
@@ -222,57 +183,11 @@ export default function AdminEvents() {
                 {events.length} events pending review • Click IG → correct → approve
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="gold" onClick={handleScrapeInstagram} disabled={scraping}>
-                {scraping ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Instagram className="w-4 h-4 mr-2" />
-                )}
-                {scraping ? 'Scraping...' : 'Scrape Instagram'}
-              </Button>
-              <Button variant="outline" onClick={fetchUnverifiedEvents} disabled={loading}>
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            </div>
+            <Button variant="outline" onClick={fetchUnverifiedEvents} disabled={loading}>
+              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
           </div>
-
-          {/* Scrape Results */}
-          {scrapeResult && (
-            <div className="premium-card p-4 mb-6 bg-gold/5 border-gold/20">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-foreground flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  Scrape Complete
-                </h3>
-                <button 
-                  onClick={() => setScrapeResult(null)}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-4 gap-4 mt-3 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Clubs Processed</span>
-                  <p className="text-xl font-bold text-foreground">{scrapeResult.clubsProcessed}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Posts Fetched</span>
-                  <p className="text-xl font-bold text-foreground">{scrapeResult.postsFetched}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Upserted</span>
-                  <p className="text-xl font-bold text-green-500">{scrapeResult.upserted}</p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Skipped</span>
-                  <p className="text-xl font-bold text-muted-foreground">{scrapeResult.skipped}</p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-20">
