@@ -33,4 +33,7 @@ export interface ExternalEvent {
   corrected_start_time: string | null;
   corrected_end_time: string | null;
   corrected_location: string | null;
+  reviewed_at: string | null;
+  posted_at: string | null;
+  created_at: string | null;
 }
