@@ -79,14 +79,12 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
           {event.source_url && (
             <div className="flex items-start gap-3">
               <ExternalLink className="w-5 h-5 text-gold mt-0.5 flex-shrink-0" />
-              <a 
-                href={event.source_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-gold hover:text-gold/80 underline underline-offset-2 transition-colors"
+              <button 
+                onClick={() => window.open(event.source_url!, '_blank', 'noopener,noreferrer')}
+                className="text-gold hover:text-gold/80 underline underline-offset-2 transition-colors text-left"
               >
                 View Original Post
-              </a>
+              </button>
             </div>
           )}
 
