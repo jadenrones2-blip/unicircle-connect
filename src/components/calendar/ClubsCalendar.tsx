@@ -235,6 +235,7 @@ export default function ClubsCalendar() {
         eventDisplay="block"
         dayMaxEvents={3}
         moreLinkClick="popover"
+        displayEventTime={false}
       />
 
       {/* Events List View */}
