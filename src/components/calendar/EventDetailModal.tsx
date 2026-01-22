@@ -25,11 +25,25 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
   const formatTime = (date: Date) => format(date, 'h:mm a');
   const formatDate = (date: Date) => format(date, 'EEEE, MMMM d, yyyy');
 
+  // Check if a string looks like JSON error data
+  const isErrorData = (text: string | null): boolean => {
+    if (!text) return false;
+    return text.startsWith('{"') || text.startsWith('{\"') || text.includes('"error"');
+  };
+
+  // Get a clean display title - fall back to club_handle if title is error data
+  const displayTitle = isErrorData(event.title) 
+    ? (event.club_handle ? `@${event.club_handle}` : 'Event')
+    : event.title;
+
+  // Only show caption if it's not error data
+  const displayCaption = isErrorData(event.caption) ? null : event.caption;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-display pr-8">{event.title}</DialogTitle>
+          <DialogTitle className="text-xl font-display pr-8">{displayTitle}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
@@ -87,14 +101,14 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
           )}
 
           {/* Details (Caption) */}
-          {event.caption && (
+          {displayCaption && (
             <div className="pt-2 border-t border-border">
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="w-4 h-4 text-gold" />
                 <span className="text-sm font-medium text-foreground">Details</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                {event.caption}
+                {displayCaption}
               </p>
             </div>
           )}

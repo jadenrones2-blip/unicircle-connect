@@ -74,9 +74,23 @@ export default function ClubsCalendar() {
     if (!error && data) {
       setRawEvents(data as ExternalEventWithHandle[]);
       
+      // Helper to check if text is JSON error data
+      const isErrorData = (text: string | null): boolean => {
+        if (!text) return false;
+        return text.startsWith('{"') || text.startsWith('{\"') || text.includes('"error"');
+      };
+
+      // Get clean display title - fall back to club_handle if title is error data
+      const getDisplayTitle = (event: ExternalEventWithHandle): string => {
+        if (isErrorData(event.title)) {
+          return event.club_handle ? `@${event.club_handle}` : 'Event';
+        }
+        return event.title;
+      };
+      
       const formattedEvents: CalendarEvent[] = data.map((event: ExternalEventWithHandle) => ({
         id: event.id,
-        title: event.title,
+        title: getDisplayTitle(event),
         start: event.start_time,
         end: event.end_time,
         extendedProps: {
@@ -156,6 +170,20 @@ export default function ClubsCalendar() {
     }
   };
 
+  // Helper to check if text is JSON error data (for list view)
+  const isErrorData = (text: string | null): boolean => {
+    if (!text) return false;
+    return text.startsWith('{"') || text.startsWith('{\"') || text.includes('"error"');
+  };
+
+  // Get clean display title for list view
+  const getListDisplayTitle = (event: ExternalEventWithHandle): string => {
+    if (isErrorData(event.title)) {
+      return event.club_handle ? `@${event.club_handle}` : 'Event';
+    }
+    return event.title;
+  };
+
   return (
     <div className="clubs-calendar space-y-8">
       <FullCalendar
@@ -207,7 +235,7 @@ export default function ClubsCalendar() {
                       setIsModalOpen(true);
                     }}
                   >
-                    <TableCell className="font-medium">{event.title}</TableCell>
+                    <TableCell className="font-medium">{getListDisplayTitle(event)}</TableCell>
                     <TableCell>{formatEventTime(event.start_time)}</TableCell>
                     <TableCell>
                       {event.club_handle ? (
