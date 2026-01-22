@@ -27,6 +27,8 @@ interface ExternalEventWithHandle {
   source: string | null;
   club_id: string | null;
   club_handle: string | null;
+  source_url: string | null;
+  caption: string | null;
 }
 
 interface CalendarEvent {
@@ -40,6 +42,8 @@ interface CalendarEvent {
     clubId: string | null;
     source: string | null;
     clubHandle: string | null;
+    sourceUrl: string | null;
+    caption: string | null;
   };
 }
 
@@ -74,13 +78,15 @@ export default function ClubsCalendar() {
         id: event.id,
         title: event.title,
         start: event.start_time,
-        end: event.end_time, // null end_time will render as single-time event
+        end: event.end_time,
         extendedProps: {
           description: event.description,
           location: event.location,
           clubId: event.club_id,
           source: event.source,
-          clubHandle: event.club_handle
+          clubHandle: event.club_handle,
+          sourceUrl: event.source_url,
+          caption: event.caption
         }
       }));
       setEvents(formattedEvents);
@@ -127,7 +133,9 @@ export default function ClubsCalendar() {
       location: event.extendedProps.location,
       club_id: event.extendedProps.clubId,
       source: event.extendedProps.source,
-      club_handle: event.extendedProps.clubHandle
+      club_handle: event.extendedProps.clubHandle,
+      source_url: event.extendedProps.sourceUrl,
+      caption: event.extendedProps.caption
     });
     setIsModalOpen(true);
   };

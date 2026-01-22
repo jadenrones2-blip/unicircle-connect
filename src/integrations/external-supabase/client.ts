@@ -25,4 +25,7 @@ export interface ExternalEvent {
   location: string | null;
   source: string | null;
   club_id: string | null;
+  club_handle: string | null;
+  source_url: string | null;
+  caption: string | null;
 }
