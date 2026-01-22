@@ -34,6 +34,9 @@ interface ExternalEventWithHandle {
   corrected_start_time: string | null;
   corrected_end_time: string | null;
   corrected_location: string | null;
+  reviewed_at: string | null;
+  posted_at: string | null;
+  created_at: string | null;
 }
 
 interface CalendarEvent {
@@ -69,11 +72,11 @@ export default function ClubsCalendar() {
     const thirtyDaysFromNow = new Date(now);
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
     
-    // Show events that are verified OR haven't been reviewed yet (verified is null)
+    // Only show verified events
     const { data, error } = await externalSupabase
       .from('events')
       .select('*')
-      .or('verified.eq.true,verified.is.null')
+      .eq('verified', true)
       .gte('start_time', thirtyDaysAgo.toISOString())
       .lte('start_time', thirtyDaysFromNow.toISOString())
       .order('start_time', { ascending: true });
@@ -170,7 +173,10 @@ export default function ClubsCalendar() {
       corrected_title: null,
       corrected_start_time: null,
       corrected_end_time: null,
-      corrected_location: null
+      corrected_location: null,
+      reviewed_at: null,
+      posted_at: null,
+      created_at: null
     });
     setIsModalOpen(true);
   };
