@@ -29,6 +29,11 @@ interface ExternalEventWithHandle {
   club_handle: string | null;
   source_url: string | null;
   caption: string | null;
+  verified: boolean | null;
+  corrected_title: string | null;
+  corrected_start_time: string | null;
+  corrected_end_time: string | null;
+  corrected_location: string | null;
 }
 
 interface CalendarEvent {
@@ -67,12 +72,22 @@ export default function ClubsCalendar() {
     const { data, error } = await externalSupabase
       .from('events')
       .select('*')
+      .eq('verified', true)
       .gte('start_time', thirtyDaysAgo.toISOString())
       .lte('start_time', thirtyDaysFromNow.toISOString())
       .order('start_time', { ascending: true });
 
     if (!error && data) {
-      setRawEvents(data as ExternalEventWithHandle[]);
+      // Apply coalesce logic for corrected fields
+      const processedEvents = (data as ExternalEventWithHandle[]).map(event => ({
+        ...event,
+        title: event.corrected_title || event.title,
+        start_time: event.corrected_start_time || event.start_time,
+        end_time: event.corrected_end_time || event.end_time,
+        location: event.corrected_location || event.location,
+      }));
+      
+      setRawEvents(processedEvents);
       
       // Helper to check if text is JSON error data
       const isErrorData = (text: string | null): boolean => {
@@ -88,7 +103,7 @@ export default function ClubsCalendar() {
         return event.title;
       };
       
-      const formattedEvents: CalendarEvent[] = data.map((event: ExternalEventWithHandle) => ({
+      const formattedEvents: CalendarEvent[] = processedEvents.map((event) => ({
         id: event.id,
         title: getDisplayTitle(event),
         start: event.start_time,
@@ -149,7 +164,12 @@ export default function ClubsCalendar() {
       source: event.extendedProps.source,
       club_handle: event.extendedProps.clubHandle,
       source_url: event.extendedProps.sourceUrl,
-      caption: event.extendedProps.caption
+      caption: event.extendedProps.caption,
+      verified: null,
+      corrected_title: null,
+      corrected_start_time: null,
+      corrected_end_time: null,
+      corrected_location: null
     });
     setIsModalOpen(true);
   };
