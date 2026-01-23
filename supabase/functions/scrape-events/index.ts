@@ -26,6 +26,32 @@ interface ScrapeResult {
   errors: string[];
 }
 
+// Normalize external URL (handle various formats)
+const normalizeExternalUrl = (value: string): string | null => {
+  let v = value.trim();
+  if (!v) return null;
+
+  // Users sometimes paste a full API path. supabase-js expects the base URL only.
+  v = v.replace(/\/(auth|rest|functions)\/v1.*$/i, "");
+  v = v.replace(/\/+$/, "");
+
+  // Accept either full URL, host, or project ref
+  if (!v.startsWith("http://") && !v.startsWith("https://")) {
+    if (v.includes(".") || v.includes("supabase.co")) {
+      v = `https://${v}`;
+    } else {
+      v = `https://${v}.supabase.co`;
+    }
+  }
+
+  try {
+    new URL(v);
+    return v;
+  } catch {
+    return null;
+  }
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -34,7 +60,7 @@ Deno.serve(async (req) => {
   try {
     const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const EXTERNAL_SUPABASE_URL = Deno.env.get('EXTERNAL_SUPABASE_URL');
+    const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || '';
     const EXTERNAL_SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
 
     if (!FIRECRAWL_API_KEY) {
@@ -43,12 +69,19 @@ Deno.serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
-    if (!EXTERNAL_SUPABASE_URL || !EXTERNAL_SUPABASE_SERVICE_ROLE_KEY) {
+    if (!rawExternalUrl || !EXTERNAL_SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('External Supabase credentials not configured');
     }
 
+    const externalUrl = normalizeExternalUrl(rawExternalUrl);
+    if (!externalUrl) {
+      throw new Error('Invalid EXTERNAL_SUPABASE_URL format');
+    }
+
+    console.log('Using external Supabase URL:', externalUrl);
+
     // Create external Supabase client
-    const externalSupabase = createClient(EXTERNAL_SUPABASE_URL, EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
+    const externalSupabase = createClient(externalUrl, EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
 
     // Fetch clubs with Instagram handles
     const { data: clubs, error: clubsError } = await externalSupabase
