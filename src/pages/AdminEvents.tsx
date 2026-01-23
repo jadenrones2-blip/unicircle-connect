@@ -67,11 +67,11 @@ export default function AdminEvents() {
       
       if (data?.success) {
         setScrapeResult({
-          clubsProcessed: data.clubsProcessed || 0,
-          postsFetched: data.postsFetched || 0,
+          clubsProcessed: data.clubsSearched || 0,
+          postsFetched: 0,
           eventsExtracted: data.eventsExtracted || 0,
         });
-        toast.success(`Scraped ${data.eventsExtracted || 0} events from ${data.clubsProcessed || 0} clubs`);
+        toast.success(`Found ${data.eventsExtracted || 0} events from web search`);
         fetchUnverifiedEvents();
       } else {
         toast.error(data?.error || 'Scrape failed');
