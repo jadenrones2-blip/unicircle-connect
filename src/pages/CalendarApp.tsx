@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
-import { Calendar } from 'lucide-react';
+import { Calendar, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ClubsCalendar from '@/components/calendar/ClubsCalendar';
+import { Button } from '@/components/ui/button';
 
 const CalendarApp = () => {
   return (
@@ -23,9 +25,15 @@ const CalendarApp = () => {
                 Events <span className="text-gradient-gold">Calendar</span>
               </h1>
             </div>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-6">
               Browse and discover upcoming events. Updates in real-time.
             </p>
+            <Link to="/submit-event">
+              <Button variant="gold" size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Submit an Event
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>

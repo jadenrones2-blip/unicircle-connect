@@ -8,6 +8,7 @@ import ClubsDirectory from "./pages/ClubsDirectory";
 import ClubDetail from "./pages/ClubDetail";
 import CalendarApp from "./pages/CalendarApp";
 import ExpressInterest from "./pages/ExpressInterest";
+import SubmitEvent from "./pages/SubmitEvent";
 import AdminEvents from "./pages/AdminEvents";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/events" element={<CalendarApp />} />
           <Route path="/calendar" element={<CalendarApp />} />
           <Route path="/express-interest" element={<ExpressInterest />} />
+          <Route path="/submit-event" element={<SubmitEvent />} />
           <Route path="/admin/events" element={<AdminEvents />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
