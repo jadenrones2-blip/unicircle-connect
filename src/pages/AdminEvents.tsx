@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { externalSupabase, ExternalEvent } from '@/integrations/external-supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Check, ExternalLink, RefreshCw, X } from 'lucide-react';
+import { Loader2, Check, ExternalLink, RefreshCw, X, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -44,6 +45,44 @@ export default function AdminEvents() {
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState<EditingEvent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [scraping, setScraping] = useState(false);
+  const [scrapeResult, setScrapeResult] = useState<{
+    clubsProcessed: number;
+    postsFetched: number;
+    eventsExtracted: number;
+  } | null>(null);
+
+  const handleScrapeInstagram = async () => {
+    setScraping(true);
+    setScrapeResult(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-events');
+      
+      if (error) {
+        console.error('Scrape error:', error);
+        toast.error('Failed to scrape Instagram');
+        return;
+      }
+      
+      if (data?.success) {
+        setScrapeResult({
+          clubsProcessed: data.clubsProcessed || 0,
+          postsFetched: data.postsFetched || 0,
+          eventsExtracted: data.eventsExtracted || 0,
+        });
+        toast.success(`Scraped ${data.eventsExtracted || 0} events from ${data.clubsProcessed || 0} clubs`);
+        fetchUnverifiedEvents();
+      } else {
+        toast.error(data?.error || 'Scrape failed');
+      }
+    } catch (err) {
+      console.error('Scrape error:', err);
+      toast.error('Failed to scrape Instagram');
+    } finally {
+      setScraping(false);
+    }
+  };
 
   const fetchUnverifiedEvents = useCallback(async () => {
     setLoading(true);
@@ -180,14 +219,43 @@ export default function AdminEvents() {
             <div>
               <h1 className="text-3xl font-display font-bold text-foreground">Review Queue</h1>
               <p className="text-muted-foreground mt-1">
-                {events.length} events pending review • Click IG → correct → approve
+                {events.length} events pending review • Runs daily at 6am PT
               </p>
             </div>
-            <Button variant="outline" onClick={fetchUnverifiedEvents} disabled={loading}>
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button variant="gold" onClick={handleScrapeInstagram} disabled={scraping}>
+                {scraping ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4 mr-2" />
+                )}
+                {scraping ? 'Scraping...' : 'Scrape Now'}
+              </Button>
+              <Button variant="outline" onClick={fetchUnverifiedEvents} disabled={loading}>
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
+
+          {scrapeResult && (
+            <div className="premium-card p-4 mb-6 border-gold/30">
+              <div className="flex items-center gap-6 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Clubs Processed:</span>{' '}
+                  <span className="font-semibold text-foreground">{scrapeResult.clubsProcessed}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Posts Fetched:</span>{' '}
+                  <span className="font-semibold text-foreground">{scrapeResult.postsFetched}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Events Extracted:</span>{' '}
+                  <span className="font-semibold text-gold">{scrapeResult.eventsExtracted}</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-20">
