@@ -22,6 +22,7 @@ const CATEGORY_OPTIONS = [
   "Professional",
   "Social",
   "Service",
+  "Spiritual",
   "Sports",
   "Tech / STEM",
 ];
