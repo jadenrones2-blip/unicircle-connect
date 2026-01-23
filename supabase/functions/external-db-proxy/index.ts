@@ -186,6 +186,82 @@ serve(async (req) => {
       );
     }
 
+    if (req.method === "DELETE" && action === "delete") {
+      // Handle DELETE operations
+      const filters = url.searchParams.get("filters");
+      
+      if (!filters) {
+        return new Response(
+          JSON.stringify({ error: "Filters are required for delete operations" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      let query = externalSupabase.from(table).delete();
+      
+      try {
+        const filterObj = JSON.parse(filters);
+        for (const [column, value] of Object.entries(filterObj)) {
+          query = query.eq(column, value as string | number | boolean);
+        }
+      } catch (e) {
+        console.error("Invalid filters JSON:", e);
+        return new Response(
+          JSON.stringify({ error: "Invalid filters format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error, count } = await query;
+
+      if (error) {
+        console.error(`Error deleting from ${table}:`, error);
+        return new Response(
+          JSON.stringify({ error: "Failed to delete data", details: error.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log(`Successfully deleted records from ${table}`);
+
+      return new Response(
+        JSON.stringify({ success: true, deleted: count }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (req.method === "POST" && action === "delete-all-events") {
+      // Special action to delete all events (for cleanup)
+      if (table !== "events") {
+        return new Response(
+          JSON.stringify({ error: "This action is only allowed for events table" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log("Deleting all events from external database");
+
+      const { error } = await externalSupabase
+        .from("events")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // Delete all (workaround for no-filter delete)
+
+      if (error) {
+        console.error("Error deleting all events:", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to delete events", details: error.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log("Successfully deleted all events");
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: "Invalid request method or action" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
