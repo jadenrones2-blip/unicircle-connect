@@ -48,27 +48,31 @@ const ClubsDirectory = () => {
     return sorted.map((club) => {
       // Use category_bucket for dropdown filtering (exact match)
       const categoryBucketKey = normalizeText(club.categoryBucket || "");
+      // Also normalize the category field for special cases like "Spiritual"
+      const categoryKey = normalizeText(club.category || "");
       // Search only filters name and description (not category)
       const searchParts = [club.name, club.description].filter(
         (v): v is string => Boolean(v)
       );
       const searchKey = normalizeText(searchParts.join(" "));
 
-      return { club, categoryBucketKey, searchKey };
+      return { club, categoryBucketKey, categoryKey, searchKey };
     });
   }, [clubs]);
 
   // Filter clubs (deferred so typing stays responsive)
   const filteredClubs = useMemo(() => {
-    const selectedCategoryBucketKey =
+    const selectedCategoryKey =
       selectedCategory === "All" ? "" : normalizeText(selectedCategory);
     const query = normalizeText(deferredSearchText);
 
     return indexedClubs
-      .filter(({ categoryBucketKey, searchKey }) => {
-        // Category filter: exact match on category_bucket
+      .filter(({ categoryBucketKey, categoryKey, searchKey }) => {
+        // Category filter: match on category_bucket OR category (for special cases like "Spiritual")
         const matchesCategory =
-          selectedCategory === "All" || categoryBucketKey === selectedCategoryBucketKey;
+          selectedCategory === "All" || 
+          categoryBucketKey === selectedCategoryKey ||
+          categoryKey === selectedCategoryKey;
 
         // Search filter: name OR description contains query
         const matchesSearch = !query || searchKey.includes(query);
