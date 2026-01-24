@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Calendar } from "lucide-react";
+import { LogIn, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
@@ -38,10 +38,10 @@ const HeroSection = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Button variant="gold" size="lg" className="group" asChild>
-              <a href="#cta">
-                Join the Waitlist
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </a>
+              <Link to="/login">
+                <LogIn className="w-4 h-4" />
+                Login
+              </Link>
             </Button>
             <Button variant="outline" size="lg" className="group" asChild>
               <Link to="/clubs">

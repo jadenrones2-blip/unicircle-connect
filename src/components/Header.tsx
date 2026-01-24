@@ -85,10 +85,10 @@ const Header = () => {
             whileTap={{ scale: 0.98 }}
           >
             <Button variant="gold" size="default" className="relative group overflow-hidden" asChild>
-              <Link to="/#cta">
+              <Link to="/login">
                 <span className="relative z-10 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Join Waitlist
+                  <LogIn className="w-4 h-4" />
+                  Login
                 </span>
                 {/* Shimmer effect */}
                 <motion.div 
@@ -169,9 +169,9 @@ const Header = () => {
                   className="mt-4"
                 >
                   <Button variant="gold" size="lg" className="w-full" asChild>
-                    <Link to="/#cta" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Join Waitlist
+                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Login
                     </Link>
                   </Button>
                 </motion.div>
