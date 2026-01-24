@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
-import WaitlistForm from "./WaitlistForm";
+import { Button } from "@/components/ui/button";
+import { LogIn } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   return (
@@ -44,10 +46,13 @@ const CTASection = () => {
             transition={{ delay: 0.2 }}
             className="flex justify-center"
           >
-            <WaitlistForm />
+            <Button variant="gold" size="lg" className="group" asChild>
+              <Link to="/login">
+                <LogIn className="w-4 h-4" />
+                Login
+              </Link>
+            </Button>
           </motion.div>
-
-
         </motion.div>
       </div>
     </section>
