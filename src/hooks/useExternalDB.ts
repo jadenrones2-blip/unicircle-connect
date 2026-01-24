@@ -20,6 +20,19 @@ const transformClub = (record: Record<string, unknown>): Club => {
       .replace(/( at)+$/i, "")
       .trim();
 
+  // Clean club name specifically - remove incomplete parenthetical suffixes and trailing fragments
+  const cleanClubName = (name: string): string => {
+    let cleaned = cleanText(name);
+    // Remove trailing incomplete words after parentheses like "(AIChE) Pre" -> "(AIChE)"
+    // Matches: ) followed by space and a short word (1-4 chars) at end
+    cleaned = cleaned.replace(/\)\s+[A-Za-z]{1,4}$/, ')');
+    // Remove trailing " Club" or " club" that's redundant
+    cleaned = cleaned.replace(/\s+[Cc]lub$/i, '');
+    // Remove trailing single letters or very short fragments
+    cleaned = cleaned.replace(/\s+[A-Za-z]{1,2}$/, '');
+    return cleaned;
+  };
+
   // Default to closed recruiting status since this data doesn't have it
   const recruitingStatus: RecruitingStatus = "closed";
 
@@ -34,7 +47,7 @@ const transformClub = (record: Record<string, unknown>): Club => {
 
   return {
     id: cleanText(record.id || ""),
-    name: cleanText(record.name),
+    name: cleanClubName(String(record.name ?? "")),
     category,
     categoryBucket, // Used for dropdown filtering
     description: cleanText(record.description),
