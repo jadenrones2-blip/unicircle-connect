@@ -47,6 +47,57 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_interests: {
+        Row: {
+          created_at: string
+          id: string
+          interest_category: string
+          interest_value: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interest_category: string
+          interest_value: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interest_category?: string
+          interest_value?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       waitlist: {
         Row: {
           created_at: string
