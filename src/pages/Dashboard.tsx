@@ -22,28 +22,47 @@ import type { Club } from '@/data/mockData';
 
 // Mapping from quiz answers to club categories/tags
 const interestToClubMapping: Record<string, string[]> = {
-  // Goals
-  career: ['Professional', 'Networking', 'Career'],
-  skills: ['Workshop', 'Training', 'Academic'],
-  friends: ['Social', 'Community', 'Recreation'],
-  leadership: ['Leadership', 'Executive', 'Board'],
-  community: ['Cultural', 'Identity', 'Community'],
-  give_back: ['Service', 'Volunteer', 'Philanthropy'],
+  // Superpower (goals)
+  network: ['Professional', 'Networking', 'Career', 'Industry'],
+  skills: ['Workshop', 'Training', 'Academic', 'Bootcamp'],
+  squad: ['Social', 'Community', 'Recreation', 'Friends'],
+  confidence: ['Leadership', 'Executive', 'Board', 'Public Speaking'],
+  purpose: ['Service', 'Volunteer', 'Philanthropy', 'Social Impact', 'Advocacy'],
+  fun: ['Social', 'Recreation', 'Events', 'Casual'],
+  
+  // Career goals
+  tech_career: ['Tech / STEM', 'STEM', 'Engineering', 'Computer Science', 'Coding', 'Technology', 'Software'],
+  finance_career: ['Finance', 'Business', 'Investment', 'Banking', 'Consulting'],
+  startup_career: ['Entrepreneurship', 'Startup', 'Business', 'Innovation'],
+  consulting_career: ['Consulting', 'Strategy', 'Business', 'Professional'],
+  healthcare_career: ['Pre-Med', 'Health', 'Healthcare', 'Biology', 'Medicine'],
+  research_career: ['Research', 'Science', 'Academic', 'PhD', 'Lab'],
+  creative_career: ['Arts', 'Design', 'Creative', 'Media', 'Film', 'Music'],
+  nonprofit_career: ['Nonprofit', 'Social Impact', 'Public Policy', 'Advocacy', 'Service'],
+  undecided_career: ['Exploration', 'General', 'Community'],
+  
   // Interests
   tech: ['Tech / STEM', 'STEM', 'Engineering', 'Computer Science', 'Coding', 'Technology'],
   business: ['Business', 'Consulting', 'Entrepreneurship', 'Finance', 'Marketing'],
   arts: ['Arts', 'Design', 'Creative', 'Music', 'Dance', 'Theater', 'Film'],
   science: ['Science', 'Research', 'Pre-Med', 'Biology', 'Chemistry', 'Physics'],
   culture: ['Cultural', 'Identity', 'International', 'Heritage'],
-  health: ['Health', 'Wellness', 'Fitness', 'Sports', 'Recreation'],
+  fitness: ['Health', 'Wellness', 'Fitness', 'Sports', 'Recreation'],
   social_impact: ['Social Impact', 'Advocacy', 'Service', 'Sustainability'],
   gaming: ['Gaming', 'Esports', 'Recreation'],
+  
+  // Energy level
+  explorer: ['Casual', 'Drop-in', 'Open'],
+  committed: ['Active', 'Member', 'Regular'],
+  all_in: ['Leadership', 'Executive', 'Board', 'Officers'],
+  
   // Vibe
-  competitive: ['Competition', 'Competitive', 'Tournament'],
-  chill: ['Casual', 'Drop-in', 'Relaxed'],
-  social_vibe: ['Social', 'Events', 'Networking'],
-  professional: ['Professional', 'Industry', 'Career'],
-  inclusive: ['Inclusive', 'Welcoming', 'Community'],
+  competitive: ['Competition', 'Competitive', 'Tournament', 'Ambitious'],
+  chill: ['Casual', 'Drop-in', 'Relaxed', 'Low-key'],
+  party: ['Social', 'Events', 'Networking', 'Parties'],
+  professional: ['Professional', 'Industry', 'Career', 'Corporate'],
+  creative_vibe: ['Creative', 'Arts', 'Experimental', 'Unique'],
+  inclusive: ['Inclusive', 'Welcoming', 'Community', 'Supportive'],
 };
 
 function calculateMatchScore(club: Club, interests: { category: string; value: string }[]): number {
