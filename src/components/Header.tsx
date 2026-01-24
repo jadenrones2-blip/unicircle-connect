@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles, Users, Calendar, Home } from "lucide-react";
+import { Menu, X, Sparkles, Users, Calendar, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import logoImage from "@/assets/unicircle-logo-new.png";
 
@@ -21,6 +21,7 @@ const Header = () => {
     { href: "/", label: "Home", icon: Sparkles },
     { href: "/clubs", label: "Clubs", icon: Users },
     { href: "/events", label: "Events", icon: Calendar },
+    { href: "/login", label: "Login", icon: LogIn },
   ];
 
   return (
