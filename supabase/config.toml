@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.scrape-events]
 verify_jwt = false
+
+[functions.verify-club-claim]
+verify_jwt = false

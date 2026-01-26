@@ -60,6 +60,10 @@ export type Database = {
           name: string
           proof_link: string | null
           status: string
+          token_expires_at: string | null
+          user_id: string | null
+          verification_token: string | null
+          verified_at: string | null
         }
         Insert: {
           club_id: string
@@ -70,6 +74,10 @@ export type Database = {
           name: string
           proof_link?: string | null
           status?: string
+          token_expires_at?: string | null
+          user_id?: string | null
+          verification_token?: string | null
+          verified_at?: string | null
         }
         Update: {
           club_id?: string
@@ -80,6 +88,10 @@ export type Database = {
           name?: string
           proof_link?: string | null
           status?: string
+          token_expires_at?: string | null
+          user_id?: string | null
+          verification_token?: string | null
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -110,6 +122,36 @@ export type Database = {
           joined_at?: string
           status?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      club_owners: {
+        Row: {
+          club_id: string
+          club_name: string
+          created_at: string
+          email: string
+          id: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          club_id: string
+          club_name: string
+          created_at?: string
+          email: string
+          id?: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          club_id?: string
+          club_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          user_id?: string
+          verified_at?: string
         }
         Relationships: []
       }

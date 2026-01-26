@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import VerifyClaim from "./pages/VerifyClaim";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
           <Route path="/express-interest" element={<ExpressInterest />} />
           <Route path="/submit-event" element={<SubmitEvent />} />
           <Route path="/admin/events" element={<AdminEvents />} />
+          <Route path="/verify-claim" element={<VerifyClaim />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
