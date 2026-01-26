@@ -234,11 +234,12 @@ export default function SubmitEvent() {
               </div>
             </div>
 
-            {/* Source */}
+            {/* Source (Optional) */}
             <div className="space-y-4 pt-4 border-t border-border">
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Instagram className="w-5 h-5 text-gold" />
                 Instagram Source
+                <span className="text-sm font-normal text-muted-foreground">(optional)</span>
               </h2>
 
               <div className="space-y-2">
