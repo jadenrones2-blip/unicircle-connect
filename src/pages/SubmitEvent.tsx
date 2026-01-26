@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Send, Instagram, Calendar, MapPin, Users } from 'lucide-react';
+import { Loader2, Send, Instagram, Calendar, MapPin, Users, CheckCircle2, ArrowLeft, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -34,9 +34,20 @@ const eventSubmissionSchema = z.object({
 
 type EventSubmission = z.infer<typeof eventSubmissionSchema>;
 
+interface SubmittedEventDetails {
+  title: string;
+  date: string;
+  time?: string;
+  location: string;
+  clubName: string;
+  instagramHandle?: string;
+}
+
 export default function SubmitEvent() {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submittedDetails, setSubmittedDetails] = useState<SubmittedEventDetails | null>(null);
   
   const form = useForm<EventSubmission>({
     resolver: zodResolver(eventSubmissionSchema),
@@ -91,7 +102,16 @@ export default function SubmitEvent() {
         throw new Error('Failed to submit event');
       }
 
-      toast.success('Event submitted! It will appear on the calendar after review.');
+      // Store submitted details for confirmation page
+      setSubmittedDetails({
+        title: data.event_title,
+        date: data.event_date,
+        time: data.event_time || undefined,
+        location: data.location || 'UCSD Campus',
+        clubName: data.club_name,
+        instagramHandle: data.instagram_handle || undefined,
+      });
+      setSubmitted(true);
       form.reset();
 
     } catch (err) {
@@ -108,19 +128,96 @@ export default function SubmitEvent() {
       
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-2xl">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold/10 border border-gold/20 text-gold mb-4">
-              <Instagram className="w-4 h-4" />
-              <span className="text-sm font-medium">Community Submissions</span>
+          {submitted && submittedDetails ? (
+            /* Success Confirmation */
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 mb-6">
+                <CheckCircle2 className="w-8 h-8 text-green-500" />
+              </div>
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
+                Event Submitted!
+              </h1>
+              <p className="text-muted-foreground max-w-md mx-auto mb-8">
+                Your event has been submitted for review. It will appear on the calendar once approved.
+              </p>
+
+              {/* Submitted Event Details */}
+              <div className="premium-card p-6 md:p-8 text-left mb-8">
+                <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-gold" />
+                  Submitted Event Details
+                </h2>
+                
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-muted-foreground w-24 shrink-0">Title:</span>
+                    <span className="text-foreground font-medium">{submittedDetails.title}</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-muted-foreground w-24 shrink-0">Date:</span>
+                    <span className="text-foreground">{new Date(submittedDetails.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </div>
+                  {submittedDetails.time && (
+                    <div className="flex items-start gap-3">
+                      <span className="text-muted-foreground w-24 shrink-0">Time:</span>
+                      <span className="text-foreground">{submittedDetails.time}</span>
+                    </div>
+                  )}
+                  <div className="flex items-start gap-3">
+                    <span className="text-muted-foreground w-24 shrink-0">Location:</span>
+                    <span className="text-foreground">{submittedDetails.location}</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="text-muted-foreground w-24 shrink-0">Club:</span>
+                    <span className="text-foreground">{submittedDetails.clubName}</span>
+                  </div>
+                  {submittedDetails.instagramHandle && (
+                    <div className="flex items-start gap-3">
+                      <span className="text-muted-foreground w-24 shrink-0">Instagram:</span>
+                      <span className="text-foreground">@{submittedDetails.instagramHandle.replace('@', '')}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/events')}
+                  className="gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Events
+                </Button>
+                <Button
+                  variant="gold"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setSubmittedDetails(null);
+                  }}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Submit Another Event
+                </Button>
+              </div>
             </div>
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
-              Submit an Event
-            </h1>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Saw an event on Instagram? Help the UCSD community by adding it to our calendar.
-            </p>
-          </div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold/10 border border-gold/20 text-gold mb-4">
+                  <Instagram className="w-4 h-4" />
+                  <span className="text-sm font-medium">Community Submissions</span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
+                  Submit an Event
+                </h1>
+                <p className="text-muted-foreground max-w-md mx-auto">
+                  Saw an event on Instagram? Help the UCSD community by adding it to our calendar.
+                </p>
+              </div>
 
           {/* Form */}
           <Form {...form}>
@@ -339,6 +436,8 @@ export default function SubmitEvent() {
               </p>
             </form>
           </Form>
+            </>
+          )}
         </div>
       </main>
 
