@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ClubsCalendar from '@/components/calendar/ClubsCalendar';
+import { RecommendedEvents } from '@/components/calendar/RecommendedEvents';
 import { Button } from '@/components/ui/button';
 
 const CalendarApp = () => {
@@ -35,6 +36,13 @@ const CalendarApp = () => {
               </Button>
             </Link>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Recommended Events Section (for logged-in users) */}
+      <section className="px-4">
+        <div className="container mx-auto max-w-6xl">
+          <RecommendedEvents />
         </div>
       </section>
 
