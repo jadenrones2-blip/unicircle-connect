@@ -1,78 +1,78 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Send, Instagram, Calendar, MapPin, Clock, Users } from 'lucide-react';
+import { Loader2, Send, Instagram, Calendar, MapPin, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
-interface EventSubmission {
-  event_title: string;
-  club_name: string;
-  instagram_handle: string;
-  event_date: string;
-  event_time: string;
-  location: string;
-  description: string;
-  instagram_post_url: string;
-  submitter_email: string;
-}
+const eventSubmissionSchema = z.object({
+  event_title: z.string().trim().min(1, 'Event title is required').max(200, 'Title must be under 200 characters'),
+  club_name: z.string().trim().min(1, 'Club name is required').max(200, 'Club name must be under 200 characters'),
+  instagram_handle: z.string().max(100, 'Handle must be under 100 characters').optional().or(z.literal('')),
+  event_date: z.string().min(1, 'Event date is required'),
+  event_time: z.string().optional().or(z.literal('')),
+  location: z.string().max(300, 'Location must be under 300 characters').optional().or(z.literal('')),
+  description: z.string().max(2000, 'Description must be under 2000 characters').optional().or(z.literal('')),
+  instagram_post_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+  submitter_email: z.string().email('Please enter a valid email').optional().or(z.literal('')),
+});
+
+type EventSubmission = z.infer<typeof eventSubmissionSchema>;
 
 export default function SubmitEvent() {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState<EventSubmission>({
-    event_title: '',
-    club_name: '',
-    instagram_handle: '',
-    event_date: '',
-    event_time: '',
-    location: '',
-    description: '',
-    instagram_post_url: '',
-    submitter_email: '',
+  
+  const form = useForm<EventSubmission>({
+    resolver: zodResolver(eventSubmissionSchema),
+    defaultValues: {
+      event_title: '',
+      club_name: '',
+      instagram_handle: '',
+      event_date: '',
+      event_time: '',
+      location: '',
+      description: '',
+      instagram_post_url: '',
+      submitter_email: '',
+    },
   });
 
-  const handleInputChange = (field: keyof EventSubmission, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.event_title.trim() || !formData.club_name.trim() || !formData.event_date) {
-      toast.error('Please fill in required fields');
-      return;
-    }
-
+  const onSubmit = async (data: EventSubmission) => {
     setSubmitting(true);
 
     try {
       // Construct start_time from date and time
-      const startDateTime = formData.event_time 
-        ? `${formData.event_date}T${formData.event_time}:00`
-        : `${formData.event_date}T18:00:00`;
+      const startDateTime = data.event_time 
+        ? `${data.event_date}T${data.event_time}:00`
+        : `${data.event_date}T18:00:00`;
 
       const eventRecord = {
-        title: formData.event_title.trim(),
+        title: data.event_title.trim(),
         start_time: new Date(startDateTime).toISOString(),
-        location: formData.location.trim() || 'UCSD Campus',
-        club_handle: formData.instagram_handle.replace('@', '').trim() || null,
+        location: data.location?.trim() || 'UCSD Campus',
+        club_handle: data.instagram_handle?.replace('@', '').trim() || null,
         source: 'user_submission',
-        source_url: formData.instagram_post_url.trim() || null,
-        caption: formData.description.trim() || null,
+        source_url: data.instagram_post_url?.trim() || null,
+        caption: data.description?.trim() || null,
         verified: false,
         posted_at: new Date().toISOString(),
       };
-
-      const { error } = await supabase.functions.invoke('external-db-proxy', {
-        body: { record: eventRecord },
-        method: 'POST',
-      });
 
       // Use query params approach for POST
       const response = await fetch(
@@ -92,19 +92,7 @@ export default function SubmitEvent() {
       }
 
       toast.success('Event submitted! It will appear on the calendar after review.');
-      
-      // Reset form
-      setFormData({
-        event_title: '',
-        club_name: '',
-        instagram_handle: '',
-        event_date: '',
-        event_time: '',
-        location: '',
-        description: '',
-        instagram_post_url: '',
-        submitter_email: '',
-      });
+      form.reset();
 
     } catch (err) {
       console.error('Submission error:', err);
@@ -135,160 +123,222 @@ export default function SubmitEvent() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="premium-card p-6 md:p-8 space-y-6">
-            {/* Event Details */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-gold" />
-                Event Details
-              </h2>
-              
-              <div className="space-y-2">
-                <Label htmlFor="event_title">Event Title *</Label>
-                <Input
-                  id="event_title"
-                  value={formData.event_title}
-                  onChange={(e) => handleInputChange('event_title', e.target.value)}
-                  placeholder="e.g. Spring Info Session"
-                  required
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="premium-card p-6 md:p-8 space-y-6">
+              {/* Event Details */}
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-gold" />
+                  Event Details
+                </h2>
+                
+                <FormField
+                  control={form.control}
+                  name="event_title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Title *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Spring Info Session"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="event_date">Date *</Label>
-                  <Input
-                    id="event_date"
-                    type="date"
-                    value={formData.event_date}
-                    onChange={(e) => handleInputChange('event_date', e.target.value)}
-                    required
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="event_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="date"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="event_time"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Time</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="time"
+                            placeholder="6:00 PM"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="event_time">Time</Label>
-                  <Input
-                    id="event_time"
-                    type="time"
-                    value={formData.event_time}
-                    onChange={(e) => handleInputChange('event_time', e.target.value)}
-                    placeholder="6:00 PM"
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="location" className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  Location
-                </Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="e.g. Price Center East Ballroom"
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        Location
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Price Center East Ballroom"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="What's this event about?"
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="What's this event about?"
-                  rows={3}
+              {/* Club Info */}
+              <div className="space-y-4 pt-4 border-t border-border">
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Users className="w-5 h-5 text-gold" />
+                  Club Information
+                </h2>
+
+                <FormField
+                  control={form.control}
+                  name="club_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Club Name *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Triton Engineering Student Council"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="instagram_handle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1">
+                        <Instagram className="w-4 h-4" />
+                        Club's Instagram Handle
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="@ucsd_tesc"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-            </div>
 
-            {/* Club Info */}
-            <div className="space-y-4 pt-4 border-t border-border">
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Users className="w-5 h-5 text-gold" />
-                Club Information
-              </h2>
+              {/* Source (Optional) */}
+              <div className="space-y-4 pt-4 border-t border-border">
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Instagram className="w-5 h-5 text-gold" />
+                  Instagram Source
+                  <span className="text-sm font-normal text-muted-foreground">(optional)</span>
+                </h2>
 
-              <div className="space-y-2">
-                <Label htmlFor="club_name">Club Name *</Label>
-                <Input
-                  id="club_name"
-                  value={formData.club_name}
-                  onChange={(e) => handleInputChange('club_name', e.target.value)}
-                  placeholder="e.g. Triton Engineering Student Council"
-                  required
+                <FormField
+                  control={form.control}
+                  name="instagram_post_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Link to Instagram Post</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://instagram.com/p/..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <p className="text-xs text-muted-foreground">
+                        Helps us verify the event details
+                      </p>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="submitter_email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Email (optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="your@ucsd.edu"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <p className="text-xs text-muted-foreground">
+                        We'll notify you when your submission is approved
+                      </p>
+                    </FormItem>
+                  )}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="instagram_handle" className="flex items-center gap-1">
-                  <Instagram className="w-4 h-4" />
-                  Club's Instagram Handle
-                </Label>
-                <Input
-                  id="instagram_handle"
-                  value={formData.instagram_handle}
-                  onChange={(e) => handleInputChange('instagram_handle', e.target.value)}
-                  placeholder="@ucsd_tesc"
-                />
-              </div>
-            </div>
+              {/* Submit Button */}
+              <Button 
+                type="submit" 
+                variant="gold" 
+                className="w-full"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                {submitting ? 'Submitting...' : 'Submit Event'}
+              </Button>
 
-            {/* Source (Optional) */}
-            <div className="space-y-4 pt-4 border-t border-border">
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Instagram className="w-5 h-5 text-gold" />
-                Instagram Source
-                <span className="text-sm font-normal text-muted-foreground">(optional)</span>
-              </h2>
-
-              <div className="space-y-2">
-                <Label htmlFor="instagram_post_url">Link to Instagram Post</Label>
-                <Input
-                  id="instagram_post_url"
-                  value={formData.instagram_post_url}
-                  onChange={(e) => handleInputChange('instagram_post_url', e.target.value)}
-                  placeholder="https://instagram.com/p/..."
-                />
-                <p className="text-xs text-muted-foreground">
-                  Helps us verify the event details
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="submitter_email">Your Email (optional)</Label>
-                <Input
-                  id="submitter_email"
-                  type="email"
-                  value={formData.submitter_email}
-                  onChange={(e) => handleInputChange('submitter_email', e.target.value)}
-                  placeholder="your@ucsd.edu"
-                />
-                <p className="text-xs text-muted-foreground">
-                  We'll notify you when your submission is approved
-                </p>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <Button 
-              type="submit" 
-              variant="gold" 
-              className="w-full"
-              disabled={submitting}
-            >
-              {submitting ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4 mr-2" />
-              )}
-              {submitting ? 'Submitting...' : 'Submit Event'}
-            </Button>
-
-            <p className="text-xs text-center text-muted-foreground">
-              Submissions are reviewed before appearing on the calendar.
-            </p>
-          </form>
+              <p className="text-xs text-center text-muted-foreground">
+                Submissions are reviewed before appearing on the calendar.
+              </p>
+            </form>
+          </Form>
         </div>
       </main>
 
