@@ -17,6 +17,8 @@ import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import VerifyClaim from "./pages/VerifyClaim";
+import ClubAdminDashboard from "./pages/ClubAdminDashboard";
+import ClubAdminEvents from "./pages/ClubAdminEvents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +45,8 @@ const App = () => (
           <Route path="/submit-event" element={<SubmitEvent />} />
           <Route path="/admin/events" element={<AdminEvents />} />
           <Route path="/verify-claim" element={<VerifyClaim />} />
+          <Route path="/club-admin" element={<ClubAdminDashboard />} />
+          <Route path="/club-admin/clubs/:clubId/events" element={<ClubAdminEvents />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
