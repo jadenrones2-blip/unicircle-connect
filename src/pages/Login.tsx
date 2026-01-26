@@ -1,22 +1,31 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, Sparkles, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
+import { cn } from '@/lib/utils';
+
+type LoginMode = 'student' | 'club-owner';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const { signIn } = useAuth();
   const { hasCompletedOnboarding } = useUserInterests();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<LoginMode>(
+    redirectTo?.includes('club-admin') ? 'club-owner' : 'student'
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,14 +40,32 @@ export default function Login() {
       if (error) throw error;
 
       if (data.user) {
-        // Check if user has completed onboarding
-        const completed = await hasCompletedOnboarding(data.user.id);
-        if (completed) {
-          navigate('/dashboard');
+        if (mode === 'club-owner') {
+          // Check if user owns any clubs
+          const { data: ownedClubs } = await supabase
+            .from('club_owners')
+            .select('id')
+            .eq('user_id', data.user.id)
+            .limit(1);
+
+          if (ownedClubs && ownedClubs.length > 0) {
+            navigate('/club-admin');
+            toast.success('Welcome to your Club Admin Portal!');
+          } else {
+            // They don't own clubs yet, send to clubs page to claim one
+            navigate('/clubs');
+            toast.info('You haven\'t claimed any clubs yet. Find your club and claim it!');
+          }
         } else {
-          navigate('/onboarding');
+          // Student login flow
+          const completed = await hasCompletedOnboarding(data.user.id);
+          if (completed) {
+            navigate(redirectTo || '/dashboard');
+          } else {
+            navigate('/onboarding');
+          }
+          toast.success('Welcome back!');
         }
-        toast.success('Welcome back!');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -63,8 +90,40 @@ export default function Login() {
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Welcome Back</h1>
           <p className="text-muted-foreground mt-2">
-            Sign in to discover clubs tailored to your interests
+            {mode === 'club-owner' 
+              ? 'Sign in to manage your club' 
+              : 'Sign in to discover clubs tailored to your interests'}
           </p>
+        </div>
+
+        {/* Mode Toggle */}
+        <div className="flex gap-2 mb-6 p-1 bg-muted rounded-lg">
+          <button
+            type="button"
+            onClick={() => setMode('student')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all',
+              mode === 'student'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Sparkles className="h-4 w-4" />
+            Student
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('club-owner')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all',
+              mode === 'club-owner'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Building2 className="h-4 w-4" />
+            Club Owner
+          </button>
         </div>
 
         {/* Card */}
@@ -116,14 +175,19 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              className={cn(
+                'w-full',
+                mode === 'club-owner' 
+                  ? 'bg-gold hover:bg-gold/90 text-primary-foreground' 
+                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+              )}
               disabled={loading}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  Sign In
+                  {mode === 'club-owner' ? 'Sign In as Club Owner' : 'Sign In'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -151,8 +215,17 @@ export default function Login() {
           className="mt-6 text-center"
         >
           <div className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
-            <Sparkles className="h-4 w-4 text-primary" />
-            Get personalized club recommendations
+            {mode === 'club-owner' ? (
+              <>
+                <Building2 className="h-4 w-4 text-gold" />
+                Manage your club's events and profile
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 text-primary" />
+                Get personalized club recommendations
+              </>
+            )}
           </div>
         </motion.div>
       </motion.div>
