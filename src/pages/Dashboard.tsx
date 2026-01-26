@@ -9,15 +9,20 @@ import {
   Calendar,
   Users,
   Loader2,
-  ChevronRight,
+  FileText,
+  UserCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
 import { useClubs } from '@/hooks/useExternalDB';
+import { useClubMemberships } from '@/hooks/useClubMemberships';
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
+import MyClubsSection from '@/components/dashboard/MyClubsSection';
+import ApplicationsSection from '@/components/dashboard/ApplicationsSection';
+import RecommendedClubCard from '@/components/dashboard/RecommendedClubCard';
 import type { Club } from '@/data/mockData';
 
 // Mapping from quiz answers to club categories/tags
@@ -95,8 +100,21 @@ export default function Dashboard() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { fetchInterests } = useUserInterests();
   const { data: clubs, loading: clubsLoading, refetch } = useClubs();
+  const {
+    memberships,
+    applications,
+    fetchMemberships,
+    fetchApplications,
+    applyToClub,
+    withdrawApplication,
+    removeMembership,
+    hasApplied,
+    isMember,
+  } = useClubMemberships();
+  
   const [interests, setInterests] = useState<{ category: string; value: string }[]>([]);
   const [interestsLoading, setInterestsLoading] = useState(true);
+  const [applyingClubId, setApplyingClubId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -107,14 +125,18 @@ export default function Dashboard() {
   useEffect(() => {
     if (user) {
       setInterestsLoading(true);
-      fetchInterests(user.id).then((data) => {
+      Promise.all([
+        fetchInterests(user.id),
+        fetchMemberships(user.id),
+        fetchApplications(user.id),
+      ]).then(([interestsData]) => {
         setInterests(
-          data.map((i) => ({ category: i.interest_category, value: i.interest_value }))
+          interestsData.map((i) => ({ category: i.interest_category, value: i.interest_value }))
         );
         setInterestsLoading(false);
       });
     }
-  }, [user, fetchInterests]);
+  }, [user, fetchInterests, fetchMemberships, fetchApplications]);
 
   const recommendedClubs = useMemo(() => {
     if (!clubs.length || !interests.length) return [];
@@ -140,6 +162,38 @@ export default function Dashboard() {
     navigate('/onboarding');
   };
 
+  const handleApply = async (club: Club) => {
+    if (!user) return;
+    
+    setApplyingClubId(club.id);
+    const result = await applyToClub(user.id, club.id, club.name);
+    setApplyingClubId(null);
+    
+    if (result.success) {
+      toast.success(`Applied to ${club.name}!`);
+    } else {
+      toast.error(result.error || 'Failed to apply');
+    }
+  };
+
+  const handleWithdraw = async (applicationId: string) => {
+    const result = await withdrawApplication(applicationId);
+    if (result.success) {
+      toast.success('Application withdrawn');
+    } else {
+      toast.error(result.error || 'Failed to withdraw');
+    }
+  };
+
+  const handleRemoveMembership = async (membershipId: string) => {
+    const result = await removeMembership(membershipId);
+    if (result.success) {
+      toast.success('Left club successfully');
+    } else {
+      toast.error(result.error || 'Failed to leave club');
+    }
+  };
+
   const isLoading = authLoading || clubsLoading || interestsLoading;
 
   if (isLoading) {
@@ -147,7 +201,7 @@ export default function Dashboard() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your recommendations...</p>
+          <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -191,93 +245,100 @@ export default function Dashboard() {
           className="mb-8"
         >
           <div className="flex items-center gap-3 mb-2">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <UserCircle className="h-6 w-6 text-primary" />
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-              Your Club Matches
+              Your Dashboard
             </h1>
           </div>
           <p className="text-muted-foreground">
-            Based on your interests, here are clubs we think you'll love.
+            Manage your clubs, track applications, and discover new communities.
           </p>
         </motion.div>
 
-        {/* Action buttons */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          <Button variant="outline" size="sm" onClick={handleRetakeQuiz}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Retake Quiz
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh Clubs
-          </Button>
-        </div>
+        {/* Tabs for My Clubs / Applications */}
+        <Tabs defaultValue="my-clubs" className="mb-10">
+          <TabsList className="mb-6">
+            <TabsTrigger value="my-clubs" className="gap-2">
+              <Users className="h-4 w-4" />
+              My Clubs ({memberships.length})
+            </TabsTrigger>
+            <TabsTrigger value="applications" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Applications ({applications.filter(a => a.status !== 'withdrawn').length})
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="my-clubs">
+            <MyClubsSection 
+              memberships={memberships} 
+              onRemoveMembership={handleRemoveMembership}
+            />
+          </TabsContent>
+          
+          <TabsContent value="applications">
+            <ApplicationsSection 
+              applications={applications} 
+              onWithdraw={handleWithdraw}
+            />
+          </TabsContent>
+        </Tabs>
 
-        {/* Recommendations grid */}
-        {recommendedClubs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendedClubs.map(({ club, score }, index) => (
-              <motion.div
-                key={club.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Link to={`/clubs/${club.id}`}>
-                  <div className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all duration-300">
-                    {/* Image */}
-                    <div className="relative h-40 overflow-hidden">
-                      <img
-                        src={club.imageUrl || '/placeholder.svg'}
-                        alt={club.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      {/* Match badge */}
-                      <div className="absolute top-3 left-3">
-                        <Badge className="bg-primary text-primary-foreground">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          {score} {score === 1 ? 'match' : 'matches'}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-4">
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                        {club.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {club.description}
-                      </p>
-
-                      {/* Category badge */}
-                      <div className="mt-3 flex items-center justify-between">
-                        <Badge variant="secondary" className="text-xs">
-                          {club.categoryBucket || club.category}
-                        </Badge>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+        {/* Recommendations section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-semibold text-foreground">
+                Recommended for You
+              </h2>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleRetakeQuiz}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retake Quiz
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => refetch()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
           </div>
-        ) : (
-          <div className="text-center py-16 bg-muted/30 rounded-xl">
-            <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              No matches yet
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              We couldn't find clubs matching your interests. Try updating your preferences.
-            </p>
-            <Button onClick={handleRetakeQuiz}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Retake Quiz
-            </Button>
-          </div>
-        )}
+
+          {recommendedClubs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendedClubs.map(({ club, score }, index) => (
+                <RecommendedClubCard
+                  key={club.id}
+                  club={club}
+                  score={score}
+                  index={index}
+                  hasApplied={hasApplied(club.id)}
+                  isMember={isMember(club.id)}
+                  onApply={() => handleApply(club)}
+                  isApplying={applyingClubId === club.id}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-muted/30 rounded-xl">
+              <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No matches yet
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                We couldn't find clubs matching your interests. Try updating your preferences.
+              </p>
+              <Button onClick={handleRetakeQuiz}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retake Quiz
+              </Button>
+            </div>
+          )}
+        </motion.div>
 
         {/* Browse all CTA */}
         <motion.div
