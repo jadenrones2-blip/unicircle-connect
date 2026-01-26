@@ -96,18 +96,13 @@ export function RecommendedEvents() {
                   <h3 className="font-medium text-foreground group-hover:text-gold transition-colors line-clamp-1">
                     {getDisplayTitle(event)}
                   </h3>
-                  {event.matchedInterests.length > 0 && (
-                    <Badge variant="secondary" className="shrink-0 text-xs">
-                      {event.matchedInterests.length} match{event.matchedInterests.length !== 1 ? 'es' : ''}
-                    </Badge>
-                  )}
                 </div>
 
                 {event.club_handle && (
                   <p className="text-sm text-gold mb-2">@{event.club_handle}</p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     {formatEventDate(event.start_time)}
@@ -123,6 +118,27 @@ export function RecommendedEvents() {
                     </span>
                   )}
                 </div>
+
+                {/* Matched interests tags */}
+                {event.matchedInterests.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="text-xs text-muted-foreground mr-1">Matched:</span>
+                    {event.matchedInterests.slice(0, 3).map((interest, i) => (
+                      <Badge 
+                        key={i} 
+                        variant="outline" 
+                        className="text-xs bg-gold/10 text-gold border-gold/20 capitalize"
+                      >
+                        {interest}
+                      </Badge>
+                    ))}
+                    {event.matchedInterests.length > 3 && (
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        +{event.matchedInterests.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                )}
               </motion.button>
             ))}
           </div>
