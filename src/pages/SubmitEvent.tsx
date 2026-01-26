@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,9 +8,11 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Send, Instagram, Calendar, MapPin, Users, CheckCircle2, ArrowLeft, Plus } from 'lucide-react';
+import { Loader2, Send, Calendar, MapPin, CheckCircle2, ArrowLeft, Plus, Shield, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useClubOwnership } from '@/hooks/useClubOwnership';
 import {
   Form,
   FormControl,
@@ -19,17 +21,21 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const eventSubmissionSchema = z.object({
   event_title: z.string().trim().min(1, 'Event title is required').max(200, 'Title must be under 200 characters'),
-  club_name: z.string().trim().min(1, 'Club name is required').max(200, 'Club name must be under 200 characters'),
-  instagram_handle: z.string().max(100, 'Handle must be under 100 characters').optional().or(z.literal('')),
+  club_id: z.string().min(1, 'Please select a club'),
   event_date: z.string().min(1, 'Event date is required'),
   event_time: z.string().optional().or(z.literal('')),
   location: z.string().max(300, 'Location must be under 300 characters').optional().or(z.literal('')),
   description: z.string().max(2000, 'Description must be under 2000 characters').optional().or(z.literal('')),
-  instagram_post_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
-  submitter_email: z.string().email('Please enter a valid email').optional().or(z.literal('')),
 });
 
 type EventSubmission = z.infer<typeof eventSubmissionSchema>;
@@ -40,11 +46,12 @@ interface SubmittedEventDetails {
   time?: string;
   location: string;
   clubName: string;
-  instagramHandle?: string;
 }
 
 export default function SubmitEvent() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedDetails, setSubmittedDetails] = useState<SubmittedEventDetails | null>(null);
@@ -53,18 +60,26 @@ export default function SubmitEvent() {
     resolver: zodResolver(eventSubmissionSchema),
     defaultValues: {
       event_title: '',
-      club_name: '',
-      instagram_handle: '',
+      club_id: '',
       event_date: '',
       event_time: '',
       location: '',
       description: '',
-      instagram_post_url: '',
-      submitter_email: '',
     },
   });
 
+  // Set default club if user only owns one
+  useEffect(() => {
+    if (ownedClubs.length === 1) {
+      form.setValue('club_id', ownedClubs[0].clubId);
+    }
+  }, [ownedClubs, form]);
+
+  const selectedClub = ownedClubs.find(c => c.clubId === form.watch('club_id'));
+
   const onSubmit = async (data: EventSubmission) => {
+    if (!selectedClub) return;
+    
     setSubmitting(true);
 
     try {
@@ -77,15 +92,13 @@ export default function SubmitEvent() {
         title: data.event_title.trim(),
         start_time: new Date(startDateTime).toISOString(),
         location: data.location?.trim() || 'UCSD Campus',
-        club_handle: data.instagram_handle?.replace('@', '').trim() || null,
-        source: 'user_submission',
-        source_url: data.instagram_post_url?.trim() || null,
+        club_handle: selectedClub.clubId,
+        source: 'club_owner',
         caption: data.description?.trim() || null,
-        verified: false,
+        verified: true, // Auto-verify since submitted by owner
         posted_at: new Date().toISOString(),
       };
 
-      // Use query params approach for POST
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=insert`,
         {
@@ -102,14 +115,12 @@ export default function SubmitEvent() {
         throw new Error('Failed to submit event');
       }
 
-      // Store submitted details for confirmation page
       setSubmittedDetails({
         title: data.event_title,
         date: data.event_date,
         time: data.event_time || undefined,
         location: data.location || 'UCSD Campus',
-        clubName: data.club_name,
-        instagramHandle: data.instagram_handle || undefined,
+        clubName: selectedClub.clubName,
       });
       setSubmitted(true);
       form.reset();
@@ -122,30 +133,81 @@ export default function SubmitEvent() {
     }
   };
 
+  const isLoading = authLoading || ownershipLoading;
+  const hasAccess = user && ownedClubs.length > 0;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-2xl">
-          {submitted && submittedDetails ? (
+          {isLoading ? (
+            /* Loading State */
+            <div className="text-center py-16">
+              <Loader2 className="w-8 h-8 text-gold animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          ) : !user ? (
+            /* Not Logged In */
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 border border-border mb-6">
+                <Lock className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h1 className="text-2xl font-display font-bold text-foreground mb-3">
+                Sign In Required
+              </h1>
+              <p className="text-muted-foreground max-w-md mx-auto mb-6">
+                You need to be signed in to submit events. Only verified club owners can add events to the calendar.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button variant="outline" onClick={() => navigate('/clubs')}>
+                  Browse Clubs
+                </Button>
+                <Button variant="gold" onClick={() => navigate('/login')}>
+                  Sign In
+                </Button>
+              </div>
+            </div>
+          ) : !hasAccess ? (
+            /* No Club Ownership */
+            <div className="text-center py-16">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/10 border border-gold/20 mb-6">
+                <Shield className="w-8 h-8 text-gold" />
+              </div>
+              <h1 className="text-2xl font-display font-bold text-foreground mb-3">
+                Club Ownership Required
+              </h1>
+              <p className="text-muted-foreground max-w-md mx-auto mb-6">
+                Only verified club owners can submit events. Claim your club to start adding events to the calendar.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button variant="outline" onClick={() => navigate('/events')}>
+                  View Calendar
+                </Button>
+                <Button variant="gold" onClick={() => navigate('/clubs')}>
+                  Find Your Club
+                </Button>
+              </div>
+            </div>
+          ) : submitted && submittedDetails ? (
             /* Success Confirmation */
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 mb-6">
                 <CheckCircle2 className="w-8 h-8 text-green-500" />
               </div>
               <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
-                Event Submitted!
+                Event Published!
               </h1>
               <p className="text-muted-foreground max-w-md mx-auto mb-8">
-                Your event has been submitted for review. It will appear on the calendar once approved.
+                Your event is now live on the UniCircle calendar.
               </p>
 
               {/* Submitted Event Details */}
               <div className="premium-card p-6 md:p-8 text-left mb-8">
                 <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gold" />
-                  Submitted Event Details
+                  Event Details
                 </h2>
                 
                 <div className="space-y-3">
@@ -171,12 +233,6 @@ export default function SubmitEvent() {
                     <span className="text-muted-foreground w-24 shrink-0">Club:</span>
                     <span className="text-foreground">{submittedDetails.clubName}</span>
                   </div>
-                  {submittedDetails.instagramHandle && (
-                    <div className="flex items-start gap-3">
-                      <span className="text-muted-foreground w-24 shrink-0">Instagram:</span>
-                      <span className="text-foreground">@{submittedDetails.instagramHandle.replace('@', '')}</span>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -188,7 +244,7 @@ export default function SubmitEvent() {
                   className="gap-2"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Back to Events
+                  View Calendar
                 </Button>
                 <Button
                   variant="gold"
@@ -208,234 +264,174 @@ export default function SubmitEvent() {
               {/* Header */}
               <div className="text-center mb-8">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold/10 border border-gold/20 text-gold mb-4">
-                  <Instagram className="w-4 h-4" />
-                  <span className="text-sm font-medium">Community Submissions</span>
+                  <Shield className="w-4 h-4" />
+                  <span className="text-sm font-medium">Verified Club Owner</span>
                 </div>
                 <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
                   Submit an Event
                 </h1>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  Saw an event on Instagram? Help the UCSD community by adding it to our calendar.
+                  Add an event to the UniCircle calendar for your club.
                 </p>
               </div>
 
-          {/* Form */}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="premium-card p-6 md:p-8 space-y-6">
-              {/* Event Details */}
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-gold" />
-                  Event Details
-                </h2>
-                
-                <FormField
-                  control={form.control}
-                  name="event_title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Title *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. Spring Info Session"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+              {/* Form */}
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="premium-card p-6 md:p-8 space-y-6">
+                  {/* Club Selection */}
+                  {ownedClubs.length > 1 && (
+                    <FormField
+                      control={form.control}
+                      name="club_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Select Club *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose a club" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {ownedClubs.map((club) => (
+                                <SelectItem key={club.clubId} value={club.clubId}>
+                                  {club.clubName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
-                />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="event_date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Date *</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="event_time"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Time</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="time"
-                            placeholder="6:00 PM"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        Location
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. Price Center East Ballroom"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="What's this event about?"
-                          rows={3}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Club Info */}
-              <div className="space-y-4 pt-4 border-t border-border">
-                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Users className="w-5 h-5 text-gold" />
-                  Club Information
-                </h2>
-
-                <FormField
-                  control={form.control}
-                  name="club_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Club Name *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. Triton Engineering Student Council"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="instagram_handle"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-1">
-                        <Instagram className="w-4 h-4" />
-                        Club's Instagram Handle
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="@ucsd_tesc"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Source (Optional) */}
-              <div className="space-y-4 pt-4 border-t border-border">
-                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Instagram className="w-5 h-5 text-gold" />
-                  Instagram Source
-                  <span className="text-sm font-normal text-muted-foreground">(optional)</span>
-                </h2>
-
-                <FormField
-                  control={form.control}
-                  name="instagram_post_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Link to Instagram Post</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="https://instagram.com/p/..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      <p className="text-xs text-muted-foreground">
-                        Helps us verify the event details
+                  {ownedClubs.length === 1 && (
+                    <div className="p-3 rounded-lg bg-gold/10 border border-gold/20">
+                      <p className="text-sm text-foreground">
+                        Submitting for: <span className="font-medium text-gold">{ownedClubs[0].clubName}</span>
                       </p>
-                    </FormItem>
+                    </div>
                   )}
-                />
 
-                <FormField
-                  control={form.control}
-                  name="submitter_email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Your Email (optional)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="your@ucsd.edu"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      <p className="text-xs text-muted-foreground">
-                        We'll notify you when your submission is approved
-                      </p>
-                    </FormItem>
-                  )}
-                />
-              </div>
+                  {/* Event Details */}
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-gold" />
+                      Event Details
+                    </h2>
+                    
+                    <FormField
+                      control={form.control}
+                      name="event_title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Event Title *</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. Spring Info Session"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              {/* Submit Button */}
-              <Button 
-                type="submit" 
-                variant="gold" 
-                className="w-full"
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4 mr-2" />
-                )}
-                {submitting ? 'Submitting...' : 'Submit Event'}
-              </Button>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="event_date"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date *</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="date"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="event_time"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Time</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="time"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-              <p className="text-xs text-center text-muted-foreground">
-                Submissions are reviewed before appearing on the calendar.
-              </p>
-            </form>
-          </Form>
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            Location
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. Price Center East Ballroom"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="What's this event about?"
+                              rows={3}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button 
+                    type="submit" 
+                    variant="gold" 
+                    className="w-full"
+                    disabled={submitting || !selectedClub}
+                  >
+                    {submitting ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4 mr-2" />
+                    )}
+                    {submitting ? 'Publishing...' : 'Publish Event'}
+                  </Button>
+
+                  <p className="text-xs text-center text-muted-foreground">
+                    Events from verified owners are published immediately.
+                  </p>
+                </form>
+              </Form>
             </>
           )}
         </div>
