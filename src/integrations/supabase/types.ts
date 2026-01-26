@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      club_applications: {
+        Row: {
+          applied_at: string
+          club_id: string
+          club_name: string
+          created_at: string
+          id: string
+          notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          club_id: string
+          club_name: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          club_id?: string
+          club_name?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       club_claim_requests: {
         Row: {
           club_id: string
@@ -44,6 +80,36 @@ export type Database = {
           name?: string
           proof_link?: string | null
           status?: string
+        }
+        Relationships: []
+      }
+      club_memberships: {
+        Row: {
+          club_id: string
+          club_name: string
+          created_at: string
+          id: string
+          joined_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          club_id: string
+          club_name: string
+          created_at?: string
+          id?: string
+          joined_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          club_id?: string
+          club_name?: string
+          created_at?: string
+          id?: string
+          joined_at?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
