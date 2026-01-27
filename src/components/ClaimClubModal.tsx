@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Shield, Mail, CheckCircle2 } from "lucide-react";
+import { Loader2, Shield, Mail, CheckCircle2, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -23,10 +24,10 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const claimSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
-  email: z.string().trim().email("Invalid email address").max(255),
   proofLink: z.string().trim().url("Must be a valid URL").max(500).optional().or(z.literal("")),
 });
 
@@ -40,6 +41,8 @@ interface ClaimClubModalProps {
 }
 
 const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalProps) => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [sentEmail, setSentEmail] = useState("");
@@ -48,19 +51,24 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
     resolver: zodResolver(claimSchema),
     defaultValues: {
       name: "",
-      email: "",
       proofLink: "",
     },
   });
 
   const onSubmit = async (data: ClaimFormData) => {
+    if (!user) {
+      toast.error("You must be logged in to claim a club");
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
+      const { data: session } = await supabase.auth.getSession();
+      
       const { data: response, error } = await supabase.functions.invoke('verify-club-claim', {
         body: {
           action: 'send-verification',
-          email: data.email.trim(),
           name: data.name.trim(),
           clubName,
           clubId,
@@ -73,7 +81,7 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
         throw new Error(response?.error || error?.message || 'Failed to submit claim');
       }
 
-      setSentEmail(data.email);
+      setSentEmail(user.email || '');
       setEmailSent(true);
       form.reset();
     } catch (error: any) {
@@ -90,6 +98,66 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
     form.reset();
     onClose();
   };
+
+  // Not logged in state
+  if (!authLoading && !user) {
+    return (
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-md">
+          <div className="text-center py-6">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gold/10 border border-gold/20 mb-4">
+              <LogIn className="w-7 h-7 text-gold" />
+            </div>
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-center">Login Required</DialogTitle>
+              <DialogDescription className="text-center">
+                You need to be logged in to claim ownership of <span className="font-medium text-foreground">{clubName}</span>.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="mt-6 p-4 rounded-lg bg-muted/50 text-left">
+              <h4 className="text-sm font-medium text-foreground mb-2">Why do I need to login?</h4>
+              <ul className="text-sm text-muted-foreground space-y-1.5">
+                <li className="flex items-start gap-2">
+                  <Shield className="w-4 h-4 text-gold shrink-0 mt-0.5" />
+                  Ensures only verified users can claim clubs
+                </li>
+                <li className="flex items-start gap-2">
+                  <Shield className="w-4 h-4 text-gold shrink-0 mt-0.5" />
+                  Links ownership to your account securely
+                </li>
+                <li className="flex items-start gap-2">
+                  <Shield className="w-4 h-4 text-gold shrink-0 mt-0.5" />
+                  Enables email verification via your account
+                </li>
+              </ul>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={handleClose}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="gold"
+                onClick={() => {
+                  handleClose();
+                  navigate('/login');
+                }}
+                className="flex-1"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
@@ -146,7 +214,7 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
                 Claim {clubName}
               </DialogTitle>
               <DialogDescription>
-                Verify your email to become the owner of this club and manage its events.
+                We'll send a verification link to <span className="font-medium text-foreground">{user?.email}</span> to confirm ownership.
               </DialogDescription>
             </DialogHeader>
 
@@ -161,23 +229,6 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
                       <FormControl>
                         <Input placeholder="Your full name" {...field} />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="your@email.com" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        We'll send a verification link to this email
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
