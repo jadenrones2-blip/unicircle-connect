@@ -27,13 +27,41 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { action, claimId, token, email, name, clubName, clubId, proofLink, redirectUrl } = await req.json() as ClaimRequest;
+    const { action, claimId, token, name, clubName, clubId, proofLink, redirectUrl } = await req.json() as ClaimRequest;
 
     if (action === "send-verification") {
-      if (!email || !name || !clubName || !clubId) {
+      // Validate authentication - user must be logged in
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader?.startsWith('Bearer ')) {
+        return new Response(
+          JSON.stringify({ error: "Authentication required. Please log in to claim a club." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Create client with user's auth to get their info
+      const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+      
+      const tokenStr = authHeader.replace('Bearer ', '');
+      const { data: claimsData, error: claimsError } = await userSupabase.auth.getClaims(tokenStr);
+      
+      if (claimsError || !claimsData?.claims) {
+        return new Response(
+          JSON.stringify({ error: "Invalid authentication. Please log in again." }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const userId = claimsData.claims.sub as string;
+      const userEmail = claimsData.claims.email as string;
+
+      if (!name || !clubName || !clubId) {
         return new Response(
           JSON.stringify({ error: "Missing required fields" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -54,7 +82,23 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Check for pending claim
+      // Check if this user already has a pending claim for this club
+      const { data: existingUserClaim } = await supabase
+        .from("club_claim_requests")
+        .select("id, status")
+        .eq("club_id", clubId)
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      if (existingUserClaim) {
+        return new Response(
+          JSON.stringify({ error: "You already have a pending claim for this club. Check your email." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check for any pending claim by others
       const { data: existingClaim } = await supabase
         .from("club_claim_requests")
         .select("id, status")
@@ -73,14 +117,15 @@ const handler = async (req: Request): Promise<Response> => {
       const verificationToken = crypto.randomUUID();
       const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-      // Create claim request with token
+      // Create claim request with token and user_id
       const { data: claim, error: insertError } = await supabase
         .from("club_claim_requests")
         .insert({
           club_id: clubId,
           club_name: clubName,
           name: name,
-          email: email,
+          email: userEmail,
+          user_id: userId,
           proof_link: proofLink || null,
           verification_token: verificationToken,
           token_expires_at: tokenExpiry.toISOString(),
@@ -105,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
         try {
           await resend.emails.send({
             from: "UniCircle <noreply@unicircle.club>",
-            to: [email],
+            to: [userEmail],
             subject: `Verify your ownership of ${clubName}`,
             html: `
               <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
@@ -196,6 +241,14 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
+      // Ensure claim has a user_id (security check)
+      if (!claim.user_id) {
+        return new Response(
+          JSON.stringify({ error: "Invalid claim: no user associated. Please submit a new claim while logged in." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       // Create club owner record
       const { error: ownerError } = await supabase
         .from("club_owners")
@@ -203,7 +256,7 @@ const handler = async (req: Request): Promise<Response> => {
           club_id: claim.club_id,
           club_name: claim.club_name,
           email: claim.email,
-          user_id: claim.user_id || "00000000-0000-0000-0000-000000000000", // Placeholder if no user
+          user_id: claim.user_id,
         });
 
       if (ownerError) {
