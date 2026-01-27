@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, ArrowRight, Sparkles, User } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, Sparkles, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
+import { cn } from '@/lib/utils';
+
+type SignupMode = 'student' | 'club-owner';
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -16,6 +19,7 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<SignupMode>('student');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,8 +43,13 @@ export default function Signup() {
       const { error } = await signUp(email, password);
       if (error) throw error;
 
-      toast.success('Account created! Let\'s find your clubs.');
-      navigate('/onboarding');
+      if (mode === 'club-owner') {
+        toast.success('Account created! Now find and claim your club.');
+        navigate('/clubs');
+      } else {
+        toast.success('Account created! Let\'s find your clubs.');
+        navigate('/onboarding');
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Signup failed';
       toast.error(message);
@@ -64,8 +73,40 @@ export default function Signup() {
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Join UniCircle</h1>
           <p className="text-muted-foreground mt-2">
-            Create an account to discover your perfect clubs
+            {mode === 'club-owner'
+              ? 'Create an account to claim and manage your club'
+              : 'Create an account to discover your perfect clubs'}
           </p>
+        </div>
+
+        {/* Mode Toggle */}
+        <div className="flex gap-2 mb-6 p-1 bg-muted rounded-lg">
+          <button
+            type="button"
+            onClick={() => setMode('student')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all',
+              mode === 'student'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Sparkles className="h-4 w-4" />
+            Student
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('club-owner')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all',
+              mode === 'club-owner'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Building2 className="h-4 w-4" />
+            Club Owner
+          </button>
         </div>
 
         {/* Card */}
@@ -127,14 +168,19 @@ export default function Signup() {
 
             <Button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              className={cn(
+                'w-full',
+                mode === 'club-owner'
+                  ? 'bg-gold hover:bg-gold/90 text-primary-foreground'
+                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+              )}
               disabled={loading}
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  Create Account
+                  {mode === 'club-owner' ? 'Create Club Owner Account' : 'Create Account'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -162,8 +208,17 @@ export default function Signup() {
           className="mt-6 text-center"
         >
           <div className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
-            <Sparkles className="h-4 w-4 text-primary" />
-            Take a quick quiz to find your matches
+            {mode === 'club-owner' ? (
+              <>
+                <Building2 className="h-4 w-4 text-gold" />
+                Claim your club and manage events
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 text-primary" />
+                Take a quick quiz to find your matches
+              </>
+            )}
           </div>
         </motion.div>
       </motion.div>
