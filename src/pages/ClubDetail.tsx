@@ -83,7 +83,7 @@ const ClubDetail = () => {
         {/* Cover Image */}
         <div className="relative h-64 md:h-80 overflow-hidden">
           <img
-            src={club.imageUrl}
+            src={(club as any).cover_image || club.imageUrl}
             alt={club.name}
             className="w-full h-full object-cover"
           />
