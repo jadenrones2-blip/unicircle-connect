@@ -23,6 +23,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
 import { useClubs } from "@/hooks/useExternalDB";
 import { supabase } from "@/integrations/supabase/client";
+import { ClubImageUpload } from "@/components/club-admin/ClubImageUpload";
 
 const clubEditSchema = z.object({
   description: z.string().max(2000, "Description must be under 2000 characters").optional(),
@@ -39,6 +40,7 @@ export default function ClubAdminEdit() {
   const { ownedClubs, loading: ownershipLoading, isOwnerOf } = useClubOwnership();
   const { data: clubs, loading: clubsLoading } = useClubs();
   const [isSaving, setIsSaving] = useState(false);
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
 
   const club = clubs.find((c) => c.id === clubId);
   const ownership = ownedClubs.find((o) => o.clubId === clubId);
@@ -62,6 +64,7 @@ export default function ClubAdminEdit() {
         instagram: club.instagram || "",
         website: club.website || "",
       });
+      setCoverImageUrl((club as any).cover_image || null);
     }
   }, [club, form]);
 
@@ -88,6 +91,7 @@ export default function ClubAdminEdit() {
             email: data.email || null,
             instagram: data.instagram || null,
             website: data.website || null,
+            cover_image: coverImageUrl || null,
           },
         },
       });
@@ -172,6 +176,12 @@ export default function ClubAdminEdit() {
               <div className="premium-card p-6">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <ClubImageUpload
+                      clubId={clubId!}
+                      currentImageUrl={coverImageUrl}
+                      onImageUploaded={setCoverImageUrl}
+                    />
+
                     <FormField
                       control={form.control}
                       name="description"
