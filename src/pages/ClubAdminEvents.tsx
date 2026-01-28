@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { EventEditModal } from '@/components/club-admin/EventEditModal';
 
 export default function ClubAdminEvents() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -39,6 +40,7 @@ export default function ClubAdminEvents() {
   const [loading, setLoading] = useState(true);
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<ExternalEvent | null>(null);
 
   const club = ownedClubs.find((c) => c.clubId === clubId);
 
@@ -202,11 +204,20 @@ export default function ClubAdminEvents() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditingEvent(event)}
+                              title="Edit event"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
                             {event.source_url && (
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 asChild
+                                title="View original"
                               >
                                 <a
                                   href={event.source_url}
@@ -222,6 +233,7 @@ export default function ClubAdminEvents() {
                               size="icon"
                               className="text-destructive hover:text-destructive"
                               onClick={() => setDeleteEventId(event.id)}
+                              title="Delete event"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -257,6 +269,13 @@ export default function ClubAdminEvents() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <EventEditModal
+        event={editingEvent}
+        isOpen={!!editingEvent}
+        onClose={() => setEditingEvent(null)}
+        onSaved={fetchClubEvents}
+      />
     </SidebarProvider>
   );
 }
