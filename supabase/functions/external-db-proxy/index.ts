@@ -186,6 +186,41 @@ serve(async (req) => {
       );
     }
 
+    if (req.method === "POST" && action === "update") {
+      // Handle UPDATE operations
+      const body = await req.json();
+      
+      if (!body.id || !body.record) {
+        return new Response(
+          JSON.stringify({ error: "ID and record data are required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log(`Updating ${table} id=${body.id}:`, body.record);
+
+      const { data, error } = await externalSupabase
+        .from(table)
+        .update(body.record)
+        .eq("id", body.id)
+        .select();
+
+      if (error) {
+        console.error(`Error updating ${table}:`, error);
+        return new Response(
+          JSON.stringify({ error: "Failed to update data", details: error.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log(`Successfully updated record in ${table}`);
+
+      return new Response(
+        JSON.stringify({ data }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (req.method === "DELETE" && action === "delete") {
       // Handle DELETE operations
       const filters = url.searchParams.get("filters");

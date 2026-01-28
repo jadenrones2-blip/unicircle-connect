@@ -13,7 +13,8 @@ import {
   Shield,
   Mail,
   Instagram,
-  Globe
+  Globe,
+  Settings
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -23,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClubs, useEvents } from "@/hooks/useExternalDB";
+import { useClubOwnership } from "@/hooks/useClubOwnership";
 
 const ClubDetail = () => {
   const { id } = useParams();
@@ -32,9 +34,11 @@ const ClubDetail = () => {
 
   const { data: clubs, loading: clubsLoading } = useClubs();
   const { data: events, loading: eventsLoading } = useEvents(clubs);
+  const { isOwnerOf, loading: ownershipLoading } = useClubOwnership();
 
   const club = useMemo(() => clubs.find(c => c.id === id), [clubs, id]);
   const clubEvents = useMemo(() => events.filter(e => e.clubId === id), [events, id]);
+  const isOwner = id ? isOwnerOf(id) : false;
 
   // Check if club has real contact info
   const hasContactInfo = club?.email || club?.instagram || club?.website;
@@ -207,16 +211,32 @@ const ClubDetail = () => {
                     <Share2 className="w-4 h-4" />
                   </Button>
                 </div>
-                {/* Claim Club Button */}
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-muted-foreground hover:text-foreground"
-                  onClick={() => setIsClaimModalOpen(true)}
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Claim this club
-                </Button>
+                {/* Claim Club Button - only show if not owner */}
+                {!ownershipLoading && !isOwner && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => setIsClaimModalOpen(true)}
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Claim this club
+                  </Button>
+                )}
+                
+                {/* Manage Club Button - only show if owner */}
+                {!ownershipLoading && isOwner && (
+                  <Button 
+                    variant="gold" 
+                    size="sm"
+                    asChild
+                  >
+                    <Link to={`/club-admin/clubs/${id}/edit`}>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Manage Club
+                    </Link>
+                  </Button>
+                )}
               </div>
             </div>
           </motion.div>
