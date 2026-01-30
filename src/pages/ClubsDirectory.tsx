@@ -19,6 +19,7 @@ const CATEGORY_OPTIONS = [
   "All",
   "Academic",
   "Cultural",
+  "Fraternity",
   "Professional",
   "Social",
   "Service",
