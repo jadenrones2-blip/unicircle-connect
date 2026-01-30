@@ -20,6 +20,7 @@ const CATEGORY_OPTIONS = [
   "Academic",
   "Cultural",
   "Fraternity",
+  "Greek Life",
   "Professional",
   "Service",
   "Social",
@@ -28,6 +29,9 @@ const CATEGORY_OPTIONS = [
   "Sports",
   "Tech / STEM",
 ];
+
+// Greek life related terms for combined filtering
+const GREEK_LIFE_TERMS = ["fraternity", "sorority", "interfraternity", "panhellenic", "greek life", "greek"];
 
 const normalizeText = (value: string) =>
   value
@@ -67,14 +71,24 @@ const ClubsDirectory = () => {
     const selectedCategoryKey =
       selectedCategory === "All" ? "" : normalizeText(selectedCategory);
     const query = normalizeText(deferredSearchText);
+    const isGreekLifeFilter = selectedCategory === "Greek Life";
 
     return indexedClubs
       .filter(({ categoryBucketKey, categoryKey, searchKey }) => {
-        // Category filter: match on category_bucket OR category (for special cases like "Spiritual")
-        const matchesCategory =
-          selectedCategory === "All" || 
-          categoryBucketKey === selectedCategoryKey ||
-          categoryKey === selectedCategoryKey;
+        // Special handling for Greek Life - match any Greek-related terms
+        let matchesCategory: boolean;
+        if (selectedCategory === "All") {
+          matchesCategory = true;
+        } else if (isGreekLifeFilter) {
+          matchesCategory = GREEK_LIFE_TERMS.some(
+            (term) => categoryBucketKey.includes(term) || categoryKey.includes(term)
+          );
+        } else {
+          // Standard filter: match on category_bucket OR category
+          matchesCategory =
+            categoryBucketKey === selectedCategoryKey ||
+            categoryKey === selectedCategoryKey;
+        }
 
         // Search filter: name OR description contains query
         const matchesSearch = !query || searchKey.includes(query);
