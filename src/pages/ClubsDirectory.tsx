@@ -1,11 +1,13 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Search, X, AlertCircle } from "lucide-react";
+import { Loader2, Search, X, AlertCircle, LayoutGrid, List } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
+import ClubListItem from "@/components/ClubListItem";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
 import {
   Select,
   SelectContent,
@@ -44,6 +46,7 @@ const normalizeText = (value: string) =>
 const ClubsDirectory = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
 
@@ -131,7 +134,7 @@ const ClubsDirectory = () => {
 
       {/* Search and Filter Controls */}
       <section className="pb-8 px-4">
-        <div className="container mx-auto max-w-3xl">
+        <div className="container mx-auto max-w-4xl">
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -171,6 +174,26 @@ const ClubsDirectory = () => {
                 ))}
               </SelectContent>
             </Select>
+
+            {/* View Toggle */}
+            <div className="flex border border-border rounded-lg overflow-hidden h-12">
+              <Toggle
+                pressed={viewMode === "list"}
+                onPressedChange={() => setViewMode("list")}
+                className="rounded-none border-0 px-3 data-[state=on]:bg-muted"
+                aria-label="List view"
+              >
+                <List className="w-5 h-5" />
+              </Toggle>
+              <Toggle
+                pressed={viewMode === "grid"}
+                onPressedChange={() => setViewMode("grid")}
+                className="rounded-none border-0 border-l border-border px-3 data-[state=on]:bg-muted"
+                aria-label="Grid view"
+              >
+                <LayoutGrid className="w-5 h-5" />
+              </Toggle>
+            </div>
           </div>
         </div>
       </section>
@@ -207,13 +230,21 @@ const ClubsDirectory = () => {
                 {searchText && ` matching "${searchText}"`}
               </p>
 
-              {/* Clubs Grid */}
+              {/* Clubs List/Grid */}
               {filteredClubs.length > 0 ? (
-                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {filteredClubs.map((club) => (
-                    <ClubCard key={club.id} club={club} />
-                  ))}
-                </div>
+                viewMode === "list" ? (
+                  <div className="flex flex-col gap-3 max-w-4xl mx-auto">
+                    {filteredClubs.map((club) => (
+                      <ClubListItem key={club.id} club={club} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredClubs.map((club) => (
+                      <ClubCard key={club.id} club={club} />
+                    ))}
+                  </div>
+                )
               ) : (
                 <motion.div
                   initial={{ opacity: 0 }}
