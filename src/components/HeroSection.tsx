@@ -16,44 +16,43 @@ const HeroSection = () => {
       <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-primary/10 rounded-full blur-[100px] -z-10" />
 
       <div className="container mx-auto px-4 md:px-6 flex-1 flex items-center">
-        <div className="max-w-3xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Main headline - bold black */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-2 text-foreground"
+            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] mb-3 text-foreground tracking-tight"
           >
             UCSD isn't socially dead.
           </motion.h1>
           
-          <motion.h2
+          {/* Secondary headline - lighter with gold accent */}
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.5 }}
-            className="font-display text-3xl md:text-4xl lg:text-5xl font-medium leading-[1.2] mb-8"
+            className="font-display text-3xl md:text-4xl lg:text-5xl leading-[1.2] mb-10 tracking-tight"
           >
-            <span className="text-muted-foreground">You just haven't found your </span>
-            <span className="text-gold">circle</span>
-            <span className="text-muted-foreground"> yet.</span>
-          </motion.h2>
+            <span className="text-charcoal font-normal">You just haven't found your </span>
+            <span className="text-gold font-semibold">circle</span>
+            <span className="text-charcoal font-normal"> yet.</span>
+          </motion.p>
 
-          <motion.p
+          {/* Subtext - two lines */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-lg text-muted-foreground max-w-xl mx-auto mb-4 leading-relaxed"
+            className="max-w-2xl mx-auto mb-10"
           >
-            Where campus connection meets clarity, community, and ambition.
-          </motion.p>
-          
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.5 }}
-            className="text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed"
-          >
-            Discover everything happening at UCSD - in one place.
-          </motion.p>
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-1">
+              Where campus connection meets clarity, community, and ambition.
+            </p>
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+              Discover everything happening at UCSD - in one place.
+            </p>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
