@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ClubImageUpload } from "@/components/club-admin/ClubImageUpload";
 import { useExternalClubRecord } from "@/hooks/useExternalClubRecord";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const clubEditSchema = z.object({
   description: z.string().max(2000, "Description must be under 2000 characters").optional(),
@@ -134,9 +135,61 @@ export default function ClubAdminEdit() {
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
           <ClubAdminSidebar />
-          <main className="flex-1 p-8">
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="w-8 h-8 text-gold animate-spin" />
+          <main className="flex-1">
+            <header className="h-14 border-b border-border flex items-center px-4 gap-4">
+              <SidebarTrigger />
+              <div>
+                <Skeleton className="h-5 w-40 mb-1" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+            </header>
+
+            <div className="p-6 max-w-2xl">
+              <Skeleton className="h-4 w-32 mb-6" />
+
+              <div className="premium-card p-6 space-y-6">
+                {/* Cover image skeleton */}
+                <Skeleton className="h-40 w-full rounded-lg" />
+
+                {/* Description skeleton */}
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-[150px] w-full rounded-md" />
+                  <Skeleton className="h-3 w-64" />
+                </div>
+
+                {/* Email / Instagram row */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                    <Skeleton className="h-3 w-32" />
+                  </div>
+                </div>
+
+                {/* LinkedIn / Website row */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                    <Skeleton className="h-3 w-36" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-10 w-full rounded-md" />
+                  </div>
+                </div>
+
+                {/* Buttons skeleton */}
+                <div className="flex gap-3 pt-4">
+                  <Skeleton className="h-10 w-20 rounded-md" />
+                  <Skeleton className="h-10 w-32 rounded-md" />
+                </div>
+              </div>
             </div>
           </main>
         </div>
