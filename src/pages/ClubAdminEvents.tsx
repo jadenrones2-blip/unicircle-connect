@@ -128,7 +128,9 @@ export default function ClubAdminEvents() {
     }
   };
 
-  if (authLoading || ownershipLoading) {
+  // Keep showing loader while ownership is loading OR club hasn't been found yet
+  // This prevents flashing "Club not found" before ownership data arrives
+  if (authLoading || ownershipLoading || (!club && ownedClubs.length === 0)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 text-gold animate-spin" />
@@ -138,6 +140,7 @@ export default function ClubAdminEvents() {
 
   if (!user) return null;
 
+  // Only show "Club not found" after ownership has fully loaded and club is still missing
   if (!club) {
     return (
       <SidebarProvider>
