@@ -34,6 +34,8 @@ export function useClubOwnership() {
   const [ownedClubs, setOwnedClubs] = useState<ClubOwnership[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const normalizeClubId = (clubId: string) => clubId.trim().toLowerCase();
+
   useEffect(() => {
     let isMounted = true;
 
@@ -94,11 +96,13 @@ export function useClubOwnership() {
   }, [user, authLoading]);
 
   const isOwnerOf = (clubId: string): boolean => {
-    return ownedClubs.some((club) => club.clubId === clubId);
+    const target = normalizeClubId(clubId);
+    return ownedClubs.some((club) => normalizeClubId(club.clubId) === target);
   };
 
   const getClubOwnership = (clubId: string): ClubOwnership | undefined => {
-    return ownedClubs.find((club) => club.clubId === clubId);
+    const target = normalizeClubId(clubId);
+    return ownedClubs.find((club) => normalizeClubId(club.clubId) === target);
   };
 
   const canPerformAction = (clubId: string, action: keyof ClubRestrictions): boolean => {
