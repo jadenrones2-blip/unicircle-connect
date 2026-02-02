@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
@@ -34,7 +34,7 @@ export default function ClubAdminEvents() {
   const { clubId } = useParams<{ clubId: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { ownedClubs, loading: ownershipLoading, isOwnerOf } = useClubOwnership();
+  const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
   
   const [events, setEvents] = useState<ExternalEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +44,14 @@ export default function ClubAdminEvents() {
 
   const normalizeId = (id?: string) => (id ?? '').trim().toLowerCase();
   const club = ownedClubs.find((c) => normalizeId(c.clubId) === normalizeId(clubId));
+
+  // IMPORTANT: avoid depending on unstable function references from hooks in effects.
+  // We compute ownership from data to prevent accidental refetch loops.
+  const isOwner = useMemo(() => {
+    const target = normalizeId(clubId);
+    if (!target) return false;
+    return ownedClubs.some((c) => normalizeId(c.clubId) === target);
+  }, [clubId, ownedClubs]);
 
   const fetchClubEvents = useCallback(async () => {
     if (!clubId || !club) return;
@@ -83,18 +91,18 @@ export default function ClubAdminEvents() {
     if (authLoading) return;
     if (!user) return;
     if (ownershipLoading) return;
-    if (clubId && !isOwnerOf(clubId)) {
+    if (clubId && !isOwner) {
       toast.error('You do not own this club');
       navigate('/club-admin');
     }
-  }, [authLoading, user, ownershipLoading, clubId, isOwnerOf, navigate]);
+  }, [authLoading, user, ownershipLoading, clubId, isOwner, navigate]);
 
   // Fetch events only when everything is ready
   useEffect(() => {
-    if (club && !authLoading && user && !ownershipLoading && isOwnerOf(clubId ?? '')) {
+    if (club && !authLoading && user && !ownershipLoading && isOwner) {
       fetchClubEvents();
     }
-  }, [authLoading, user, ownershipLoading, club, clubId, isOwnerOf, fetchClubEvents]);
+  }, [authLoading, user, ownershipLoading, club, isOwner, fetchClubEvents]);
 
   const handleDelete = async () => {
     if (!deleteEventId) return;
