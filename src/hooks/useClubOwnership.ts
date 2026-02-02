@@ -30,7 +30,7 @@ const DEFAULT_RESTRICTIONS: ClubRestrictions = {
 };
 
 export function useClubOwnership() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [ownedClubs, setOwnedClubs] = useState<ClubOwnership[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,9 +38,14 @@ export function useClubOwnership() {
     let isMounted = true;
 
     const fetchOwnedClubs = async () => {
-      // IMPORTANT: keep loading true while auth is resolving and while we fetch ownership.
+      // IMPORTANT: keep loading true while auth is still resolving.
       // Otherwise pages can briefly think "ownershipLoading=false" and redirect/toast incorrectly.
-      setLoading(true);
+      if (authLoading) {
+        if (isMounted) setLoading(true);
+        return;
+      }
+
+      if (isMounted) setLoading(true);
 
       if (!user) {
         if (isMounted) {
@@ -86,7 +91,7 @@ export function useClubOwnership() {
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [user, authLoading]);
 
   const isOwnerOf = (clubId: string): boolean => {
     return ownedClubs.some((club) => club.clubId === clubId);
