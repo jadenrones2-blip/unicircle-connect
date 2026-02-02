@@ -42,7 +42,8 @@ export default function ClubAdminEvents() {
   const [deleting, setDeleting] = useState(false);
   const [editingEvent, setEditingEvent] = useState<ExternalEvent | null>(null);
 
-  const club = ownedClubs.find((c) => c.clubId === clubId);
+  const normalizeId = (id?: string) => (id ?? '').trim().toLowerCase();
+  const club = ownedClubs.find((c) => normalizeId(c.clubId) === normalizeId(clubId));
 
   const fetchClubEvents = useCallback(async () => {
     if (!clubId || !club) return;

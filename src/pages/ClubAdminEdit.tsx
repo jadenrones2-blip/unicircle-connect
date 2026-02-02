@@ -21,10 +21,10 @@ import {
 import { ClubAdminSidebar } from "@/components/club-admin/ClubAdminSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
-import { useClubs } from "@/hooks/useExternalDB";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ClubImageUpload } from "@/components/club-admin/ClubImageUpload";
+import { useExternalClubRecord } from "@/hooks/useExternalClubRecord";
 
 const clubEditSchema = z.object({
   description: z.string().max(2000, "Description must be under 2000 characters").optional(),
@@ -41,12 +41,13 @@ export default function ClubAdminEdit() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { ownedClubs, loading: ownershipLoading, isOwnerOf } = useClubOwnership();
-  const { data: clubs, loading: clubsLoading } = useClubs();
+  const { club, loading: clubLoading, error: clubError, refetch: refetchClub } = useExternalClubRecord(clubId);
   const [isSaving, setIsSaving] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
 
-  const club = clubs.find((c) => c.id === clubId);
-  const ownership = ownedClubs.find((o) => o.clubId === clubId);
+  const normalizeId = (id?: string) => (id ?? "").trim().toLowerCase();
+  const isOwner = clubId ? isOwnerOf(clubId) : false;
+  const ownership = ownedClubs.find((o) => normalizeId(o.clubId) === normalizeId(clubId));
 
   const form = useForm<ClubEditFormData>({
     resolver: zodResolver(clubEditSchema),
@@ -66,10 +67,10 @@ export default function ClubAdminEdit() {
         description: club.description || "",
         email: club.email || "",
         instagram: club.instagram || "",
-        linkedin: (club as any).linkedin || "",
+        linkedin: club.linkedin || "",
         website: club.website || "",
       });
-      setCoverImageUrl((club as any).cover_image || null);
+      setCoverImageUrl(club.cover_image || null);
     }
   }, [club, form]);
 
@@ -128,7 +129,7 @@ export default function ClubAdminEdit() {
     }
   };
 
-  if (authLoading || ownershipLoading || clubsLoading) {
+  if (authLoading || ownershipLoading || clubLoading) {
     return (
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
@@ -143,7 +144,7 @@ export default function ClubAdminEdit() {
     );
   }
 
-  if (!club || !ownership) {
+  if (!clubId || !club || !isOwner) {
     return (
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
@@ -151,12 +152,20 @@ export default function ClubAdminEdit() {
           <main className="flex-1 p-8">
             <div className="text-center py-12">
               <h2 className="text-xl font-semibold mb-2">Club not found</h2>
+              {clubError && (
+                <p className="text-sm text-muted-foreground mb-4">{clubError}</p>
+              )}
+              <div className="flex items-center justify-center gap-3">
+                <Button variant="outline" onClick={refetchClub}>
+                  Try Again
+                </Button>
               <Button variant="outline" asChild>
                 <Link to="/club-admin">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to Dashboard
                 </Link>
               </Button>
+              </div>
             </div>
           </main>
         </div>
