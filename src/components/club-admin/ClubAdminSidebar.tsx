@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Plus, LogOut, ArrowLeft } from 'lucide-react';
+import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
 import {
@@ -85,22 +85,40 @@ export function ClubAdminSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {ownedClubs.map((club) => (
-                  <SidebarMenuItem key={club.clubId}>
-                    <SidebarMenuButton asChild>
-                      <Link
-                        to={`/club-admin/clubs/${club.clubId}/events`}
-                        className={cn(
-                          'flex items-center gap-2 px-3 py-2 rounded-md transition-colors',
-                          isClubActive(club.clubId)
-                            ? 'bg-gold/10 text-gold'
-                            : 'hover:bg-muted'
-                        )}
-                      >
-                        <Calendar className="w-4 h-4" />
-                        <span className="truncate">{club.clubName}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <div key={club.clubId} className="space-y-1">
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link
+                          to={`/club-admin/clubs/${club.clubId}/events`}
+                          className={cn(
+                            'flex items-center gap-2 px-3 py-2 rounded-md transition-colors',
+                            location.pathname === `/club-admin/clubs/${club.clubId}/events`
+                              ? 'bg-gold/10 text-gold'
+                              : 'hover:bg-muted'
+                          )}
+                        >
+                          <Calendar className="w-4 h-4" />
+                          <span className="truncate">{club.clubName}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link
+                          to={`/club-admin/clubs/${club.clubId}/edit`}
+                          className={cn(
+                            'flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm ml-6',
+                            location.pathname === `/club-admin/clubs/${club.clubId}/edit`
+                              ? 'bg-gold/10 text-gold'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          )}
+                        >
+                          <Settings className="w-3.5 h-3.5" />
+                          <span>Edit Profile</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </div>
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>

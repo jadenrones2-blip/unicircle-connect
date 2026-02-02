@@ -6,7 +6,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Calendar, Users, Shield, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, Plus, Calendar, Users, Shield, AlertTriangle, CheckCircle2, XCircle, Settings, Image } from 'lucide-react';
 
 function VerificationBadge({ state }: { state: VerificationState }) {
   switch (state) {
@@ -167,7 +167,13 @@ export default function ClubAdminDashboard() {
                     </div>
                   )}
                   
-                  <div className="flex gap-2 mt-4">
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/club-admin/clubs/${club.clubId}/edit`}>
+                        <Settings className="w-4 h-4 mr-1" />
+                        Edit Profile
+                      </Link>
+                    </Button>
                     <Button variant="outline" size="sm" asChild>
                       <Link to={`/club-admin/clubs/${club.clubId}/events`}>
                         <Calendar className="w-4 h-4 mr-1" />
