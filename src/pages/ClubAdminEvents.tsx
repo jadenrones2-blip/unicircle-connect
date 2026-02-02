@@ -7,7 +7,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, Calendar, ExternalLink, Edit, Trash2 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { toast } from 'sonner';
 import {
   Table,
@@ -30,6 +30,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EventEditModal } from '@/components/club-admin/EventEditModal';
+import { EventFilters, StatusFilter } from '@/components/club-admin/EventFilters';
 
 export default function ClubAdminEvents() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -42,6 +43,11 @@ export default function ClubAdminEvents() {
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [editingEvent, setEditingEvent] = useState<ExternalEvent | null>(null);
+
+  // Filter state
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   const normalizeId = (id?: string) => (id ?? '').trim().toLowerCase();
   const club = ownedClubs.find((c) => normalizeId(c.clubId) === normalizeId(clubId));
@@ -137,6 +143,37 @@ export default function ClubAdminEvents() {
     }
   };
 
+  // Filter events based on status and date range
+  const hasActiveFilters = statusFilter !== 'all' || !!startDate || !!endDate;
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      // Status filter
+      if (statusFilter === 'published' && !event.verified) return false;
+      if (statusFilter === 'pending' && event.verified) return false;
+
+      // Date range filter
+      const eventDate = event.corrected_start_time || event.start_time;
+      if (eventDate) {
+        try {
+          const parsed = parseISO(eventDate);
+          if (startDate && isBefore(parsed, startOfDay(startDate))) return false;
+          if (endDate && isAfter(parsed, endOfDay(endDate))) return false;
+        } catch {
+          // If date parsing fails, include the event
+        }
+      }
+
+      return true;
+    });
+  }, [events, statusFilter, startDate, endDate]);
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
+
   // Keep showing loader while ownership is loading OR club hasn't been found yet
   // This prevents flashing "Club not found" before ownership data arrives
   if (authLoading || ownershipLoading || (!club && ownedClubs.length === 0)) {
@@ -196,7 +233,21 @@ export default function ClubAdminEvents() {
           </header>
 
           <div className="p-6">
-          {loading ? (
+            {/* Filters - show when there are events */}
+            {!loading && events.length > 0 && (
+              <EventFilters
+                statusFilter={statusFilter}
+                onStatusChange={setStatusFilter}
+                startDate={startDate}
+                endDate={endDate}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
+                onClearFilters={clearFilters}
+                hasActiveFilters={hasActiveFilters}
+              />
+            )}
+
+            {loading ? (
               <div className="premium-card overflow-hidden">
                 <Table>
                   <TableHeader>
@@ -250,6 +301,19 @@ export default function ClubAdminEvents() {
                   </Link>
                 </Button>
               </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="text-center py-20">
+                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h2 className="text-lg font-semibold text-foreground mb-2">
+                  No matching events
+                </h2>
+                <p className="text-muted-foreground mb-4">
+                  Try adjusting your filters.
+                </p>
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear Filters
+                </Button>
+              </div>
             ) : (
               <div className="premium-card overflow-hidden">
                 <Table>
@@ -263,7 +327,7 @@ export default function ClubAdminEvents() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {events.map((event) => (
+                    {filteredEvents.map((event) => (
                       <TableRow key={event.id}>
                         <TableCell>
                           <div className="font-medium">
