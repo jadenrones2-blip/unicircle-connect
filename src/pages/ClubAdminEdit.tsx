@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ArrowLeft, Loader2, Save, Instagram, Mail, Globe } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Instagram, Mail, Globe, Linkedin } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ const clubEditSchema = z.object({
   description: z.string().max(2000, "Description must be under 2000 characters").optional(),
   email: z.string().email("Invalid email").max(255).optional().or(z.literal("")),
   instagram: z.string().max(100).optional().or(z.literal("")),
+  linkedin: z.string().max(200).optional().or(z.literal("")),
   website: z.string().url("Invalid URL").max(500).optional().or(z.literal("")),
 });
 
@@ -53,6 +54,7 @@ export default function ClubAdminEdit() {
       description: "",
       email: "",
       instagram: "",
+      linkedin: "",
       website: "",
     },
   });
@@ -64,6 +66,7 @@ export default function ClubAdminEdit() {
         description: club.description || "",
         email: club.email || "",
         instagram: club.instagram || "",
+        linkedin: (club as any).linkedin || "",
         website: club.website || "",
       });
       setCoverImageUrl((club as any).cover_image || null);
@@ -104,6 +107,7 @@ export default function ClubAdminEdit() {
             description: data.description || null,
             email: data.email || null,
             instagram: data.instagram || null,
+            linkedin: data.linkedin || null,
             website: data.website || null,
             cover_image: coverImageUrl || null,
           },
@@ -263,26 +267,51 @@ export default function ClubAdminEdit() {
                       />
                     </div>
 
-                    <FormField
-                      control={form.control}
-                      name="website"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2">
-                            <Globe className="w-4 h-4" />
-                            Website
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="https://yourclub.com"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="linkedin"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <Linkedin className="w-4 h-4" />
+                              LinkedIn
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="https://linkedin.com/company/yourclub"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Full URL or username
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="website"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                              <Globe className="w-4 h-4" />
+                              Website
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="url"
+                                placeholder="https://yourclub.com"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <div className="flex gap-3 pt-4">
                       <Button

@@ -135,7 +135,28 @@ export default function ClubAdminEvents() {
     );
   }
 
-  if (!user || !club) return null;
+  if (!user) return null;
+
+  if (!club) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-background">
+          <ClubAdminSidebar />
+          <main className="flex-1 p-8">
+            <div className="text-center py-12">
+              <h2 className="text-xl font-semibold mb-2">Club not found</h2>
+              <p className="text-muted-foreground mb-4">
+                You may not have access to this club or it doesn't exist.
+              </p>
+              <Button variant="outline" asChild>
+                <Link to="/club-admin">Back to Dashboard</Link>
+              </Button>
+            </div>
+          </main>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
   return (
     <SidebarProvider>
