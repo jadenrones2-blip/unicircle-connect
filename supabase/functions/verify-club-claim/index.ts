@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -436,10 +437,13 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       // Generate secure verification token (one-time use)
-      const verificationToken = crypto.randomUUID() + '-' + crypto.randomUUID(); // Extra entropy
+      const rawToken = crypto.randomUUID() + '-' + crypto.randomUUID(); // Extra entropy
       const tokenExpiry = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
+      
+      // Hash the token before storing (defense in depth)
+      const hashedToken = await bcrypt.hash(rawToken);
 
-      // Create claim request with token, user_id, and trust info
+      // Create claim request with hashed token, user_id, and trust info
       const { data: claim, error: insertError } = await supabase
         .from("club_claim_requests")
         .insert({
@@ -449,7 +453,7 @@ const handler = async (req: Request): Promise<Response> => {
           email: userEmail,
           user_id: userId,
           proof_link: proofLink || null,
-          verification_token: verificationToken,
+          verification_token: hashedToken, // Store hashed token
           token_expires_at: tokenExpiry.toISOString(),
           status: "pending",
         })
@@ -476,7 +480,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Send verification email if Resend is configured
       if (resendApiKey) {
         const resend = new Resend(resendApiKey);
-        const verifyUrl = `${redirectUrl || "https://unicircle-connect.lovable.app"}/verify-claim?token=${verificationToken}`;
+        const verifyUrl = `${redirectUrl || "https://unicircle-connect.lovable.app"}/verify-claim?token=${rawToken}`;
 
         try {
           await resend.emails.send({
@@ -528,15 +532,37 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Find claim by token
-      const { data: claim, error: findError } = await supabase
+      // Find all pending claims and verify token hash
+      const { data: pendingClaims, error: findError } = await supabase
         .from("club_claim_requests")
         .select("*")
-        .eq("verification_token", token)
         .eq("status", "pending")
-        .maybeSingle();
+        .not("verification_token", "is", null);
 
-      if (findError || !claim) {
+      if (findError) {
+        console.error("Error finding claims:", findError);
+        return new Response(
+          JSON.stringify({ error: "Failed to verify token" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Find matching claim by comparing hashed tokens
+      let claim = null;
+      for (const pendingClaim of pendingClaims || []) {
+        try {
+          const isMatch = await bcrypt.compare(token, pendingClaim.verification_token);
+          if (isMatch) {
+            claim = pendingClaim;
+            break;
+          }
+        } catch {
+          // Skip claims with invalid hash format (legacy unhashed tokens)
+          continue;
+        }
+      }
+
+      if (!claim) {
         return new Response(
           JSON.stringify({ error: "Invalid or expired verification token" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
