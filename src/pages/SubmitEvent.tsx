@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,11 +8,11 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Send, Calendar, MapPin, CheckCircle2, ArrowLeft, Plus, Shield, Lock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Send, Calendar, MapPin, CheckCircle2, ArrowLeft, Plus, Shield, Lock, AlertTriangle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useClubOwnership } from '@/hooks/useClubOwnership';
+import { useClubOwnership, ClubOwnership } from '@/hooks/useClubOwnership';
 import {
   Form,
   FormControl,
@@ -46,12 +46,16 @@ interface SubmittedEventDetails {
   time?: string;
   location: string;
   clubName: string;
+  isDraft: boolean;
 }
 
 export default function SubmitEvent() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedClubId = searchParams.get('club');
+  
   const { user, loading: authLoading } = useAuth();
-  const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
+  const { ownedClubs, loading: ownershipLoading, canPerformAction, getClubOwnership } = useClubOwnership();
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedDetails, setSubmittedDetails] = useState<SubmittedEventDetails | null>(null);
@@ -60,7 +64,7 @@ export default function SubmitEvent() {
     resolver: zodResolver(eventSubmissionSchema),
     defaultValues: {
       event_title: '',
-      club_id: '',
+      club_id: preselectedClubId || '',
       event_date: '',
       event_time: '',
       location: '',
@@ -68,14 +72,19 @@ export default function SubmitEvent() {
     },
   });
 
-  // Set default club if user only owns one
+  // Set default club if user only owns one or if preselected
   useEffect(() => {
-    if (ownedClubs.length === 1) {
+    if (preselectedClubId && ownedClubs.some(c => c.clubId === preselectedClubId)) {
+      form.setValue('club_id', preselectedClubId);
+    } else if (ownedClubs.length === 1) {
       form.setValue('club_id', ownedClubs[0].clubId);
     }
-  }, [ownedClubs, form]);
+  }, [ownedClubs, preselectedClubId, form]);
 
-  const selectedClub = ownedClubs.find(c => c.clubId === form.watch('club_id'));
+  const selectedClubId = form.watch('club_id');
+  const selectedClub = ownedClubs.find(c => c.clubId === selectedClubId);
+  const canPublish = selectedClub ? canPerformAction(selectedClub.clubId, 'can_publish_events') : false;
+  const isProvisional = selectedClub?.verificationState === 'provisional';
 
   const onSubmit = async (data: EventSubmission) => {
     if (!selectedClub) return;
@@ -88,6 +97,7 @@ export default function SubmitEvent() {
         ? `${data.event_date}T${data.event_time}:00`
         : `${data.event_date}T18:00:00`;
 
+      // If provisional, save as unverified draft
       const eventRecord = {
         title: data.event_title.trim(),
         start_time: new Date(startDateTime).toISOString(),
@@ -95,8 +105,8 @@ export default function SubmitEvent() {
         club_handle: selectedClub.clubId,
         source: 'club_owner',
         caption: data.description?.trim() || null,
-        verified: true, // Auto-verify since submitted by owner
-        posted_at: new Date().toISOString(),
+        verified: canPublish, // Only verified if can_publish_events
+        posted_at: canPublish ? new Date().toISOString() : null, // Only post if verified
       };
 
       const response = await fetch(
@@ -121,6 +131,7 @@ export default function SubmitEvent() {
         time: data.event_time || undefined,
         location: data.location || 'UCSD Campus',
         clubName: selectedClub.clubName,
+        isDraft: !canPublish,
       });
       setSubmitted(true);
       form.reset();
@@ -143,13 +154,11 @@ export default function SubmitEvent() {
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-2xl">
           {isLoading ? (
-            /* Loading State */
             <div className="text-center py-16">
               <Loader2 className="w-8 h-8 text-gold animate-spin mx-auto mb-4" />
               <p className="text-muted-foreground">Loading...</p>
             </div>
           ) : !user ? (
-            /* Not Logged In */
             <div className="text-center py-16">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 border border-border mb-6">
                 <Lock className="w-8 h-8 text-muted-foreground" />
@@ -170,7 +179,6 @@ export default function SubmitEvent() {
               </div>
             </div>
           ) : !hasAccess ? (
-            /* No Club Ownership */
             <div className="text-center py-16">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/10 border border-gold/20 mb-6">
                 <Shield className="w-8 h-8 text-gold" />
@@ -191,23 +199,55 @@ export default function SubmitEvent() {
               </div>
             </div>
           ) : submitted && submittedDetails ? (
-            /* Success Confirmation */
             <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 mb-6">
-                <CheckCircle2 className="w-8 h-8 text-green-500" />
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 ${
+                submittedDetails.isDraft 
+                  ? 'bg-yellow-500/10 border border-yellow-500/20' 
+                  : 'bg-green-500/10 border border-green-500/20'
+              }`}>
+                {submittedDetails.isDraft ? (
+                  <FileText className="w-8 h-8 text-yellow-600" />
+                ) : (
+                  <CheckCircle2 className="w-8 h-8 text-green-500" />
+                )}
               </div>
               <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
-                Event Published!
+                {submittedDetails.isDraft ? 'Event Saved as Draft!' : 'Event Published!'}
               </h1>
               <p className="text-muted-foreground max-w-md mx-auto mb-8">
-                Your event is now live on the UniCircle calendar.
+                {submittedDetails.isDraft 
+                  ? 'Your event has been saved but is pending review. It will be published once your account is fully verified.'
+                  : 'Your event is now live on the UniCircle calendar.'
+                }
               </p>
 
-              {/* Submitted Event Details */}
+              {submittedDetails.isDraft && (
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-left mb-6 max-w-md mx-auto">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-foreground text-sm mb-1">Provisional Account</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Your account is provisional. Events you submit are saved as drafts and won't be publicly visible until:
+                      </p>
+                      <ul className="text-xs text-muted-foreground mt-2 space-y-1">
+                        <li>• You verify with a .edu email, or</li>
+                        <li>• Another verified admin confirms you</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="premium-card p-6 md:p-8 text-left mb-8">
                 <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-gold" />
                   Event Details
+                  {submittedDetails.isDraft && (
+                    <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10 ml-auto">
+                      Draft
+                    </Badge>
+                  )}
                 </h2>
                 
                 <div className="space-y-3">
@@ -236,7 +276,6 @@ export default function SubmitEvent() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Button
                   variant="outline"
@@ -263,17 +302,42 @@ export default function SubmitEvent() {
             <>
               {/* Header */}
               <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold/10 border border-gold/20 text-gold mb-4">
-                  <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium">Verified Club Owner</span>
+                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 ${
+                  isProvisional 
+                    ? 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-600'
+                    : 'bg-gold/10 border border-gold/20 text-gold'
+                }`}>
+                  {isProvisional ? <AlertTriangle className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+                  <span className="text-sm font-medium">
+                    {isProvisional ? 'Provisional Club Owner' : 'Verified Club Owner'}
+                  </span>
                 </div>
                 <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
-                  Submit an Event
+                  {isProvisional ? 'Draft an Event' : 'Submit an Event'}
                 </h1>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  Add an event to the UniCircle calendar for your club.
+                  {isProvisional 
+                    ? 'Your events will be saved as drafts until your account is fully verified.'
+                    : 'Add an event to the UniCircle calendar for your club.'
+                  }
                 </p>
               </div>
+
+              {/* Provisional Warning */}
+              {isProvisional && (
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 mb-6">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-foreground text-sm mb-1">Provisional Account Restrictions</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Events you submit will be saved as drafts and won't appear publicly until your account is fully verified. 
+                        Verify with a .edu email to get full publishing access.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Form */}
               <Form {...form}>
@@ -286,7 +350,7 @@ export default function SubmitEvent() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Select Club *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Choose a club" />
@@ -295,7 +359,14 @@ export default function SubmitEvent() {
                             <SelectContent>
                               {ownedClubs.map((club) => (
                                 <SelectItem key={club.clubId} value={club.clubId}>
-                                  {club.clubName}
+                                  <span className="flex items-center gap-2">
+                                    {club.clubName}
+                                    {club.verificationState === 'provisional' && (
+                                      <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10 text-xs">
+                                        Provisional
+                                      </Badge>
+                                    )}
+                                  </span>
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -307,9 +378,18 @@ export default function SubmitEvent() {
                   )}
 
                   {ownedClubs.length === 1 && (
-                    <div className="p-3 rounded-lg bg-gold/10 border border-gold/20">
-                      <p className="text-sm text-foreground">
-                        Submitting for: <span className="font-medium text-gold">{ownedClubs[0].clubName}</span>
+                    <div className={`p-3 rounded-lg ${
+                      isProvisional 
+                        ? 'bg-yellow-500/10 border border-yellow-500/20'
+                        : 'bg-gold/10 border border-gold/20'
+                    }`}>
+                      <p className="text-sm text-foreground flex items-center gap-2">
+                        Submitting for: <span className={`font-medium ${isProvisional ? 'text-yellow-600' : 'text-gold'}`}>{ownedClubs[0].clubName}</span>
+                        {isProvisional && (
+                          <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10 text-xs">
+                            Provisional
+                          </Badge>
+                        )}
                       </p>
                     </div>
                   )}
@@ -415,20 +495,28 @@ export default function SubmitEvent() {
                   {/* Submit Button */}
                   <Button 
                     type="submit" 
-                    variant="gold" 
-                    className="w-full"
+                    variant={isProvisional ? 'outline' : 'gold'}
+                    className={`w-full ${isProvisional ? 'border-yellow-500/50 text-yellow-600 hover:bg-yellow-500/10' : ''}`}
                     disabled={submitting || !selectedClub}
                   >
                     {submitting ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : isProvisional ? (
+                      <FileText className="w-4 h-4 mr-2" />
                     ) : (
                       <Send className="w-4 h-4 mr-2" />
                     )}
-                    {submitting ? 'Publishing...' : 'Publish Event'}
+                    {submitting 
+                      ? (isProvisional ? 'Saving Draft...' : 'Publishing...') 
+                      : (isProvisional ? 'Save as Draft' : 'Publish Event')
+                    }
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">
-                    Events from verified owners are published immediately.
+                    {isProvisional 
+                      ? 'Drafts are saved but not publicly visible until verified.'
+                      : 'Events from verified owners are published immediately.'
+                    }
                   </p>
                 </form>
               </Form>

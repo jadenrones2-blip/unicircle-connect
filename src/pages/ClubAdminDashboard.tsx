@@ -1,16 +1,50 @@
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useClubOwnership } from '@/hooks/useClubOwnership';
+import { useClubOwnership, VerificationState } from '@/hooks/useClubOwnership';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Calendar, Users } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Plus, Calendar, Users, Shield, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+
+function VerificationBadge({ state }: { state: VerificationState }) {
+  switch (state) {
+    case 'verified':
+      return (
+        <Badge variant="outline" className="border-green-500/50 text-green-600 bg-green-500/10 gap-1">
+          <CheckCircle2 className="w-3 h-3" />
+          Verified
+        </Badge>
+      );
+    case 'provisional':
+      return (
+        <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10 gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          Provisional
+        </Badge>
+      );
+    case 'suspended':
+      return (
+        <Badge variant="outline" className="border-destructive/50 text-destructive bg-destructive/10 gap-1">
+          <XCircle className="w-3 h-3" />
+          Suspended
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="outline" className="border-muted-foreground/50 text-muted-foreground gap-1">
+          <Shield className="w-3 h-3" />
+          Unverified
+        </Badge>
+      );
+  }
+}
 
 export default function ClubAdminDashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
+  const { ownedClubs, loading: ownershipLoading, hasProvisionalClub } = useClubOwnership();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -61,6 +95,35 @@ export default function ClubAdminDashboard() {
           </header>
 
           <div className="p-6">
+            {/* Provisional Warning Banner */}
+            {hasProvisionalClub && (
+              <div className="mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-foreground text-sm mb-1">Provisional Account</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Some of your clubs have provisional status. This means certain features are restricted until you verify with a .edu email or get confirmed by another verified admin.
+                    </p>
+                    <ul className="text-xs text-muted-foreground mt-2 space-y-1">
+                      <li className="flex items-center gap-2">
+                        <XCircle className="w-3 h-3 text-destructive" />
+                        Cannot publish events publicly (saved as drafts)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <XCircle className="w-3 h-3 text-destructive" />
+                        Cannot send mass messages
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <XCircle className="w-3 h-3 text-destructive" />
+                        External links require review
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="mb-8">
               <h2 className="text-2xl font-display font-bold text-foreground mb-2">
                 Welcome back!
@@ -74,26 +137,51 @@ export default function ClubAdminDashboard() {
               {ownedClubs.map((club) => (
                 <div
                   key={club.clubId}
-                  className="premium-card p-6 hover:border-gold/30 transition-colors"
+                  className={`premium-card p-6 transition-colors ${
+                    club.verificationState === 'provisional' 
+                      ? 'border-yellow-500/30 hover:border-yellow-500/50' 
+                      : 'hover:border-gold/30'
+                  }`}
                 >
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    {club.clubName}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Verified {new Date(club.verifiedAt).toLocaleDateString()}
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {club.clubName}
+                    </h3>
+                    <VerificationBadge state={club.verificationState} />
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Claimed {new Date(club.verifiedAt).toLocaleDateString()}
                   </p>
                   
-                  <div className="flex gap-2">
+                  {club.verificationState === 'provisional' && club.provisionalUntil && (
+                    <p className="text-xs text-yellow-600 mb-3">
+                      Provisional until {new Date(club.provisionalUntil).toLocaleDateString()}
+                    </p>
+                  )}
+                  
+                  {club.verificationState === 'verified' && (
+                    <div className="flex items-center gap-1 text-xs text-green-600 mb-3">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Full access enabled
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2 mt-4">
                     <Button variant="outline" size="sm" asChild>
                       <Link to={`/club-admin/clubs/${club.clubId}/events`}>
                         <Calendar className="w-4 h-4 mr-1" />
                         Events
                       </Link>
                     </Button>
-                    <Button variant="gold" size="sm" asChild>
+                    <Button 
+                      variant={club.verificationState === 'provisional' ? 'outline' : 'gold'} 
+                      size="sm" 
+                      asChild
+                    >
                       <Link to={`/submit-event?club=${club.clubId}`}>
                         <Plus className="w-4 h-4 mr-1" />
-                        New Event
+                        {club.verificationState === 'provisional' ? 'Draft Event' : 'New Event'}
                       </Link>
                     </Button>
                   </div>
