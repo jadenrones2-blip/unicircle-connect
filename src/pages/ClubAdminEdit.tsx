@@ -22,6 +22,7 @@ import { ClubAdminSidebar } from "@/components/club-admin/ClubAdminSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
 import { useClubs } from "@/hooks/useExternalDB";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { ClubImageUpload } from "@/components/club-admin/ClubImageUpload";
 
@@ -37,6 +38,7 @@ type ClubEditFormData = z.infer<typeof clubEditSchema>;
 export default function ClubAdminEdit() {
   const { clubId } = useParams();
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const { ownedClubs, loading: ownershipLoading, isOwnerOf } = useClubOwnership();
   const { data: clubs, loading: clubsLoading } = useClubs();
   const [isSaving, setIsSaving] = useState(false);
@@ -68,13 +70,25 @@ export default function ClubAdminEdit() {
     }
   }, [club, form]);
 
+  // Require authentication (avoid misleading "no permission" when signed out)
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      const redirect = clubId ? `/club-admin/clubs/${clubId}/edit` : "/club-admin";
+      toast.error("Please log in to access club admin");
+      navigate(`/login?redirect=${encodeURIComponent(redirect)}`);
+    }
+  }, [authLoading, user, clubId, navigate]);
+
   // Check authorization
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) return;
     if (!ownershipLoading && clubId && !isOwnerOf(clubId)) {
       toast.error("You don't have permission to edit this club");
       navigate("/club-admin");
     }
-  }, [ownershipLoading, clubId, isOwnerOf, navigate]);
+  }, [ownershipLoading, clubId, isOwnerOf, navigate, authLoading, user]);
 
   const onSubmit = async (data: ClubEditFormData) => {
     if (!clubId) return;
@@ -110,7 +124,7 @@ export default function ClubAdminEdit() {
     }
   };
 
-  if (ownershipLoading || clubsLoading) {
+  if (authLoading || ownershipLoading || clubsLoading) {
     return (
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-background">
