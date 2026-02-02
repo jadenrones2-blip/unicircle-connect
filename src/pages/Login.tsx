@@ -34,6 +34,12 @@ export default function Login() {
       return;
     }
 
+    // Validate UCSD email for student login
+    if (mode === 'student' && !email.toLowerCase().endsWith('@ucsd.edu')) {
+      toast.error('Students must use a UCSD email address (@ucsd.edu)');
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await signIn(email, password);
