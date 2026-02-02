@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.verify-club-claim]
 verify_jwt = false
+
+[functions.extract-event-from-flyer]
+verify_jwt = false
