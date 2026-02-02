@@ -19,10 +19,277 @@ interface ClaimRequest {
   redirectUrl?: string;
 }
 
+// ============ SECURITY CONSTANTS ============
+const TOKEN_EXPIRY_MINUTES = 10; // Changed from 24 hours to 10 minutes
+const RATE_LIMIT_MAX_ATTEMPTS = 5;
+const RATE_LIMIT_WINDOW_MINUTES = 60;
+const RATE_LIMIT_BLOCK_MINUTES = 120;
+
+// University TLDs that indicate high trust
+const UNIVERSITY_TLDS = ['.edu', '.ac.uk', '.edu.au', '.ac.nz', '.edu.sg'];
+
+// Personal email providers (low trust)
+const PERSONAL_DOMAINS = [
+  'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com',
+  'aol.com', 'protonmail.com', 'mail.com', 'zoho.com', 'yandex.com'
+];
+
+// Confusable character mappings for look-alike detection
+const CONFUSABLES: Record<string, string> = {
+  '0': 'o', '1': 'l', '3': 'e', '5': 's', '8': 'b',
+  '@': 'a', '$': 's', '!': 'i', '|': 'l'
+};
+
+// ============ HELPER FUNCTIONS ============
+
+function getClientIP(req: Request): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('cf-connecting-ip') || 
+         'unknown';
+}
+
+function extractDomain(email: string): string {
+  return email.split('@')[1]?.toLowerCase() || '';
+}
+
+function normalizeForComparison(domain: string): string {
+  let normalized = domain.toLowerCase();
+  for (const [confusable, replacement] of Object.entries(CONFUSABLES)) {
+    normalized = normalized.split(confusable).join(replacement);
+  }
+  return normalized;
+}
+
+function levenshteinDistance(a: string, b: string): number {
+  const matrix: number[][] = Array(a.length + 1).fill(null).map(() => 
+    Array(b.length + 1).fill(null)
+  );
+  
+  for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+  for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+  
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      matrix[i][j] = Math.min(
+        matrix[i-1][j] + 1,
+        matrix[i][j-1] + 1,
+        matrix[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1)
+      );
+    }
+  }
+  return matrix[a.length][b.length];
+}
+
+async function checkDisposableDomain(supabase: any, domain: string): Promise<boolean> {
+  const { data } = await supabase
+    .from('disposable_domains')
+    .select('domain')
+    .eq('domain', domain)
+    .maybeSingle();
+  return !!data;
+}
+
+async function checkDomainRules(supabase: any, domain: string): Promise<{
+  ruleType: 'allow' | 'block' | 'flag' | null;
+  trustLevel: 'high' | 'medium' | 'low' | null;
+}> {
+  const { data } = await supabase
+    .from('email_domain_rules')
+    .select('rule_type, trust_level')
+    .eq('domain', domain)
+    .maybeSingle();
+  
+  return {
+    ruleType: data?.rule_type || null,
+    trustLevel: data?.trust_level || null
+  };
+}
+
+async function checkLookalikeDomain(supabase: any, domain: string): Promise<{
+  isLookalike: boolean;
+  similarTo?: string;
+}> {
+  // Get trusted domains from database
+  const { data: trustedDomains } = await supabase
+    .from('email_domain_rules')
+    .select('domain')
+    .eq('rule_type', 'allow')
+    .eq('trust_level', 'high');
+  
+  if (!trustedDomains?.length) return { isLookalike: false };
+  
+  const normalized = normalizeForComparison(domain);
+  const THRESHOLD = 3;
+  
+  for (const trusted of trustedDomains) {
+    const trustedDomain = trusted.domain;
+    const normalizedTrusted = normalizeForComparison(trustedDomain);
+    
+    // Skip if exact match (that's fine)
+    if (domain === trustedDomain) continue;
+    
+    // Check if normalized versions match (confusable attack)
+    if (normalized === normalizedTrusted) {
+      return { isLookalike: true, similarTo: trustedDomain };
+    }
+    
+    // Levenshtein distance check
+    const distance = levenshteinDistance(normalized, normalizedTrusted);
+    if (distance > 0 && distance <= THRESHOLD) {
+      return { isLookalike: true, similarTo: trustedDomain };
+    }
+    
+    // Typosquat patterns: ucsd-edu.com, ucsdedu.com, etc.
+    const escapedDomain = trustedDomain.replace('.', '\\.');
+    const typosquatPatterns = [
+      new RegExp(`^${trustedDomain.replace('.', '-')}`),
+      new RegExp(`^${trustedDomain.replace('.', '')}`),
+      new RegExp(`${escapedDomain}\\..+$`),
+    ];
+    
+    if (typosquatPatterns.some(p => p.test(domain))) {
+      return { isLookalike: true, similarTo: trustedDomain };
+    }
+  }
+  
+  return { isLookalike: false };
+}
+
+function calculateTrustScore(domain: string, domainRule: { ruleType: string | null; trustLevel: string | null }): {
+  score: number;
+  level: 'high' | 'medium' | 'low';
+} {
+  // If domain is in our allowlist with trust level
+  if (domainRule.ruleType === 'allow' && domainRule.trustLevel === 'high') {
+    return { score: 100, level: 'high' };
+  }
+  
+  // Check university TLDs
+  if (UNIVERSITY_TLDS.some(tld => domain.endsWith(tld))) {
+    return { score: 100, level: 'high' };
+  }
+  
+  // Personal email providers
+  if (PERSONAL_DOMAINS.includes(domain)) {
+    return { score: 20, level: 'low' };
+  }
+  
+  // Medium trust for allowed non-high domains
+  if (domainRule.ruleType === 'allow') {
+    return { score: 60, level: 'medium' };
+  }
+  
+  // Unknown domain - default low
+  return { score: 30, level: 'low' };
+}
+
+async function checkRateLimit(supabase: any, email: string, clubId: string, ipAddress: string): Promise<{
+  allowed: boolean;
+  blockedUntil?: string;
+}> {
+  const now = new Date();
+  
+  // Check existing rate limit
+  const { data: existing } = await supabase
+    .from('claim_rate_limits')
+    .select('*')
+    .eq('email', email)
+    .eq('club_id', clubId)
+    .maybeSingle();
+  
+  if (existing) {
+    // Check if currently blocked
+    if (existing.blocked_until && new Date(existing.blocked_until) > now) {
+      return { allowed: false, blockedUntil: existing.blocked_until };
+    }
+    
+    // Check if window has passed
+    const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW_MINUTES * 60 * 1000);
+    if (new Date(existing.first_attempt_at) < windowStart) {
+      // Reset counter
+      await supabase
+        .from('claim_rate_limits')
+        .update({
+          attempt_count: 1,
+          first_attempt_at: now.toISOString(),
+          last_attempt_at: now.toISOString(),
+          blocked_until: null
+        })
+        .eq('id', existing.id);
+      return { allowed: true };
+    }
+    
+    // Check if over limit
+    if (existing.attempt_count >= RATE_LIMIT_MAX_ATTEMPTS) {
+      const blockedUntil = new Date(now.getTime() + RATE_LIMIT_BLOCK_MINUTES * 60 * 1000);
+      await supabase
+        .from('claim_rate_limits')
+        .update({
+          blocked_until: blockedUntil.toISOString(),
+          last_attempt_at: now.toISOString()
+        })
+        .eq('id', existing.id);
+      return { allowed: false, blockedUntil: blockedUntil.toISOString() };
+    }
+    
+    // Increment counter
+    await supabase
+      .from('claim_rate_limits')
+      .update({
+        attempt_count: existing.attempt_count + 1,
+        last_attempt_at: now.toISOString(),
+        ip_address: ipAddress
+      })
+      .eq('id', existing.id);
+    return { allowed: true };
+  }
+  
+  // Create new rate limit entry
+  await supabase
+    .from('claim_rate_limits')
+    .insert({
+      email,
+      club_id: clubId,
+      ip_address: ipAddress,
+      attempt_count: 1,
+      first_attempt_at: now.toISOString(),
+      last_attempt_at: now.toISOString()
+    });
+  
+  return { allowed: true };
+}
+
+async function logAuditEvent(supabase: any, clubId: string, userId: string | null, action: string, details: any, ipAddress: string) {
+  await supabase
+    .from('admin_audit_log')
+    .insert({
+      club_id: clubId,
+      actor_user_id: userId,
+      action,
+      details,
+      ip_address: ipAddress
+    });
+}
+
+function getRestrictionsForState(verificationState: string): Record<string, boolean> {
+  switch (verificationState) {
+    case 'verified':
+      return { can_publish_events: true, can_mass_message: true, can_add_links: true };
+    case 'provisional':
+      return { can_publish_events: false, can_mass_message: false, can_add_links: false };
+    default:
+      return { can_publish_events: false, can_mass_message: false, can_add_links: false };
+  }
+}
+
+// ============ MAIN HANDLER ============
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const ipAddress = getClientIP(req);
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -48,18 +315,18 @@ const handler = async (req: Request): Promise<Response> => {
         global: { headers: { Authorization: authHeader } }
       });
       
-      const tokenStr = authHeader.replace('Bearer ', '');
-      const { data: claimsData, error: claimsError } = await userSupabase.auth.getClaims(tokenStr);
+      const { data: { user }, error: userError } = await userSupabase.auth.getUser();
       
-      if (claimsError || !claimsData?.claims) {
+      if (userError || !user) {
         return new Response(
           JSON.stringify({ error: "Invalid authentication. Please log in again." }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const userId = claimsData.claims.sub as string;
-      const userEmail = claimsData.claims.email as string;
+      const userId = user.id;
+      const userEmail = user.email!;
+      const domain = extractDomain(userEmail);
 
       if (!name || !clubName || !clubId) {
         return new Response(
@@ -67,6 +334,61 @@ const handler = async (req: Request): Promise<Response> => {
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      // ============ SECURITY CHECKS ============
+
+      // 1. Rate limit check
+      const rateLimit = await checkRateLimit(supabase, userEmail, clubId, ipAddress);
+      if (!rateLimit.allowed) {
+        await logAuditEvent(supabase, clubId, userId, 'claim_rate_limited', {
+          email: userEmail, blocked_until: rateLimit.blockedUntil
+        }, ipAddress);
+        
+        return new Response(
+          JSON.stringify({ error: `Too many attempts. Please try again after ${new Date(rateLimit.blockedUntil!).toLocaleTimeString()}.` }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // 2. Disposable domain check
+      const isDisposable = await checkDisposableDomain(supabase, domain);
+      if (isDisposable) {
+        await logAuditEvent(supabase, clubId, userId, 'claim_blocked_disposable', {
+          email: userEmail, domain
+        }, ipAddress);
+        
+        return new Response(
+          JSON.stringify({ error: "Disposable email addresses are not allowed. Please use your university or organization email." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // 3. Domain rules check
+      const domainRule = await checkDomainRules(supabase, domain);
+      if (domainRule.ruleType === 'block') {
+        await logAuditEvent(supabase, clubId, userId, 'claim_blocked_domain', {
+          email: userEmail, domain
+        }, ipAddress);
+        
+        return new Response(
+          JSON.stringify({ error: "This email domain is not allowed for club claims." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // 4. Look-alike domain check
+      const lookalike = await checkLookalikeDomain(supabase, domain);
+      if (lookalike.isLookalike) {
+        await logAuditEvent(supabase, clubId, userId, 'claim_flagged_lookalike', {
+          email: userEmail, domain, similar_to: lookalike.similarTo
+        }, ipAddress);
+        
+        // Flag for manual review but allow the claim to proceed with extra scrutiny
+        console.warn(`[SECURITY] Look-alike domain detected: ${domain} similar to ${lookalike.similarTo}`);
+      }
+
+      // 5. Calculate trust score
+      const trust = calculateTrustScore(domain, domainRule);
 
       // Check if club already has an owner
       const { data: existingOwner } = await supabase
@@ -113,11 +435,11 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Generate verification token
-      const verificationToken = crypto.randomUUID();
-      const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      // Generate secure verification token (one-time use)
+      const verificationToken = crypto.randomUUID() + '-' + crypto.randomUUID(); // Extra entropy
+      const tokenExpiry = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
 
-      // Create claim request with token and user_id
+      // Create claim request with token, user_id, and trust info
       const { data: claim, error: insertError } = await supabase
         .from("club_claim_requests")
         .insert({
@@ -142,6 +464,15 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
+      // Log audit event
+      await logAuditEvent(supabase, clubId, userId, 'claim_initiated', {
+        email: userEmail,
+        trust_score: trust.score,
+        trust_level: trust.level,
+        is_lookalike: lookalike.isLookalike,
+        similar_to: lookalike.similarTo
+      }, ipAddress);
+
       // Send verification email if Resend is configured
       if (resendApiKey) {
         const resend = new Resend(resendApiKey);
@@ -163,14 +494,17 @@ const handler = async (req: Request): Promise<Response> => {
                     Verify Ownership
                   </a>
                 </div>
-                <p style="color: #666; font-size: 14px;">This link expires in 24 hours.</p>
+                <p style="color: #cc0000; font-size: 14px; font-weight: 600;">⚠️ This link expires in ${TOKEN_EXPIRY_MINUTES} minutes.</p>
                 <p style="color: #666; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
+                <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
+                <p style="color: #999; font-size: 12px;">
+                  Security notice: This verification was requested from IP ${ipAddress.substring(0, 8)}...
+                </p>
               </div>
             `,
           });
         } catch (emailError) {
           console.error("Error sending email:", emailError);
-          // Don't fail the request if email fails - they can still use the token
         }
       }
 
@@ -179,8 +513,8 @@ const handler = async (req: Request): Promise<Response> => {
           success: true, 
           message: "Verification email sent",
           claimId: claim.id,
-          // Include token in response for testing (remove in production)
-          ...(Deno.env.get("DENO_ENV") === "development" && { token: verificationToken })
+          expiresIn: `${TOKEN_EXPIRY_MINUTES} minutes`,
+          trustLevel: trust.level
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -216,8 +550,12 @@ const handler = async (req: Request): Promise<Response> => {
           .update({ status: "expired" })
           .eq("id", claim.id);
 
+        await logAuditEvent(supabase, claim.club_id, claim.user_id, 'claim_token_expired', {
+          email: claim.email
+        }, ipAddress);
+
         return new Response(
-          JSON.stringify({ error: "Verification token has expired" }),
+          JSON.stringify({ error: "Verification token has expired. Please submit a new claim." }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -249,7 +587,21 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Create club owner record
+      // Calculate trust for verification state
+      const domain = extractDomain(claim.email);
+      const domainRule = await checkDomainRules(supabase, domain);
+      const trust = calculateTrustScore(domain, domainRule);
+      
+      // Determine verification state
+      const verificationState = trust.score >= 80 ? 'verified' : 'provisional';
+      const restrictions = getRestrictionsForState(verificationState);
+      
+      // Set provisional_until for provisional accounts (30 days to prove good standing)
+      const provisionalUntil = verificationState === 'provisional' 
+        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      // Create club owner record with verification state
       const { error: ownerError } = await supabase
         .from("club_owners")
         .insert({
@@ -257,6 +609,13 @@ const handler = async (req: Request): Promise<Response> => {
           club_name: claim.club_name,
           email: claim.email,
           user_id: claim.user_id,
+          verification_state: verificationState,
+          trust_level: trust.level,
+          trust_score: trust.score,
+          verified_domain: domain,
+          last_verification_at: new Date().toISOString(),
+          provisional_until: provisionalUntil,
+          restrictions: restrictions
         });
 
       if (ownerError) {
@@ -267,21 +626,38 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Update claim status
+      // Invalidate token (one-time use) by updating claim status
       await supabase
         .from("club_claim_requests")
         .update({ 
           status: "approved",
-          verified_at: new Date().toISOString()
+          verified_at: new Date().toISOString(),
+          verification_token: null // Clear token to prevent reuse
         })
         .eq("id", claim.id);
+
+      // Log audit event
+      await logAuditEvent(supabase, claim.club_id, claim.user_id, 'claim_verified', {
+        email: claim.email,
+        verification_state: verificationState,
+        trust_level: trust.level,
+        trust_score: trust.score
+      }, ipAddress);
 
       return new Response(
         JSON.stringify({ 
           success: true, 
           message: "Club ownership verified",
           clubName: claim.club_name,
-          clubId: claim.club_id
+          clubId: claim.club_id,
+          verificationState,
+          trustLevel: trust.level,
+          restrictions: verificationState === 'provisional' ? {
+            message: "Your account is provisional. Some features are restricted until fully verified.",
+            canPublishEvents: restrictions.can_publish_events,
+            canMassMessage: restrictions.can_mass_message,
+            canAddLinks: restrictions.can_add_links
+          } : null
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
