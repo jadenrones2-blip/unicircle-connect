@@ -6,7 +6,8 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Calendar, Users, Shield, AlertTriangle, CheckCircle2, XCircle, Settings, Image } from 'lucide-react';
+import { Loader2, Plus, Calendar, Users, Shield, AlertTriangle, CheckCircle2, XCircle, Settings } from 'lucide-react';
+import { OnboardingChecklist } from '@/components/club-admin/OnboardingChecklist';
 
 function VerificationBadge({ state }: { state: VerificationState }) {
   switch (state) {
@@ -132,6 +133,11 @@ export default function ClubAdminDashboard() {
                 Manage your clubs and events from this dashboard.
               </p>
             </div>
+
+            {/* Onboarding Checklists */}
+            {ownedClubs.map((club) => (
+              <OnboardingChecklist key={`checklist-${club.clubId}`} club={club} />
+            ))}
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {ownedClubs.map((club) => (
