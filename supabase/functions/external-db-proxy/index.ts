@@ -326,9 +326,11 @@ serve(async (req) => {
           );
         }
         
+        // Log full error details server-side only
         console.error(`Error fetching from ${table}:`, JSON.stringify(error));
+        // Return generic error message to client without exposing internal details
         return new Response(
-          JSON.stringify({ error: "Failed to fetch data", details: error.message, code: error.code }),
+          JSON.stringify({ error: "Failed to fetch data" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -412,9 +414,11 @@ serve(async (req) => {
         .select();
 
       if (error) {
+        // Log full error details server-side only
         console.error(`Error updating ${table}:`, error);
+        // Return generic error message to client
         return new Response(
-          JSON.stringify({ error: "Failed to update data", details: error.message }),
+          JSON.stringify({ error: "Failed to update data" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -478,9 +482,11 @@ serve(async (req) => {
       const { error, count } = await query;
 
       if (error) {
+        // Log full error details server-side only
         console.error(`Error deleting from ${table}:`, error);
+        // Return generic error message to client
         return new Response(
-          JSON.stringify({ error: "Failed to delete data", details: error.message }),
+          JSON.stringify({ error: "Failed to delete data" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -524,9 +530,11 @@ serve(async (req) => {
         .neq("id", "00000000-0000-0000-0000-000000000000"); // Delete all (workaround for no-filter delete)
 
       if (error) {
+        // Log full error details server-side only
         console.error("Error deleting all events:", error);
+        // Return generic error message to client
         return new Response(
-          JSON.stringify({ error: "Failed to delete events", details: error.message }),
+          JSON.stringify({ error: "Failed to delete events" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }

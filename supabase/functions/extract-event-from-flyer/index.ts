@@ -14,6 +14,9 @@ interface ExtractedEventData {
   description: string | null;
 }
 
+// Maximum allowed base64 size (5MB when decoded, roughly 6.67MB as base64)
+const MAX_BASE64_SIZE = 7 * 1024 * 1024; // 7MB base64 string limit
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -27,6 +30,45 @@ serve(async (req) => {
         JSON.stringify({ error: "Either imageBase64 or imageUrl is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Validate base64 size to prevent resource exhaustion
+    if (imageBase64) {
+      if (typeof imageBase64 !== 'string') {
+        return new Response(
+          JSON.stringify({ error: "Invalid image format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      if (imageBase64.length > MAX_BASE64_SIZE) {
+        return new Response(
+          JSON.stringify({ error: "Image too large. Maximum size is 5MB." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Validate imageUrl format if provided
+    if (imageUrl) {
+      if (typeof imageUrl !== 'string') {
+        return new Response(
+          JSON.stringify({ error: "Invalid image URL format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      try {
+        const url = new URL(imageUrl);
+        if (!['http:', 'https:'].includes(url.protocol)) {
+          throw new Error('Invalid protocol');
+        }
+      } catch {
+        return new Response(
+          JSON.stringify({ error: "Invalid image URL" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
