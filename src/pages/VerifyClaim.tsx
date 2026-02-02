@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, XCircle, Loader2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, ArrowRight, Shield, AlertTriangle } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 
 type VerificationStatus = 'loading' | 'success' | 'error';
@@ -12,6 +13,14 @@ interface VerificationResult {
   clubName?: string;
   clubId?: string;
   errorMessage?: string;
+  verificationState?: 'verified' | 'provisional';
+  trustLevel?: 'high' | 'medium' | 'low';
+  restrictions?: {
+    message: string;
+    canPublishEvents: boolean;
+    canMassMessage: boolean;
+    canAddLinks: boolean;
+  };
 }
 
 export default function VerifyClaim() {
@@ -48,6 +57,9 @@ export default function VerifyClaim() {
         setResult({
           clubName: data.clubName,
           clubId: data.clubId,
+          verificationState: data.verificationState,
+          trustLevel: data.trustLevel,
+          restrictions: data.restrictions,
         });
       } catch (err: any) {
         setStatus('error');
@@ -57,6 +69,8 @@ export default function VerifyClaim() {
 
     verifyToken();
   }, [token]);
+
+  const isProvisional = result.verificationState === 'provisional';
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -84,20 +98,64 @@ export default function VerifyClaim() {
                 <CheckCircle2 className="w-8 h-8 text-green-500" />
               </div>
               <div>
-                <h1 className="text-2xl font-display font-bold text-foreground mb-2">
-                  Ownership Verified!
-                </h1>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <h1 className="text-2xl font-display font-bold text-foreground">
+                    Ownership Verified!
+                  </h1>
+                  {isProvisional ? (
+                    <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10">
+                      <Shield className="w-3 h-3 mr-1" />
+                      Provisional
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-green-500/50 text-green-600 bg-green-500/10">
+                      <Shield className="w-3 h-3 mr-1" />
+                      Verified
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-muted-foreground">
                   You are now the verified owner of <span className="text-gold font-medium">{result.clubName}</span>.
                 </p>
               </div>
+
+              {isProvisional && result.restrictions && (
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-left">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-foreground text-sm mb-1">Provisional Account</h4>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {result.restrictions.message}
+                      </p>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        <li className="flex items-center gap-2">
+                          <XCircle className="w-3 h-3 text-destructive" />
+                          Cannot publish events publicly
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <XCircle className="w-3 h-3 text-destructive" />
+                          Cannot send mass messages
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <XCircle className="w-3 h-3 text-destructive" />
+                          External links require review
+                        </li>
+                      </ul>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        To get full access, verify with a .edu email or have another verified admin confirm you.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="premium-card p-6 text-left space-y-3">
                 <h3 className="font-semibold text-foreground">What you can do now:</h3>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-gold shrink-0 mt-0.5" />
-                    Submit events for your club
+                    {isProvisional ? 'Draft events for your club' : 'Submit events for your club'}
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-gold shrink-0 mt-0.5" />
@@ -119,10 +177,10 @@ export default function VerifyClaim() {
                 </Button>
                 <Button
                   variant="gold"
-                  onClick={() => navigate('/submit-event')}
+                  onClick={() => navigate('/club-admin')}
                   className="gap-2"
                 >
-                  Submit an Event
+                  Go to Admin Portal
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>

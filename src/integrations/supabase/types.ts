@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          club_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          club_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          club_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+        }
+        Relationships: []
+      }
+      claim_rate_limits: {
+        Row: {
+          attempt_count: number | null
+          blocked_until: string | null
+          club_id: string
+          created_at: string | null
+          email: string
+          first_attempt_at: string | null
+          id: string
+          ip_address: string | null
+          last_attempt_at: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          club_id: string
+          created_at?: string | null
+          email: string
+          first_attempt_at?: string | null
+          id?: string
+          ip_address?: string | null
+          last_attempt_at?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          blocked_until?: string | null
+          club_id?: string
+          created_at?: string | null
+          email?: string
+          first_attempt_at?: string | null
+          id?: string
+          ip_address?: string | null
+          last_attempt_at?: string | null
+        }
+        Relationships: []
+      }
       club_applications: {
         Row: {
           applied_at: string
@@ -132,8 +198,17 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          last_verification_at: string | null
+          provisional_until: string | null
+          restrictions: Json | null
+          trust_level: Database["public"]["Enums"]["trust_level"] | null
+          trust_score: number | null
           user_id: string
+          verification_state:
+            | Database["public"]["Enums"]["verification_state"]
+            | null
           verified_at: string
+          verified_domain: string | null
         }
         Insert: {
           club_id: string
@@ -141,8 +216,17 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          last_verification_at?: string | null
+          provisional_until?: string | null
+          restrictions?: Json | null
+          trust_level?: Database["public"]["Enums"]["trust_level"] | null
+          trust_score?: number | null
           user_id: string
+          verification_state?:
+            | Database["public"]["Enums"]["verification_state"]
+            | null
           verified_at?: string
+          verified_domain?: string | null
         }
         Update: {
           club_id?: string
@@ -150,8 +234,107 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          last_verification_at?: string | null
+          provisional_until?: string | null
+          restrictions?: Json | null
+          trust_level?: Database["public"]["Enums"]["trust_level"] | null
+          trust_score?: number | null
           user_id?: string
+          verification_state?:
+            | Database["public"]["Enums"]["verification_state"]
+            | null
           verified_at?: string
+          verified_domain?: string | null
+        }
+        Relationships: []
+      }
+      disposable_domains: {
+        Row: {
+          added_at: string | null
+          domain: string
+        }
+        Insert: {
+          added_at?: string | null
+          domain: string
+        }
+        Update: {
+          added_at?: string | null
+          domain?: string
+        }
+        Relationships: []
+      }
+      email_domain_rules: {
+        Row: {
+          created_at: string | null
+          domain: string
+          id: string
+          reason: string | null
+          rule_type: string
+          trust_level: Database["public"]["Enums"]["trust_level"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          domain: string
+          id?: string
+          reason?: string | null
+          rule_type: string
+          trust_level?: Database["public"]["Enums"]["trust_level"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          domain?: string
+          id?: string
+          reason?: string | null
+          rule_type?: string
+          trust_level?: Database["public"]["Enums"]["trust_level"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ownership_transfers: {
+        Row: {
+          approvals: Json | null
+          club_id: string
+          created_at: string | null
+          expires_at: string | null
+          from_user_id: string | null
+          id: string
+          reason: string | null
+          required_approvals: number | null
+          status: string | null
+          to_email: string
+          to_user_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          approvals?: Json | null
+          club_id: string
+          created_at?: string | null
+          expires_at?: string | null
+          from_user_id?: string | null
+          id?: string
+          reason?: string | null
+          required_approvals?: number | null
+          status?: string | null
+          to_email: string
+          to_user_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          approvals?: Json | null
+          club_id?: string
+          created_at?: string | null
+          expires_at?: string | null
+          from_user_id?: string | null
+          id?: string
+          reason?: string | null
+          required_approvals?: number | null
+          status?: string | null
+          to_email?: string
+          to_user_id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -232,7 +415,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      trust_level: "high" | "medium" | "low"
+      verification_state:
+        | "unverified"
+        | "provisional"
+        | "verified"
+        | "suspended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -359,6 +547,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      trust_level: ["high", "medium", "low"],
+      verification_state: [
+        "unverified",
+        "provisional",
+        "verified",
+        "suspended",
+      ],
+    },
   },
 } as const
