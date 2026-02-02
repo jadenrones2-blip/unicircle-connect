@@ -6,8 +6,11 @@ import Footer from '@/components/Footer';
 import ClubsCalendar from '@/components/calendar/ClubsCalendar';
 import { RecommendedEvents } from '@/components/calendar/RecommendedEvents';
 import { Button } from '@/components/ui/button';
+import { useClubOwnership } from '@/hooks/useClubOwnership';
 
 const CalendarApp = () => {
+  const { ownedClubs } = useClubOwnership();
+  const isClubOwner = ownedClubs.length > 0;
   return (
     <main className="min-h-screen bg-background">
       <Header />
@@ -29,12 +32,14 @@ const CalendarApp = () => {
             <p className="text-muted-foreground mb-6">
               Browse and discover upcoming events. Updates in real-time.
             </p>
-            <Link to="/submit-event">
-              <Button variant="gold" size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Submit an Event
-              </Button>
-            </Link>
+            {isClubOwner && (
+              <Link to="/submit-event">
+                <Button variant="gold" size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Submit an Event
+                </Button>
+              </Link>
+            )}
           </motion.div>
         </div>
       </section>
