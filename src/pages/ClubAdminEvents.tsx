@@ -67,22 +67,33 @@ export default function ClubAdminEvents() {
     }
   }, [clubId, club]);
 
+  // Require authentication first
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/login?redirect=/club-admin');
-      return;
+    if (authLoading) return;
+    if (!user) {
+      const redirect = clubId ? `/club-admin/clubs/${clubId}/events` : '/club-admin';
+      toast.error('Please log in to access club admin');
+      navigate(`/login?redirect=${encodeURIComponent(redirect)}`);
     }
-    
-    if (!ownershipLoading && clubId && !isOwnerOf(clubId)) {
-      navigate('/club-admin');
-      toast.error('You do not own this club');
-      return;
-    }
+  }, [authLoading, user, clubId, navigate]);
 
-    if (club) {
+  // Check ownership after auth completes
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) return;
+    if (ownershipLoading) return;
+    if (clubId && !isOwnerOf(clubId)) {
+      toast.error('You do not own this club');
+      navigate('/club-admin');
+    }
+  }, [authLoading, user, ownershipLoading, clubId, isOwnerOf, navigate]);
+
+  // Fetch events only when everything is ready
+  useEffect(() => {
+    if (club && !authLoading && user && !ownershipLoading && isOwnerOf(clubId ?? '')) {
       fetchClubEvents();
     }
-  }, [user, authLoading, ownershipLoading, clubId, isOwnerOf, club, navigate, fetchClubEvents]);
+  }, [authLoading, user, ownershipLoading, club, clubId, isOwnerOf, fetchClubEvents]);
 
   const handleDelete = async () => {
     if (!deleteEventId) return;
