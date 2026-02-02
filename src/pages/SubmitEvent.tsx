@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership, ClubOwnership } from '@/hooks/useClubOwnership';
 import { EventImageUpload } from '@/components/club-admin/EventImageUpload';
 import { EventPreviewCard } from '@/components/club-admin/EventPreviewCard';
+import { FlyerAutoFill, ExtractedEventData } from '@/components/club-admin/FlyerAutoFill';
 import {
   Form,
   FormControl,
@@ -103,6 +104,25 @@ export default function SubmitEvent() {
 
   // Watch form values for live preview
   const watchedValues = form.watch();
+
+  // Handle AI extraction from flyer
+  const handleFlyerExtracted = (data: ExtractedEventData) => {
+    if (data.title) {
+      form.setValue('event_title', data.title);
+    }
+    if (data.date) {
+      form.setValue('event_date', data.date);
+    }
+    if (data.time) {
+      form.setValue('event_time', data.time);
+    }
+    if (data.location) {
+      form.setValue('location', data.location);
+    }
+    if (data.description) {
+      form.setValue('description', data.description);
+    }
+  };
 
   const onSubmit = async (data: EventSubmission) => {
     if (!selectedClub) return;
@@ -441,6 +461,14 @@ export default function SubmitEvent() {
                         </p>
                       </div>
                     )}
+
+                    {/* AI Auto-fill from Flyer */}
+                    <div className="space-y-2">
+                      <FlyerAutoFill 
+                        onExtracted={handleFlyerExtracted}
+                        disabled={!selectedClubId}
+                      />
+                    </div>
 
                     {/* Event Details */}
                     <div className="space-y-4">
