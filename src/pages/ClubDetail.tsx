@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ExpressInterestModal from "@/components/ExpressInterestModal";
 import ClaimClubModal from "@/components/ClaimClubModal";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,7 +28,6 @@ import { useClubOwnership } from "@/hooks/useClubOwnership";
 
 const ClubDetail = () => {
   const { id } = useParams();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
@@ -193,9 +192,16 @@ const ClubDetail = () => {
                   variant="gold" 
                   size="lg" 
                   className="w-full"
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => {
+                    if (club.email) {
+                      window.location.href = `mailto:${club.email}?subject=Interest in ${encodeURIComponent(club.name)}`;
+                    } else {
+                      toast.info("No email available for this club yet. Check their social links or try again later.");
+                    }
+                  }}
                 >
-                  I'm Interested
+                  <Mail className="w-4 h-4 mr-2" />
+                  Express Interest
                 </Button>
                 <div className="flex gap-2">
                   <Button 
@@ -284,15 +290,15 @@ const ClubDetail = () => {
                   <ol className="space-y-3 text-muted-foreground">
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold text-primary-foreground flex items-center justify-center text-sm font-semibold">1</span>
-                      <span>Express your interest using the button above</span>
+                      <span>Click "Express Interest" to email the club directly</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold text-primary-foreground flex items-center justify-center text-sm font-semibold">2</span>
-                      <span>Attend one of our open events or info sessions</span>
+                      <span>Attend one of their open events or info sessions</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold text-primary-foreground flex items-center justify-center text-sm font-semibold">3</span>
-                      <span>Complete the membership application</span>
+                      <span>Follow their social media for updates on applications</span>
                     </li>
                   </ol>
                 </div>
@@ -356,14 +362,6 @@ const ClubDetail = () => {
       </section>
 
       <Footer />
-
-      {/* Express Interest Modal */}
-      <ExpressInterestModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        clubName={club.name}
-        clubId={club.id}
-      />
 
       {/* Claim Club Modal */}
       <ClaimClubModal
