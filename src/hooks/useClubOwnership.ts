@@ -2,12 +2,32 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-interface ClubOwnership {
+export type VerificationState = 'unverified' | 'provisional' | 'verified' | 'suspended';
+export type TrustLevel = 'high' | 'medium' | 'low';
+
+export interface ClubRestrictions {
+  can_publish_events: boolean;
+  can_mass_message: boolean;
+  can_add_links: boolean;
+}
+
+export interface ClubOwnership {
   clubId: string;
   clubName: string;
   email: string;
   verifiedAt: string;
+  verificationState: VerificationState;
+  trustLevel: TrustLevel;
+  trustScore: number;
+  restrictions: ClubRestrictions;
+  provisionalUntil: string | null;
 }
+
+const DEFAULT_RESTRICTIONS: ClubRestrictions = {
+  can_publish_events: false,
+  can_mass_message: false,
+  can_add_links: false,
+};
 
 export function useClubOwnership() {
   const { user } = useAuth();
@@ -25,7 +45,7 @@ export function useClubOwnership() {
       try {
         const { data, error } = await supabase
           .from('club_owners')
-          .select('club_id, club_name, email, verified_at')
+          .select('club_id, club_name, email, verified_at, verification_state, trust_level, trust_score, restrictions, provisional_until')
           .eq('user_id', user.id);
 
         if (error) throw error;
@@ -36,6 +56,11 @@ export function useClubOwnership() {
             clubName: row.club_name,
             email: row.email,
             verifiedAt: row.verified_at,
+            verificationState: (row.verification_state as VerificationState) || 'verified',
+            trustLevel: (row.trust_level as TrustLevel) || 'high',
+            trustScore: row.trust_score || 100,
+            restrictions: (row.restrictions as unknown as ClubRestrictions) || DEFAULT_RESTRICTIONS,
+            provisionalUntil: row.provisional_until,
           }))
         );
       } catch (err) {
@@ -53,6 +78,34 @@ export function useClubOwnership() {
     return ownedClubs.some((club) => club.clubId === clubId);
   };
 
+  const getClubOwnership = (clubId: string): ClubOwnership | undefined => {
+    return ownedClubs.find((club) => club.clubId === clubId);
+  };
+
+  const canPerformAction = (clubId: string, action: keyof ClubRestrictions): boolean => {
+    const club = getClubOwnership(clubId);
+    if (!club) return false;
+    
+    // Verified owners can do everything
+    if (club.verificationState === 'verified') return true;
+    
+    // Suspended owners can do nothing
+    if (club.verificationState === 'suspended') return false;
+    
+    // Provisional owners check restrictions
+    return club.restrictions[action] === true;
+  };
+
+  const isProvisional = (clubId: string): boolean => {
+    const club = getClubOwnership(clubId);
+    return club?.verificationState === 'provisional';
+  };
+
+  const isVerified = (clubId: string): boolean => {
+    const club = getClubOwnership(clubId);
+    return club?.verificationState === 'verified';
+  };
+
   const checkOwnershipByEmail = async (email: string, clubId: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase
@@ -68,10 +121,22 @@ export function useClubOwnership() {
     }
   };
 
+  // Check if any owned club is provisional
+  const hasProvisionalClub = ownedClubs.some(club => club.verificationState === 'provisional');
+  
+  // Check if any owned club is fully verified
+  const hasVerifiedClub = ownedClubs.some(club => club.verificationState === 'verified');
+
   return {
     ownedClubs,
     loading,
     isOwnerOf,
+    getClubOwnership,
+    canPerformAction,
+    isProvisional,
+    isVerified,
+    hasProvisionalClub,
+    hasVerifiedClub,
     checkOwnershipByEmail,
   };
 }

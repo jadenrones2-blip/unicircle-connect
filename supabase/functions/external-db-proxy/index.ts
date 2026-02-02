@@ -30,6 +30,60 @@ const MAX_FILTERS = 5;
 // Maximum string length for filter values
 const MAX_FILTER_VALUE_LENGTH = 500;
 
+// ============ AUDIT LOGGING ============
+
+interface AuditLogEntry {
+  club_id: string;
+  actor_user_id: string | null;
+  action: string;
+  details: Record<string, unknown>;
+  ip_address: string;
+}
+
+async function logAuditEvent(
+  supabase: any, 
+  entry: AuditLogEntry
+): Promise<void> {
+  try {
+    await supabase
+      .from('admin_audit_log')
+      .insert({
+        club_id: entry.club_id,
+        actor_user_id: entry.actor_user_id,
+        action: entry.action,
+        details: entry.details,
+        ip_address: entry.ip_address,
+      });
+  } catch (err) {
+    console.error('Failed to log audit event:', err);
+    // Don't throw - audit logging should not break the main operation
+  }
+}
+
+function getClientIP(req: Request): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('cf-connecting-ip') || 
+         'unknown';
+}
+
+async function extractUserFromAuth(req: Request, supabaseUrl: string, anonKey: string): Promise<string | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  
+  try {
+    const userSupabase = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+    
+    const { data: { user } } = await userSupabase.auth.getUser();
+    return user?.id || null;
+  } catch {
+    return null;
+  }
+}
+
+// ============ VALIDATION HELPERS ============
+
 // Validate filter value type and length
 function isValidFilterValue(value: unknown): boolean {
   if (value === null || value === undefined) {
@@ -119,15 +173,25 @@ function isValidOrderColumn(orderBy: string | null, table: string): boolean {
   return allowedColumns.includes(orderBy);
 }
 
+// ============ MAIN HANDLER ============
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const ipAddress = getClientIP(req);
+
   try {
     const rawExternalUrl = (Deno.env.get("EXTERNAL_SUPABASE_URL") ?? "").trim();
     const externalKey = (Deno.env.get("EXTERNAL_SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+    
+    // Internal Supabase for audit logging
+    const internalUrl = Deno.env.get("SUPABASE_URL")!;
+    const internalServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const internalAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    const internalSupabase = createClient(internalUrl, internalServiceKey);
 
     const normalizeExternalUrl = (value: string): string | null => {
       let v = value.trim();
@@ -182,6 +246,9 @@ serve(async (req) => {
 
     // Create client for external Supabase
     const externalSupabase = createClient(externalUrl, externalKey);
+    
+    // Extract user ID for audit logging
+    const userId = await extractUserFromAuth(req, internalUrl, internalAnonKey);
 
     const url = new URL(req.url);
     const table = url.searchParams.get("table");
@@ -205,7 +272,7 @@ serve(async (req) => {
     }
 
     if (req.method === "GET" && action === "select") {
-      // Handle SELECT queries
+      // Handle SELECT queries (no audit logging for reads)
       const select = url.searchParams.get("select") || "*";
       const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "100"), 1), 1000);
       const offset = Math.max(parseInt(url.searchParams.get("offset") || "0"), 0);
@@ -302,6 +369,21 @@ serve(async (req) => {
         );
       }
 
+      // Audit log for insert
+      const clubId = body.record.club_handle || body.record.club_id || body.record.id || 'unknown';
+      await logAuditEvent(internalSupabase, {
+        club_id: clubId,
+        actor_user_id: userId,
+        action: `${table}_insert`,
+        details: {
+          table,
+          record_id: data?.[0]?.id,
+          title: body.record.title || body.record.name,
+          verified: body.record.verified,
+        },
+        ip_address: ipAddress,
+      });
+
       console.log(`Successfully inserted record into ${table}`);
 
       return new Response(
@@ -336,6 +418,20 @@ serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      // Audit log for update
+      const clubId = body.record.club_handle || body.record.club_id || body.id;
+      await logAuditEvent(internalSupabase, {
+        club_id: clubId,
+        actor_user_id: userId,
+        action: `${table}_update`,
+        details: {
+          table,
+          record_id: body.id,
+          updated_fields: Object.keys(body.record),
+        },
+        ip_address: ipAddress,
+      });
 
       console.log(`Successfully updated record in ${table}`);
 
@@ -389,6 +485,20 @@ serve(async (req) => {
         );
       }
 
+      // Audit log for delete
+      const clubId = (filters.club_handle || filters.club_id || filters.id || 'unknown') as string;
+      await logAuditEvent(internalSupabase, {
+        club_id: clubId,
+        actor_user_id: userId,
+        action: `${table}_delete`,
+        details: {
+          table,
+          filters,
+          deleted_count: count,
+        },
+        ip_address: ipAddress,
+      });
+
       console.log(`Successfully deleted records from ${table}`);
 
       return new Response(
@@ -420,6 +530,18 @@ serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      // Audit log for bulk delete
+      await logAuditEvent(internalSupabase, {
+        club_id: 'system',
+        actor_user_id: userId,
+        action: 'events_bulk_delete',
+        details: {
+          action: 'delete-all-events',
+          reason: 'Manual cleanup',
+        },
+        ip_address: ipAddress,
+      });
 
       console.log("Successfully deleted all events");
 
