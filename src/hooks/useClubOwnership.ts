@@ -35,10 +35,18 @@ export function useClubOwnership() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchOwnedClubs = async () => {
+      // IMPORTANT: keep loading true while auth is resolving and while we fetch ownership.
+      // Otherwise pages can briefly think "ownershipLoading=false" and redirect/toast incorrectly.
+      setLoading(true);
+
       if (!user) {
-        setOwnedClubs([]);
-        setLoading(false);
+        if (isMounted) {
+          setOwnedClubs([]);
+          setLoading(false);
+        }
         return;
       }
 
@@ -50,28 +58,34 @@ export function useClubOwnership() {
 
         if (error) throw error;
 
-        setOwnedClubs(
-          (data || []).map((row) => ({
-            clubId: row.club_id,
-            clubName: row.club_name,
-            email: row.email,
-            verifiedAt: row.verified_at,
-            verificationState: (row.verification_state as VerificationState) || 'verified',
-            trustLevel: (row.trust_level as TrustLevel) || 'high',
-            trustScore: row.trust_score || 100,
-            restrictions: (row.restrictions as unknown as ClubRestrictions) || DEFAULT_RESTRICTIONS,
-            provisionalUntil: row.provisional_until,
-          }))
-        );
+        if (isMounted) {
+          setOwnedClubs(
+            (data || []).map((row) => ({
+              clubId: row.club_id,
+              clubName: row.club_name,
+              email: row.email,
+              verifiedAt: row.verified_at,
+              verificationState: (row.verification_state as VerificationState) || 'verified',
+              trustLevel: (row.trust_level as TrustLevel) || 'high',
+              trustScore: row.trust_score || 100,
+              restrictions: (row.restrictions as unknown as ClubRestrictions) || DEFAULT_RESTRICTIONS,
+              provisionalUntil: row.provisional_until,
+            }))
+          );
+        }
       } catch (err) {
         console.error('Error fetching owned clubs:', err);
-        setOwnedClubs([]);
+        if (isMounted) setOwnedClubs([]);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchOwnedClubs();
+
+    return () => {
+      isMounted = false;
+    };
   }, [user]);
 
   const isOwnerOf = (clubId: string): boolean => {
