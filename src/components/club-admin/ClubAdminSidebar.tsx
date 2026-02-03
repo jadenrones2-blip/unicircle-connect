@@ -1,7 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, ChevronRight } from 'lucide-react';
+import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, User } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
+import { useAdminProfile } from '@/hooks/useAdminProfile';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +23,7 @@ export function ClubAdminSidebar() {
   const location = useLocation();
   const { signOut } = useAuth();
   const { ownedClubs } = useClubOwnership();
+  const { profile } = useAdminProfile();
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
 
@@ -35,6 +38,39 @@ export function ClubAdminSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarContent>
+        {/* Admin Profile Header */}
+        {profile && (
+          <div className={cn(
+            "p-3 border-b border-border",
+            collapsed ? "flex justify-center" : ""
+          )}>
+            <Link 
+              to="/club-admin/profile"
+              className={cn(
+                "flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted",
+                location.pathname === '/club-admin/profile' && "bg-gold/10"
+              )}
+            >
+              <Avatar className="w-9 h-9 border border-gold/30">
+                <AvatarImage src={profile.avatar_url || undefined} />
+                <AvatarFallback className="bg-gold/10 text-gold text-sm">
+                  {profile.display_name?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
+                </AvatarFallback>
+              </Avatar>
+              {!collapsed && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {profile.display_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {profile.role_title}
+                  </p>
+                </div>
+              )}
+            </Link>
+          </div>
+        )}
+
         <SidebarGroup>
           <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
             {!collapsed && 'Navigation'}
