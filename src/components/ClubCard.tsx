@@ -32,7 +32,17 @@ const getStatusLabel = (status: RecruitingStatus) => {
   }
 };
 
+const isGreekOrg = (club: Club): boolean => {
+  const searchText = `${club.name} ${club.category} ${club.categoryBucket || ''}`.toLowerCase();
+  return searchText.includes('panhellenic') || 
+         searchText.includes('interfraternity') || 
+         searchText.includes('fraternity') || 
+         searchText.includes('sorority');
+};
+
 const ClubCardComponent = ({ club }: ClubCardProps) => {
+  const showGreekTag = isGreekOrg(club);
+  
   return (
     <motion.div
       initial={false}
@@ -42,14 +52,24 @@ const ClubCardComponent = ({ club }: ClubCardProps) => {
     >
       {/* Header with category and status */}
       <div className="flex items-center justify-between gap-2 mb-3">
-        {club.category && (
-          <Badge
-            variant="secondary"
-            className="bg-muted text-muted-foreground border-0 text-xs"
-          >
-            {club.category}
-          </Badge>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {club.category && (
+            <Badge
+              variant="secondary"
+              className="bg-muted text-muted-foreground border-0 text-xs"
+            >
+              {club.category}
+            </Badge>
+          )}
+          {showGreekTag && (
+            <Badge
+              variant="secondary"
+              className="bg-purple-500/10 text-purple-600 border-purple-500/20 text-xs"
+            >
+              Greek
+            </Badge>
+          )}
+        </div>
         {/* Only show Open/Upcoming status, hide Closed */}
         {club.recruitingStatus !== "closed" && (
           <Badge

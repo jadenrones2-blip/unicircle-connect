@@ -30,7 +30,17 @@ const getStatusLabel = (status: RecruitingStatus) => {
   }
 };
 
+const isGreekOrg = (club: Club): boolean => {
+  const searchText = `${club.name} ${club.category} ${club.categoryBucket || ''}`.toLowerCase();
+  return searchText.includes('panhellenic') || 
+         searchText.includes('interfraternity') || 
+         searchText.includes('fraternity') || 
+         searchText.includes('sorority');
+};
+
 const ClubListItemComponent = ({ club }: ClubListItemProps) => {
+  const showGreekTag = isGreekOrg(club);
+  
   return (
     <Link
       to={`/clubs/${club.id}`}
@@ -47,6 +57,14 @@ const ClubListItemComponent = ({ club }: ClubListItemProps) => {
               className="bg-muted text-muted-foreground border-0 text-xs flex-shrink-0 hidden sm:inline-flex"
             >
               {club.category}
+            </Badge>
+          )}
+          {showGreekTag && (
+            <Badge
+              variant="secondary"
+              className="bg-purple-500/10 text-purple-600 border-purple-500/20 text-xs flex-shrink-0 hidden sm:inline-flex"
+            >
+              Greek
             </Badge>
           )}
         </div>
