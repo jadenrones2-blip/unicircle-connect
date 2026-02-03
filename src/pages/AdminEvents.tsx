@@ -167,6 +167,27 @@ export default function AdminEvents() {
       toast.error('Failed to approve event');
     } else {
       toast.success('Event approved and will now appear on calendar!');
+      
+      // Send email notification to club owner
+      const finalTitle = editingEvent.corrected_title.trim() || editingEvent.title;
+      const finalStartTime = editingEvent.corrected_start_time 
+        ? new Date(editingEvent.corrected_start_time).toISOString()
+        : editingEvent.original_start_time;
+      const finalLocation = editingEvent.corrected_location.trim() || editingEvent.original_location;
+      
+      if (editingEvent.club_handle) {
+        supabase.functions.invoke('notify-event-approved', {
+          body: {
+            eventTitle: finalTitle,
+            clubHandle: editingEvent.club_handle,
+            startTime: finalStartTime,
+            location: finalLocation,
+          },
+        }).catch((err) => {
+          console.error('Failed to send approval notification:', err);
+        });
+      }
+      
       setEditingEvent(null);
       fetchUnverifiedEvents();
     }

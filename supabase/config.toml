@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.scrape-eventbrite]
 verify_jwt = false
+
+[functions.notify-event-approved]
+verify_jwt = false
