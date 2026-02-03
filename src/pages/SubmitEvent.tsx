@@ -9,10 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Send, Calendar, MapPin, CheckCircle2, ArrowLeft, Plus, Shield, Lock, AlertTriangle, FileText, Instagram, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Send, Calendar, MapPin, Shield, AlertTriangle, Instagram, Image as ImageIcon, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { useClubOwnership, ClubOwnership } from '@/hooks/useClubOwnership';
+import { useClubOwnership } from '@/hooks/useClubOwnership';
 import { EventImageUpload } from '@/components/club-admin/EventImageUpload';
 import { EventPreviewCard } from '@/components/club-admin/EventPreviewCard';
 import { FlyerAutoFill, ExtractedEventData } from '@/components/club-admin/FlyerAutoFill';
@@ -52,27 +52,14 @@ const eventSubmissionSchema = z.object({
 
 type EventSubmission = z.infer<typeof eventSubmissionSchema>;
 
-interface SubmittedEventDetails {
-  title: string;
-  date: string;
-  time?: string;
-  location: string;
-  clubName: string;
-  isDraft: boolean;
-  imageUrl?: string | null;
-  instagramUrl?: string;
-}
-
 export default function SubmitEvent() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedClubId = searchParams.get('club');
   
   const { user, loading: authLoading } = useAuth();
-  const { ownedClubs, loading: ownershipLoading, canPerformAction, getClubOwnership } = useClubOwnership();
+  const { ownedClubs, loading: ownershipLoading, canPerformAction } = useClubOwnership();
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [submittedDetails, setSubmittedDetails] = useState<SubmittedEventDetails | null>(null);
   
   const form = useForm<EventSubmission>({
     resolver: zodResolver(eventSubmissionSchema),
@@ -183,18 +170,9 @@ export default function SubmitEvent() {
         throw new Error('Failed to submit event');
       }
 
-      setSubmittedDetails({
-        title: data.event_title,
-        date: data.event_date,
-        time: data.event_time || undefined,
-        location: data.location || 'UCSD Campus',
-        clubName: selectedClub.clubName,
-        isDraft: !canPublish,
-        imageUrl: data.image_url,
-        instagramUrl: data.instagram_url || undefined,
-      });
-      setSubmitted(true);
-      form.reset();
+      // Success - show toast and redirect to club admin events page
+      toast.success(canPublish ? 'Event published!' : 'Event saved as draft');
+      navigate(`/club-admin/clubs/${selectedClub.clubId}/events`);
 
     } catch (err) {
       console.error('Submission error:', err);
@@ -248,132 +226,7 @@ export default function SubmitEvent() {
       
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4">
-          {submitted && submittedDetails ? (
-            <div className="max-w-2xl mx-auto text-center">
-              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 ${
-                submittedDetails.isDraft 
-                  ? 'bg-yellow-500/10 border border-yellow-500/20' 
-                  : 'bg-green-500/10 border border-green-500/20'
-              }`}>
-                {submittedDetails.isDraft ? (
-                  <FileText className="w-8 h-8 text-yellow-600" />
-                ) : (
-                  <CheckCircle2 className="w-8 h-8 text-green-500" />
-                )}
-              </div>
-              <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
-                {submittedDetails.isDraft ? 'Event Saved as Draft!' : 'Event Published!'}
-              </h1>
-              <p className="text-muted-foreground max-w-md mx-auto mb-8">
-                {submittedDetails.isDraft 
-                  ? 'Your event has been saved but is pending review. It will be published once your account is fully verified.'
-                  : 'Your event is now live on the UniCircle calendar.'
-                }
-              </p>
-
-              {submittedDetails.isDraft && (
-                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-left mb-6 max-w-md mx-auto">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-foreground text-sm mb-1">Provisional Account</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Your account is provisional. Events you submit are saved as drafts and won't be publicly visible until:
-                      </p>
-                      <ul className="text-xs text-muted-foreground mt-2 space-y-1">
-                        <li>• You verify with a .edu email, or</li>
-                        <li>• Another verified admin confirms you</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="premium-card p-6 md:p-8 text-left mb-8">
-                <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-gold" />
-                  Event Details
-                  {submittedDetails.isDraft && (
-                    <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10 ml-auto">
-                      Draft
-                    </Badge>
-                  )}
-                </h2>
-                
-                {submittedDetails.imageUrl && (
-                  <div className="mb-4 rounded-lg overflow-hidden">
-                    <img 
-                      src={submittedDetails.imageUrl} 
-                      alt={submittedDetails.title}
-                      className="w-full h-40 object-cover"
-                    />
-                  </div>
-                )}
-                
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <span className="text-muted-foreground w-24 shrink-0">Title:</span>
-                    <span className="text-foreground font-medium">{submittedDetails.title}</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-muted-foreground w-24 shrink-0">Date:</span>
-                    <span className="text-foreground">{new Date(submittedDetails.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                  </div>
-                  {submittedDetails.time && (
-                    <div className="flex items-start gap-3">
-                      <span className="text-muted-foreground w-24 shrink-0">Time:</span>
-                      <span className="text-foreground">{submittedDetails.time}</span>
-                    </div>
-                  )}
-                  <div className="flex items-start gap-3">
-                    <span className="text-muted-foreground w-24 shrink-0">Location:</span>
-                    <span className="text-foreground">{submittedDetails.location}</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="text-muted-foreground w-24 shrink-0">Club:</span>
-                    <span className="text-foreground">{submittedDetails.clubName}</span>
-                  </div>
-                  {submittedDetails.instagramUrl && (
-                    <div className="flex items-start gap-3">
-                      <span className="text-muted-foreground w-24 shrink-0">Instagram:</span>
-                      <a 
-                        href={submittedDetails.instagramUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-pink-500 hover:underline flex items-center gap-1"
-                      >
-                        <Instagram className="w-4 h-4" />
-                        View Post
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/events')}
-                  className="gap-2"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  View Calendar
-                </Button>
-                <Button
-                  variant="gold"
-                  onClick={() => {
-                    setSubmitted(false);
-                    setSubmittedDetails(null);
-                  }}
-                  className="gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Submit Another Event
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="grid lg:grid-cols-5 gap-8 max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-5 gap-8 max-w-6xl mx-auto">
               {/* Form Column */}
               <div className="lg:col-span-3">
                 {/* Header */}
@@ -683,9 +536,8 @@ export default function SubmitEvent() {
                 </div>
               </div>
             </div>
-          )}
-        </div>
-      </main>
+          </div>
+        </main>
 
       <Footer />
     </div>
