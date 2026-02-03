@@ -32,13 +32,14 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
   // Check if club has any events
   useEffect(() => {
     const checkEvents = async () => {
-      if (!club.clubName) return;
+      if (!club.clubId) return;
       
       try {
+        // Query by club_handle matching the club ID (how events are submitted)
         const { data, error } = await externalSupabase
           .from('events')
           .select('id')
-          .or(`club_handle.ilike.%${club.clubName}%,title.ilike.%${club.clubName}%`)
+          .eq('club_handle', club.clubId)
           .limit(1);
 
         if (!error && data && data.length > 0) {
@@ -52,7 +53,7 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
     };
 
     checkEvents();
-  }, [club.clubName]);
+  }, [club.clubId]);
 
   const isLoading = loadingClub || loadingEvents;
 

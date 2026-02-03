@@ -9,7 +9,7 @@ const corsHeaders = {
 // Define allowed columns per table for filtering
 const ALLOWED_FILTER_COLUMNS: Record<string, string[]> = {
   clubs: ["id", "name", "category", "recruitingStatus", "status", "email"],
-  events: ["id", "club_id", "date", "status", "category", "title"],
+  events: ["id", "club_id", "club_handle", "date", "status", "category", "title", "verified", "source"],
   categories: ["id", "name"],
   interests: ["id", "name", "category"],
   raw_club_pages: ["id", "club_id", "status"],
@@ -18,7 +18,7 @@ const ALLOWED_FILTER_COLUMNS: Record<string, string[]> = {
 // Define allowed columns per table for ordering
 const ALLOWED_ORDER_COLUMNS: Record<string, string[]> = {
   clubs: ["id", "name", "category", "created_at", "updated_at"],
-  events: ["id", "date", "title", "created_at"],
+  events: ["id", "date", "title", "created_at", "start_time"],
   categories: ["id", "name"],
   interests: ["id", "name"],
   raw_club_pages: ["id", "created_at"],
