@@ -146,7 +146,7 @@ I need specific event details: event name, exact date and time, location on camp
           { role: 'user', content: searchQuery }
         ],
         search_recency_filter: 'week',
-        search_domain_filter: ['ucsd.edu', 'thetritionlink.ucsd.edu', 'studentorg.ucsd.edu', 'calendar.ucsd.edu'],
+        search_domain_filter: ['ucsd.edu', 'thetritionlink.ucsd.edu', 'studentorg.ucsd.edu', 'calendar.ucsd.edu', 'eventbrite.com'],
       }),
     });
 
