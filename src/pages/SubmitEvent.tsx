@@ -88,6 +88,25 @@ export default function SubmitEvent() {
     },
   });
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      const redirectPath = preselectedClubId 
+        ? `/submit-event?club=${preselectedClubId}` 
+        : '/submit-event';
+      toast.error('Please log in to submit events');
+      navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`);
+    }
+  }, [authLoading, user, preselectedClubId, navigate]);
+
+  // Redirect to clubs page if authenticated but no club ownership
+  useEffect(() => {
+    if (!authLoading && !ownershipLoading && user && ownedClubs.length === 0) {
+      toast.error('You need to claim a club before submitting events');
+      navigate('/clubs');
+    }
+  }, [authLoading, ownershipLoading, user, ownedClubs, navigate]);
+
   // Set default club if user only owns one or if preselected
   useEffect(() => {
     if (preselectedClubId && ownedClubs.some(c => c.clubId === preselectedClubId)) {
@@ -186,7 +205,42 @@ export default function SubmitEvent() {
   };
 
   const isLoading = authLoading || ownershipLoading;
-  const hasAccess = user && ownedClubs.length > 0;
+  
+  // Don't render form content if not authenticated or no club ownership - redirects will handle it
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <main className="flex-1 pt-24 pb-16">
+          <div className="container mx-auto px-4">
+            <div className="text-center py-16">
+              <Loader2 className="w-8 h-8 text-gold animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Show loading while redirect is happening (useEffect will redirect)
+  if (!user || ownedClubs.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <main className="flex-1 pt-24 pb-16">
+          <div className="container mx-auto px-4">
+            <div className="text-center py-16">
+              <Loader2 className="w-8 h-8 text-gold animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Redirecting...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -194,52 +248,7 @@ export default function SubmitEvent() {
       
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4">
-          {isLoading ? (
-            <div className="text-center py-16">
-              <Loader2 className="w-8 h-8 text-gold animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Loading...</p>
-            </div>
-          ) : !user ? (
-            <div className="text-center py-16 max-w-2xl mx-auto">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 border border-border mb-6">
-                <Lock className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h1 className="text-2xl font-display font-bold text-foreground mb-3">
-                Sign In Required
-              </h1>
-              <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                You need to be signed in to submit events. Only verified club owners can add events to the calendar.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="outline" onClick={() => navigate('/clubs')}>
-                  Browse Clubs
-                </Button>
-                <Button variant="gold" onClick={() => navigate('/login')}>
-                  Sign In
-                </Button>
-              </div>
-            </div>
-          ) : !hasAccess ? (
-            <div className="text-center py-16 max-w-2xl mx-auto">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/10 border border-gold/20 mb-6">
-                <Shield className="w-8 h-8 text-gold" />
-              </div>
-              <h1 className="text-2xl font-display font-bold text-foreground mb-3">
-                Club Ownership Required
-              </h1>
-              <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                Only verified club owners can submit events. Claim your club to start adding events to the calendar.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button variant="outline" onClick={() => navigate('/events')}>
-                  View Calendar
-                </Button>
-                <Button variant="gold" onClick={() => navigate('/clubs')}>
-                  Find Your Club
-                </Button>
-              </div>
-            </div>
-          ) : submitted && submittedDetails ? (
+          {submitted && submittedDetails ? (
             <div className="max-w-2xl mx-auto text-center">
               <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-6 ${
                 submittedDetails.isDraft 
