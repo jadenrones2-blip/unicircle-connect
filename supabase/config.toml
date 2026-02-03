@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.extract-event-from-flyer]
 verify_jwt = false
+
+[functions.scrape-eventbrite]
+verify_jwt = false
