@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ClubImageUpload } from "@/components/club-admin/ClubImageUpload";
 import { useExternalClubRecord } from "@/hooks/useExternalClubRecord";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AdminBreadcrumb } from "@/components/club-admin/AdminBreadcrumb";
 
 const clubEditSchema = z.object({
   description: z.string().max(2000, "Description must be under 2000 characters").optional(),
@@ -245,13 +246,13 @@ export default function ClubAdminEdit() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <Link
-                to="/club-admin"
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-              >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Back to Dashboard
-              </Link>
+              <AdminBreadcrumb 
+                items={[
+                  { label: club.name, href: `/clubs/${clubId}` },
+                  { label: 'Edit Profile' }
+                ]} 
+                className="mb-6"
+              />
 
               <div className="premium-card p-6">
                 <Form {...form}>

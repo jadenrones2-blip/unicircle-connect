@@ -31,6 +31,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EventEditModal } from '@/components/club-admin/EventEditModal';
 import { EventFilters, StatusFilter } from '@/components/club-admin/EventFilters';
+import { AdminBreadcrumb } from '@/components/club-admin/AdminBreadcrumb';
 
 export default function ClubAdminEvents() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -233,6 +234,13 @@ export default function ClubAdminEvents() {
           </header>
 
           <div className="p-6">
+            <AdminBreadcrumb 
+              items={[
+                { label: club.clubName, href: `/clubs/${clubId}` },
+                { label: 'Events' }
+              ]} 
+              className="mb-6"
+            />
             {/* Filters - show when there are events */}
             {!loading && events.length > 0 && (
               <EventFilters
