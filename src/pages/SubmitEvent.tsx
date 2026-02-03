@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Send, Calendar, MapPin, Shield, AlertTriangle, Instagram, Image as ImageIcon, FileText } from 'lucide-react';
+import { Loader2, Send, Calendar, MapPin, Shield, AlertTriangle, Instagram, Image as ImageIcon, FileText, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
@@ -229,6 +229,16 @@ export default function SubmitEvent() {
           <div className="grid lg:grid-cols-5 gap-8 max-w-6xl mx-auto">
               {/* Form Column */}
               <div className="lg:col-span-3">
+              {/* Back Button */}
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/club-admin')}
+                  className="mb-4 text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Admin Portal
+                </Button>
+
                 {/* Header */}
                 <div className="text-center lg:text-left mb-8">
                   <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 ${
