@@ -20,6 +20,7 @@ import VerifyClaim from "./pages/VerifyClaim";
 import ClubAdminDashboard from "./pages/ClubAdminDashboard";
 import ClubAdminEvents from "./pages/ClubAdminEvents";
 import ClubAdminEdit from "./pages/ClubAdminEdit";
+import AdminOnboarding from "./pages/AdminOnboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/club-admin" element={<ClubAdminDashboard />} />
           <Route path="/club-admin/clubs/:clubId/events" element={<ClubAdminEvents />} />
           <Route path="/club-admin/clubs/:clubId/edit" element={<ClubAdminEdit />} />
+          <Route path="/admin-onboarding" element={<AdminOnboarding />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
