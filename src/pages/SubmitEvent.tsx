@@ -145,8 +145,7 @@ export default function SubmitEvent() {
         caption: data.description?.trim() || null,
         verified: canPublish, // Only verified if can_publish_events
         posted_at: canPublish ? new Date().toISOString() : null, // Only post if verified
-        post_link: data.instagram_url?.trim() || null,
-        image_url: data.image_url || null,
+        source_url: data.instagram_url?.trim() || null, // Use source_url which exists in schema
       };
 
       const response = await fetch(
