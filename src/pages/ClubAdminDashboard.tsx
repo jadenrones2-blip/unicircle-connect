@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership, VerificationState } from '@/hooks/useClubOwnership';
+import { useAdminProfile } from '@/hooks/useAdminProfile';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { Button } from '@/components/ui/button';
@@ -46,14 +47,23 @@ export default function ClubAdminDashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { ownedClubs, loading: ownershipLoading, hasProvisionalClub } = useClubOwnership();
+  const { loading: profileLoading, isProfileComplete } = useAdminProfile();
 
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login?redirect=/club-admin');
     }
   }, [user, authLoading, navigate]);
 
-  if (authLoading || ownershipLoading) {
+  // Redirect to admin onboarding if profile incomplete
+  useEffect(() => {
+    if (!authLoading && !ownershipLoading && !profileLoading && user && ownedClubs.length > 0 && !isProfileComplete) {
+      navigate('/admin-onboarding');
+    }
+  }, [authLoading, ownershipLoading, profileLoading, user, ownedClubs, isProfileComplete, navigate]);
+
+  if (authLoading || ownershipLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 text-gold animate-spin" />
@@ -61,7 +71,7 @@ export default function ClubAdminDashboard() {
     );
   }
 
-  if (!user) return null;
+  if (!user || !isProfileComplete) return null;
 
   if (ownedClubs.length === 0) {
     return (

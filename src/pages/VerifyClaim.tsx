@@ -177,10 +177,10 @@ export default function VerifyClaim() {
                 </Button>
                 <Button
                   variant="gold"
-                  onClick={() => navigate('/club-admin')}
+                  onClick={() => navigate('/admin-onboarding')}
                   className="gap-2"
                 >
-                  Go to Admin Portal
+                  Set Up Your Profile
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
