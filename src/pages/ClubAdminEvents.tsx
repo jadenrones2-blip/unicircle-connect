@@ -65,11 +65,11 @@ export default function ClubAdminEvents() {
     
     setLoading(true);
     try {
-      // Fetch events by club_handle (which matches club name pattern)
+      // Fetch events by club_handle matching the club ID (how events are submitted)
       const { data, error } = await externalSupabase
         .from('events')
         .select('*')
-        .or(`club_handle.ilike.%${club.clubName}%,title.ilike.%${club.clubName}%`)
+        .eq('club_handle', club.clubId)
         .order('start_time', { ascending: false })
         .limit(50);
 
