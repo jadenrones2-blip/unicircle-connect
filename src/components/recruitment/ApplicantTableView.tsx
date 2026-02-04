@@ -62,6 +62,7 @@ type SortOrder = 'asc' | 'desc';
 
 export function ApplicantTableView({
   clubId,
+  clubName,
   stages,
   applicants,
   onMoveApplicant,

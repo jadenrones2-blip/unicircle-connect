@@ -203,6 +203,7 @@ export function RecruitmentKanban({
       {activeView === 'table' && (
         <ApplicantTableView
           clubId={clubId}
+          clubName={clubName}
           stages={stages}
           applicants={applicants}
           onMoveApplicant={onMoveApplicant}
