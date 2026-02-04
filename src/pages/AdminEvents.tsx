@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { externalSupabase, ExternalEvent } from '@/integrations/external-supabase/client';
+import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -86,18 +86,27 @@ export default function AdminEvents() {
 
   const fetchUnverifiedEvents = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await externalSupabase
-      .from('events')
-      .select('*')
-      .eq('verified', false)
-      .order('created_at', { ascending: false })
-      .limit(100);
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&limit=100&filters=${encodeURIComponent(JSON.stringify({ verified: false }))}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
 
-    if (error) {
-      console.error('Error fetching unverified events:', error);
+      if (!response.ok) {
+        throw new Error('Failed to fetch');
+      }
+
+      const result = await response.json();
+      setEvents(result.data || []);
+    } catch (err) {
+      console.error('Error fetching unverified events:', err);
       toast.error('Failed to load review queue');
-    } else {
-      setEvents(data || []);
     }
     setLoading(false);
   }, []);

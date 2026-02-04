@@ -143,13 +143,6 @@ export default function ClubsCalendar() {
     });
     setIsModalOpen(true);
   };
-
-  if (loading && events.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 text-gold animate-spin" />
-      </div>
-    );
   }
 
   const formatEventDate = (dateString: string) => {

@@ -33,7 +33,9 @@ export function RecommendedEvents() {
   }
 
   const handleEventClick = (event: ScoredEvent) => {
-    setSelectedEvent(event as ExternalEvent);
+    setSelectedEvent(event);
+    setModalOpen(true);
+  };
     setSelectedEvent(event);
     setModalOpen(true);
   };
