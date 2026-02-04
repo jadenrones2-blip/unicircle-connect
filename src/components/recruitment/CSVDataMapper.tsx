@@ -230,9 +230,9 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
   };
 
   const updateMapping = (index: number, mappedTo: FieldName | 'metadata' | 'skip') => {
-    setMappings((prev) =>
-      prev.map((m, i) => (i === index ? { ...m, mappedTo } : m))
-    );
+        setMappings((prev) =>
+          prev.map((m, i) => (i === index ? { ...m, mappedTo, wasModified: true } : m))
+        );
   };
 
   const validateMappings = (): boolean => {
