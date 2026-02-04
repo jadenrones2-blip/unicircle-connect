@@ -72,18 +72,18 @@ export function useRecruitmentRequirements(clubId: string | undefined) {
   const addRequirement = async (
     type: 'strict' | 'ai',
     criterion: string,
-    value: Record<string, unknown>
+    value: Json
   ) => {
     if (!clubId || !user) return false;
 
     const { error } = await supabase
       .from('recruitment_requirements')
-      .insert({
+      .insert([{
         club_id: clubId,
         type,
         criterion,
         value,
-      });
+      }]);
 
     if (error) {
       console.error('Error adding requirement:', error);
