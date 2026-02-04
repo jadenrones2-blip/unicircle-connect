@@ -31,6 +31,9 @@ export interface Applicant {
   updated_at: string;
 }
 
+// Type to cast database response to Applicant
+type ApplicantRow = Omit<Applicant, 'metadata'> & { metadata: unknown };
+
 export interface RecruitmentSettings {
   id: string;
   club_id: string;
