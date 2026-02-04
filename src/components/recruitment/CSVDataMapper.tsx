@@ -5,7 +5,8 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowRight,
-  X,
+  Sparkles,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
