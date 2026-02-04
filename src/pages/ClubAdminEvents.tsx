@@ -123,12 +123,20 @@ export default function ClubAdminEvents() {
     
     setDeleting(true);
     try {
-      const { error } = await externalSupabase
-        .from('events')
-        .delete()
-        .eq('id', deleteEventId);
+      // Use edge function for delete
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=delete&filters=${encodeURIComponent(JSON.stringify({ id: deleteEventId }))}`,
+        {
+          method: 'DELETE',
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+        }
+      );
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete');
       
       setEvents((prev) => prev.filter((e) => e.id !== deleteEventId));
       toast.success('Event deleted');
