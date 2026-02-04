@@ -207,6 +207,8 @@ export function useRecruitment(clubId: string | undefined) {
     email: string;
     major?: string;
     year?: string;
+    gpa?: number;
+    metadata?: Record<string, string>;
   }[]): Promise<{ success: number; failed: number }> => {
     if (!clubId || !user || stages.length === 0) {
       return { success: 0, failed: applicantsList.length };
@@ -227,6 +229,8 @@ export function useRecruitment(clubId: string | undefined) {
         email: applicant.email,
         major: applicant.major || null,
         year: applicant.year || null,
+        gpa: applicant.gpa || null,
+        metadata: applicant.metadata || {},
       }));
 
       const { data, error } = await supabase
