@@ -220,7 +220,8 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
           mappedTo = 'gpa';
         }
 
-        return { csvHeader: header, mappedTo };
+        const autoDetected = mappedTo !== 'metadata';
+        return { csvHeader: header, mappedTo, autoDetected, wasModified: false };
       });
 
       setMappings(autoMappings);
