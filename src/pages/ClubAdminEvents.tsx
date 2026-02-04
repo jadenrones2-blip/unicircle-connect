@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
-import { externalSupabase, ExternalEvent } from '@/integrations/external-supabase/client';
+import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, Calendar, ExternalLink, Edit, Trash2 } from 'lucide-react';
 import { format, parseISO, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Table,
   TableBody,
@@ -66,16 +67,21 @@ export default function ClubAdminEvents() {
     
     setLoading(true);
     try {
-      // Fetch events by club_handle matching the club ID (how events are submitted)
-      const { data, error } = await externalSupabase
-        .from('events')
-        .select('*')
-        .eq('club_handle', club.clubId)
-        .order('start_time', { ascending: false })
-        .limit(50);
+      // Use edge function instead of direct client
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&limit=50&filters=${encodeURIComponent(JSON.stringify({ club_handle: club.clubId }))}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
 
-      if (error) throw error;
-      setEvents(data || []);
+      if (!response.ok) throw new Error('Failed to fetch');
+      
+      const result = await response.json();
+      setEvents(result.data || []);
     } catch (err) {
       console.error('Error fetching club events:', err);
       toast.error('Failed to load events');
@@ -117,12 +123,20 @@ export default function ClubAdminEvents() {
     
     setDeleting(true);
     try {
-      const { error } = await externalSupabase
-        .from('events')
-        .delete()
-        .eq('id', deleteEventId);
+      // Use edge function for delete
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=delete&filters=${encodeURIComponent(JSON.stringify({ id: deleteEventId }))}`,
+        {
+          method: 'DELETE',
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+        }
+      );
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete');
       
       setEvents((prev) => prev.filter((e) => e.id !== deleteEventId));
       toast.success('Event deleted');

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ExternalEvent } from '@/integrations/external-supabase/client';
+import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { UserInterest } from '@/hooks/useUserInterests';
 
 // Mapping from quiz interests to event/club keywords
@@ -42,7 +42,7 @@ const CATEGORY_MAP: Record<string, string[]> = {
   outdoors: ['Sports', 'Social'],
 };
 
-interface ScoredEvent extends ExternalEvent {
+export interface ScoredEvent extends ExternalEvent {
   score: number;
   matchedInterests: string[];
 }
