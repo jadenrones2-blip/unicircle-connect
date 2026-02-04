@@ -233,8 +233,16 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
           if (!isNaN(gpa)) {
             applicant.gpa = gpa;
           }
-        } else {
-          (applicant as Record<string, unknown>)[mapping.mappedTo] = value;
+        } else if (mapping.mappedTo === 'first_name') {
+          applicant.first_name = value;
+        } else if (mapping.mappedTo === 'last_name') {
+          applicant.last_name = value;
+        } else if (mapping.mappedTo === 'email') {
+          applicant.email = value;
+        } else if (mapping.mappedTo === 'major') {
+          applicant.major = value;
+        } else if (mapping.mappedTo === 'year') {
+          applicant.year = value;
         }
       });
 

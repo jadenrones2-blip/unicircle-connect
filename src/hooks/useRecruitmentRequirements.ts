@@ -98,7 +98,7 @@ export function useRecruitmentRequirements(clubId: string | undefined) {
 
   const updateRequirement = async (
     id: string,
-    updates: Partial<Pick<RecruitmentRequirement, 'criterion' | 'value'>>
+    updates: { criterion?: string; value?: Json }
   ) => {
     if (!user) return false;
 

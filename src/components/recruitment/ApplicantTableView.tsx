@@ -154,15 +154,15 @@ export function ApplicantTableView({
       return <Badge variant="outline">Not scored</Badge>;
     }
     if (score >= 80) {
-      return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">{score}</Badge>;
+      return <Badge variant="default" className="bg-accent/20 text-accent border-accent/30">{score}</Badge>;
     }
     if (score >= 60) {
       return <Badge className="bg-gold/10 text-gold border-gold/20">{score}</Badge>;
     }
     if (score >= 40) {
-      return <Badge className="bg-orange-500/10 text-orange-600 border-orange-500/20">{score}</Badge>;
+      return <Badge variant="secondary">{score}</Badge>;
     }
-    return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">{score}</Badge>;
+    return <Badge variant="destructive">{score}</Badge>;
   };
 
   const runAIScreening = async () => {
