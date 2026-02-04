@@ -67,7 +67,7 @@ export function RequirementsBuilder({ clubId }: RequirementsBuilderProps) {
 
   const handleAddStrictFilter = async () => {
     setSaving(true);
-    let value: Record<string, unknown> = {};
+    let value: Json = {};
 
     if (strictType === 'min_gpa') {
       value = { min_gpa: parseFloat(minGpa) };
