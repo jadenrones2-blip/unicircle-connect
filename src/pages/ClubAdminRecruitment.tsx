@@ -86,6 +86,7 @@ export default function ClubAdminRecruitment() {
     return (
       <RecruitmentKanban
         clubId={clubId}
+        clubName={clubName}
         stages={stages}
         applicants={applicants}
         onMoveApplicant={updateApplicantStage}
