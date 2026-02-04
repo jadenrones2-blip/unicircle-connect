@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalEvent } from '@/integrations/external-supabase/client';
+import { ExternalEvent } from '@/hooks/useExternalEvents';
 
 interface EventDetailModalProps {
   event: ExternalEvent | null;

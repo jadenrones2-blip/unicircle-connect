@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
-import { externalSupabase } from '@/integrations/external-supabase/client';
+import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
 import { Loader2, Calendar, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
@@ -16,28 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-interface ExternalEventWithHandle {
-  id: string;
-  title: string;
-  description: string | null;
-  start_time: string;
-  end_time: string | null;
-  location: string | null;
-  source: string | null;
-  club_id: string | null;
-  club_handle: string | null;
-  source_url: string | null;
-  caption: string | null;
-  verified: boolean | null;
-  corrected_title: string | null;
-  corrected_start_time: string | null;
-  corrected_end_time: string | null;
-  corrected_location: string | null;
-  reviewed_at: string | null;
-  posted_at: string | null;
-  created_at: string | null;
-}
 
 interface CalendarEvent {
   id: string;
@@ -57,33 +35,33 @@ interface CalendarEvent {
 
 export default function ClubsCalendar() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [rawEvents, setRawEvents] = useState<ExternalEventWithHandle[]>([]);
+  const [rawEvents, setRawEvents] = useState<ExternalEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedEvent, setSelectedEvent] = useState<ExternalEventWithHandle | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<ExternalEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     
-    // Calculate date range: 30 days ago to 30 days from now
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now);
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const thirtyDaysFromNow = new Date(now);
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-    
-    // Only show verified events
-    const { data, error } = await externalSupabase
-      .from('events')
-      .select('*')
-      .eq('verified', true)
-      .gte('start_time', thirtyDaysAgo.toISOString())
-      .lte('start_time', thirtyDaysFromNow.toISOString())
-      .order('start_time', { ascending: true });
+    try {
+      // Use edge function instead of direct client
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&orderBy=start_time&orderAsc=true&limit=500&filters=${encodeURIComponent(JSON.stringify({ verified: true }))}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
 
-    if (!error && data) {
+      if (!response.ok) return;
+      
+      const result = await response.json();
+      const data = result.data || [];
+
       // Apply coalesce logic for corrected fields
-      const processedEvents = (data as ExternalEventWithHandle[]).map(event => ({
+      const processedEvents = (data as ExternalEvent[]).map(event => ({
         ...event,
         title: event.corrected_title || event.title,
         start_time: event.corrected_start_time || event.start_time,
@@ -100,7 +78,7 @@ export default function ClubsCalendar() {
       };
 
       // Get clean display title - fall back to club_handle if title is error data
-      const getDisplayTitle = (event: ExternalEventWithHandle): string => {
+      const getDisplayTitle = (event: ExternalEvent): string => {
         if (isErrorData(event.title)) {
           return event.club_handle ? `@${event.club_handle}` : 'Event';
         }
@@ -123,35 +101,20 @@ export default function ClubsCalendar() {
         }
       }));
       setEvents(formattedEvents);
+    } catch (err) {
+      console.error('Error fetching events:', err);
     }
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    // Fetch initial events
     fetchEvents();
-
-    // Subscribe to real-time changes (Supabase v2 API)
-    const channel = externalSupabase
-      .channel('events-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'events'
-        },
-        (payload) => {
-          console.log('Realtime update:', payload);
-          fetchEvents(); // Refetch on any change
-        }
-      )
-      .subscribe((status) => {
-        console.log('Realtime subscription status:', status);
-      });
+    
+    // Poll for updates every 30 seconds
+    const pollInterval = setInterval(fetchEvents, 30000);
 
     return () => {
-      externalSupabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
   }, [fetchEvents]);
 

@@ -17,7 +17,7 @@ import {
 import { ChevronLeft, ChevronRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalEvent } from '@/integrations/external-supabase/client';
+import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
 
 interface MonthlyCalendarProps {
