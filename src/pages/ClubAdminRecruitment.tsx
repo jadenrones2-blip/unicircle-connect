@@ -92,9 +92,7 @@ export default function ClubAdminRecruitment() {
         onAddApplicant={addApplicant}
         onBulkAddApplicants={bulkAddApplicants}
         onDeleteApplicant={deleteApplicant}
-        onRefresh={async () => {
-          await Promise.all([fetchSettings(), fetchStages(), fetchApplicants()]);
-        }}
+        onRefresh={refetch}
       />
     );
   };
