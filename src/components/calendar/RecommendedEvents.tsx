@@ -5,11 +5,10 @@ import { format, parseISO } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalEvent } from '@/integrations/external-supabase/client';
+import { ExternalEvent, useExternalEvents } from '@/hooks/useExternalEvents';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
-import { useExternalEvents } from '@/hooks/useExternalEvents';
-import { useEventRecommendations } from '@/hooks/useEventRecommendations';
+import { useEventRecommendations, ScoredEvent } from '@/hooks/useEventRecommendations';
 import { EventDetailModal } from '@/components/calendar/EventDetailModal';
 
 export function RecommendedEvents() {
