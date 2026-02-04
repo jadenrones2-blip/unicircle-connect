@@ -57,6 +57,13 @@ export default function ClubAdminDashboard() {
     }
   }, [user, authLoading, navigate]);
 
+  // Redirect users without clubs to the clubs directory
+  useEffect(() => {
+    if (!authLoading && !ownershipLoading && user && ownedClubs.length === 0) {
+      navigate('/clubs');
+    }
+  }, [authLoading, ownershipLoading, user, ownedClubs.length, navigate]);
+
   // Redirect to admin onboarding if profile incomplete
   useEffect(() => {
     if (!authLoading && !ownershipLoading && !profileLoading && user && ownedClubs.length > 0 && !isProfileComplete) {
@@ -72,23 +79,7 @@ export default function ClubAdminDashboard() {
     );
   }
 
-  if (!user || !isProfileComplete) return null;
-
-  // Redirect users without clubs to the clubs directory
-  useEffect(() => {
-    if (!authLoading && !ownershipLoading && user && ownedClubs.length === 0) {
-      navigate('/clubs');
-    }
-  }, [authLoading, ownershipLoading, user, ownedClubs.length, navigate]);
-
-  if (ownedClubs.length === 0) {
-    // Show loading while redirect happens
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 text-gold animate-spin" />
-      </div>
-    );
-  }
+  if (!user || !isProfileComplete || ownedClubs.length === 0) return null;
 
   return (
     <SidebarProvider>
