@@ -28,7 +28,7 @@ const HowItWorksSection = () => {
 
   return (
     <section id="how" className="py-12 md:py-16 bg-primary text-primary-foreground">
-      <div className="container mx-auto">
+      <div className="container mx-auto px-5 sm:px-6">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -45,7 +45,7 @@ const HowItWorksSection = () => {
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 relative">
             {/* Connecting line */}
             <div className="hidden md:block absolute top-16 left-[16.5%] right-[16.5%] h-px bg-gradient-to-r from-gold/0 via-gold/30 to-gold/0" />
 

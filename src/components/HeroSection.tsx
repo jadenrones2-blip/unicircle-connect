@@ -10,19 +10,19 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="min-h-[90vh] flex flex-col items-center justify-center pt-20 pb-8 relative overflow-hidden">
+    <section className="min-h-[85vh] sm:min-h-[90vh] flex flex-col items-center justify-center pt-20 sm:pt-20 pb-16 sm:pb-8 relative overflow-hidden">
       {/* Subtle gradient background */}
-      <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-gold/10 rounded-full blur-[120px] -z-10" />
-      <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-primary/10 rounded-full blur-[100px] -z-10" />
+      <div className="absolute top-1/4 right-1/4 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] bg-gold/10 rounded-full blur-[80px] sm:blur-[120px] -z-10" />
+      <div className="absolute bottom-1/4 left-1/4 w-[150px] sm:w-[300px] h-[150px] sm:h-[300px] bg-primary/10 rounded-full blur-[60px] sm:blur-[100px] -z-10" />
 
-      <div className="container mx-auto px-4 md:px-6 flex-1 flex items-center">
+      <div className="container mx-auto px-5 sm:px-6 flex-1 flex items-center">
         <div className="max-w-4xl mx-auto text-center">
           {/* Main headline - bold black */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] mb-3 text-foreground tracking-tight"
+            className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] mb-2 sm:mb-3 text-foreground tracking-tight"
           >
             UCSD isn't socially dead.
           </motion.h1>
@@ -32,7 +32,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.5 }}
-            className="font-display text-3xl md:text-4xl lg:text-5xl leading-[1.2] mb-10 tracking-tight"
+            className="font-display text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-[1.25] sm:leading-[1.2] mb-6 sm:mb-10 tracking-tight"
           >
             <span className="text-charcoal font-normal">You just haven't found your </span>
             <span className="text-gold font-semibold">circle</span>
@@ -44,12 +44,12 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="max-w-2xl mx-auto mb-10"
+            className="max-w-2xl mx-auto mb-6 sm:mb-10 px-2 sm:px-0"
           >
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-1">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed mb-1">
               Where campus connection meets clarity, community, and ambition.
             </p>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
               Discover everything happening at UCSD - in one place.
             </p>
           </motion.div>
@@ -58,15 +58,15 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
+            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 px-4 sm:px-0"
           >
-            <Button variant="gold" size="lg" className="group px-8" asChild>
+            <Button variant="gold" size="lg" className="group px-8 w-full sm:w-auto" asChild>
               <Link to="/login">
                 Get Started
                 <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
-            <Button variant="outline" size="lg" className="group" onClick={scrollToContent}>
+            <Button variant="outline" size="lg" className="group w-full sm:w-auto" onClick={scrollToContent}>
               See how it works
               <ChevronDown className="w-4 h-4 ml-1 group-hover:translate-y-0.5 transition-transform" />
             </Button>
@@ -83,12 +83,12 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Scroll indicator - hidden on mobile */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer"
+        className="hidden sm:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 cursor-pointer"
         onClick={scrollToContent}
       >
         <span className="text-sm text-muted-foreground">Scroll</span>
