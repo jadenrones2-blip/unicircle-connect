@@ -34,6 +34,7 @@ const problems = [
 const ProblemSection = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const isMobile = useIsMobile();
 
   return (
     <section id="problem" className="py-12 md:py-16">
