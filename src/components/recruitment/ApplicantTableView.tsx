@@ -220,7 +220,7 @@ export function ApplicantTableView({
     let successCount = 0;
 
     for (const id of selectedIds) {
-      const success = await onMoveApplicant(id, stageId);
+      const success = await onMoveApplicant(id, stageId, clubName);
       if (success) successCount++;
     }
 
