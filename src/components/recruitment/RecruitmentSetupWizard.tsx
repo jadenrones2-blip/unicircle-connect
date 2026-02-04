@@ -13,15 +13,15 @@ interface RecruitmentSetupWizardProps {
 const TEMPLATES = {
   professional: {
     icon: Briefcase,
-    title: 'Professional Template',
-    description: 'Ideal for consulting, finance, and business clubs.',
-    stages: ['Application', 'Coffee Chat', 'Interview', 'Decision'],
+    title: 'Professional Org',
+    description: 'For consulting, business, and pre-professional clubs.',
+    stages: ['Info Session', 'Networking Night', 'Case Study Night', 'Interviews'],
   },
-  social: {
+  product: {
     icon: PartyPopper,
-    title: 'Social Template',
-    description: 'Great for Greek life, social orgs, and cultural clubs.',
-    stages: ['Interest Form', 'Open House', 'Invite-Only', 'Deliberation'],
+    title: 'Product / Tech Org',
+    description: 'For product, design, and tech-focused organizations.',
+    stages: ['Info Night', 'Alumni Night', 'Pitch Prep', 'Social Night', 'Interviews'],
   },
 };
 
