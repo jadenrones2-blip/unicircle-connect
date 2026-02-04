@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.ai-screen-applicants]
 verify_jwt = false
+
+[functions.notify-applicant-stage]
+verify_jwt = false
