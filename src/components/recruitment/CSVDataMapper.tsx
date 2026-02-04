@@ -5,7 +5,8 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowRight,
-  X,
+  Sparkles,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -63,6 +64,8 @@ type FieldName = (typeof ALL_FIELDS)[number];
 interface ColumnMapping {
   csvHeader: string;
   mappedTo: FieldName | 'metadata' | 'skip';
+  autoDetected: boolean;
+  wasModified: boolean;
 }
 
 export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
@@ -218,7 +221,8 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
           mappedTo = 'gpa';
         }
 
-        return { csvHeader: header, mappedTo };
+        const autoDetected = mappedTo !== 'metadata';
+        return { csvHeader: header, mappedTo, autoDetected, wasModified: false };
       });
 
       setMappings(autoMappings);
@@ -228,9 +232,9 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
   };
 
   const updateMapping = (index: number, mappedTo: FieldName | 'metadata' | 'skip') => {
-    setMappings((prev) =>
-      prev.map((m, i) => (i === index ? { ...m, mappedTo } : m))
-    );
+        setMappings((prev) =>
+          prev.map((m, i) => (i === index ? { ...m, mappedTo, wasModified: true } : m))
+        );
   };
 
   const validateMappings = (): boolean => {
@@ -484,9 +488,22 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
                         </SelectContent>
                       </Select>
 
-                      <Badge variant={getMappingBadgeVariant(mapping.mappedTo)} className="shrink-0">
-                        {mapping.mappedTo === 'metadata' ? 'Extra' : mapping.mappedTo === 'skip' ? '—' : '✓'}
-                      </Badge>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {mapping.wasModified ? (
+                          <Badge variant="outline" className="text-xs gap-1 border-muted-foreground/30">
+                            <Pencil className="w-3 h-3" />
+                            Manual
+                          </Badge>
+                        ) : mapping.autoDetected ? (
+                          <Badge variant="secondary" className="text-xs gap-1 bg-gold/10 text-gold border-gold/20">
+                            <Sparkles className="w-3 h-3" />
+                            Auto
+                          </Badge>
+                        ) : null}
+                        <Badge variant={getMappingBadgeVariant(mapping.mappedTo)} className="shrink-0">
+                          {mapping.mappedTo === 'metadata' ? 'Extra' : mapping.mappedTo === 'skip' ? '—' : '✓'}
+                        </Badge>
+                      </div>
                     </div>
                   ))}
                 </div>
