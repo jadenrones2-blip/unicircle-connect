@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Loader2, Search, X, AlertCircle, LayoutGrid, List } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Search, X, AlertCircle, LayoutGrid, List, Shield, ChevronRight, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useClubs } from "@/hooks/useExternalDB";
 
 const CATEGORY_OPTIONS = [
