@@ -122,6 +122,28 @@ export function ClubAdminSidebar() {
               <SidebarMenu>
                 {ownedClubs.map((club) => (
                   <div key={club.clubId} className="space-y-1">
+                    <div className={cn(
+                      "px-3 py-1.5 text-xs font-medium text-muted-foreground truncate",
+                      collapsed && "hidden"
+                    )}>
+                      {club.clubName}
+                    </div>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link
+                          to={`/club-admin/clubs/${club.clubId}/recruitment`}
+                          className={cn(
+                            'flex items-center gap-2 px-3 py-2 rounded-md transition-colors font-medium',
+                            location.pathname === `/club-admin/clubs/${club.clubId}/recruitment`
+                              ? 'bg-gold/20 text-gold border border-gold/30'
+                              : 'hover:bg-gold/10 text-foreground'
+                          )}
+                        >
+                          <Users className="w-4 h-4" />
+                          {!collapsed && <span>Recruitment</span>}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
                         <Link
@@ -134,7 +156,7 @@ export function ClubAdminSidebar() {
                           )}
                         >
                           <Calendar className="w-4 h-4" />
-                          <span className="truncate">{club.clubName}</span>
+                          {!collapsed && <span>Events</span>}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -143,30 +165,14 @@ export function ClubAdminSidebar() {
                         <Link
                           to={`/club-admin/clubs/${club.clubId}/edit`}
                           className={cn(
-                            'flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm ml-6',
+                            'flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm',
                             location.pathname === `/club-admin/clubs/${club.clubId}/edit`
                               ? 'bg-gold/10 text-gold'
                               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                           )}
                         >
                           <Settings className="w-3.5 h-3.5" />
-                          <span>Edit Profile</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <Link
-                          to={`/club-admin/clubs/${club.clubId}/recruitment`}
-                          className={cn(
-                            'flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm ml-6',
-                            location.pathname === `/club-admin/clubs/${club.clubId}/recruitment`
-                              ? 'bg-gold/10 text-gold'
-                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                          )}
-                        >
-                          <Users className="w-3.5 h-3.5" />
-                          <span>Recruitment</span>
+                          {!collapsed && <span>Edit Profile</span>}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
