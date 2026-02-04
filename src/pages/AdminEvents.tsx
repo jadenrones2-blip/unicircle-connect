@@ -166,12 +166,17 @@ export default function AdminEvents() {
       updates.corrected_location = editingEvent.corrected_location.trim();
     }
 
-    const { error } = await externalSupabase
-      .from('events')
-      .update(updates)
-      .eq('id', editingEvent.id);
+    // Use edge function for update
+    const { data: response, error } = await supabase.functions.invoke('external-db-proxy', {
+      body: {
+        table: 'events',
+        action: 'update',
+        id: editingEvent.id,
+        record: updates,
+      },
+    });
 
-    if (error) {
+    if (error || response?.error) {
       console.error('Error approving event:', error);
       toast.error('Failed to approve event');
     } else {
