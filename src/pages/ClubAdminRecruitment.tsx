@@ -28,6 +28,7 @@ export default function ClubAdminRecruitment() {
     bulkAddApplicants,
     updateApplicantStage,
     deleteApplicant,
+    refetch,
   } = useRecruitment(clubId);
 
   const [enabling, setEnabling] = useState(false);
