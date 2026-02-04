@@ -49,9 +49,10 @@ import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 
 interface ApplicantTableViewProps {
   clubId: string;
+  clubName: string;
   stages: RecruitmentStage[];
   applicants: Applicant[];
-  onMoveApplicant: (applicantId: string, newStageId: string) => Promise<boolean>;
+  onMoveApplicant: (applicantId: string, newStageId: string, clubName?: string) => Promise<boolean>;
   onDeleteApplicant: (id: string) => Promise<boolean>;
   onRefresh: () => Promise<void>;
 }
