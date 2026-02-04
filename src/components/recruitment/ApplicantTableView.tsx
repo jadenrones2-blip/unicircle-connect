@@ -49,9 +49,10 @@ import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 
 interface ApplicantTableViewProps {
   clubId: string;
+  clubName: string;
   stages: RecruitmentStage[];
   applicants: Applicant[];
-  onMoveApplicant: (applicantId: string, newStageId: string) => Promise<boolean>;
+  onMoveApplicant: (applicantId: string, newStageId: string, clubName?: string) => Promise<boolean>;
   onDeleteApplicant: (id: string) => Promise<boolean>;
   onRefresh: () => Promise<void>;
 }
@@ -61,6 +62,7 @@ type SortOrder = 'asc' | 'desc';
 
 export function ApplicantTableView({
   clubId,
+  clubName,
   stages,
   applicants,
   onMoveApplicant,
@@ -218,7 +220,7 @@ export function ApplicantTableView({
     let successCount = 0;
 
     for (const id of selectedIds) {
-      const success = await onMoveApplicant(id, stageId);
+      const success = await onMoveApplicant(id, stageId, clubName);
       if (success) successCount++;
     }
 

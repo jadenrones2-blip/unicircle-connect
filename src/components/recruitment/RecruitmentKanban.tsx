@@ -24,9 +24,10 @@ import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 
 interface RecruitmentKanbanProps {
   clubId: string;
+  clubName: string;
   stages: RecruitmentStage[];
   applicants: Applicant[];
-  onMoveApplicant: (applicantId: string, newStageId: string) => Promise<boolean>;
+  onMoveApplicant: (applicantId: string, newStageId: string, clubName?: string) => Promise<boolean>;
   onAddApplicant: (applicant: {
     first_name: string;
     last_name: string;
@@ -49,6 +50,7 @@ interface RecruitmentKanbanProps {
 
 export function RecruitmentKanban({
   clubId,
+  clubName,
   stages,
   applicants,
   onMoveApplicant,
@@ -89,7 +91,7 @@ export function RecruitmentKanban({
     if (targetStage) {
       const applicant = applicants.find(a => a.id === applicantId);
       if (applicant && applicant.stage_id !== targetStage.id) {
-        await onMoveApplicant(applicantId, targetStage.id);
+        await onMoveApplicant(applicantId, targetStage.id, clubName);
       }
       return;
     }
@@ -99,7 +101,7 @@ export function RecruitmentKanban({
     if (targetApplicant && targetApplicant.stage_id) {
       const applicant = applicants.find(a => a.id === applicantId);
       if (applicant && applicant.stage_id !== targetApplicant.stage_id) {
-        await onMoveApplicant(applicantId, targetApplicant.stage_id);
+        await onMoveApplicant(applicantId, targetApplicant.stage_id, clubName);
       }
     }
   };
@@ -201,6 +203,7 @@ export function RecruitmentKanban({
       {activeView === 'table' && (
         <ApplicantTableView
           clubId={clubId}
+          clubName={clubName}
           stages={stages}
           applicants={applicants}
           onMoveApplicant={onMoveApplicant}
