@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import type { Json } from '@/integrations/supabase/types';
 
 export interface RecruitmentRequirement {
   id: string;
   club_id: string;
   type: 'strict' | 'ai';
   criterion: string;
-  value: Record<string, unknown>;
+  value: Json;
   created_at: string;
   updated_at: string;
 }
@@ -44,7 +45,13 @@ export function useRecruitmentRequirements(clubId: string | undefined) {
       return;
     }
 
-    setRequirements(data || []);
+    // Cast the type field to our expected union type
+    const typedData = (data || []).map((item) => ({
+      ...item,
+      type: item.type as 'strict' | 'ai',
+    }));
+
+    setRequirements(typedData);
   }, [clubId, user]);
 
   useEffect(() => {
