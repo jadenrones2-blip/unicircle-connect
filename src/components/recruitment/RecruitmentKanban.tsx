@@ -50,6 +50,7 @@ interface RecruitmentKanbanProps {
 
 export function RecruitmentKanban({
   clubId,
+  clubName,
   stages,
   applicants,
   onMoveApplicant,
