@@ -48,6 +48,7 @@ const ClubsDirectory = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [showClaimInfo, setShowClaimInfo] = useState(true);
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
 
