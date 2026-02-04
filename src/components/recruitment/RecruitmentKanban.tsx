@@ -24,9 +24,10 @@ import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 
 interface RecruitmentKanbanProps {
   clubId: string;
+  clubName: string;
   stages: RecruitmentStage[];
   applicants: Applicant[];
-  onMoveApplicant: (applicantId: string, newStageId: string) => Promise<boolean>;
+  onMoveApplicant: (applicantId: string, newStageId: string, clubName?: string) => Promise<boolean>;
   onAddApplicant: (applicant: {
     first_name: string;
     last_name: string;
