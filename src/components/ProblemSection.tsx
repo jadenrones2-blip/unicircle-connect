@@ -1,6 +1,12 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { X, MessageSquare, CalendarX, Users, Compass } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 const problems = [
   {
