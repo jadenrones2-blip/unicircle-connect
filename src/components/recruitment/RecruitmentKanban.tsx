@@ -91,7 +91,7 @@ export function RecruitmentKanban({
     if (targetStage) {
       const applicant = applicants.find(a => a.id === applicantId);
       if (applicant && applicant.stage_id !== targetStage.id) {
-        await onMoveApplicant(applicantId, targetStage.id);
+        await onMoveApplicant(applicantId, targetStage.id, clubName);
       }
       return;
     }
@@ -101,7 +101,7 @@ export function RecruitmentKanban({
     if (targetApplicant && targetApplicant.stage_id) {
       const applicant = applicants.find(a => a.id === applicantId);
       if (applicant && applicant.stage_id !== targetApplicant.stage_id) {
-        await onMoveApplicant(applicantId, targetApplicant.stage_id);
+        await onMoveApplicant(applicantId, targetApplicant.stage_id, clubName);
       }
     }
   };
