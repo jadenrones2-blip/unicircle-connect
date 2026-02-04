@@ -22,9 +22,17 @@ export interface Applicant {
   major: string | null;
   year: string | null;
   notes: string | null;
+  gpa: number | null;
+  metadata: Record<string, string> | null;
+  fit_score: number | null;
+  ai_summary: string | null;
+  passes_strict_filters: boolean | null;
   created_at: string;
   updated_at: string;
 }
+
+// Type to cast database response to Applicant
+type ApplicantRow = Omit<Applicant, 'metadata'> & { metadata: unknown };
 
 export interface RecruitmentSettings {
   id: string;
@@ -90,7 +98,13 @@ export function useRecruitment(clubId: string | undefined) {
       return;
     }
     
-    setApplicants(data || []);
+    // Cast metadata to our expected type
+    const typedApplicants: Applicant[] = (data || []).map((row) => ({
+      ...row,
+      metadata: (row.metadata as Record<string, string>) || null,
+    }));
+    
+    setApplicants(typedApplicants);
   }, [clubId, user]);
 
   useEffect(() => {
@@ -193,6 +207,8 @@ export function useRecruitment(clubId: string | undefined) {
     email: string;
     major?: string;
     year?: string;
+    gpa?: number;
+    metadata?: Record<string, string>;
   }[]): Promise<{ success: number; failed: number }> => {
     if (!clubId || !user || stages.length === 0) {
       return { success: 0, failed: applicantsList.length };
@@ -213,6 +229,8 @@ export function useRecruitment(clubId: string | undefined) {
         email: applicant.email,
         major: applicant.major || null,
         year: applicant.year || null,
+        gpa: applicant.gpa || null,
+        metadata: applicant.metadata || {},
       }));
 
       const { data, error } = await supabase

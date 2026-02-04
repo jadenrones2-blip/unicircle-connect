@@ -28,6 +28,7 @@ export default function ClubAdminRecruitment() {
     bulkAddApplicants,
     updateApplicantStage,
     deleteApplicant,
+    refetch,
   } = useRecruitment(clubId);
 
   const [enabling, setEnabling] = useState(false);
@@ -84,12 +85,14 @@ export default function ClubAdminRecruitment() {
 
     return (
       <RecruitmentKanban
+        clubId={clubId}
         stages={stages}
         applicants={applicants}
         onMoveApplicant={updateApplicantStage}
         onAddApplicant={addApplicant}
         onBulkAddApplicants={bulkAddApplicants}
         onDeleteApplicant={deleteApplicant}
+        onRefresh={refetch}
       />
     );
   };

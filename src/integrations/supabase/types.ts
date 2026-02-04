@@ -76,40 +76,55 @@ export type Database = {
       }
       applicants: {
         Row: {
+          ai_summary: string | null
           club_id: string
           created_at: string
           email: string
           first_name: string
+          fit_score: number | null
+          gpa: number | null
           id: string
           last_name: string
           major: string | null
+          metadata: Json | null
           notes: string | null
+          passes_strict_filters: boolean | null
           stage_id: string | null
           updated_at: string
           year: string | null
         }
         Insert: {
+          ai_summary?: string | null
           club_id: string
           created_at?: string
           email: string
           first_name: string
+          fit_score?: number | null
+          gpa?: number | null
           id?: string
           last_name: string
           major?: string | null
+          metadata?: Json | null
           notes?: string | null
+          passes_strict_filters?: boolean | null
           stage_id?: string | null
           updated_at?: string
           year?: string | null
         }
         Update: {
+          ai_summary?: string | null
           club_id?: string
           created_at?: string
           email?: string
           first_name?: string
+          fit_score?: number | null
+          gpa?: number | null
           id?: string
           last_name?: string
           major?: string | null
+          metadata?: Json | null
           notes?: string | null
+          passes_strict_filters?: boolean | null
           stage_id?: string | null
           updated_at?: string
           year?: string | null
@@ -442,6 +457,36 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      recruitment_requirements: {
+        Row: {
+          club_id: string
+          created_at: string
+          criterion: string
+          id: string
+          type: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          criterion: string
+          id?: string
+          type: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          criterion?: string
+          id?: string
+          type?: string
+          updated_at?: string
+          value?: Json
         }
         Relationships: []
       }
