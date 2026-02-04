@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { Json } from '@/integrations/supabase/types';
 import { Plus, Trash2, Settings2, Brain, GraduationCap, Calendar, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
