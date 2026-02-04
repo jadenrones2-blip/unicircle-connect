@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
+export type RecruitmentCycle = "fall" | "winter" | "spring" | "rolling" | "none";
+export type RecruitmentStatus = "open" | "upcoming" | "closed";
+
 export interface ExternalClubRecord {
   id: string;
   name: string;
@@ -9,6 +12,8 @@ export interface ExternalClubRecord {
   linkedin: string | null;
   website: string | null;
   cover_image: string | null;
+  recruitingStatus: RecruitmentStatus | null;
+  recruitment_cycle: RecruitmentCycle | null;
 }
 
 interface UseExternalClubRecordResult {

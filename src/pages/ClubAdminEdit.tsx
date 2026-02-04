@@ -27,6 +27,7 @@ import { ClubImageUpload } from "@/components/club-admin/ClubImageUpload";
 import { useExternalClubRecord } from "@/hooks/useExternalClubRecord";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBreadcrumb } from "@/components/club-admin/AdminBreadcrumb";
+import { RecruitmentStatusCard } from "@/components/club-admin/RecruitmentStatusCard";
 
 const clubEditSchema = z.object({
   description: z.string().max(2000, "Description must be under 2000 characters").optional(),
@@ -254,7 +255,16 @@ export default function ClubAdminEdit() {
                 className="mb-6"
               />
 
-              <div className="premium-card p-6">
+              {/* Recruitment Status Card */}
+              <RecruitmentStatusCard
+                clubId={clubId!}
+                clubName={club.name}
+                currentStatus={club.recruitingStatus || "closed"}
+                currentCycle={club.recruitment_cycle || "none"}
+                onUpdate={refetchClub}
+              />
+
+              <div className="premium-card p-6 mt-6">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                     <ClubImageUpload
