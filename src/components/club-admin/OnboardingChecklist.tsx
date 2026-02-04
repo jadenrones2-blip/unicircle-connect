@@ -35,7 +35,7 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
       
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=id&limit=1&filters=${encodeURIComponent(JSON.stringify({ club_handle: club.clubId }))}`,
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=id&limit=1&filters=${encodeURIComponent(JSON.stringify({ club_handle: club.clubName }))}`,
           {
             headers: {
               "Content-Type": "application/json",
