@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Loader2, Search, X, AlertCircle, LayoutGrid, List } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Search, X, AlertCircle, LayoutGrid, List, Shield, ChevronRight, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useClubs } from "@/hooks/useExternalDB";
 
 const CATEGORY_OPTIONS = [
@@ -47,6 +48,7 @@ const ClubsDirectory = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+  const [showClaimInfo, setShowClaimInfo] = useState(true);
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
 
@@ -131,6 +133,65 @@ const ClubsDirectory = () => {
           </motion.div>
         </div>
       </section>
+
+      {/* Club Claiming Info Banner */}
+      <AnimatePresence>
+        {showClaimInfo && (
+          <motion.section
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="pb-4 px-4"
+          >
+            <div className="container mx-auto max-w-4xl">
+              <Alert className="bg-gold/5 border-gold/20 relative">
+                <div className="flex items-start gap-3">
+                  <div className="shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-gold" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Sparkles className="w-3.5 h-3.5 text-gold" />
+                      <span className="text-sm font-semibold text-foreground">Are you a club leader?</span>
+                    </div>
+                    <AlertDescription className="text-sm text-muted-foreground">
+                      <span className="block mb-2">
+                        Claim your club to access the Admin Portal where you can manage events, track recruitment, and update your club's profile.
+                      </span>
+                      <div className="flex flex-col sm:flex-row gap-2 text-xs">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[10px]">1</span>
+                          Search for your club below
+                        </span>
+                        <ChevronRight className="hidden sm:block w-3 h-3 text-muted-foreground/50" />
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[10px]">2</span>
+                          Click "Claim this club" on the detail page
+                        </span>
+                        <ChevronRight className="hidden sm:block w-3 h-3 text-muted-foreground/50" />
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-5 h-5 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[10px]">3</span>
+                          Verify via email
+                        </span>
+                      </div>
+                    </AlertDescription>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowClaimInfo(false)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </Alert>
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       {/* Search and Filter Controls */}
       <section className="pb-8 px-4">
