@@ -36,9 +36,6 @@ export function RecommendedEvents() {
     setSelectedEvent(event);
     setModalOpen(true);
   };
-    setSelectedEvent(event);
-    setModalOpen(true);
-  };
 
   const formatEventDate = (dateStr: string) => {
     const date = parseISO(dateStr);
