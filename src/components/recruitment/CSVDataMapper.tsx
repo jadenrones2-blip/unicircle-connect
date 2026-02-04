@@ -63,6 +63,8 @@ type FieldName = (typeof ALL_FIELDS)[number];
 interface ColumnMapping {
   csvHeader: string;
   mappedTo: FieldName | 'metadata' | 'skip';
+  autoDetected: boolean;
+  wasModified: boolean;
 }
 
 export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
