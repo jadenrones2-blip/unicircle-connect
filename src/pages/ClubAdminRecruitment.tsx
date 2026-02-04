@@ -25,6 +25,7 @@ export default function ClubAdminRecruitment() {
     enableRecruitment,
     createStages,
     addApplicant,
+    bulkAddApplicants,
     updateApplicantStage,
     deleteApplicant,
   } = useRecruitment(clubId);
@@ -87,6 +88,7 @@ export default function ClubAdminRecruitment() {
         applicants={applicants}
         onMoveApplicant={updateApplicantStage}
         onAddApplicant={addApplicant}
+        onBulkAddApplicants={bulkAddApplicants}
         onDeleteApplicant={deleteApplicant}
       />
     );

@@ -14,6 +14,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { StageColumn } from './StageColumn';
 import { ApplicantCard } from './ApplicantCard';
 import { AddApplicantDialog } from './AddApplicantDialog';
+import { ImportApplicantsDialog } from './ImportApplicantsDialog';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 
 interface RecruitmentKanbanProps {
@@ -27,6 +28,13 @@ interface RecruitmentKanbanProps {
     major?: string;
     year?: string;
   }) => Promise<boolean>;
+  onBulkAddApplicants: (applicants: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    major?: string;
+    year?: string;
+  }[]) => Promise<{ success: number; failed: number }>;
   onDeleteApplicant: (id: string) => Promise<boolean>;
 }
 
@@ -35,6 +43,7 @@ export function RecruitmentKanban({
   applicants,
   onMoveApplicant,
   onAddApplicant,
+  onBulkAddApplicants,
   onDeleteApplicant,
 }: RecruitmentKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -103,7 +112,10 @@ export function RecruitmentKanban({
             Drag and drop applicants between stages
           </p>
         </div>
-        <AddApplicantDialog onAdd={onAddApplicant} />
+        <div className="flex gap-2">
+          <ImportApplicantsDialog onImport={onBulkAddApplicants} />
+          <AddApplicantDialog onAdd={onAddApplicant} />
+        </div>
       </div>
 
       <ScrollArea className="flex-1 -mx-6 px-6">

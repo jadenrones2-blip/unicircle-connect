@@ -187,6 +187,59 @@ export function useRecruitment(clubId: string | undefined) {
     return true;
   };
 
+  const bulkAddApplicants = async (applicantsList: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    major?: string;
+    year?: string;
+  }[]): Promise<{ success: number; failed: number }> => {
+    if (!clubId || !user || stages.length === 0) {
+      return { success: 0, failed: applicantsList.length };
+    }
+
+    const firstStageId = stages[0].id;
+    let successCount = 0;
+    let failedCount = 0;
+
+    // Insert in batches of 50
+    const batchSize = 50;
+    for (let i = 0; i < applicantsList.length; i += batchSize) {
+      const batch = applicantsList.slice(i, i + batchSize).map(applicant => ({
+        club_id: clubId,
+        stage_id: firstStageId,
+        first_name: applicant.first_name,
+        last_name: applicant.last_name,
+        email: applicant.email,
+        major: applicant.major || null,
+        year: applicant.year || null,
+      }));
+
+      const { data, error } = await supabase
+        .from('applicants')
+        .insert(batch)
+        .select();
+
+      if (error) {
+        console.error('Error in batch insert:', error);
+        failedCount += batch.length;
+      } else {
+        successCount += data?.length || 0;
+      }
+    }
+
+    await fetchApplicants();
+    
+    if (successCount > 0) {
+      toast.success(`Imported ${successCount} applicant${successCount !== 1 ? 's' : ''}`);
+    }
+    if (failedCount > 0) {
+      toast.error(`${failedCount} applicant${failedCount !== 1 ? 's' : ''} failed to import`);
+    }
+
+    return { success: successCount, failed: failedCount };
+  };
+
   const updateApplicantStage = async (applicantId: string, newStageId: string) => {
     if (!user) return false;
 
@@ -236,6 +289,7 @@ export function useRecruitment(clubId: string | undefined) {
     enableRecruitment,
     createStages,
     addApplicant,
+    bulkAddApplicants,
     updateApplicantStage,
     deleteApplicant,
     refetch: async () => {
