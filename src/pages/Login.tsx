@@ -58,9 +58,14 @@ export default function Login() {
             navigate('/club-admin');
             toast.success('Welcome to your Club Admin Portal!');
           } else {
-            // They don't own clubs yet, send to clubs page to claim one
+            // They don't own clubs yet - sign them out and show error
+            await supabase.auth.signOut();
+            toast.error(
+              'No clubs found for this account. You must claim a club first before accessing the admin portal.',
+              { duration: 6000 }
+            );
+            // Redirect to clubs page so they can find and claim their club
             navigate('/clubs');
-            toast.info('You haven\'t claimed any clubs yet. Find your club and claim it!');
           }
         } else {
           // Student login flow

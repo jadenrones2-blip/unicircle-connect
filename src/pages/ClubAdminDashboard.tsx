@@ -74,21 +74,18 @@ export default function ClubAdminDashboard() {
 
   if (!user || !isProfileComplete) return null;
 
+  // Redirect users without clubs to the clubs directory
+  useEffect(() => {
+    if (!authLoading && !ownershipLoading && user && ownedClubs.length === 0) {
+      navigate('/clubs');
+    }
+  }, [authLoading, ownershipLoading, user, ownedClubs.length, navigate]);
+
   if (ownedClubs.length === 0) {
+    // Show loading while redirect happens
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <div className="text-center max-w-md">
-          <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-2xl font-display font-bold text-foreground mb-2">
-            No Clubs Yet
-          </h1>
-          <p className="text-muted-foreground mb-6">
-            You haven't claimed any clubs yet. Visit a club's page and click "Claim this club" to get started.
-          </p>
-          <Button variant="gold" asChild>
-            <Link to="/clubs">Browse Clubs</Link>
-          </Button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 text-gold animate-spin" />
       </div>
     );
   }
