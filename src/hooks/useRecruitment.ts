@@ -22,6 +22,11 @@ export interface Applicant {
   major: string | null;
   year: string | null;
   notes: string | null;
+  gpa: number | null;
+  metadata: Record<string, string> | null;
+  fit_score: number | null;
+  ai_summary: string | null;
+  passes_strict_filters: boolean | null;
   created_at: string;
   updated_at: string;
 }
