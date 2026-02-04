@@ -74,6 +74,56 @@ export type Database = {
         }
         Relationships: []
       }
+      applicants: {
+        Row: {
+          club_id: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          major: string | null
+          notes: string | null
+          stage_id: string | null
+          updated_at: string
+          year: string | null
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          major?: string | null
+          notes?: string | null
+          stage_id?: string | null
+          updated_at?: string
+          year?: string | null
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          major?: string | null
+          notes?: string | null
+          stage_id?: string | null
+          updated_at?: string
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applicants_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "recruitment_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       claim_rate_limits: {
         Row: {
           attempt_count: number | null
@@ -392,6 +442,57 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      recruitment_settings: {
+        Row: {
+          club_id: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recruitment_stages: {
+        Row: {
+          club_id: string
+          created_at: string
+          id: string
+          label: string
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          id?: string
+          label: string
+          order_index?: number
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          id?: string
+          label?: string
+          order_index?: number
+          updated_at?: string
         }
         Relationships: []
       }

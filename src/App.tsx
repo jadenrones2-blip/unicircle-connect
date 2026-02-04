@@ -20,6 +20,7 @@ import VerifyClaim from "./pages/VerifyClaim";
 import ClubAdminDashboard from "./pages/ClubAdminDashboard";
 import ClubAdminEvents from "./pages/ClubAdminEvents";
 import ClubAdminEdit from "./pages/ClubAdminEdit";
+import ClubAdminRecruitment from "./pages/ClubAdminRecruitment";
 import AdminOnboarding from "./pages/AdminOnboarding";
 import AdminProfileSettings from "./pages/AdminProfileSettings";
 import NotFound from "./pages/NotFound";
@@ -51,6 +52,7 @@ const App = () => (
           <Route path="/club-admin" element={<ClubAdminDashboard />} />
           <Route path="/club-admin/clubs/:clubId/events" element={<ClubAdminEvents />} />
           <Route path="/club-admin/clubs/:clubId/edit" element={<ClubAdminEdit />} />
+          <Route path="/club-admin/clubs/:clubId/recruitment" element={<ClubAdminRecruitment />} />
           <Route path="/club-admin/profile" element={<AdminProfileSettings />} />
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
           <Route path="*" element={<NotFound />} />
