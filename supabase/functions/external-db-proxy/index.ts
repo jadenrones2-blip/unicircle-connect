@@ -41,7 +41,7 @@ interface AuditLogEntry {
 }
 
 async function logAuditEvent(
-  supabase: any, 
+  supabase: ReturnType<typeof createClient>, 
   entry: AuditLogEntry
 ): Promise<void> {
   try {
@@ -56,7 +56,6 @@ async function logAuditEvent(
       });
   } catch (err) {
     console.error('Failed to log audit event:', err);
-    // Don't throw - audit logging should not break the main operation
   }
 }
 
@@ -66,9 +65,14 @@ function getClientIP(req: Request): string {
          'unknown';
 }
 
-async function extractUserFromAuth(req: Request, supabaseUrl: string, anonKey: string): Promise<string | null> {
+interface AuthResult {
+  userId: string | null;
+  userEmail: string | null;
+}
+
+async function extractUserFromAuth(req: Request, supabaseUrl: string, anonKey: string): Promise<AuthResult> {
   const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) return null;
+  if (!authHeader?.startsWith('Bearer ')) return { userId: null, userEmail: null };
   
   try {
     const userSupabase = createClient(supabaseUrl, anonKey, {
@@ -76,43 +80,77 @@ async function extractUserFromAuth(req: Request, supabaseUrl: string, anonKey: s
     });
     
     const { data: { user } } = await userSupabase.auth.getUser();
-    return user?.id || null;
+    return { userId: user?.id || null, userEmail: user?.email || null };
+  } catch {
+    return { userId: null, userEmail: null };
+  }
+}
+
+// ============ AUTHORIZATION HELPERS ============
+
+interface ClubOwnerInfo {
+  club_id: string;
+  verification_state: string | null;
+  restrictions: {
+    can_publish_events: boolean;
+    can_mass_message: boolean;
+    can_add_links: boolean;
+  } | null;
+}
+
+async function getClubOwnership(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  clubId: string
+): Promise<ClubOwnerInfo | null> {
+  try {
+    const { data, error } = await supabase
+      .from('club_owners')
+      .select('club_id, verification_state, restrictions')
+      .eq('user_id', userId)
+      .eq('club_id', clubId)
+      .maybeSingle();
+    
+    if (error || !data) return null;
+    return data as ClubOwnerInfo;
   } catch {
     return null;
   }
 }
 
+function canPublishEvents(ownership: ClubOwnerInfo): boolean {
+  // Verified owners can publish
+  if (ownership.verification_state === 'verified') return true;
+  
+  // Suspended owners cannot
+  if (ownership.verification_state === 'suspended') return false;
+  
+  // Provisional owners check restrictions
+  if (ownership.verification_state === 'provisional') {
+    return ownership.restrictions?.can_publish_events === true;
+  }
+  
+  // Unverified cannot publish
+  return false;
+}
+
 // ============ VALIDATION HELPERS ============
 
-// Validate filter value type and length
 function isValidFilterValue(value: unknown): boolean {
-  if (value === null || value === undefined) {
-    return false;
-  }
+  if (value === null || value === undefined) return false;
   
-  if (typeof value === "string") {
-    return value.length <= MAX_FILTER_VALUE_LENGTH;
-  }
-  
-  if (typeof value === "number") {
-    return Number.isFinite(value);
-  }
-  
-  if (typeof value === "boolean") {
-    return true;
-  }
+  if (typeof value === "string") return value.length <= MAX_FILTER_VALUE_LENGTH;
+  if (typeof value === "number") return Number.isFinite(value);
+  if (typeof value === "boolean") return true;
   
   return false;
 }
 
-// Parse and validate filters with column whitelist
 function parseAndValidateFilters(
   filtersParam: string | null,
   table: string
 ): { valid: boolean; filters: Record<string, unknown>; error?: string } {
-  if (!filtersParam) {
-    return { valid: true, filters: {} };
-  }
+  if (!filtersParam) return { valid: true, filters: {} };
 
   const allowedColumns = ALLOWED_FILTER_COLUMNS[table] || [];
   
@@ -129,35 +167,20 @@ function parseAndValidateFilters(
 
   const entries = Object.entries(filterObj);
   
-  // Check filter count limit
   if (entries.length > MAX_FILTERS) {
-    return { 
-      valid: false, 
-      filters: {}, 
-      error: `Too many filters. Maximum allowed: ${MAX_FILTERS}` 
-    };
+    return { valid: false, filters: {}, error: `Too many filters. Maximum allowed: ${MAX_FILTERS}` };
   }
 
   const validatedFilters: Record<string, unknown> = {};
   
   for (const [column, value] of entries) {
-    // Validate column name is in whitelist
     if (!allowedColumns.includes(column)) {
       console.warn(`Rejected invalid filter column "${column}" for table "${table}"`);
-      return { 
-        valid: false, 
-        filters: {}, 
-        error: `Invalid filter column: ${column}` 
-      };
+      return { valid: false, filters: {}, error: `Invalid filter column: ${column}` };
     }
 
-    // Validate filter value
     if (!isValidFilterValue(value)) {
-      return { 
-        valid: false, 
-        filters: {}, 
-        error: `Invalid filter value for column: ${column}` 
-      };
+      return { valid: false, filters: {}, error: `Invalid filter value for column: ${column}` };
     }
 
     validatedFilters[column] = value;
@@ -166,7 +189,6 @@ function parseAndValidateFilters(
   return { valid: true, filters: validatedFilters };
 }
 
-// Validate order column
 function isValidOrderColumn(orderBy: string | null, table: string): boolean {
   if (!orderBy) return true;
   const allowedColumns = ALLOWED_ORDER_COLUMNS[table] || [];
@@ -176,7 +198,6 @@ function isValidOrderColumn(orderBy: string | null, table: string): boolean {
 // ============ MAIN HANDLER ============
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -187,7 +208,6 @@ serve(async (req) => {
     const rawExternalUrl = (Deno.env.get("EXTERNAL_SUPABASE_URL") ?? "").trim();
     const externalKey = (Deno.env.get("EXTERNAL_SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
     
-    // Internal Supabase for audit logging
     const internalUrl = Deno.env.get("SUPABASE_URL")!;
     const internalServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const internalAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
@@ -196,15 +216,9 @@ serve(async (req) => {
     const normalizeExternalUrl = (value: string): string | null => {
       let v = value.trim();
       if (!v) return null;
-
-      // Users sometimes paste a full API path (e.g. .../auth/v1). supabase-js expects the base URL only.
       v = v.replace(/\/(auth|rest|functions)\/v1.*$/i, "");
       v = v.replace(/\/+$/, "");
 
-      // Accept either:
-      // - full base URL (https://...)
-      // - host without protocol (...supabase.co)
-      // - project ref (e.g. abcdefghijklmnop)
       if (!v.startsWith("http://") && !v.startsWith("https://")) {
         if (v.includes(".") || v.includes("supabase.co")) {
           v = `https://${v}`;
@@ -214,7 +228,6 @@ serve(async (req) => {
       }
 
       try {
-        // Validate it parses as a URL.
         new URL(v);
         return v;
       } catch {
@@ -237,18 +250,16 @@ serve(async (req) => {
     }
 
     if (!externalUrl) {
-      console.error("Invalid EXTERNAL_SUPABASE_URL (expected base URL, host, or project ref)");
+      console.error("Invalid EXTERNAL_SUPABASE_URL");
       return new Response(
         JSON.stringify({ error: "Invalid external database configuration" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create client for external Supabase
     const externalSupabase = createClient(externalUrl, externalKey);
     
-    // Extract user ID for audit logging
-    const userId = await extractUserFromAuth(req, internalUrl, internalAnonKey);
+    const { userId, userEmail } = await extractUserFromAuth(req, internalUrl, internalAnonKey);
 
     const url = new URL(req.url);
     const table = url.searchParams.get("table");
@@ -261,7 +272,6 @@ serve(async (req) => {
       );
     }
 
-    // Whitelist allowed tables for security
     const allowedTables = ["clubs", "events", "categories", "interests", "raw_club_pages"];
     if (!allowedTables.includes(table)) {
       console.error(`Attempted access to unauthorized table: ${table}`);
@@ -271,8 +281,8 @@ serve(async (req) => {
       );
     }
 
+    // ============ SELECT (GET) ============
     if (req.method === "GET" && action === "select") {
-      // Handle SELECT queries (no audit logging for reads)
       const select = url.searchParams.get("select") || "*";
       const limit = Math.min(Math.max(parseInt(url.searchParams.get("limit") || "100"), 1), 1000);
       const offset = Math.max(parseInt(url.searchParams.get("offset") || "0"), 0);
@@ -281,7 +291,6 @@ serve(async (req) => {
 
       let query = externalSupabase.from(table).select(select);
 
-      // Apply validated filters
       const filtersParam = url.searchParams.get("filters");
       const { valid, filters, error: filterError } = parseAndValidateFilters(filtersParam, table);
       
@@ -297,7 +306,6 @@ serve(async (req) => {
         query = query.eq(column, value as string | number | boolean);
       }
 
-      // Apply validated ordering
       const orderBy = url.searchParams.get("orderBy");
       const orderAsc = url.searchParams.get("orderAsc") !== "false";
       
@@ -317,7 +325,6 @@ serve(async (req) => {
       const { data, error } = await query;
 
       if (error) {
-        // Handle missing table gracefully - return empty array instead of error
         if (error.code === "PGRST205") {
           console.log(`Table ${table} not found - returning empty array`);
           return new Response(
@@ -326,16 +333,12 @@ serve(async (req) => {
           );
         }
         
-        // Log full error details server-side only
         console.error(`Error fetching from ${table}:`, JSON.stringify(error));
-        // Return generic error message to client without exposing internal details
         return new Response(
           JSON.stringify({ error: "Failed to fetch data" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
-      console.log(`Query result for ${table}:`, JSON.stringify(data?.slice(0, 2) || []));
 
       console.log(`Successfully fetched ${data?.length || 0} records from ${table}`);
 
@@ -345,8 +348,8 @@ serve(async (req) => {
       );
     }
 
+    // ============ INSERT (POST) ============
     if (req.method === "POST" && action === "insert") {
-      // Handle INSERT operations
       const body = await req.json();
       
       if (!body.record) {
@@ -354,6 +357,59 @@ serve(async (req) => {
           JSON.stringify({ error: "Record data is required" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
+      }
+
+      // SERVER-SIDE AUTHORIZATION for events table
+      if (table === "events") {
+        // Require authentication
+        if (!userId) {
+          console.warn("Unauthenticated attempt to insert event");
+          await logAuditEvent(internalSupabase, {
+            club_id: body.record.club_handle || 'unknown',
+            actor_user_id: null,
+            action: 'events_insert_unauthorized',
+            details: { reason: 'unauthenticated', ip_address: ipAddress },
+            ip_address: ipAddress,
+          });
+          return new Response(
+            JSON.stringify({ error: "Authentication required" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const clubId = body.record.club_handle || body.record.club_id;
+        if (!clubId) {
+          return new Response(
+            JSON.stringify({ error: "Club identifier is required" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Verify club ownership
+        const ownership = await getClubOwnership(internalSupabase, userId, clubId);
+        if (!ownership) {
+          console.warn(`User ${userId} attempted to insert event for club ${clubId} without ownership`);
+          await logAuditEvent(internalSupabase, {
+            club_id: clubId,
+            actor_user_id: userId,
+            action: 'events_insert_forbidden',
+            details: { reason: 'not_owner', user_email: userEmail },
+            ip_address: ipAddress,
+          });
+          return new Response(
+            JSON.stringify({ error: "You must own this club to create events" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Enforce provisional restrictions - override verified/posted_at
+        const allowPublish = canPublishEvents(ownership);
+        if (!allowPublish) {
+          // Force unverified state for provisional/unverified owners
+          body.record.verified = false;
+          body.record.posted_at = null;
+          console.log(`Provisional owner ${userId}: forcing verified=false for club ${clubId}`);
+        }
       }
 
       console.log(`Inserting into ${table}:`, body.record);
@@ -371,7 +427,6 @@ serve(async (req) => {
         );
       }
 
-      // Audit log for insert
       const clubId = body.record.club_handle || body.record.club_id || body.record.id || 'unknown';
       await logAuditEvent(internalSupabase, {
         club_id: clubId,
@@ -394,8 +449,8 @@ serve(async (req) => {
       );
     }
 
+    // ============ UPDATE (POST) ============
     if (req.method === "POST" && action === "update") {
-      // Handle UPDATE operations
       const body = await req.json();
       
       if (!body.id || !body.record) {
@@ -403,6 +458,61 @@ serve(async (req) => {
           JSON.stringify({ error: "ID and record data are required" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
+      }
+
+      // SERVER-SIDE AUTHORIZATION for events table
+      if (table === "events") {
+        if (!userId) {
+          console.warn("Unauthenticated attempt to update event");
+          return new Response(
+            JSON.stringify({ error: "Authentication required" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Fetch the existing event to get club_handle
+        const { data: existingEvent } = await externalSupabase
+          .from("events")
+          .select("club_handle, club_id")
+          .eq("id", body.id)
+          .maybeSingle();
+
+        const clubId = existingEvent?.club_handle || existingEvent?.club_id || body.record.club_handle;
+        if (!clubId) {
+          return new Response(
+            JSON.stringify({ error: "Cannot determine club for this event" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const ownership = await getClubOwnership(internalSupabase, userId, clubId);
+        if (!ownership) {
+          console.warn(`User ${userId} attempted to update event for club ${clubId} without ownership`);
+          await logAuditEvent(internalSupabase, {
+            club_id: clubId,
+            actor_user_id: userId,
+            action: 'events_update_forbidden',
+            details: { reason: 'not_owner', event_id: body.id },
+            ip_address: ipAddress,
+          });
+          return new Response(
+            JSON.stringify({ error: "You must own this club to update events" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        // Enforce provisional restrictions
+        const allowPublish = canPublishEvents(ownership);
+        if (!allowPublish) {
+          // Prevent setting verified=true or posted_at
+          if (body.record.verified === true) {
+            body.record.verified = false;
+          }
+          if (body.record.posted_at) {
+            delete body.record.posted_at;
+          }
+          console.log(`Provisional owner ${userId}: stripping verified/posted_at for event update`);
+        }
       }
 
       console.log(`Updating ${table} id=${body.id}:`, body.record);
@@ -414,16 +524,13 @@ serve(async (req) => {
         .select();
 
       if (error) {
-        // Log full error details server-side only
         console.error(`Error updating ${table}:`, error);
-        // Return generic error message to client
         return new Response(
           JSON.stringify({ error: "Failed to update data" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Audit log for update
       const clubId = body.record.club_handle || body.record.club_id || body.id;
       await logAuditEvent(internalSupabase, {
         club_id: clubId,
@@ -445,8 +552,8 @@ serve(async (req) => {
       );
     }
 
+    // ============ DELETE ============
     if (req.method === "DELETE" && action === "delete") {
-      // Handle DELETE operations with validated filters
       const filtersParam = url.searchParams.get("filters");
       
       if (!filtersParam) {
@@ -473,6 +580,28 @@ serve(async (req) => {
         );
       }
 
+      // SERVER-SIDE AUTHORIZATION for events table
+      if (table === "events") {
+        if (!userId) {
+          return new Response(
+            JSON.stringify({ error: "Authentication required" }),
+            { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const clubId = (filters.club_handle || filters.club_id) as string | undefined;
+        if (clubId) {
+          const ownership = await getClubOwnership(internalSupabase, userId, clubId);
+          if (!ownership) {
+            console.warn(`User ${userId} attempted to delete event for club ${clubId} without ownership`);
+            return new Response(
+              JSON.stringify({ error: "You must own this club to delete events" }),
+              { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        }
+      }
+
       let query = externalSupabase.from(table).delete();
       
       for (const [column, value] of Object.entries(filters)) {
@@ -482,19 +611,16 @@ serve(async (req) => {
       const { error, count } = await query;
 
       if (error) {
-        // Log full error details server-side only
         console.error(`Error deleting from ${table}:`, error);
-        // Return generic error message to client
         return new Response(
           JSON.stringify({ error: "Failed to delete data" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Audit log for delete
-      const clubId = (filters.club_handle || filters.club_id || filters.id || 'unknown') as string;
+      const clubIdForLog = (filters.club_handle || filters.club_id || filters.id || 'unknown') as string;
       await logAuditEvent(internalSupabase, {
-        club_id: clubId,
+        club_id: clubIdForLog,
         actor_user_id: userId,
         action: `${table}_delete`,
         details: {
@@ -513,12 +639,20 @@ serve(async (req) => {
       );
     }
 
+    // ============ BULK DELETE EVENTS ============
     if (req.method === "POST" && action === "delete-all-events") {
-      // Special action to delete all events (for cleanup)
       if (table !== "events") {
         return new Response(
           JSON.stringify({ error: "This action is only allowed for events table" }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Require authentication for bulk delete
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: "Authentication required" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -527,19 +661,16 @@ serve(async (req) => {
       const { error } = await externalSupabase
         .from("events")
         .delete()
-        .neq("id", "00000000-0000-0000-0000-000000000000"); // Delete all (workaround for no-filter delete)
+        .neq("id", "00000000-0000-0000-0000-000000000000");
 
       if (error) {
-        // Log full error details server-side only
         console.error("Error deleting all events:", error);
-        // Return generic error message to client
         return new Response(
           JSON.stringify({ error: "Failed to delete events" }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Audit log for bulk delete
       await logAuditEvent(internalSupabase, {
         club_id: 'system',
         actor_user_id: userId,
