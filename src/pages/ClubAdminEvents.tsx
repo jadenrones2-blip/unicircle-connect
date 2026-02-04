@@ -67,16 +67,21 @@ export default function ClubAdminEvents() {
     
     setLoading(true);
     try {
-      // Fetch events by club_handle matching the club ID (how events are submitted)
-      const { data, error } = await externalSupabase
-        .from('events')
-        .select('*')
-        .eq('club_handle', club.clubId)
-        .order('start_time', { ascending: false })
-        .limit(50);
+      // Use edge function instead of direct client
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&limit=50&filters=${encodeURIComponent(JSON.stringify({ club_handle: club.clubId }))}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
 
-      if (error) throw error;
-      setEvents(data || []);
+      if (!response.ok) throw new Error('Failed to fetch');
+      
+      const result = await response.json();
+      setEvents(result.data || []);
     } catch (err) {
       console.error('Error fetching club events:', err);
       toast.error('Failed to load events');
