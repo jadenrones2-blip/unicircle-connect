@@ -84,12 +84,16 @@ export default function ClubAdminRecruitment() {
 
     return (
       <RecruitmentKanban
+        clubId={clubId}
         stages={stages}
         applicants={applicants}
         onMoveApplicant={updateApplicantStage}
         onAddApplicant={addApplicant}
         onBulkAddApplicants={bulkAddApplicants}
         onDeleteApplicant={deleteApplicant}
+        onRefresh={async () => {
+          await Promise.all([fetchSettings(), fetchStages(), fetchApplicants()]);
+        }}
       />
     );
   };
