@@ -98,7 +98,13 @@ export function useRecruitment(clubId: string | undefined) {
       return;
     }
     
-    setApplicants(data || []);
+    // Cast metadata to our expected type
+    const typedApplicants: Applicant[] = (data || []).map((row) => ({
+      ...row,
+      metadata: (row.metadata as Record<string, string>) || null,
+    }));
+    
+    setApplicants(typedApplicants);
   }, [clubId, user]);
 
   useEffect(() => {
