@@ -138,30 +138,83 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
       setCsvHeaders(headers);
       setCsvRows(rows);
 
-      // Auto-detect mappings
+      // Auto-detect mappings with enhanced Google Form pattern recognition
       const autoMappings: ColumnMapping[] = headers.map((header) => {
         const lowerHeader = header.toLowerCase();
+        // Normalize: remove question marks, extra spaces, "your", "what is", "please enter"
+        const normalized = lowerHeader
+          .replace(/[?.,!]/g, '')
+          .replace(/\b(what is|what's|please enter|please provide|your)\b/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        
         let mappedTo: FieldName | 'metadata' | 'skip' = 'metadata';
 
-        if (lowerHeader.includes('first') && lowerHeader.includes('name')) {
+        // Skip timestamp columns (common in Google Forms)
+        if (lowerHeader.includes('timestamp') || lowerHeader === 'submitted at' || lowerHeader === 'response id') {
+          mappedTo = 'skip';
+        }
+        // First name patterns
+        else if (
+          normalized.includes('first name') ||
+          normalized === 'first' ||
+          normalized === 'firstname' ||
+          normalized === 'given name' ||
+          normalized === 'name first'
+        ) {
           mappedTo = 'first_name';
-        } else if (lowerHeader === 'first' || lowerHeader === 'firstname') {
-          mappedTo = 'first_name';
-        } else if (lowerHeader.includes('last') && lowerHeader.includes('name')) {
+        }
+        // Last name patterns
+        else if (
+          normalized.includes('last name') ||
+          normalized === 'last' ||
+          normalized === 'lastname' ||
+          normalized === 'surname' ||
+          normalized === 'family name' ||
+          normalized === 'name last'
+        ) {
           mappedTo = 'last_name';
-        } else if (lowerHeader === 'last' || lowerHeader === 'lastname') {
-          mappedTo = 'last_name';
-        } else if (lowerHeader.includes('email') || lowerHeader.includes('mail')) {
+        }
+        // Email patterns
+        else if (
+          normalized.includes('email') ||
+          normalized.includes('e-mail') ||
+          normalized.includes('mail address') ||
+          normalized === 'mail'
+        ) {
           mappedTo = 'email';
-        } else if (lowerHeader.includes('major') || lowerHeader.includes('field of study')) {
+        }
+        // Major/field of study patterns
+        else if (
+          normalized.includes('major') ||
+          normalized.includes('field of study') ||
+          normalized.includes('area of study') ||
+          normalized.includes('concentration') ||
+          normalized.includes('program of study') ||
+          normalized.includes('degree program')
+        ) {
           mappedTo = 'major';
-        } else if (
-          lowerHeader.includes('year') ||
-          lowerHeader.includes('class') ||
-          lowerHeader.includes('grade')
+        }
+        // Year/class patterns
+        else if (
+          normalized.includes('class year') ||
+          normalized.includes('graduation year') ||
+          normalized.includes('expected graduation') ||
+          normalized.includes('class of') ||
+          normalized === 'year' ||
+          normalized === 'class' ||
+          normalized === 'grade level' ||
+          normalized === 'academic year' ||
+          /\b(freshman|sophomore|junior|senior)\b/.test(normalized)
         ) {
           mappedTo = 'year';
-        } else if (lowerHeader.includes('gpa')) {
+        }
+        // GPA patterns
+        else if (
+          normalized.includes('gpa') ||
+          normalized.includes('grade point') ||
+          normalized.includes('cumulative gpa')
+        ) {
           mappedTo = 'gpa';
         }
 
