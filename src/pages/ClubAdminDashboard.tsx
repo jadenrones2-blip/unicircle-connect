@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Calendar, Users, Shield, AlertTriangle, CheckCircle2, XCircle, Settings } from 'lucide-react';
 import { OnboardingChecklist } from '@/components/club-admin/OnboardingChecklist';
+import { RecruitmentDashboardCard } from '@/components/club-admin/RecruitmentDashboardCard';
 
 function VerificationBadge({ state }: { state: VerificationState }) {
   switch (state) {
@@ -149,6 +150,24 @@ export default function ClubAdminDashboard() {
               <OnboardingChecklist key={`checklist-${club.clubId}`} club={club} />
             ))}
 
+            {/* Recruitment Cards - Prominent Section */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5 text-gold" />
+                Recruitment
+              </h3>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {ownedClubs.map((club) => (
+                  <RecruitmentDashboardCard 
+                    key={`recruitment-${club.clubId}`}
+                    clubId={club.clubId}
+                    clubName={club.clubName}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold text-foreground mb-4">My Clubs</h3>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {ownedClubs.map((club) => (
                 <div
