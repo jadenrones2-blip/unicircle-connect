@@ -10,14 +10,20 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { Settings2, LayoutGrid, Table } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StageColumn } from './StageColumn';
 import { ApplicantCard } from './ApplicantCard';
 import { AddApplicantDialog } from './AddApplicantDialog';
-import { ImportApplicantsDialog } from './ImportApplicantsDialog';
+import { CSVDataMapper } from './CSVDataMapper';
+import { ApplicantTableView } from './ApplicantTableView';
+import { RequirementsBuilder } from './RequirementsBuilder';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 
 interface RecruitmentKanbanProps {
+  clubId: string;
   stages: RecruitmentStage[];
   applicants: Applicant[];
   onMoveApplicant: (applicantId: string, newStageId: string) => Promise<boolean>;
@@ -34,17 +40,22 @@ interface RecruitmentKanbanProps {
     email: string;
     major?: string;
     year?: string;
+    gpa?: number;
+    metadata?: Record<string, string>;
   }[]) => Promise<{ success: number; failed: number }>;
   onDeleteApplicant: (id: string) => Promise<boolean>;
+  onRefresh: () => Promise<void>;
 }
 
 export function RecruitmentKanban({
+  clubId,
   stages,
   applicants,
   onMoveApplicant,
   onAddApplicant,
   onBulkAddApplicants,
   onDeleteApplicant,
+  onRefresh,
 }: RecruitmentKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
