@@ -9,9 +9,9 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="py-12 border-t border-border bg-background">
-      <div className="container mx-auto">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+    <footer className="py-8 sm:py-12 border-t border-border bg-background">
+      <div className="container mx-auto px-5 sm:px-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -22,7 +22,7 @@ const Footer = () => {
             </Link>
           </motion.div>
 
-          <nav className="flex items-center gap-8">
+          <nav className="flex items-center gap-6 sm:gap-8">
             {links.map((link) => (
               <Link
                 key={link.label}
@@ -40,7 +40,7 @@ const Footer = () => {
           </p>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border text-center">
+        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border text-center">
           <p className="text-xs text-muted-foreground/60">
             © 2025 UniCircle. All rights reserved.
           </p>
