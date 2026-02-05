@@ -28,6 +28,7 @@ interface RecruitmentKanbanProps {
   clubName: string;
   stages: RecruitmentStage[];
   applicants: Applicant[];
+  settings: RecruitmentSettings | null;
   onMoveApplicant: (applicantId: string, newStageId: string, clubName?: string) => Promise<boolean>;
   onAddApplicant: (applicant: {
     first_name: string;
