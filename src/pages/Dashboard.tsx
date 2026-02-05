@@ -256,6 +256,9 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
+        {/* Recruitment Tracker Section */}
+        <RecruitmentTrackerSection />
+
         {/* Tabs for My Clubs / Applications */}
         <Tabs defaultValue="my-clubs" className="mb-10">
           <TabsList className="mb-6">
