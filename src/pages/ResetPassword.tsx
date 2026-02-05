@@ -19,29 +19,52 @@ export default function ResetPassword() {
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Check if we have a valid recovery session
-    const checkSession = async () => {
+    // Listen for auth state changes - this is the reliable way to detect recovery tokens
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event, 'Session:', !!session);
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        // User clicked a valid recovery link
+        setIsValidSession(true);
+        // Clear the hash from URL to prevent issues on refresh
+        window.history.replaceState(null, '', window.location.pathname);
+      } else if (event === 'SIGNED_IN' && session) {
+        // Already signed in with a session (recovery token was exchanged)
+        setIsValidSession(true);
+      }
+    });
+
+    // Check for existing session or URL errors
+    const checkInitialState = async () => {
+      // First check URL for error params (e.g., expired link)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const errorDescription = hashParams.get('error_description');
+      const errorCode = hashParams.get('error_code');
+      
+      if (errorDescription || errorCode) {
+        setError(errorDescription || 'The reset link is invalid or has expired.');
+        setIsValidSession(false);
+        // Clear the error from URL
+        window.history.replaceState(null, '', window.location.pathname);
+        return;
+      }
+
+      // Check if we already have a valid session
       const { data: { session } } = await supabase.auth.getSession();
       
-      // The user should have a session from clicking the reset link
       if (session) {
         setIsValidSession(true);
-      } else {
-        // Check URL for error params (e.g., expired link)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const errorDescription = hashParams.get('error_description');
-        
-        if (errorDescription) {
-          setError(errorDescription);
-          setIsValidSession(false);
-        } else {
-          setIsValidSession(false);
-          setError('Invalid or expired reset link. Please request a new one.');
-        }
+      } else if (!window.location.hash.includes('access_token') && !window.location.hash.includes('type=recovery')) {
+        // No token in URL and no session - user navigated here directly
+        setError('Invalid or expired reset link. Please request a new one.');
+        setIsValidSession(false);
       }
+      // If there's a token in URL, wait for onAuthStateChange to handle it
     };
 
-    checkSession();
+    checkInitialState();
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
