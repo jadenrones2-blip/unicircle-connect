@@ -17,6 +17,7 @@ export default function ClubAdminRecruitment() {
   const { user, loading: authLoading } = useAuth();
   const { isOwnerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
   const { 
+    settings,
     isEnabled, 
     hasStages, 
     stages, 
