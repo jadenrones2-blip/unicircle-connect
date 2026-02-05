@@ -26,11 +26,11 @@ interface StudentVisibilitySettingsProps {
 export function StudentVisibilitySettings({ clubId, settings, onUpdate }: StudentVisibilitySettingsProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [localSettings, setLocalSettings] = useState<VisibilitySettings>({
+  const [localSettings, setLocalSettings] = useState({
     show_stage_names: settings?.show_stage_names ?? false,
     show_progress_bar: settings?.show_progress_bar ?? true,
     show_timeline: settings?.show_timeline ?? false,
-    student_visible_message: settings?.student_visible_message ?? null,
+    student_visible_message: settings?.student_visible_message ?? null as string | null,
   });
 
   const handleSave = async () => {
