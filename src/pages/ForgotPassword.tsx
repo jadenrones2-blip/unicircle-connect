@@ -16,24 +16,37 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
+
+    const emailToSend = email.trim();
+
+    if (!emailToSend) {
       toast.error('Please enter your email');
       return;
     }
 
+    setEmail(emailToSend);
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailToSend, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-      
+
       if (error) throw error;
-      
+
       setSent(true);
       toast.success('Password reset email sent!');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to send reset email';
-      toast.error(message);
+
+      if (
+        message.toLowerCase().includes('security purposes') ||
+        message.toLowerCase().includes('rate limit') ||
+        message.includes('429')
+      ) {
+        toast.error('Please wait ~15 seconds before requesting another reset email.');
+      } else {
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -76,6 +89,9 @@ export default function ForgotPassword() {
                 <h3 className="font-semibold text-foreground">Email Sent!</h3>
                 <p className="text-sm text-muted-foreground mt-1">
                   We've sent a password reset link to <strong>{email}</strong>
+                </p>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Use the most recent email—reset links can only be used once.
                 </p>
               </div>
               <p className="text-xs text-muted-foreground">
