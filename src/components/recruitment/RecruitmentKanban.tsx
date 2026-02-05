@@ -20,7 +20,8 @@ import { AddApplicantDialog } from './AddApplicantDialog';
 import { CSVDataMapper } from './CSVDataMapper';
 import { ApplicantTableView } from './ApplicantTableView';
 import { RequirementsBuilder } from './RequirementsBuilder';
-import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
+import { StudentVisibilitySettings } from './StudentVisibilitySettings';
+import type { RecruitmentStage, Applicant, RecruitmentSettings } from '@/hooks/useRecruitment';
 
 interface RecruitmentKanbanProps {
   clubId: string;
