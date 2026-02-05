@@ -135,6 +135,11 @@ export function RecruitmentKanban({
         <div className="flex items-center gap-2">
           {activeView !== 'settings' && (
             <>
+              <StudentVisibilitySettings 
+                clubId={clubId} 
+                settings={settings} 
+                onUpdate={onRefresh} 
+              />
               <CSVDataMapper onImport={onBulkAddApplicants} />
               <AddApplicantDialog onAdd={onAddApplicant} />
             </>
