@@ -90,6 +90,7 @@ export default function ClubAdminRecruitment() {
         clubName={clubName}
         stages={stages}
         applicants={applicants}
+        settings={settings}
         onMoveApplicant={updateApplicantStage}
         onAddApplicant={addApplicant}
         onBulkAddApplicants={bulkAddApplicants}
