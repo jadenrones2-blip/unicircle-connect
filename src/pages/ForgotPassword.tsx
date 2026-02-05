@@ -90,6 +90,9 @@ export default function ForgotPassword() {
                 <p className="text-sm text-muted-foreground mt-1">
                   We've sent a password reset link to <strong>{email}</strong>
                 </p>
+                <p className="text-xs text-muted-foreground mt-3">
+                  Use the most recent email—reset links can only be used once.
+                </p>
               </div>
               <p className="text-xs text-muted-foreground">
                 Didn't receive the email? Check your spam folder or{' '}
