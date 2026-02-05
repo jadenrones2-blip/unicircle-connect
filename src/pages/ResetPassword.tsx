@@ -19,52 +19,121 @@ export default function ResetPassword() {
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Listen for auth state changes - this is the reliable way to detect recovery tokens
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event:', event, 'Session:', !!session);
-      
-      if (event === 'PASSWORD_RECOVERY') {
-        // User clicked a valid recovery link
-        setIsValidSession(true);
-        // Clear the hash from URL to prevent issues on refresh
-        window.history.replaceState(null, '', window.location.pathname);
-      } else if (event === 'SIGNED_IN' && session) {
-        // Already signed in with a session (recovery token was exchanged)
-        setIsValidSession(true);
-      }
-    });
+    let isMounted = true;
 
-    // Check for existing session or URL errors
-    const checkInitialState = async () => {
-      // First check URL for error params (e.g., expired link)
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const errorDescription = hashParams.get('error_description');
-      const errorCode = hashParams.get('error_code');
-      
-      if (errorDescription || errorCode) {
-        setError(errorDescription || 'The reset link is invalid or has expired.');
-        setIsValidSession(false);
-        // Clear the error from URL
-        window.history.replaceState(null, '', window.location.pathname);
+    const clearUrl = () => {
+      // Clear hash/query so refresh/back doesn't re-process a one-time link
+      window.history.replaceState(null, '', window.location.pathname);
+    };
+
+    const setValid = () => {
+      if (!isMounted) return;
+      setError(null);
+      setIsValidSession(true);
+    };
+
+    const setInvalid = (message: string) => {
+      if (!isMounted) return;
+      setError(message);
+      setIsValidSession(false);
+      clearUrl();
+    };
+
+    // Listen for auth state changes - reliable for implicit recovery links
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event, 'Session:', !!session);
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setValid();
+        clearUrl();
         return;
       }
 
-      // Check if we already have a valid session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        setIsValidSession(true);
-      } else if (!window.location.hash.includes('access_token') && !window.location.hash.includes('type=recovery')) {
-        // No token in URL and no session - user navigated here directly
-        setError('Invalid or expired reset link. Please request a new one.');
-        setIsValidSession(false);
+      if (event === 'SIGNED_IN' && session) {
+        setValid();
       }
-      // If there's a token in URL, wait for onAuthStateChange to handle it
+    });
+
+    const checkInitialState = async () => {
+      const hash = window.location.hash.startsWith('#')
+        ? window.location.hash.substring(1)
+        : window.location.hash;
+      const hashParams = new URLSearchParams(hash);
+      const searchParams = new URLSearchParams(window.location.search);
+
+      // 1) PKCE recovery links come back as ?code=...
+      const code = searchParams.get('code');
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          setInvalid(exchangeError.message || 'The reset link is invalid or has expired.');
+          return;
+        }
+      }
+
+      // 2) If we already have a session, prefer it over any URL error params.
+      // This prevents back/forward or a double-opened link from incorrectly blocking the reset form.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        setValid();
+        clearUrl();
+        return;
+      }
+
+      // 3) Surface URL errors (expired/used token) only if we *don't* have a session
+      const errorDescription =
+        hashParams.get('error_description') ?? searchParams.get('error_description');
+      const errorCode = hashParams.get('error_code') ?? searchParams.get('error_code');
+
+      if (errorDescription || errorCode) {
+        const message =
+          errorDescription ||
+          (errorCode === 'otp_expired'
+            ? 'This reset link has expired. Please request a new one.'
+            : 'This reset link is invalid or has already been used. Please request a new one.');
+        setInvalid(message);
+        return;
+      }
+
+      // 4) If there are tokens in the URL, wait briefly for the auth listener to process them.
+      // If nothing arrives, fail gracefully instead of spinning forever.
+      const hasRecoveryTokensInUrl =
+        hashParams.has('access_token') ||
+        hashParams.get('type') === 'recovery' ||
+        hash.includes('type=recovery');
+
+      if (!hasRecoveryTokensInUrl) {
+        setInvalid('Invalid or expired reset link. Please request a new one.');
+        return;
+      }
+
+      // Wait for onAuthStateChange to fire; fallback after 2 seconds
+      setTimeout(async () => {
+        if (!isMounted) return;
+        const {
+          data: { session: delayedSession },
+        } = await supabase.auth.getSession();
+
+        if (delayedSession) {
+          setValid();
+          clearUrl();
+        } else {
+          setInvalid('This reset link is invalid or has already been used. Please request a new one.');
+        }
+      }, 2000);
     };
 
     checkInitialState();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
