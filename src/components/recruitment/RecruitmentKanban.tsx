@@ -55,6 +55,7 @@ export function RecruitmentKanban({
   clubName,
   stages,
   applicants,
+  settings,
   onMoveApplicant,
   onAddApplicant,
   onBulkAddApplicants,
