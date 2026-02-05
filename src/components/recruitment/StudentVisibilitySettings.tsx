@@ -15,16 +15,11 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-interface VisibilitySettings {
-  show_stage_names: boolean;
-  show_progress_bar: boolean;
-  show_timeline: boolean;
-  student_visible_message: string | null;
-}
+import type { RecruitmentSettings } from '@/hooks/useRecruitment';
 
 interface StudentVisibilitySettingsProps {
   clubId: string;
-  settings: VisibilitySettings | null;
+  settings: RecruitmentSettings | null;
   onUpdate: () => void;
 }
 
