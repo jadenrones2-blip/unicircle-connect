@@ -20,13 +20,15 @@ import { AddApplicantDialog } from './AddApplicantDialog';
 import { CSVDataMapper } from './CSVDataMapper';
 import { ApplicantTableView } from './ApplicantTableView';
 import { RequirementsBuilder } from './RequirementsBuilder';
-import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
+import { StudentVisibilitySettings } from './StudentVisibilitySettings';
+import type { RecruitmentStage, Applicant, RecruitmentSettings } from '@/hooks/useRecruitment';
 
 interface RecruitmentKanbanProps {
   clubId: string;
   clubName: string;
   stages: RecruitmentStage[];
   applicants: Applicant[];
+  settings: RecruitmentSettings | null;
   onMoveApplicant: (applicantId: string, newStageId: string, clubName?: string) => Promise<boolean>;
   onAddApplicant: (applicant: {
     first_name: string;
@@ -53,6 +55,7 @@ export function RecruitmentKanban({
   clubName,
   stages,
   applicants,
+  settings,
   onMoveApplicant,
   onAddApplicant,
   onBulkAddApplicants,
@@ -132,6 +135,11 @@ export function RecruitmentKanban({
         <div className="flex items-center gap-2">
           {activeView !== 'settings' && (
             <>
+              <StudentVisibilitySettings 
+                clubId={clubId} 
+                settings={settings} 
+                onUpdate={onRefresh} 
+              />
               <CSVDataMapper onImport={onBulkAddApplicants} />
               <AddApplicantDialog onAdd={onAddApplicant} />
             </>

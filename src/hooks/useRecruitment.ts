@@ -38,6 +38,10 @@ export interface RecruitmentSettings {
   id: string;
   club_id: string;
   is_enabled: boolean;
+  show_stage_names: boolean;
+  show_progress_bar: boolean;
+  show_timeline: boolean;
+  student_visible_message: string | null;
   created_at: string;
   updated_at: string;
 }

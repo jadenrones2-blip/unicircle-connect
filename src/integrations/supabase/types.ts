@@ -496,6 +496,10 @@ export type Database = {
           created_at: string
           id: string
           is_enabled: boolean
+          show_progress_bar: boolean
+          show_stage_names: boolean
+          show_timeline: boolean
+          student_visible_message: string | null
           updated_at: string
         }
         Insert: {
@@ -503,6 +507,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          show_progress_bar?: boolean
+          show_stage_names?: boolean
+          show_timeline?: boolean
+          student_visible_message?: string | null
           updated_at?: string
         }
         Update: {
@@ -510,6 +518,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          show_progress_bar?: boolean
+          show_stage_names?: boolean
+          show_timeline?: boolean
+          student_visible_message?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -588,7 +600,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_email: { Args: never; Returns: string }
     }
     Enums: {
       trust_level: "high" | "medium" | "low"

@@ -17,6 +17,7 @@ export default function ClubAdminRecruitment() {
   const { user, loading: authLoading } = useAuth();
   const { isOwnerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
   const { 
+    settings,
     isEnabled, 
     hasStages, 
     stages, 
@@ -89,6 +90,7 @@ export default function ClubAdminRecruitment() {
         clubName={clubName}
         stages={stages}
         applicants={applicants}
+        settings={settings}
         onMoveApplicant={updateApplicantStage}
         onAddApplicant={addApplicant}
         onBulkAddApplicants={bulkAddApplicants}
