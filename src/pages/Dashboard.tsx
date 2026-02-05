@@ -23,6 +23,7 @@ import logoImage from '@/assets/unicircle-logo-new.png';
 import MyClubsSection from '@/components/dashboard/MyClubsSection';
 import ApplicationsSection from '@/components/dashboard/ApplicationsSection';
 import RecommendedClubCard from '@/components/dashboard/RecommendedClubCard';
+import RecruitmentTrackerSection from '@/components/dashboard/RecruitmentTrackerSection';
 import type { Club } from '@/data/mockData';
 
 // Mapping from quiz answers to club categories/tags
