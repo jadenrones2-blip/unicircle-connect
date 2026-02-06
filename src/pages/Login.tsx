@@ -239,6 +239,11 @@ export default function Login() {
             )}
           </div>
         </motion.div>
+
+        {/* Legal disclaimer */}
+        <p className="mt-4 text-xs text-muted-foreground/60 text-center max-w-sm mx-auto">
+          UniCircle is not affiliated with, endorsed by, or sponsored by UC San Diego.
+        </p>
       </motion.div>
     </div>
   );
