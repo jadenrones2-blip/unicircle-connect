@@ -173,7 +173,7 @@ export default function RequestNewClubModal({ trigger }: RequestNewClubModalProp
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
+                <FormField
                 control={form.control}
                 name="clubName"
                 render={({ field }) => (
