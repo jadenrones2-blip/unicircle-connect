@@ -60,14 +60,7 @@ const formSchema = z.object({
   clubCategory: z.string().min(1, "Please select a category"),
   proofLink: z
     .string()
-    .url("Please enter a valid URL")
-    .refine(
-      (url) =>
-        url.includes("studentorg.ucsd.edu") ||
-        url.includes("ucsd.edu") ||
-        url.includes("getinvolved.ucsd.edu"),
-      "Please provide a link to an official UCSD page (e.g., Student Org Hub)"
-    ),
+    .url("Please enter a valid URL"),
   additionalNotes: z
     .string()
     .max(500, "Notes must be less than 500 characters")
