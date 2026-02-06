@@ -23,6 +23,8 @@ import ClubAdminEdit from "./pages/ClubAdminEdit";
 import ClubAdminRecruitment from "./pages/ClubAdminRecruitment";
 import AdminOnboarding from "./pages/AdminOnboarding";
 import AdminProfileSettings from "./pages/AdminProfileSettings";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
