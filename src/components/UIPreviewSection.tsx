@@ -205,7 +205,7 @@ const UIPreviewSection = () => {
             className="mt-8 text-center text-sm text-muted-foreground"
           >
             UniCircle isn't another app — it's the{" "}
-            <span className="text-gold">missing layer of community</span> UCSD has needed.
+            <span className="text-gold">missing layer of community</span> your campus has needed.
           </motion.p>
         </motion.div>
       </div>

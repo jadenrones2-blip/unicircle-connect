@@ -31,7 +31,7 @@ const SolutionSection = () => {
               Unicircle solves this
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto font-light">
-              One platform for everything happening at UCSD. 
+              One platform for everything happening on your campus. 
               Search, discover, connect - instantly.
             </p>
           </motion.div>
