@@ -2,10 +2,15 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const Footer = () => {
-  const links = [
+  const mainLinks = [
     { label: "Home", href: "/" },
     { label: "Clubs", href: "/clubs" },
     { label: "Events", href: "/events" },
+  ];
+
+  const legalLinks = [
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Privacy Policy", href: "/privacy" },
   ];
 
   return (
