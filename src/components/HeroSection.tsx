@@ -24,7 +24,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5 }}
             className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] mb-2 sm:mb-3 text-foreground tracking-tight"
           >
-            UCSD isn't socially dead.
+            Your campus isn't socially dead.
           </motion.h1>
           
           {/* Secondary headline - lighter with gold accent */}
