@@ -28,7 +28,7 @@ const Footer = () => {
           </motion.div>
 
           <nav className="flex items-center gap-6 sm:gap-8">
-            {links.map((link) => (
+            {mainLinks.map((link) => (
               <Link
                 key={link.label}
                 to={link.href}
@@ -45,7 +45,20 @@ const Footer = () => {
           </p>
         </div>
 
-        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border text-center space-y-2">
+        {/* Legal links */}
+        <div className="mt-6 flex items-center justify-center gap-4 sm:gap-6">
+          {legalLinks.map((link) => (
+            <Link
+              key={link.label}
+              to={link.href}
+              className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border text-center space-y-2">
           <p className="text-xs text-muted-foreground/60">
             © 2025 UniCircle. All rights reserved.
           </p>

@@ -57,6 +57,8 @@ const App = () => (
           <Route path="/club-admin/clubs/:clubId/recruitment" element={<ClubAdminRecruitment />} />
           <Route path="/club-admin/profile" element={<AdminProfileSettings />} />
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
