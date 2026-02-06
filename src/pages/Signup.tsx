@@ -121,7 +121,7 @@ export default function Signup() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@university.edu"
+                  placeholder="you@ucsd.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"

@@ -40,9 +40,12 @@ const Footer = () => {
           </p>
         </div>
 
-        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border text-center">
+        <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border text-center space-y-2">
           <p className="text-xs text-muted-foreground/60">
             © 2025 UniCircle. All rights reserved.
+          </p>
+          <p className="text-xs text-muted-foreground/50">
+            UniCircle is not affiliated with, endorsed by, or sponsored by UC San Diego.
           </p>
         </div>
       </div>

@@ -34,9 +34,9 @@ export default function Login() {
       return;
     }
 
-    // Validate .edu email for student login
-    if (mode === 'student' && !email.toLowerCase().endsWith('.edu')) {
-      toast.error('Students must use a valid .edu email address');
+    // Validate UCSD email for student login
+    if (mode === 'student' && !email.toLowerCase().endsWith('@ucsd.edu')) {
+      toast.error('Students must use a UCSD email address (@ucsd.edu)');
       return;
     }
 
@@ -149,7 +149,7 @@ export default function Login() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@university.edu"
+                  placeholder="you@ucsd.edu"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
