@@ -1,10 +1,11 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Search, X, AlertCircle, LayoutGrid, List, Shield, ChevronRight, Sparkles } from "lucide-react";
+import { Loader2, Search, X, AlertCircle, LayoutGrid, List, Shield, ChevronRight, Sparkles, Plus } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
 import ClubListItem from "@/components/ClubListItem";
+import RequestNewClubModal from "@/components/RequestNewClubModal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
@@ -125,11 +126,19 @@ const ClubsDirectory = () => {
             <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
               Clubs Directory
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               {loading
                 ? "Loading clubs..."
                 : `Explore ${clubs.length} student organizations at UCSD`}
             </p>
+            <RequestNewClubModal
+              trigger={
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Can't find your club? Request to add it
+                </Button>
+              }
+            />
           </motion.div>
         </div>
       </section>

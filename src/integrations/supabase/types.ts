@@ -388,6 +388,54 @@ export type Database = {
         }
         Relationships: []
       }
+      new_club_requests: {
+        Row: {
+          additional_notes: string | null
+          club_category: string | null
+          club_description: string | null
+          club_name: string
+          created_at: string
+          id: string
+          proof_link: string
+          reviewed_at: string | null
+          reviewer_notes: string | null
+          status: string
+          updated_at: string
+          user_email: string
+          user_id: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          club_category?: string | null
+          club_description?: string | null
+          club_name: string
+          created_at?: string
+          id?: string
+          proof_link: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_email: string
+          user_id: string
+        }
+        Update: {
+          additional_notes?: string | null
+          club_category?: string | null
+          club_description?: string | null
+          club_name?: string
+          created_at?: string
+          id?: string
+          proof_link?: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_email?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ownership_transfers: {
         Row: {
           approvals: Json | null
