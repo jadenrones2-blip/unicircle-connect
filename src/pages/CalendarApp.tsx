@@ -29,16 +29,23 @@ const CalendarApp = () => {
                 Events <span className="text-gradient-gold">Calendar</span>
               </h1>
             </div>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground mb-4">
               Browse and discover upcoming events. Updates in real-time.
             </p>
-            {isClubOwner && (
+            {isClubOwner ? (
               <Link to="/submit-event">
                 <Button variant="gold" size="sm">
                   <Plus className="w-4 h-4 mr-2" />
                   Submit an Event
                 </Button>
               </Link>
+            ) : (
+              <p className="text-xs text-muted-foreground/70">
+                Club admins can submit events through the{' '}
+                <Link to="/clubs" className="text-gold hover:underline">
+                  Club Admin Portal
+                </Link>
+              </p>
             )}
           </motion.div>
         </div>
