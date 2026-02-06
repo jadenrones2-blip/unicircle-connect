@@ -180,7 +180,7 @@ export default function RequestNewClubModal({ trigger }: RequestNewClubModalProp
                   <FormItem>
                     <FormLabel>Club Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., UCSD Robotics Club" {...field} />
+                      <Input placeholder="e.g., Robotics Club" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
