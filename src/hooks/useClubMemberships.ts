@@ -73,6 +73,34 @@ export function useClubMemberships() {
 
   const applyToClub = useCallback(async (userId: string, clubId: string, clubName: string, notes?: string) => {
     try {
+      // Get the current user's email from auth
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        return { success: false, error: 'User email not found. Please log in again.' };
+      }
+
+      // Get user's profile for name info
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('display_name, email')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      // Parse name from profile or email
+      let firstName = 'Student';
+      let lastName = '';
+      
+      if (profileData?.display_name) {
+        const nameParts = profileData.display_name.trim().split(' ');
+        firstName = nameParts[0] || 'Student';
+        lastName = nameParts.slice(1).join(' ') || '';
+      } else {
+        // Use email prefix as fallback
+        const emailPrefix = user.email.split('@')[0];
+        firstName = emailPrefix;
+      }
+
+      // Create club_applications record (for dashboard tracking)
       const { data, error: insertError } = await supabase
         .from('club_applications')
         .insert({
@@ -85,6 +113,33 @@ export function useClubMemberships() {
         .single();
 
       if (insertError) throw insertError;
+
+      // Also create applicants record (for recruitment pipeline)
+      // This allows club admins to see the applicant in their kanban
+      // and allows students to see their progress in the recruitment tracker
+      // Get the first stage for this club (if any exists)
+      const { data: firstStage } = await supabase
+        .from('recruitment_stages')
+        .select('id')
+        .eq('club_id', clubId)
+        .order('order_index', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      // Insert into applicants table - this may fail due to RLS if the club
+      // hasn't enabled recruitment, but we still want the club_applications to succeed
+      await supabase
+        .from('applicants')
+        .insert({
+          club_id: clubId,
+          first_name: firstName,
+          last_name: lastName,
+          email: user.email,
+          stage_id: firstStage?.id || null,
+        });
+      // Note: We don't throw on error here because the club may not have
+      // recruitment enabled, but the application should still go through
+
       setApplications(prev => [data as ClubApplication, ...prev]);
       return { success: true, data };
     } catch (err: any) {
