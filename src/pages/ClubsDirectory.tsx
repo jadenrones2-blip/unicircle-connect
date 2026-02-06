@@ -1,10 +1,11 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Search, X, AlertCircle, LayoutGrid, List, Shield, ChevronRight, Sparkles } from "lucide-react";
+import { Loader2, Search, X, AlertCircle, LayoutGrid, List, Shield, ChevronRight, Sparkles, Plus } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
 import ClubListItem from "@/components/ClubListItem";
+import RequestNewClubModal from "@/components/RequestNewClubModal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/ui/toggle";
