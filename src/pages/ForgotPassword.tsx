@@ -115,7 +115,7 @@ export default function ForgotPassword() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@ucsd.edu"
+                    placeholder="you@university.edu"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"

@@ -36,7 +36,7 @@ const Footer = () => {
           </nav>
 
           <p className="text-sm text-muted-foreground">
-            Made with precision at <span className="text-gold">UCSD</span>
+            Made with <span className="text-gold">precision</span>
           </p>
         </div>
 

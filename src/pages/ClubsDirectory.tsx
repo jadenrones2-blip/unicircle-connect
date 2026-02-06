@@ -129,7 +129,7 @@ const ClubsDirectory = () => {
             <p className="text-muted-foreground mb-4">
               {loading
                 ? "Loading clubs..."
-                : `Explore ${clubs.length} student organizations at UCSD`}
+                : `Explore ${clubs.length} student organizations`}
             </p>
             <RequestNewClubModal
               trigger={

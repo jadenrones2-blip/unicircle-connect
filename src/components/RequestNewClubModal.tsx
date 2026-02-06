@@ -236,16 +236,16 @@ export default function RequestNewClubModal({ trigger }: RequestNewClubModalProp
                 name="proofLink"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Proof of UCSD Affiliation *</FormLabel>
+                    <FormLabel>Proof of Affiliation *</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="https://studentorg.ucsd.edu/..."
+                        placeholder="https://your-university.edu/clubs/..."
                         {...field}
                       />
                     </FormControl>
                     <FormDescription className="flex items-center gap-1 text-xs">
                       <ExternalLink className="w-3 h-3" />
-                      Link to your club's official UCSD Student Org Hub page
+                      Link to your club's official university page or social media
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
