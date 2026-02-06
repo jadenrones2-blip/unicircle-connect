@@ -76,40 +76,55 @@ export type Database = {
       }
       applicants: {
         Row: {
+          ai_summary: string | null
           club_id: string
           created_at: string
           email: string
           first_name: string
+          fit_score: number | null
+          gpa: number | null
           id: string
           last_name: string
           major: string | null
+          metadata: Json | null
           notes: string | null
+          passes_strict_filters: boolean | null
           stage_id: string | null
           updated_at: string
           year: string | null
         }
         Insert: {
+          ai_summary?: string | null
           club_id: string
           created_at?: string
           email: string
           first_name: string
+          fit_score?: number | null
+          gpa?: number | null
           id?: string
           last_name: string
           major?: string | null
+          metadata?: Json | null
           notes?: string | null
+          passes_strict_filters?: boolean | null
           stage_id?: string | null
           updated_at?: string
           year?: string | null
         }
         Update: {
+          ai_summary?: string | null
           club_id?: string
           created_at?: string
           email?: string
           first_name?: string
+          fit_score?: number | null
+          gpa?: number | null
           id?: string
           last_name?: string
           major?: string | null
+          metadata?: Json | null
           notes?: string | null
+          passes_strict_filters?: boolean | null
           stage_id?: string | null
           updated_at?: string
           year?: string | null
@@ -373,6 +388,54 @@ export type Database = {
         }
         Relationships: []
       }
+      new_club_requests: {
+        Row: {
+          additional_notes: string | null
+          club_category: string | null
+          club_description: string | null
+          club_name: string
+          created_at: string
+          id: string
+          proof_link: string
+          reviewed_at: string | null
+          reviewer_notes: string | null
+          status: string
+          updated_at: string
+          user_email: string
+          user_id: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          club_category?: string | null
+          club_description?: string | null
+          club_name: string
+          created_at?: string
+          id?: string
+          proof_link: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_email: string
+          user_id: string
+        }
+        Update: {
+          additional_notes?: string | null
+          club_category?: string | null
+          club_description?: string | null
+          club_name?: string
+          created_at?: string
+          id?: string
+          proof_link?: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_email?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ownership_transfers: {
         Row: {
           approvals: Json | null
@@ -445,12 +508,46 @@ export type Database = {
         }
         Relationships: []
       }
+      recruitment_requirements: {
+        Row: {
+          club_id: string
+          created_at: string
+          criterion: string
+          id: string
+          type: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          criterion: string
+          id?: string
+          type: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          criterion?: string
+          id?: string
+          type?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       recruitment_settings: {
         Row: {
           club_id: string
           created_at: string
           id: string
           is_enabled: boolean
+          show_progress_bar: boolean
+          show_stage_names: boolean
+          show_timeline: boolean
+          student_visible_message: string | null
           updated_at: string
         }
         Insert: {
@@ -458,6 +555,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          show_progress_bar?: boolean
+          show_stage_names?: boolean
+          show_timeline?: boolean
+          student_visible_message?: string | null
           updated_at?: string
         }
         Update: {
@@ -465,6 +566,10 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          show_progress_bar?: boolean
+          show_stage_names?: boolean
+          show_timeline?: boolean
+          student_visible_message?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -543,7 +648,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_email: { Args: never; Returns: string }
     }
     Enums: {
       trust_level: "high" | "medium" | "low"

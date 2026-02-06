@@ -1,14 +1,21 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Mail, MoreVertical, Trash2 } from 'lucide-react';
+import { GripVertical, Mail, MoreVertical, Trash2, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { Applicant } from '@/hooks/useRecruitment';
 
 interface ApplicantCardProps {
@@ -29,6 +36,32 @@ export function ApplicantCard({ applicant, onDelete }: ApplicantCardProps) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+  };
+
+  const getFitScoreBadge = () => {
+    const score = applicant.fit_score;
+    if (score === null || score === undefined) return null;
+
+    let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'secondary';
+    if (score >= 80) variant = 'default';
+    else if (score >= 60) variant = 'secondary';
+    else if (score < 40) variant = 'destructive';
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge variant={variant} className="text-xs gap-1">
+              <Sparkles className="w-3 h-3" />
+              {score}
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <p className="text-sm">{applicant.ai_summary || 'AI screening score'}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
   };
 
   return (
@@ -78,20 +111,19 @@ export function ApplicantCard({ applicant, onDelete }: ApplicantCardProps) {
             </DropdownMenu>
           </div>
 
-          {(applicant.major || applicant.year) && (
-            <div className="flex items-center gap-2 mt-2">
-              {applicant.major && (
-                <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                  {applicant.major}
-                </span>
-              )}
-              {applicant.year && (
-                <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                  {applicant.year}
-                </span>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {applicant.major && (
+              <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                {applicant.major}
+              </span>
+            )}
+            {applicant.year && (
+              <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                {applicant.year}
+              </span>
+            )}
+            {getFitScoreBadge()}
+          </div>
         </div>
       </div>
     </Card>

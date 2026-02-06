@@ -6,7 +6,6 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { ClubOwnership } from '@/hooks/useClubOwnership';
 import { useExternalClubRecord } from '@/hooks/useExternalClubRecord';
-import { externalSupabase } from '@/integrations/external-supabase/client';
 
 interface ChecklistItem {
   id: string;
@@ -29,21 +28,27 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
   
   const { club: clubRecord, loading: loadingClub } = useExternalClubRecord(club.clubId);
 
-  // Check if club has any events
+  // Check if club has any events via edge function
   useEffect(() => {
     const checkEvents = async () => {
       if (!club.clubId) return;
       
       try {
-        // Query by club_handle matching the club ID (how events are submitted)
-        const { data, error } = await externalSupabase
-          .from('events')
-          .select('id')
-          .eq('club_handle', club.clubId)
-          .limit(1);
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=id&limit=1&filters=${encodeURIComponent(JSON.stringify({ club_handle: club.clubName }))}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+          }
+        );
 
-        if (!error && data && data.length > 0) {
-          setHasEvents(true);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.data && result.data.length > 0) {
+            setHasEvents(true);
+          }
         }
       } catch {
         // Silently fail

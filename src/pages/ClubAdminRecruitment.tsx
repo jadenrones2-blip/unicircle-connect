@@ -17,6 +17,7 @@ export default function ClubAdminRecruitment() {
   const { user, loading: authLoading } = useAuth();
   const { isOwnerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
   const { 
+    settings,
     isEnabled, 
     hasStages, 
     stages, 
@@ -28,6 +29,7 @@ export default function ClubAdminRecruitment() {
     bulkAddApplicants,
     updateApplicantStage,
     deleteApplicant,
+    refetch,
   } = useRecruitment(clubId);
 
   const [enabling, setEnabling] = useState(false);
@@ -84,12 +86,16 @@ export default function ClubAdminRecruitment() {
 
     return (
       <RecruitmentKanban
+        clubId={clubId}
+        clubName={clubName}
         stages={stages}
         applicants={applicants}
+        settings={settings}
         onMoveApplicant={updateApplicantStage}
         onAddApplicant={addApplicant}
         onBulkAddApplicants={bulkAddApplicants}
         onDeleteApplicant={deleteApplicant}
+        onRefresh={refetch}
       />
     );
   };

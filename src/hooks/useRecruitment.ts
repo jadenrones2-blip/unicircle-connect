@@ -22,14 +22,26 @@ export interface Applicant {
   major: string | null;
   year: string | null;
   notes: string | null;
+  gpa: number | null;
+  metadata: Record<string, string> | null;
+  fit_score: number | null;
+  ai_summary: string | null;
+  passes_strict_filters: boolean | null;
   created_at: string;
   updated_at: string;
 }
+
+// Type to cast database response to Applicant
+type ApplicantRow = Omit<Applicant, 'metadata'> & { metadata: unknown };
 
 export interface RecruitmentSettings {
   id: string;
   club_id: string;
   is_enabled: boolean;
+  show_stage_names: boolean;
+  show_progress_bar: boolean;
+  show_timeline: boolean;
+  student_visible_message: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -90,7 +102,13 @@ export function useRecruitment(clubId: string | undefined) {
       return;
     }
     
-    setApplicants(data || []);
+    // Cast metadata to our expected type
+    const typedApplicants: Applicant[] = (data || []).map((row) => ({
+      ...row,
+      metadata: (row.metadata as Record<string, string>) || null,
+    }));
+    
+    setApplicants(typedApplicants);
   }, [clubId, user]);
 
   useEffect(() => {
@@ -193,6 +211,8 @@ export function useRecruitment(clubId: string | undefined) {
     email: string;
     major?: string;
     year?: string;
+    gpa?: number;
+    metadata?: Record<string, string>;
   }[]): Promise<{ success: number; failed: number }> => {
     if (!clubId || !user || stages.length === 0) {
       return { success: 0, failed: applicantsList.length };
@@ -213,6 +233,8 @@ export function useRecruitment(clubId: string | undefined) {
         email: applicant.email,
         major: applicant.major || null,
         year: applicant.year || null,
+        gpa: applicant.gpa || null,
+        metadata: applicant.metadata || {},
       }));
 
       const { data, error } = await supabase
@@ -240,7 +262,7 @@ export function useRecruitment(clubId: string | undefined) {
     return { success: successCount, failed: failedCount };
   };
 
-  const updateApplicantStage = async (applicantId: string, newStageId: string) => {
+  const updateApplicantStage = async (applicantId: string, newStageId: string, clubName?: string) => {
     if (!user) return false;
 
     const { error } = await supabase
@@ -252,6 +274,33 @@ export function useRecruitment(clubId: string | undefined) {
       console.error('Error updating applicant stage:', error);
       toast.error('Failed to move applicant');
       return false;
+    }
+
+    // Find the applicant and stage for notification
+    const applicant = applicants.find(a => a.id === applicantId);
+    const newStage = stages.find(s => s.id === newStageId);
+
+    // Send notification for interview/accepted stages
+    if (applicant && newStage && clubName) {
+      try {
+        const response = await supabase.functions.invoke('notify-applicant-stage', {
+          body: {
+            applicantId: applicant.id,
+            applicantEmail: applicant.email,
+            applicantName: `${applicant.first_name} ${applicant.last_name}`,
+            stageName: newStage.label,
+            clubName: clubName,
+            clubId: clubId,
+          },
+        });
+        
+        if (response.data?.success && response.data?.emailResponse) {
+          toast.success(`Notification sent to ${applicant.first_name}`);
+        }
+      } catch (notifyError) {
+        console.error('Failed to send stage notification:', notifyError);
+        // Don't fail the stage update if notification fails
+      }
     }
 
     setApplicants(prev => 

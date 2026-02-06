@@ -19,29 +19,121 @@ export default function ResetPassword() {
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Check if we have a valid recovery session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // The user should have a session from clicking the reset link
-      if (session) {
-        setIsValidSession(true);
-      } else {
-        // Check URL for error params (e.g., expired link)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const errorDescription = hashParams.get('error_description');
-        
-        if (errorDescription) {
-          setError(errorDescription);
-          setIsValidSession(false);
-        } else {
-          setIsValidSession(false);
-          setError('Invalid or expired reset link. Please request a new one.');
-        }
-      }
+    let isMounted = true;
+
+    const clearUrl = () => {
+      // Clear hash/query so refresh/back doesn't re-process a one-time link
+      window.history.replaceState(null, '', window.location.pathname);
     };
 
-    checkSession();
+    const setValid = () => {
+      if (!isMounted) return;
+      setError(null);
+      setIsValidSession(true);
+    };
+
+    const setInvalid = (message: string) => {
+      if (!isMounted) return;
+      setError(message);
+      setIsValidSession(false);
+      clearUrl();
+    };
+
+    // Listen for auth state changes - reliable for implicit recovery links
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event, 'Session:', !!session);
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setValid();
+        clearUrl();
+        return;
+      }
+
+      if (event === 'SIGNED_IN' && session) {
+        setValid();
+      }
+    });
+
+    const checkInitialState = async () => {
+      const hash = window.location.hash.startsWith('#')
+        ? window.location.hash.substring(1)
+        : window.location.hash;
+      const hashParams = new URLSearchParams(hash);
+      const searchParams = new URLSearchParams(window.location.search);
+
+      // 1) PKCE recovery links come back as ?code=...
+      const code = searchParams.get('code');
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          setInvalid(exchangeError.message || 'The reset link is invalid or has expired.');
+          return;
+        }
+      }
+
+      // 2) If we already have a session, prefer it over any URL error params.
+      // This prevents back/forward or a double-opened link from incorrectly blocking the reset form.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session) {
+        setValid();
+        clearUrl();
+        return;
+      }
+
+      // 3) Surface URL errors (expired/used token) only if we *don't* have a session
+      const errorDescription =
+        hashParams.get('error_description') ?? searchParams.get('error_description');
+      const errorCode = hashParams.get('error_code') ?? searchParams.get('error_code');
+
+      if (errorDescription || errorCode) {
+        const message =
+          errorDescription ||
+          (errorCode === 'otp_expired'
+            ? 'This reset link has expired. Please request a new one.'
+            : 'This reset link is invalid or has already been used. Please request a new one.');
+        setInvalid(message);
+        return;
+      }
+
+      // 4) If there are tokens in the URL, wait briefly for the auth listener to process them.
+      // If nothing arrives, fail gracefully instead of spinning forever.
+      const hasRecoveryTokensInUrl =
+        hashParams.has('access_token') ||
+        hashParams.get('type') === 'recovery' ||
+        hash.includes('type=recovery');
+
+      if (!hasRecoveryTokensInUrl) {
+        setInvalid('Invalid or expired reset link. Please request a new one.');
+        return;
+      }
+
+      // Wait for onAuthStateChange to fire; fallback after 2 seconds
+      setTimeout(async () => {
+        if (!isMounted) return;
+        const {
+          data: { session: delayedSession },
+        } = await supabase.auth.getSession();
+
+        if (delayedSession) {
+          setValid();
+          clearUrl();
+        } else {
+          setInvalid('This reset link is invalid or has already been used. Please request a new one.');
+        }
+      }, 2000);
+    };
+
+    checkInitialState();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

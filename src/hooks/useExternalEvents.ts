@@ -1,6 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
-import { externalSupabase, ExternalEvent } from '@/integrations/external-supabase/client';
-import { RealtimeChannel } from '@supabase/supabase-js';
+
+export interface ExternalEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  start_time: string;
+  end_time: string | null;
+  location: string | null;
+  source: string | null;
+  club_id: string | null;
+  club_handle: string | null;
+  source_url: string | null;
+  caption: string | null;
+  verified: boolean | null;
+  corrected_title: string | null;
+  corrected_start_time: string | null;
+  corrected_end_time: string | null;
+  corrected_location: string | null;
+  reviewed_at: string | null;
+  posted_at: string | null;
+  created_at: string | null;
+}
 
 interface UseExternalEventsResult {
   events: ExternalEvent[];
@@ -19,16 +39,23 @@ export function useExternalEvents(): UseExternalEventsResult {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await externalSupabase
-        .from('events')
-        .select('*')
-        .order('start_time', { ascending: true });
+      // Use edge function instead of direct client access
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&orderBy=start_time&orderAsc=true&limit=500`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
 
-      if (fetchError) {
-        throw fetchError;
+      if (!response.ok) {
+        throw new Error(`Failed to fetch events: ${response.status}`);
       }
 
-      setEvents(data || []);
+      const result = await response.json();
+      setEvents(result.data || []);
     } catch (err) {
       console.error('Error fetching events:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch events');
@@ -41,48 +68,12 @@ export function useExternalEvents(): UseExternalEventsResult {
   useEffect(() => {
     fetchEvents();
 
-    // Set up realtime subscription
-    let channel: RealtimeChannel | null = null;
-
-    const setupRealtime = () => {
-      channel = externalSupabase
-        .channel('external-events-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'events'
-          },
-          (payload) => {
-            console.log('Realtime event received:', payload);
-            
-            if (payload.eventType === 'INSERT') {
-              setEvents(prev => [...prev, payload.new as ExternalEvent].sort(
-                (a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-              ));
-            } else if (payload.eventType === 'UPDATE') {
-              setEvents(prev => prev.map(event => 
-                event.id === (payload.new as ExternalEvent).id 
-                  ? payload.new as ExternalEvent 
-                  : event
-              ));
-            } else if (payload.eventType === 'DELETE') {
-              setEvents(prev => prev.filter(event => event.id !== payload.old.id));
-            }
-          }
-        )
-        .subscribe((status) => {
-          console.log('Realtime subscription status:', status);
-        });
-    };
-
-    setupRealtime();
+    // Poll for updates every 30 seconds instead of realtime
+    // (realtime requires direct client which exposes credentials)
+    const pollInterval = setInterval(fetchEvents, 30000);
 
     return () => {
-      if (channel) {
-        externalSupabase.removeChannel(channel);
-      }
+      clearInterval(pollInterval);
     };
   }, [fetchEvents]);
 

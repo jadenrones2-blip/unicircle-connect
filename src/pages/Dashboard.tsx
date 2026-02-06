@@ -23,6 +23,7 @@ import logoImage from '@/assets/unicircle-logo-new.png';
 import MyClubsSection from '@/components/dashboard/MyClubsSection';
 import ApplicationsSection from '@/components/dashboard/ApplicationsSection';
 import RecommendedClubCard from '@/components/dashboard/RecommendedClubCard';
+import RecruitmentTrackerSection from '@/components/dashboard/RecruitmentTrackerSection';
 import type { Club } from '@/data/mockData';
 
 // Mapping from quiz answers to club categories/tags
@@ -254,6 +255,9 @@ export default function Dashboard() {
             Manage your clubs, track applications, and discover new communities.
           </p>
         </motion.div>
+
+        {/* Recruitment Tracker Section */}
+        <RecruitmentTrackerSection />
 
         {/* Tabs for My Clubs / Applications */}
         <Tabs defaultValue="my-clubs" className="mb-10">

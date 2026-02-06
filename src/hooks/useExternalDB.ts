@@ -28,7 +28,10 @@ const transformClub = (record: Record<string, unknown>): Club => {
     cleaned = cleaned.replace(/\)\s+[A-Za-z]{1,4}$/, ')');
     // Remove trailing " Club" or " club" that's redundant
     cleaned = cleaned.replace(/\s+[Cc]lub$/i, '');
-    // Remove trailing single letters or very short fragments
+    // Remove common trailing artifacts/fragments that don't make sense as name endings
+    // Includes: Pre, Pro, The, And, For, With, Of, At, In, On, To, By, Or, As, An, A
+    cleaned = cleaned.replace(/\s+(Pre|Pro|The|And|For|With|Of|At|In|On|To|By|Or|As|An|A)$/i, '');
+    // Remove trailing single letters or very short fragments (1-2 chars) not caught above
     cleaned = cleaned.replace(/\s+[A-Za-z]{1,2}$/, '');
     return cleaned;
   };

@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { ExternalEvent } from "@/integrations/external-supabase/client";
+import { ExternalEvent } from "@/hooks/useExternalEvents";
 
 const eventEditSchema = z.object({
   title: z.string().min(1, "Title is required").max(200),
