@@ -159,7 +159,7 @@ export default function RequestNewClubModal({ trigger }: RequestNewClubModalProp
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Please log in with your UCSD email to submit a new club request.
+              Please log in with your .edu email to submit a new club request.
             </AlertDescription>
           </Alert>
         ) : !isEduEmail ? (
