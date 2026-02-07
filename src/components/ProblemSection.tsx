@@ -17,23 +17,23 @@ interface Problem {
 const problems: Problem[] = [
   {
     icon: Users,
-    title: "Hard to meet people outside your major",
-    detail: "Your classes limit your social circle. Meeting people with different interests feels like chance.",
+    title: "You only see people you already know",
+    detail: "Feeds are designed to show you familiar faces. Breaking out of your bubble takes real effort.",
   },
   {
     icon: Compass,
-    title: "Clubs scattered across platforms",
-    detail: "Instagram, Discord, Linktree, flyers - finding the right club is a scavenger hunt.",
+    title: "Discovery is fragmented and exhausting",
+    detail: "Clubs live across dozens of places. There's no single source of truth for what's happening on campus.",
   },
   {
     icon: CalendarX,
-    title: "Events get lost or overlooked",
-    detail: "You hear about the best events after they happen. No central calendar exists.",
+    title: "Events come and go without you",
+    detail: "You find out about the best events after they've passed. Staying in the loop feels like a full-time job.",
   },
   {
     icon: MessageSquare,
-    title: "Finding ambitious peers feels impossible",
-    detail: "Where do you find co-founders, collaborators, or people who think like you?",
+    title: "Scrolling doesn't lead to belonging",
+    detail: "Watching campus life from behind a screen isn't the same as being part of it.",
   },
 ];
 
