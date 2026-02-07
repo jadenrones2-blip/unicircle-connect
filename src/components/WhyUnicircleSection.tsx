@@ -4,23 +4,23 @@ import { Search, CalendarCheck, Sparkles, Users } from "lucide-react";
 const reasons = [
   {
     icon: Search,
-    title: "All clubs in one place",
-    description: "No more hunting through Instagram, Discord, and flyers. Find every student org easily.",
+    title: "One source of truth",
+    description: "Every club and event, in one place. No more piecing together information from scattered sources.",
   },
   {
     icon: CalendarCheck,
-    title: "Never miss an event",
-    description: "See what's happening on campus this week — from socials to workshops to info sessions.",
+    title: "Stay in the loop effortlessly",
+    description: "See what's happening this week without checking ten different accounts.",
   },
   {
     icon: Users,
-    title: "Built by UCSD students",
-    description: "We get the problem because we've lived it. This isn't a generic campus app.",
+    title: "Made by students, for students",
+    description: "We built this because we needed it ourselves. We know what's broken.",
   },
   {
     icon: Sparkles,
-    title: "Simple and clean",
-    description: "No clutter, no noise. Just the clubs and events you care about.",
+    title: "Designed for discovery",
+    description: "Not another feed to scroll. A tool to help you find where you belong.",
   },
 ];
 
@@ -40,7 +40,7 @@ const WhyUnicircleSection = () => {
               Why UniCircle?
             </h2>
             <p className="text-muted-foreground text-lg max-w-md mx-auto">
-              Finding your community at UCSD shouldn't be this hard.
+              Because finding your people should feel natural — not like a scavenger hunt.
             </p>
           </motion.div>
 

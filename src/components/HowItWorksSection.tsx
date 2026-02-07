@@ -7,19 +7,19 @@ const steps = [
     icon: Search,
     number: "01",
     title: "Browse",
-    description: "Explore clubs and events in one clean directory. Filter by category or interest.",
+    description: "See every club and event in one place. No hunting across platforms.",
   },
   {
     icon: Zap,
     number: "02",
     title: "Discover",
-    description: "Find events happening this week — socials, workshops, info sessions, and more.",
+    description: "Find things you didn't know existed — communities, events, and people outside your bubble.",
   },
   {
     icon: CircleDot,
     number: "03",
-    title: "Join",
-    description: "Express interest directly and get connected. No scavenger hunt required.",
+    title: "Connect",
+    description: "Take action. Join a club, attend an event, or reach out. Real connection, not passive scrolling.",
   },
 ];
 
@@ -38,10 +38,10 @@ const HowItWorksSection = () => {
             className="text-center mb-10"
           >
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
-              Simple Process
+              How It Works
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-semibold">
-              How it works
+              Built for action, not attention
             </h2>
           </motion.div>
 
@@ -96,8 +96,8 @@ const HowItWorksSection = () => {
             className="mt-10 text-center"
           >
             <p className="text-primary-foreground/80 font-display text-lg">
-              No complicated signups.{" "}
-              <span className="text-gold">Just start exploring.</span>
+              No algorithm. No noise.{" "}
+              <span className="text-gold">Just what matters to you.</span>
             </p>
           </motion.div>
         </div>

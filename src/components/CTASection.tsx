@@ -23,8 +23,8 @@ const CTASection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            Ready to find your{" "}
-            <span className="text-gold">circle</span>?
+            Stop scrolling.{" "}
+            <span className="text-gold">Start belonging.</span>
           </motion.h2>
           
           <motion.p 
@@ -34,10 +34,10 @@ const CTASection = () => {
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
-            Campus doesn't have to feel socially dead.
+            Your people are out there.
             <br className="hidden sm:block" />
             <span className="sm:hidden"> </span>
-            Your people are here - you just haven't met them yet.
+            UniCircle helps you find them.
           </motion.p>
 
           <motion.div
@@ -50,7 +50,7 @@ const CTASection = () => {
             <Button variant="gold" size="lg" className="group" asChild>
               <Link to="/login">
                 <LogIn className="w-4 h-4" />
-                Login
+                Find Your Circle
               </Link>
             </Button>
           </motion.div>

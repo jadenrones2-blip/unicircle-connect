@@ -17,23 +17,23 @@ interface Problem {
 const problems: Problem[] = [
   {
     icon: Users,
-    title: "Hard to meet people outside your major",
-    detail: "Your classes limit your social circle. Meeting people with different interests feels like chance.",
+    title: "You only see people you already know",
+    detail: "Feeds are designed to show you familiar faces. Breaking out of your bubble takes real effort.",
   },
   {
     icon: Compass,
-    title: "Clubs scattered across platforms",
-    detail: "Instagram, Discord, Linktree, flyers - finding the right club is a scavenger hunt.",
+    title: "Discovery is fragmented and exhausting",
+    detail: "Clubs live across dozens of places. There's no single source of truth for what's happening on campus.",
   },
   {
     icon: CalendarX,
-    title: "Events get lost or overlooked",
-    detail: "You hear about the best events after they happen. No central calendar exists.",
+    title: "Events come and go without you",
+    detail: "You find out about the best events after they've passed. Staying in the loop feels like a full-time job.",
   },
   {
     icon: MessageSquare,
-    title: "Finding ambitious peers feels impossible",
-    detail: "Where do you find co-founders, collaborators, or people who think like you?",
+    title: "Scrolling doesn't lead to belonging",
+    detail: "Watching campus life from behind a screen isn't the same as being part of it.",
   },
 ];
 
@@ -271,14 +271,14 @@ const ProblemSection = () => {
             className="mb-8 text-center"
           >
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
-              Why we built this
+              The problem
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-semibold mb-4">
-              The disconnect is real
+              The feed isn't built for belonging
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto font-light">
-              Being a student at UCSD means juggling majors, clubs, and events - 
-              but the connections are scattered.
+              Other platforms are designed for content, not connection.
+              They keep you watching — not participating.
             </p>
           </motion.div>
 
@@ -373,10 +373,10 @@ const ProblemSection = () => {
             className="mt-12 text-center"
           >
             <p className="font-display text-2xl md:text-3xl lg:text-4xl text-muted-foreground font-light leading-relaxed">
-              Students want connection. Clubs want reach.
+              You're not antisocial. The tools are.
             </p>
             <p className="font-display text-2xl md:text-3xl lg:text-4xl font-semibold mt-3 text-gold">
-              Campus needs a pulse.
+              It's time for something intentional.
             </p>
           </motion.div>
         </div>

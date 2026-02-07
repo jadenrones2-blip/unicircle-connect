@@ -10,32 +10,32 @@ const faqs = [
   {
     question: "What is UniCircle?",
     answer:
-      "UniCircle is a platform designed to help UCSD students discover clubs, events, and like-minded peers. We aggregate everything happening on campus into one easy-to-use platform.",
+      "UniCircle is a discovery platform that helps students find clubs, events, and communities on campus. Unlike social feeds that show you what you already follow, we help you discover what you haven't found yet.",
   },
   {
-    question: "Is UniCircle free to use?",
+    question: "Is UniCircle free?",
     answer:
-      "Yes! UniCircle is completely free for all UCSD students. Just sign up with your UCSD email to get started.",
+      "Yes, completely free. Sign up with your campus email and start exploring.",
+  },
+  {
+    question: "How is this different from other platforms?",
+    answer:
+      "Most platforms are built for content consumption — you scroll, you watch, you leave. UniCircle is built for action. We help you find clubs to join, events to attend, and people to meet in real life.",
   },
   {
     question: "How do I find clubs that match my interests?",
     answer:
-      "After signing up, you'll go through a quick onboarding quiz that helps us understand your interests. We'll then recommend clubs and events tailored specifically to you.",
+      "After signing up, a quick onboarding quiz helps us understand what you're looking for. From there, we surface clubs and events tailored to you — no algorithm games, just relevance.",
   },
   {
     question: "I'm a club leader. How do I add my club?",
     answer:
-      "Club leaders can claim their organization through our verification process. Once verified, you'll have access to a dashboard where you can manage your club's profile and post events.",
+      "Club leaders can claim their organization through our verification process. Once verified, you get a dashboard to manage your profile, post events, and track recruitment.",
   },
   {
-    question: "How are events added to the calendar?",
+    question: "Can I track my club applications?",
     answer:
-      "Events come from verified club owners who submit them through our platform. Each event is reviewed to ensure quality and relevance before appearing on the calendar.",
-  },
-  {
-    question: "Can I get notifications for events I'm interested in?",
-    answer:
-      "Yes! You can save events and clubs to receive reminders and updates about upcoming activities that match your interests.",
+      "Yes. If a club uses our recruitment tools, you'll see exactly where you stand in their process — no more wondering if they ever saw your application.",
   },
 ];
 
@@ -56,10 +56,10 @@ const FAQSection = () => {
               FAQ
             </span>
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-              Frequently Asked Questions
+              Questions? We've got answers.
             </h2>
             <p className="text-muted-foreground text-lg">
-              Everything you need to know about UniCircle.
+              Here's what students usually ask.
             </p>
           </motion.div>
 
