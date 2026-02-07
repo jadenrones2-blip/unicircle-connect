@@ -271,14 +271,14 @@ const ProblemSection = () => {
             className="mb-8 text-center"
           >
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
-              Why we built this
+              The problem
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-semibold mb-4">
-              The disconnect is real
+              The feed isn't built for belonging
             </h2>
             <p className="text-muted-foreground text-lg max-w-xl mx-auto font-light">
-              Being a student at UCSD means juggling majors, clubs, and events - 
-              but the connections are scattered.
+              Other platforms are designed for content, not connection.
+              They keep you watching — not participating.
             </p>
           </motion.div>
 
