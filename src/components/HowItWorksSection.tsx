@@ -7,19 +7,19 @@ const steps = [
     icon: Search,
     number: "01",
     title: "Browse",
-    description: "Explore clubs and events in one clean directory. Filter by category or interest.",
+    description: "See every club and event in one place. No hunting across platforms.",
   },
   {
     icon: Zap,
     number: "02",
     title: "Discover",
-    description: "Find events happening this week — socials, workshops, info sessions, and more.",
+    description: "Find things you didn't know existed — communities, events, and people outside your bubble.",
   },
   {
     icon: CircleDot,
     number: "03",
-    title: "Join",
-    description: "Express interest directly and get connected. No scavenger hunt required.",
+    title: "Connect",
+    description: "Take action. Join a club, attend an event, or reach out. Real connection, not passive scrolling.",
   },
 ];
 
