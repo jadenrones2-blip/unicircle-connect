@@ -85,13 +85,17 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Resume
       let text: string;
 
       if (selectedFile.type === 'application/pdf' || selectedFile.name.endsWith('.pdf')) {
-        // For PDFs, we'll send the file content as base64 and let the backend handle it
-        // For now, we'll show a message that only text files are fully supported
-        toast.info('PDF support is limited. For best results, paste your resume text or use a .txt file.');
-        // Try to read as text anyway (might work for some PDFs)
-        text = await extractTextFromFile(selectedFile);
+        try {
+          text = await extractTextFromPDF(selectedFile);
+        } catch (pdfError) {
+          console.error('Error parsing PDF:', pdfError);
+          toast.error('Could not parse PDF. Please try a different file or use a .txt file.');
+          setProcessing(false);
+          setFile(null);
+          return;
+        }
       } else {
-        text = await extractTextFromFile(selectedFile);
+        text = await extractTextFromTextFile(selectedFile);
       }
 
       if (!text || text.trim().length < 50) {
