@@ -23,6 +23,8 @@ import ClubAdminEdit from "./pages/ClubAdminEdit";
 import ClubAdminRecruitment from "./pages/ClubAdminRecruitment";
 import AdminOnboarding from "./pages/AdminOnboarding";
 import AdminProfileSettings from "./pages/AdminProfileSettings";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +57,8 @@ const App = () => (
           <Route path="/club-admin/clubs/:clubId/recruitment" element={<ClubAdminRecruitment />} />
           <Route path="/club-admin/profile" element={<AdminProfileSettings />} />
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

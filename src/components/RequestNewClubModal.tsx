@@ -60,14 +60,7 @@ const formSchema = z.object({
   clubCategory: z.string().min(1, "Please select a category"),
   proofLink: z
     .string()
-    .url("Please enter a valid URL")
-    .refine(
-      (url) =>
-        url.includes("studentorg.ucsd.edu") ||
-        url.includes("ucsd.edu") ||
-        url.includes("getinvolved.ucsd.edu"),
-      "Please provide a link to an official UCSD page (e.g., Student Org Hub)"
-    ),
+    .url("Please enter a valid URL"),
   additionalNotes: z
     .string()
     .max(500, "Notes must be less than 500 characters")
@@ -166,7 +159,7 @@ export default function RequestNewClubModal({ trigger }: RequestNewClubModalProp
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Please log in with your UCSD email to submit a new club request.
+              Please log in with your .edu email to submit a new club request.
             </AlertDescription>
           </Alert>
         ) : !isEduEmail ? (
@@ -180,14 +173,14 @@ export default function RequestNewClubModal({ trigger }: RequestNewClubModalProp
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
+                <FormField
                 control={form.control}
                 name="clubName"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Club Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., UCSD Robotics Club" {...field} />
+                      <Input placeholder="e.g., Robotics Club" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -243,16 +236,16 @@ export default function RequestNewClubModal({ trigger }: RequestNewClubModalProp
                 name="proofLink"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Proof of UCSD Affiliation *</FormLabel>
+                    <FormLabel>Proof of Affiliation *</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="https://studentorg.ucsd.edu/..."
+                        placeholder="https://your-university.edu/clubs/..."
                         {...field}
                       />
                     </FormControl>
                     <FormDescription className="flex items-center gap-1 text-xs">
                       <ExternalLink className="w-3 h-3" />
-                      Link to your club's official UCSD Student Org Hub page
+                      Link to your club's official university page or social media
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

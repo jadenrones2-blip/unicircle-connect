@@ -220,7 +220,7 @@ export function RecruitmentStatusCard({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs">
-                      Select which UCSD recruitment period this is for. Rolling means you accept applications year-round.
+                      Select which recruitment period this is for. Rolling means you accept applications year-round.
                     </p>
                   </TooltipContent>
                 </Tooltip>
