@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import ResumeUploadStep from '@/components/onboarding/ResumeUploadStep';
 
 interface QuizQuestion {
   id: string;
@@ -14,6 +15,13 @@ interface QuizQuestion {
   question: string;
   options: { value: string; label: string; emoji: string }[];
   multiSelect: boolean;
+}
+
+interface ExtractedKeywords {
+  career_goals: string[];
+  interests: string[];
+  skills: string[];
+  vibe: string[];
 }
 
 const quizQuestions: QuizQuestion[] = [
@@ -90,6 +98,9 @@ const quizQuestions: QuizQuestion[] = [
     ],
   },
 ];
+
+// Total steps: quiz questions + 1 optional resume step
+const RESUME_STEP_INDEX = quizQuestions.length;
 
 export default function Onboarding() {
   const navigate = useNavigate();
