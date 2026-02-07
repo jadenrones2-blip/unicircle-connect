@@ -2,9 +2,12 @@ import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileText, X, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set up PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 interface ExtractedKeywords {
   career_goals: string[];
@@ -24,7 +27,24 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Resume
   const [extractedKeywords, setExtractedKeywords] = useState<ExtractedKeywords | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const extractTextFromFile = async (file: File): Promise<string> => {
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n';
+    }
+    
+    return fullText.trim();
+  };
+
+  const extractTextFromTextFile = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -65,13 +85,17 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Resume
       let text: string;
 
       if (selectedFile.type === 'application/pdf' || selectedFile.name.endsWith('.pdf')) {
-        // For PDFs, we'll send the file content as base64 and let the backend handle it
-        // For now, we'll show a message that only text files are fully supported
-        toast.info('PDF support is limited. For best results, paste your resume text or use a .txt file.');
-        // Try to read as text anyway (might work for some PDFs)
-        text = await extractTextFromFile(selectedFile);
+        try {
+          text = await extractTextFromPDF(selectedFile);
+        } catch (pdfError) {
+          console.error('Error parsing PDF:', pdfError);
+          toast.error('Could not parse PDF. Please try a different file or use a .txt file.');
+          setProcessing(false);
+          setFile(null);
+          return;
+        }
       } else {
-        text = await extractTextFromFile(selectedFile);
+        text = await extractTextFromTextFile(selectedFile);
       }
 
       if (!text || text.trim().length < 50) {
@@ -167,7 +191,7 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Resume
             Drop your resume here or click to browse
           </p>
           <p className="text-sm text-muted-foreground">
-            Supports .txt files (max 5MB)
+            Supports PDF and .txt files (max 5MB)
           </p>
         </motion.div>
       )}
