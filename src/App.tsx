@@ -25,6 +25,7 @@ import AdminOnboarding from "./pages/AdminOnboarding";
 import AdminProfileSettings from "./pages/AdminProfileSettings";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TestResumeUpload from "./pages/TestResumeUpload";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
