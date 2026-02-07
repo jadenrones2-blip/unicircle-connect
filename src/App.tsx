@@ -60,6 +60,7 @@ const App = () => (
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/test-resume" element={<TestResumeUpload />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
