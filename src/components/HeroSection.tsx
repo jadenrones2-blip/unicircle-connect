@@ -50,7 +50,7 @@ const HeroSection = () => {
               Where campus connection meets clarity, community, and ambition.
             </p>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
-              Discover everything happening at UCSD - in one place.
+              Discover everything happening on your campus - in one place.
             </p>
           </motion.div>
 
