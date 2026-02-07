@@ -25,6 +25,7 @@ import AdminOnboarding from "./pages/AdminOnboarding";
 import AdminProfileSettings from "./pages/AdminProfileSettings";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TestResumeUpload from "./pages/TestResumeUpload";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/test-resume" element={<TestResumeUpload />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
