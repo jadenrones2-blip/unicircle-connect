@@ -38,10 +38,10 @@ const HowItWorksSection = () => {
             className="text-center mb-10"
           >
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
-              Simple Process
+              How It Works
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-semibold">
-              How it works
+              Built for action, not attention
             </h2>
           </motion.div>
 
