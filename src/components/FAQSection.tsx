@@ -56,10 +56,10 @@ const FAQSection = () => {
               FAQ
             </span>
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-              Frequently Asked Questions
+              Questions? We've got answers.
             </h2>
             <p className="text-muted-foreground text-lg">
-              Everything you need to know about UniCircle.
+              Here's what students usually ask.
             </p>
           </motion.div>
 

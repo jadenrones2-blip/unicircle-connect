@@ -40,7 +40,7 @@ const WhyUnicircleSection = () => {
               Why UniCircle?
             </h2>
             <p className="text-muted-foreground text-lg max-w-md mx-auto">
-              Finding your community at UCSD shouldn't be this hard.
+              Because finding your people should feel natural — not like a scavenger hunt.
             </p>
           </motion.div>
 

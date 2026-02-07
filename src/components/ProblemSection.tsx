@@ -373,10 +373,10 @@ const ProblemSection = () => {
             className="mt-12 text-center"
           >
             <p className="font-display text-2xl md:text-3xl lg:text-4xl text-muted-foreground font-light leading-relaxed">
-              Students want connection. Clubs want reach.
+              You're not antisocial. The tools are.
             </p>
             <p className="font-display text-2xl md:text-3xl lg:text-4xl font-semibold mt-3 text-gold">
-              Campus needs a pulse.
+              It's time for something intentional.
             </p>
           </motion.div>
         </div>

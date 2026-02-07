@@ -96,8 +96,8 @@ const HowItWorksSection = () => {
             className="mt-10 text-center"
           >
             <p className="text-primary-foreground/80 font-display text-lg">
-              No complicated signups.{" "}
-              <span className="text-gold">Just start exploring.</span>
+              No algorithm. No noise.{" "}
+              <span className="text-gold">Just what matters to you.</span>
             </p>
           </motion.div>
         </div>

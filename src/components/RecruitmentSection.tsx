@@ -43,11 +43,11 @@ const RecruitmentSection = () => {
               Recruitment Tracking
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-semibold mb-4">
-              Recruitment made <span className="text-gold">transparent</span>
+              No more waiting in the dark
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Whether you're running recruitment or applying to clubs, 
-              our tracking system keeps everyone on the same page.
+              Recruitment should be clear, not confusing. 
+              Track your applications — or manage them — all in one place.
             </p>
           </motion.div>
 

@@ -24,7 +24,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5 }}
             className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] mb-2 sm:mb-3 text-foreground tracking-tight"
           >
-            Your campus isn't socially dead.
+            Connection shouldn't be this hard.
           </motion.h1>
           
           {/* Secondary headline - lighter with gold accent */}
@@ -34,9 +34,9 @@ const HeroSection = () => {
             transition={{ delay: 0.1, duration: 0.5 }}
             className="font-display text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-[1.25] sm:leading-[1.2] mb-6 sm:mb-10 tracking-tight"
           >
-            <span className="text-charcoal font-normal">You just haven't found your </span>
+            <span className="text-charcoal font-normal">Find your </span>
             <span className="text-gold font-semibold">circle</span>
-            <span className="text-charcoal font-normal"> yet.</span>
+            <span className="text-charcoal font-normal">. Not another feed.</span>
           </motion.p>
 
           {/* Subtext - two lines */}
@@ -47,10 +47,10 @@ const HeroSection = () => {
             className="max-w-2xl mx-auto mb-6 sm:mb-10 px-2 sm:px-0"
           >
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed mb-1">
-              Where campus connection meets clarity, community, and ambition.
+              Most platforms show you people you already follow.
             </p>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
-              Discover everything happening on your campus - in one place.
+              UniCircle helps you discover clubs, events, and people you haven't met yet.
             </p>
           </motion.div>
 
@@ -62,7 +62,7 @@ const HeroSection = () => {
           >
             <Button variant="gold" size="lg" className="group px-8 w-full sm:w-auto" asChild>
               <Link to="/login">
-                Get Started
+                Start Discovering
                 <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
@@ -78,7 +78,7 @@ const HeroSection = () => {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="text-sm text-muted-foreground"
           >
-            Be part of the first wave of students building a new social reality.
+            Stop scrolling. Start belonging.
           </motion.p>
         </div>
       </div>
