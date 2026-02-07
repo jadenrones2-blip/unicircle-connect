@@ -191,7 +191,7 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Resume
             Drop your resume here or click to browse
           </p>
           <p className="text-sm text-muted-foreground">
-            Supports .txt files (max 5MB)
+            Supports PDF and .txt files (max 5MB)
           </p>
         </motion.div>
       )}
