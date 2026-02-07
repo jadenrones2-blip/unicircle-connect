@@ -84,7 +84,7 @@ const interestToClubMapping: Record<string, string[]> = {
   coding: ['Tech / STEM', 'Engineering', 'Coding', 'Software'],
   design: ['Arts', 'Design', 'Creative', 'UX'],
   marketing: ['Marketing', 'Business', 'Communications'],
-  competitive: ['Competition', 'Competitive', 'Tournament'],
+  resume_competitive: ['Competition', 'Competitive', 'Tournament'],
   collaborative: ['Community', 'Team', 'Collaborative'],
 };
 
