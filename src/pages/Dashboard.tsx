@@ -69,6 +69,23 @@ const interestToClubMapping: Record<string, string[]> = {
   professional: ['Professional', 'Industry', 'Career', 'Corporate'],
   creative_vibe: ['Creative', 'Arts', 'Experimental', 'Unique'],
   inclusive: ['Inclusive', 'Welcoming', 'Community', 'Supportive'],
+
+  // Resume-extracted keywords (direct matching)
+  // These are dynamically matched, but we include common ones
+  Tech: ['Tech / STEM', 'STEM', 'Engineering', 'Technology'],
+  Finance: ['Finance', 'Business', 'Investment', 'Banking'],
+  Consulting: ['Consulting', 'Strategy', 'Business', 'Professional'],
+  Healthcare: ['Pre-Med', 'Health', 'Healthcare', 'Medicine'],
+  Startup: ['Entrepreneurship', 'Startup', 'Business', 'Innovation'],
+  Research: ['Research', 'Science', 'Academic', 'Lab'],
+  Creative: ['Arts', 'Design', 'Creative', 'Media'],
+  Nonprofit: ['Nonprofit', 'Social Impact', 'Service', 'Advocacy'],
+  leadership: ['Leadership', 'Executive', 'Board', 'Officers'],
+  coding: ['Tech / STEM', 'Engineering', 'Coding', 'Software'],
+  design: ['Arts', 'Design', 'Creative', 'UX'],
+  marketing: ['Marketing', 'Business', 'Communications'],
+  competitive: ['Competition', 'Competitive', 'Tournament'],
+  collaborative: ['Community', 'Team', 'Collaborative'],
 };
 
 function calculateMatchScore(club: Club, interests: { category: string; value: string }[]): number {
