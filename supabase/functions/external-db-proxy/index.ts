@@ -8,8 +8,8 @@ const corsHeaders = {
 
 // Define allowed columns per table for filtering
 const ALLOWED_FILTER_COLUMNS: Record<string, string[]> = {
-  clubs: ["id", "name", "handle", "category", "recruitingStatus", "recruitment_cycle", "status", "email"],
-  events: ["id", "club_id", "club_handle", "date", "status", "category", "title", "verified", "source"],
+  clubs: ["id", "name", "handle", "category", "recruitingStatus", "recruitment_cycle", "status", "email", "eventbrite_organizer_url", "eventbrite_sync_status"],
+  events: ["id", "club_id", "club_handle", "date", "status", "category", "title", "verified", "source", "external_source", "external_id"],
   categories: ["id", "name"],
   interests: ["id", "name", "category"],
   raw_club_pages: ["id", "club_id", "status"],
