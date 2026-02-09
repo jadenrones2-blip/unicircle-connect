@@ -28,7 +28,7 @@ import { useExternalClubRecord } from "@/hooks/useExternalClubRecord";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBreadcrumb } from "@/components/club-admin/AdminBreadcrumb";
 import { RecruitmentStatusCard } from "@/components/club-admin/RecruitmentStatusCard";
-import { EventbriteSyncCard } from "@/components/club-admin/EventbriteSyncCard";
+
 
 const clubEditSchema = z.object({
   description: z.string().max(2000, "Description must be under 2000 characters").optional(),
@@ -265,15 +265,6 @@ export default function ClubAdminEdit() {
                 onUpdate={refetchClub}
               />
 
-              {/* Eventbrite Sync Card */}
-              <EventbriteSyncCard
-                clubId={clubId!}
-                initialUrl={club.eventbrite_organizer_url}
-                initialStatus={club.eventbrite_sync_status}
-                initialLastSynced={club.eventbrite_last_synced_at}
-                initialError={club.eventbrite_sync_error}
-                onUpdate={refetchClub}
-              />
 
               <div className="premium-card p-6 mt-6">
                 <Form {...form}>
