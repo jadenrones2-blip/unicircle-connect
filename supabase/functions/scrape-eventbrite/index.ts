@@ -230,6 +230,9 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
             event.club_name.toLowerCase().includes(c.name.toLowerCase())
           );
 
+          // Generate a stable external_id from the Eventbrite URL
+          const eventbriteId = eventUrl.match(/\/e\/[^/]*?-(\d+)(?:\?|$)/)?.[1] || eventUrl;
+
           const eventRecord = {
             title: event.title,
             start_time: event.start_time,
@@ -242,13 +245,15 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
             verified: false,
             caption: event.description,
             posted_at: new Date().toISOString(),
+            external_source: 'eventbrite',
+            external_id: eventbriteId,
           };
 
-          console.log('Inserting Eventbrite event:', eventRecord.title);
+          console.log('Upserting Eventbrite event:', eventRecord.title, '(external_id:', eventbriteId, ')');
 
           const { error: insertError } = await externalSupabase
             .from('events')
-            .insert(eventRecord);
+            .upsert(eventRecord, { onConflict: 'external_source,external_id', ignoreDuplicates: true });
 
           if (insertError) {
             console.error('Error inserting event:', insertError);
