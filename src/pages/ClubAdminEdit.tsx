@@ -265,6 +265,16 @@ export default function ClubAdminEdit() {
                 onUpdate={refetchClub}
               />
 
+              {/* Eventbrite Sync Card */}
+              <EventbriteSyncCard
+                clubId={clubId!}
+                initialUrl={club.eventbrite_organizer_url}
+                initialStatus={club.eventbrite_sync_status}
+                initialLastSynced={club.eventbrite_last_synced_at}
+                initialError={club.eventbrite_sync_error}
+                onUpdate={refetchClub}
+              />
+
               <div className="premium-card p-6 mt-6">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
