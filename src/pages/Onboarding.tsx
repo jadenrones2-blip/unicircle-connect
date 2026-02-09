@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import ResumeUploadStep from '@/components/onboarding/ResumeUploadStep';
 
 interface QuizQuestion {
   id: string;
@@ -14,6 +15,13 @@ interface QuizQuestion {
   question: string;
   options: { value: string; label: string; emoji: string }[];
   multiSelect: boolean;
+}
+
+interface ExtractedKeywords {
+  career_goals: string[];
+  interests: string[];
+  skills: string[];
+  vibe: string[];
 }
 
 const quizQuestions: QuizQuestion[] = [
@@ -91,12 +99,16 @@ const quizQuestions: QuizQuestion[] = [
   },
 ];
 
+// Total steps: quiz questions + 1 optional resume step
+const RESUME_STEP_INDEX = quizQuestions.length;
+
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { saveInterests, loading: savingInterests } = useUserInterests();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
+  const [resumeKeywords, setResumeKeywords] = useState<ExtractedKeywords | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -104,10 +116,13 @@ export default function Onboarding() {
     }
   }, [user, authLoading, navigate]);
 
-  const currentQuestion = quizQuestions[currentStep];
-  const progress = ((currentStep + 1) / quizQuestions.length) * 100;
+  const isResumeStep = currentStep === RESUME_STEP_INDEX;
+  const currentQuestion = isResumeStep ? null : quizQuestions[currentStep];
+  const totalSteps = quizQuestions.length + 1; // +1 for resume step
+  const progress = ((currentStep + 1) / totalSteps) * 100;
 
   const toggleAnswer = (value: string) => {
+    if (!currentQuestion) return;
     setAnswers((prev) => {
       const current = prev[currentQuestion.id] || [];
       if (currentQuestion.multiSelect) {
@@ -120,29 +135,53 @@ export default function Onboarding() {
     });
   };
 
-  const canProceed = (answers[currentQuestion?.id] || []).length > 0;
+  const canProceed = currentQuestion ? (answers[currentQuestion.id] || []).length > 0 : false;
+
+  const saveAndNavigate = async (additionalKeywords?: ExtractedKeywords) => {
+    if (!user) return;
+
+    const interests: { category: string; value: string }[] = [];
+    
+    // Add quiz answers
+    Object.entries(answers).forEach(([category, values]) => {
+      values.forEach((value) => {
+        interests.push({ category, value });
+      });
+    });
+
+    // Add resume keywords if provided
+    const keywords = additionalKeywords || resumeKeywords;
+    if (keywords) {
+      keywords.career_goals.forEach((value) => {
+        interests.push({ category: 'resume_career', value });
+      });
+      keywords.interests.forEach((value) => {
+        interests.push({ category: 'resume_interests', value });
+      });
+      keywords.skills.forEach((value) => {
+        interests.push({ category: 'resume_skills', value });
+      });
+      keywords.vibe.forEach((value) => {
+        interests.push({ category: 'resume_vibe', value });
+      });
+    }
+
+    const result = await saveInterests(user.id, interests);
+    if (result.success) {
+      toast.success('Profile complete! Here are your recommendations.');
+      navigate('/dashboard');
+    } else {
+      toast.error('Failed to save preferences. Please try again.');
+    }
+  };
 
   const handleNext = async () => {
     if (currentStep < quizQuestions.length - 1) {
+      // Move to next quiz question
       setCurrentStep((s) => s + 1);
-    } else {
-      // Save all answers
-      if (!user) return;
-
-      const interests: { category: string; value: string }[] = [];
-      Object.entries(answers).forEach(([category, values]) => {
-        values.forEach((value) => {
-          interests.push({ category, value });
-        });
-      });
-
-      const result = await saveInterests(user.id, interests);
-      if (result.success) {
-        toast.success('Profile complete! Here are your recommendations.');
-        navigate('/dashboard');
-      } else {
-        toast.error('Failed to save preferences. Please try again.');
-      }
+    } else if (currentStep === quizQuestions.length - 1) {
+      // Move from last quiz question to resume step
+      setCurrentStep(RESUME_STEP_INDEX);
     }
   };
 
@@ -150,6 +189,15 @@ export default function Onboarding() {
     if (currentStep > 0) {
       setCurrentStep((s) => s - 1);
     }
+  };
+
+  const handleResumeKeywordsExtracted = async (keywords: ExtractedKeywords) => {
+    setResumeKeywords(keywords);
+    await saveAndNavigate(keywords);
+  };
+
+  const handleSkipResume = async () => {
+    await saveAndNavigate();
   };
 
   if (authLoading) {
@@ -182,92 +230,96 @@ export default function Onboarding() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Step indicator */}
-              <div className="text-center mb-8">
-                <span className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
-                  <Sparkles className="h-3 w-3 text-primary" />
-                  Question {currentStep + 1} of {quizQuestions.length}
-                </span>
-              </div>
+              {isResumeStep ? (
+                <ResumeUploadStep
+                  onKeywordsExtracted={handleResumeKeywordsExtracted}
+                  onSkip={handleSkipResume}
+                />
+              ) : currentQuestion && (
+                <>
+                  {/* Step indicator */}
+                  <div className="text-center mb-8">
+                    <span className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+                      <Sparkles className="h-3 w-3 text-primary" />
+                      Question {currentStep + 1} of {quizQuestions.length}
+                    </span>
+                  </div>
 
-              {/* Question */}
-              <h1 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-2">
-                {currentQuestion.question}
-              </h1>
-              <p className="text-center text-muted-foreground mb-8">
-                {currentQuestion.multiSelect
-                  ? 'Select all that apply'
-                  : 'Choose one option'}
-              </p>
+                  {/* Question */}
+                  <h1 className="text-2xl md:text-3xl font-bold text-center text-foreground mb-2">
+                    {currentQuestion.question}
+                  </h1>
+                  <p className="text-center text-muted-foreground mb-8">
+                    {currentQuestion.multiSelect
+                      ? 'Select all that apply'
+                      : 'Choose one option'}
+                  </p>
 
-              {/* Options grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-                {currentQuestion.options.map((option) => {
-                  const isSelected = (answers[currentQuestion.id] || []).includes(
-                    option.value
-                  );
-                  return (
-                    <button
-                      key={option.value}
-                      onClick={() => toggleAnswer(option.value)}
-                      className={cn(
-                        'relative p-4 rounded-xl border-2 transition-all duration-200 text-left',
-                        'hover:border-primary/50 hover:bg-primary/5',
-                        isSelected
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border bg-card'
-                      )}
-                    >
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
+                  {/* Options grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+                    {currentQuestion.options.map((option) => {
+                      const isSelected = (answers[currentQuestion.id] || []).includes(
+                        option.value
+                      );
+                      return (
+                        <button
+                          key={option.value}
+                          onClick={() => toggleAnswer(option.value)}
+                          className={cn(
+                            'relative p-4 rounded-xl border-2 transition-all duration-200 text-left',
+                            'hover:border-primary/50 hover:bg-primary/5',
+                            isSelected
+                              ? 'border-primary bg-primary/10'
+                              : 'border-border bg-card'
+                          )}
                         >
-                          <Check className="h-3 w-3 text-primary-foreground" />
-                        </motion.div>
+                          {isSelected && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
+                            >
+                              <Check className="h-3 w-3 text-primary-foreground" />
+                            </motion.div>
+                          )}
+                          <span className="text-2xl mb-2 block">{option.emoji}</span>
+                          <span className="text-sm font-medium text-foreground">
+                            {option.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Navigation */}
+                  <div className="flex justify-between items-center">
+                    <Button
+                      variant="ghost"
+                      onClick={handleBack}
+                      disabled={currentStep === 0}
+                      className="text-muted-foreground"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back
+                    </Button>
+
+                    <Button
+                      onClick={handleNext}
+                      disabled={!canProceed || savingInterests}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      {savingInterests ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          Continue
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
                       )}
-                      <span className="text-2xl mb-2 block">{option.emoji}</span>
-                      <span className="text-sm font-medium text-foreground">
-                        {option.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Navigation */}
-              <div className="flex justify-between items-center">
-                <Button
-                  variant="ghost"
-                  onClick={handleBack}
-                  disabled={currentStep === 0}
-                  className="text-muted-foreground"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-
-                <Button
-                  onClick={handleNext}
-                  disabled={!canProceed || savingInterests}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  {savingInterests ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : currentStep === quizQuestions.length - 1 ? (
-                    <>
-                      See My Matches
-                      <Sparkles className="ml-2 h-4 w-4" />
-                    </>
-                  ) : (
-                    <>
-                      Continue
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </div>
+                    </Button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>

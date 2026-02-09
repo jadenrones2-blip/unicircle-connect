@@ -29,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBreadcrumb } from "@/components/club-admin/AdminBreadcrumb";
 import { RecruitmentStatusCard } from "@/components/club-admin/RecruitmentStatusCard";
 
+
 const clubEditSchema = z.object({
   description: z.string().max(2000, "Description must be under 2000 characters").optional(),
   email: z.string().email("Invalid email").max(255).optional().or(z.literal("")),
@@ -263,6 +264,7 @@ export default function ClubAdminEdit() {
                 currentCycle={club.recruitment_cycle || "none"}
                 onUpdate={refetchClub}
               />
+
 
               <div className="premium-card p-6 mt-6">
                 <Form {...form}>

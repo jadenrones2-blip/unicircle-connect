@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Particle {
   id: number;
@@ -12,8 +13,14 @@ interface Particle {
 }
 
 const FloatingParticles = () => {
+  const isMobile = useIsMobile();
+  
+  // Disable particles entirely on mobile for better performance
   const particles = useMemo<Particle[]>(() => {
-    return Array.from({ length: 30 }, (_, i) => ({
+    if (isMobile) return [];
+    
+    // Reduced from 30 to 15 particles for better performance
+    return Array.from({ length: 15 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -22,7 +29,10 @@ const FloatingParticles = () => {
       delay: Math.random() * 5,
       opacity: Math.random() * 0.4 + 0.1,
     }));
-  }, []);
+  }, [isMobile]);
+
+  // Don't render anything on mobile
+  if (isMobile) return null;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
@@ -52,14 +62,14 @@ const FloatingParticles = () => {
         />
       ))}
       
-      {/* Larger accent particles */}
-      {[...Array(8)].map((_, i) => (
+      {/* Reduced accent particles from 8 to 4 */}
+      {[...Array(4)].map((_, i) => (
         <motion.div
           key={`accent-${i}`}
           className="absolute rounded-full border border-gold/30"
           style={{
-            left: `${10 + i * 12}%`,
-            top: `${20 + (i % 3) * 25}%`,
+            left: `${10 + i * 20}%`,
+            top: `${20 + (i % 2) * 30}%`,
             width: 8 + i * 2,
             height: 8 + i * 2,
           }}

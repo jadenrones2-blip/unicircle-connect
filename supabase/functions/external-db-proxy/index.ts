@@ -8,8 +8,8 @@ const corsHeaders = {
 
 // Define allowed columns per table for filtering
 const ALLOWED_FILTER_COLUMNS: Record<string, string[]> = {
-  clubs: ["id", "name", "handle", "category", "recruitingStatus", "recruitment_cycle", "status", "email"],
-  events: ["id", "club_id", "club_handle", "date", "status", "category", "title", "verified", "source"],
+  clubs: ["id", "name", "handle", "category", "recruitingStatus", "recruitment_cycle", "status", "email", "eventbrite_organizer_url", "eventbrite_sync_status"],
+  events: ["id", "club_id", "club_handle", "date", "status", "category", "title", "verified", "source", "external_source", "external_id"],
   categories: ["id", "name"],
   interests: ["id", "name", "category"],
   raw_club_pages: ["id", "club_id", "status"],
@@ -632,6 +632,67 @@ serve(async (req) => {
       });
 
       console.log(`Successfully deleted records from ${table}`);
+
+      return new Response(
+        JSON.stringify({ success: true, deleted: count }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ============ DELETE PAST EVENTS ============
+    if (req.method === "POST" && action === "delete-past-events") {
+      if (table !== "events") {
+        return new Response(
+          JSON.stringify({ error: "This action is only allowed for events table" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
+
+      console.log(`Deleting past events (before ${todayISO})`);
+
+      const { data: pastEvents, error: fetchError } = await externalSupabase
+        .from("events")
+        .select("id, title, start_time")
+        .lt("start_time", todayISO);
+
+      if (fetchError) {
+        console.error("Error fetching past events:", fetchError);
+        return new Response(
+          JSON.stringify({ error: "Failed to fetch past events" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const count = pastEvents?.length || 0;
+      console.log(`Found ${count} past events to delete`);
+
+      if (count > 0) {
+        const ids = pastEvents!.map((e: { id: string }) => e.id);
+        const { error: deleteError } = await externalSupabase
+          .from("events")
+          .delete()
+          .in("id", ids);
+
+        if (deleteError) {
+          console.error("Error deleting past events:", deleteError);
+          return new Response(
+            JSON.stringify({ error: "Failed to delete past events" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+
+      await logAuditEvent(internalSupabase, {
+        club_id: 'system',
+        actor_user_id: userId,
+        action: 'events_delete_past',
+        details: { deleted_count: count, before_date: todayISO },
+        ip_address: ipAddress,
+      });
 
       return new Response(
         JSON.stringify({ success: true, deleted: count }),
