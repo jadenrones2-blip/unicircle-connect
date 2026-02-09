@@ -436,7 +436,7 @@ Deno.serve(async (req) => {
         console.log(`Matched "${event.organizer_name}" to club "${matchedClub.name}" (${matchedClub.id})`);
 
         // Check if event already exists
-        const { data: existing } = await supabase
+        const { data: existing } = await externalSupabase
           .from('events')
           .select('id')
           .eq('external_source', 'eventbrite')
