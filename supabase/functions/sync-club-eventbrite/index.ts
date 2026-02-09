@@ -295,8 +295,8 @@ Deno.serve(async (req) => {
   try {
     const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || '';
-    const EXTERNAL_SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!FIRECRAWL_API_KEY) {
       return new Response(JSON.stringify({ success: false, error: 'FIRECRAWL_API_KEY not configured' }), {
@@ -312,15 +312,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    const externalUrl = normalizeExternalUrl(rawExternalUrl);
-    if (!externalUrl || !EXTERNAL_SUPABASE_SERVICE_ROLE_KEY) {
-      return new Response(JSON.stringify({ success: false, error: 'External database not configured' }), {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      return new Response(JSON.stringify({ success: false, error: 'Supabase credentials not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const externalSupabase = createClient(externalUrl, EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     console.log('Starting UCSD Eventbrite sync...');
 
@@ -335,7 +334,7 @@ Deno.serve(async (req) => {
 
     // Step 1: Fetch all clubs from the database
     console.log('Fetching clubs from database...');
-    const { data: clubs, error: clubsError } = await externalSupabase
+    const { data: clubs, error: clubsError } = await supabase
       .from('clubs')
       .select('id, name, handle');
 
@@ -406,7 +405,7 @@ Deno.serve(async (req) => {
         console.log(`Matched "${event.organizer_name}" to club "${matchedClub.name}" (${matchedClub.id})`);
 
         // Check if event already exists
-        const { data: existing } = await externalSupabase
+        const { data: existing } = await supabase
           .from('events')
           .select('id')
           .eq('external_source', 'eventbrite')
@@ -432,7 +431,7 @@ Deno.serve(async (req) => {
 
         if (existing) {
           // Update existing event
-          const { error: updateError } = await externalSupabase
+          const { error: updateError } = await supabase
             .from('events')
             .update(eventRecord)
             .eq('id', existing.id);
@@ -445,7 +444,7 @@ Deno.serve(async (req) => {
           }
         } else {
           // Insert new event
-          const { error: insertError } = await externalSupabase
+          const { error: insertError } = await supabase
             .from('events')
             .insert(eventRecord);
 
