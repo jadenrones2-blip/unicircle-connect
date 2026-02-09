@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.extract-resume-keywords]
 verify_jwt = false
+
+[functions.sync-club-eventbrite]
+verify_jwt = false
