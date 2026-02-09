@@ -26,6 +26,18 @@ interface ScrapeResult {
   errors: string[];
 }
 
+// Check if event is in the future (today or later)
+function isEventInFuture(startTime: string): boolean {
+  try {
+    const eventDate = new Date(startTime);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return eventDate >= today;
+  } catch {
+    return false;
+  }
+}
+
 // Normalize external URL
 const normalizeExternalUrl = (value: string): string | null => {
   let v = value.trim();
@@ -201,6 +213,12 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
         const event = await extractEventFromPage(pageContent, eventUrl, LOVABLE_API_KEY, currentYear);
 
         if (event) {
+          // Skip past events
+          if (!isEventInFuture(event.start_time)) {
+            console.log(`Skipping past event: ${event.title} (${event.start_time})`);
+            continue;
+          }
+
           // Fetch clubs to find matching one
           const { data: clubs } = await externalSupabase
             .from('clubs')
@@ -262,6 +280,12 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
 
       for (const event of additionalEvents) {
         try {
+          // Skip past events
+          if (!isEventInFuture(event.start_time)) {
+            console.log(`Skipping past event: ${event.title} (${event.start_time})`);
+            continue;
+          }
+
           const matchingClub = (clubs || []).find((c: Club) => 
             c.name.toLowerCase().includes(event.club_name.toLowerCase()) ||
             event.club_name.toLowerCase().includes(c.name.toLowerCase())
