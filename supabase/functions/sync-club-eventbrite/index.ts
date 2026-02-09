@@ -295,8 +295,14 @@ Deno.serve(async (req) => {
   try {
     const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || '';
+    const EXTERNAL_SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
+
+    console.log('Checking environment variables...');
+    console.log('FIRECRAWL_API_KEY configured:', !!FIRECRAWL_API_KEY);
+    console.log('LOVABLE_API_KEY configured:', !!LOVABLE_API_KEY);
+    console.log('EXTERNAL_SUPABASE_URL configured:', !!rawExternalUrl);
+    console.log('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY configured:', !!EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
 
     if (!FIRECRAWL_API_KEY) {
       return new Response(JSON.stringify({ success: false, error: 'FIRECRAWL_API_KEY not configured' }), {
@@ -312,14 +318,35 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      return new Response(JSON.stringify({ success: false, error: 'Supabase credentials not configured' }), {
+    if (!rawExternalUrl || !EXTERNAL_SUPABASE_SERVICE_ROLE_KEY) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'External database not configured',
+        details: {
+          hasUrl: !!rawExternalUrl,
+          hasKey: !!EXTERNAL_SUPABASE_SERVICE_ROLE_KEY
+        }
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    // Normalize the external URL
+    let externalUrl = rawExternalUrl.trim();
+    externalUrl = externalUrl.replace(/\/(auth|rest|functions)\/v1.*$/i, "");
+    externalUrl = externalUrl.replace(/\/+$/, "");
+    if (!externalUrl.startsWith("http://") && !externalUrl.startsWith("https://")) {
+      if (externalUrl.includes(".") || externalUrl.includes("supabase.co")) {
+        externalUrl = `https://${externalUrl}`;
+      } else {
+        externalUrl = `https://${externalUrl}.supabase.co`;
+      }
+    }
+
+    console.log('Using external Supabase URL:', externalUrl);
+
+    const externalSupabase = createClient(externalUrl, EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
 
     console.log('Starting UCSD Eventbrite sync...');
 
