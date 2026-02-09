@@ -462,7 +462,7 @@ Deno.serve(async (req) => {
 
         if (existing) {
           // Update existing event
-          const { error: updateError } = await supabase
+          const { error: updateError } = await externalSupabase
             .from('events')
             .update(eventRecord)
             .eq('id', existing.id);
@@ -475,7 +475,7 @@ Deno.serve(async (req) => {
           }
         } else {
           // Insert new event
-          const { error: insertError } = await supabase
+          const { error: insertError } = await externalSupabase
             .from('events')
             .insert(eventRecord);
 
