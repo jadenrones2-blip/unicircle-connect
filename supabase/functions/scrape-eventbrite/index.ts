@@ -313,6 +313,19 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
           const additionalEventbriteId = sourceUrl?.match(/\/e\/[^/]*?-(\d+)(?:\?|$)/)?.[1] 
             || `search-${event.title.replace(/\s+/g, '-').toLowerCase().slice(0, 50)}-${event.start_time}`;
 
+          // Check for existing event
+          const { data: existingAdditional } = await externalSupabase
+            .from('events')
+            .select('id')
+            .eq('external_source', 'eventbrite')
+            .eq('external_id', additionalEventbriteId)
+            .limit(1);
+
+          if (existingAdditional && existingAdditional.length > 0) {
+            console.log(`Skipping duplicate search event: ${event.title}`);
+            continue;
+          }
+
           const eventRecord = {
             title: event.title,
             start_time: event.start_time,
@@ -331,7 +344,7 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
 
           const { error: insertError } = await externalSupabase
             .from('events')
-            .upsert(eventRecord, { onConflict: 'external_source,external_id', ignoreDuplicates: true });
+            .insert(eventRecord);
 
           if (!insertError) {
             result.eventsExtracted++;
