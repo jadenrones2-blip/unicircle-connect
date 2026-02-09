@@ -28,7 +28,7 @@ import { useExternalClubRecord } from "@/hooks/useExternalClubRecord";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminBreadcrumb } from "@/components/club-admin/AdminBreadcrumb";
 import { RecruitmentStatusCard } from "@/components/club-admin/RecruitmentStatusCard";
-import { EventbriteSyncCard } from "@/components/club-admin/EventbriteSyncCard";
+
 
 const clubEditSchema = z.object({
   description: z.string().max(2000, "Description must be under 2000 characters").optional(),
