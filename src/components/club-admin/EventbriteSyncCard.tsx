@@ -240,7 +240,7 @@ export function EventbriteSyncCard({
         {/* Error message */}
         {syncError && syncStatus === "error" && (
           <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20">
-            <p className="text-sm text-destructive-foreground">{syncError}</p>
+            <p className="text-sm text-destructive">{syncError}</p>
           </div>
         )}
       </div>
