@@ -280,6 +280,12 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
 
       for (const event of additionalEvents) {
         try {
+          // Skip past events
+          if (!isEventInFuture(event.start_time)) {
+            console.log(`Skipping past event: ${event.title} (${event.start_time})`);
+            continue;
+          }
+
           const matchingClub = (clubs || []).find((c: Club) => 
             c.name.toLowerCase().includes(event.club_name.toLowerCase()) ||
             event.club_name.toLowerCase().includes(c.name.toLowerCase())
