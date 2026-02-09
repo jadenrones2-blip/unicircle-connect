@@ -14,13 +14,16 @@ interface EventbriteEvent {
   event_url: string;
   image_url: string | null;
   external_id: string;
+  organizer_name: string;
 }
 
 interface SyncResult {
   success: boolean;
   eventsFound: number;
+  eventsMatched: number;
   eventsCreated: number;
   eventsUpdated: number;
+  unmatchedOrganizers: string[];
   error?: string;
 }
 
@@ -48,65 +51,6 @@ const normalizeExternalUrl = (value: string): string | null => {
   }
 };
 
-// Extract organizer ID from Eventbrite URL
-function extractOrganizerId(url: string): string | null {
-  // Formats:
-  // https://www.eventbrite.com/o/ORGANIZERNAME-123456789
-  // https://www.eventbrite.com/o/123456789
-  const patterns = [
-    /eventbrite\.com\/o\/[^-]+-(\d+)/i,
-    /eventbrite\.com\/o\/(\d+)/i,
-  ];
-
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-
-  return null;
-}
-
-// Parse JSON-LD structured data from page content
-function parseJsonLdEvents(markdown: string): EventbriteEvent[] {
-  const events: EventbriteEvent[] = [];
-  
-  // Look for JSON-LD script content in the markdown
-  const jsonLdPattern = /<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi;
-  let match;
-  
-  while ((match = jsonLdPattern.exec(markdown)) !== null) {
-    try {
-      const data = JSON.parse(match[1]);
-      
-      // Handle both single events and arrays
-      const items = Array.isArray(data) ? data : [data];
-      
-      for (const item of items) {
-        if (item['@type'] === 'Event' || item['@type']?.includes('Event')) {
-          const event: EventbriteEvent = {
-            title: item.name || 'Untitled Event',
-            description: item.description || null,
-            start_time: item.startDate,
-            end_time: item.endDate || null,
-            location: item.location?.name || item.location?.address?.streetAddress || null,
-            event_url: item.url || '',
-            image_url: item.image || item.image?.[0] || null,
-            external_id: extractEventId(item.url) || crypto.randomUUID(),
-          };
-          
-          if (event.start_time) {
-            events.push(event);
-          }
-        }
-      }
-    } catch (e) {
-      console.log('Failed to parse JSON-LD:', e);
-    }
-  }
-  
-  return events;
-}
-
 // Extract event ID from Eventbrite URL
 function extractEventId(url: string): string | null {
   if (!url) return null;
@@ -118,42 +62,161 @@ function extractEventId(url: string): string | null {
   return match ? match[1] : null;
 }
 
-// Parse events from markdown content using AI
-async function extractEventsWithAI(
-  markdown: string,
-  organizerUrl: string,
-  apiKey: string,
-  currentYear: number
-): Promise<EventbriteEvent[]> {
-  const today = new Date().toISOString().split('T')[0];
+// Normalize club name for matching (lowercase, remove common suffixes)
+function normalizeClubName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/\bat\b\s*uc\s*san\s*diego/gi, '')
+    .replace(/\bat\b\s*ucsd/gi, '')
+    .replace(/uc\s*san\s*diego/gi, '')
+    .replace(/ucsd/gi, '')
+    .replace(/\bclub\b/gi, '')
+    .replace(/\borganization\b/gi, '')
+    .replace(/\borg\b/gi, '')
+    .replace(/[^\w\s]/g, '')
+    .trim();
+}
 
-  const systemPrompt = `You are an expert at extracting event information from Eventbrite organizer pages.
-Extract all upcoming events from the page content.
+// Search for UCSD events on Eventbrite using Firecrawl search
+async function searchUCSDEvents(
+  firecrawlKey: string,
+  lovableKey: string
+): Promise<EventbriteEvent[]> {
+  const events: EventbriteEvent[] = [];
+  
+  // Search queries to find UCSD-related events
+  const searchQueries = [
+    'site:eventbrite.com UCSD upcoming events',
+    'site:eventbrite.com "UC San Diego" upcoming events',
+    'site:eventbrite.com "University of California San Diego" events',
+  ];
+
+  for (const query of searchQueries) {
+    try {
+      console.log(`Searching: ${query}`);
+      
+      const searchResponse = await fetch('https://api.firecrawl.dev/v1/search', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${firecrawlKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          limit: 20,
+          scrapeOptions: {
+            formats: ['markdown', 'html'],
+          },
+        }),
+      });
+
+      if (!searchResponse.ok) {
+        console.error(`Search failed for "${query}":`, searchResponse.status);
+        continue;
+      }
+
+      const searchData = await searchResponse.json();
+      const results = searchData.data || [];
+      
+      console.log(`Found ${results.length} results for "${query}"`);
+
+      // Process each search result
+      for (const result of results) {
+        if (!result.url?.includes('eventbrite.com/e/')) continue;
+        
+        const eventId = extractEventId(result.url);
+        if (!eventId) continue;
+        
+        // Skip if we already have this event
+        if (events.some(e => e.external_id === eventId)) continue;
+        
+        // Extract event details from the result
+        const html = result.html || '';
+        const markdown = result.markdown || '';
+        
+        // Try to extract from JSON-LD in HTML
+        const jsonLdMatch = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/i);
+        if (jsonLdMatch) {
+          try {
+            const data = JSON.parse(jsonLdMatch[1]);
+            if (data['@type'] === 'Event' && data.startDate) {
+              const event: EventbriteEvent = {
+                title: data.name || result.title || 'Untitled Event',
+                description: data.description?.slice(0, 300) || null,
+                start_time: data.startDate,
+                end_time: data.endDate || null,
+                location: data.location?.name || data.location?.address?.streetAddress || null,
+                event_url: result.url,
+                image_url: data.image || null,
+                external_id: eventId,
+                organizer_name: data.organizer?.name || '',
+              };
+              
+              if (event.organizer_name) {
+                events.push(event);
+                console.log(`Extracted event: "${event.title}" by "${event.organizer_name}"`);
+              }
+              continue;
+            }
+          } catch (e) {
+            console.log('Failed to parse JSON-LD:', e);
+          }
+        }
+        
+        // Fallback: Use AI to extract event details
+        const extracted = await extractEventWithAI(markdown, result.url, lovableKey);
+        if (extracted && extracted.organizer_name) {
+          extracted.external_id = eventId;
+          events.push(extracted);
+          console.log(`AI extracted event: "${extracted.title}" by "${extracted.organizer_name}"`);
+        }
+      }
+
+      // Rate limiting between searches
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+    } catch (error) {
+      console.error(`Error searching "${query}":`, error);
+    }
+  }
+
+  return events;
+}
+
+// Use AI to extract event details from page content
+async function extractEventWithAI(
+  markdown: string,
+  eventUrl: string,
+  apiKey: string
+): Promise<EventbriteEvent | null> {
+  const today = new Date().toISOString().split('T')[0];
+  const currentYear = new Date().getFullYear();
+
+  const systemPrompt = `You are an expert at extracting event information from Eventbrite pages.
+Extract the event details from the page content.
 
 Today's date is ${today}. The current year is ${currentYear}.
 
-For each event, extract:
+Extract:
 - title: The event title
 - description: Brief description (max 300 chars)
 - start_time: ISO 8601 datetime
 - end_time: ISO 8601 datetime if available
 - location: Physical location/venue
-- event_url: Full Eventbrite event URL
 - image_url: Event image URL if available
-- external_id: Eventbrite event ID (the numeric ID from the URL)
+- organizer_name: The name of the organization/club hosting the event (VERY IMPORTANT)
 
 Rules:
-- Only extract events with dates today or in the future
 - If year not specified, use ${currentYear}
-- Skip past events`;
+- The organizer_name is critical - look for "Organized by", "Hosted by", or similar patterns
+- Return null if you can't find the organizer name`;
 
-  const userPrompt = `Extract all upcoming events from this Eventbrite organizer page:
+  const userPrompt = `Extract event details from this Eventbrite page:
 
-${markdown.slice(0, 15000)}
+${markdown.slice(0, 10000)}
 
-Organizer URL: ${organizerUrl}
-
-Return a JSON array of events.`;
+Event URL: ${eventUrl}`;
 
   try {
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -172,55 +235,55 @@ Return a JSON array of events.`;
           {
             type: 'function',
             function: {
-              name: 'extract_events',
-              description: 'Extract events from page content',
+              name: 'extract_event',
+              description: 'Extract event details from page content',
               parameters: {
                 type: 'object',
                 properties: {
-                  events: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        title: { type: 'string' },
-                        description: { type: 'string' },
-                        start_time: { type: 'string' },
-                        end_time: { type: 'string' },
-                        location: { type: 'string' },
-                        event_url: { type: 'string' },
-                        image_url: { type: 'string' },
-                        external_id: { type: 'string' },
-                      },
-                      required: ['title', 'start_time', 'external_id'],
-                    },
-                  },
+                  title: { type: 'string' },
+                  description: { type: 'string' },
+                  start_time: { type: 'string' },
+                  end_time: { type: 'string' },
+                  location: { type: 'string' },
+                  image_url: { type: 'string' },
+                  organizer_name: { type: 'string' },
                 },
-                required: ['events'],
+                required: ['title', 'start_time', 'organizer_name'],
               },
             },
           },
         ],
-        tool_choice: { type: 'function', function: { name: 'extract_events' } },
+        tool_choice: { type: 'function', function: { name: 'extract_event' } },
       }),
     });
 
     if (!response.ok) {
       console.error('AI extraction error:', response.status);
-      return [];
+      return null;
     }
 
     const data = await response.json();
-
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    
     if (toolCall?.function?.arguments) {
       const parsed = JSON.parse(toolCall.function.arguments);
-      return parsed.events || [];
+      return {
+        title: parsed.title || 'Untitled Event',
+        description: parsed.description || null,
+        start_time: parsed.start_time,
+        end_time: parsed.end_time || null,
+        location: parsed.location || null,
+        event_url: eventUrl,
+        image_url: parsed.image_url || null,
+        external_id: '',
+        organizer_name: parsed.organizer_name || '',
+      };
     }
 
-    return [];
+    return null;
   } catch (error) {
     console.error('AI extraction failed:', error);
-    return [];
+    return null;
   }
 }
 
@@ -259,190 +322,60 @@ Deno.serve(async (req) => {
 
     const externalSupabase = createClient(externalUrl, EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
 
-    // Parse request body
-    const body = await req.json();
-    const { club_id, organizer_url, sync_all } = body;
+    console.log('Starting UCSD Eventbrite sync...');
 
-    // If sync_all is true, sync all clubs with eventbrite URLs
-    if (sync_all) {
-      console.log('Running scheduled sync for all clubs with Eventbrite URLs...');
-      
-      const { data: clubs, error: clubsError } = await externalSupabase
-        .from('clubs')
-        .select('id, name, eventbrite_organizer_url')
-        .not('eventbrite_organizer_url', 'is', null)
-        .neq('eventbrite_organizer_url', '');
-
-      if (clubsError) {
-        console.error('Error fetching clubs:', clubsError);
-        return new Response(JSON.stringify({ success: false, error: 'Failed to fetch clubs' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const results = [];
-      for (const club of clubs || []) {
-        console.log(`Syncing club: ${club.name} (${club.id})`);
-        const result = await syncClubEvents(
-          externalSupabase,
-          club.id,
-          club.eventbrite_organizer_url,
-          FIRECRAWL_API_KEY,
-          LOVABLE_API_KEY
-        );
-        results.push({ club_id: club.id, club_name: club.name, ...result });
-        
-        // Rate limiting between clubs
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-
-      return new Response(JSON.stringify({
-        success: true,
-        clubs_synced: results.length,
-        results,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Single club sync
-    if (!club_id || !organizer_url) {
-      return new Response(JSON.stringify({ success: false, error: 'club_id and organizer_url are required' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Validate the organizer URL format
-    const organizerId = extractOrganizerId(organizer_url);
-    if (!organizerId && !organizer_url.includes('eventbrite.com/o/')) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: 'Invalid Eventbrite organizer URL. Expected format: https://www.eventbrite.com/o/ORGANIZER-NAME-123456 or https://www.eventbrite.com/o/123456' 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Update club status to syncing
-    await externalSupabase
-      .from('clubs')
-      .update({
-        eventbrite_sync_status: 'syncing',
-        eventbrite_sync_error: null,
-      })
-      .eq('id', club_id);
-
-    const result = await syncClubEvents(
-      externalSupabase,
-      club_id,
-      organizer_url,
-      FIRECRAWL_API_KEY,
-      LOVABLE_API_KEY
-    );
-
-    // Update club with sync result
-    await externalSupabase
-      .from('clubs')
-      .update({
-        eventbrite_organizer_url: organizer_url,
-        eventbrite_sync_status: result.success ? 'success' : 'error',
-        eventbrite_sync_error: result.error || null,
-        eventbrite_last_synced_at: result.success ? new Date().toISOString() : null,
-      })
-      .eq('id', club_id);
-
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error('Eventbrite sync error:', error);
-    return new Response(JSON.stringify({
+    const result: SyncResult = {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+      eventsFound: 0,
+      eventsMatched: 0,
+      eventsCreated: 0,
+      eventsUpdated: 0,
+      unmatchedOrganizers: [],
+    };
 
-async function syncClubEvents(
-  externalSupabase: ReturnType<typeof createClient>,
-  clubId: string,
-  organizerUrl: string,
-  firecrawlKey: string,
-  lovableKey: string
-): Promise<SyncResult> {
-  const result: SyncResult = {
-    success: false,
-    eventsFound: 0,
-    eventsCreated: 0,
-    eventsUpdated: 0,
-  };
+    // Step 1: Fetch all clubs from the database
+    console.log('Fetching clubs from database...');
+    const { data: clubs, error: clubsError } = await externalSupabase
+      .from('clubs')
+      .select('id, name, handle');
 
-  try {
-    console.log(`Scraping Eventbrite organizer page: ${organizerUrl}`);
-
-    // Scrape the organizer page with Firecrawl
-    const firecrawlResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${firecrawlKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: organizerUrl,
-        formats: ['markdown', 'html'],
-        onlyMainContent: false, // Get full page for JSON-LD
-        waitFor: 3000, // Wait for dynamic content
-      }),
-    });
-
-    if (!firecrawlResponse.ok) {
-      const errorText = await firecrawlResponse.text();
-      console.error('Firecrawl error:', errorText);
-      result.error = 'Failed to fetch organizer page';
-      return result;
+    if (clubsError) {
+      console.error('Error fetching clubs:', clubsError);
+      return new Response(JSON.stringify({ success: false, error: 'Failed to fetch clubs' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const firecrawlData = await firecrawlResponse.json();
-    const markdown = firecrawlData.data?.markdown || firecrawlData.markdown || '';
-    const html = firecrawlData.data?.html || firecrawlData.html || '';
+    console.log(`Loaded ${clubs?.length || 0} clubs from database`);
 
-    if (!markdown && !html) {
-      result.error = 'No content found on organizer page';
-      return result;
+    // Build a lookup map for exact matching
+    const clubNameMap = new Map<string, { id: string; name: string; handle: string }>();
+    for (const club of clubs || []) {
+      // Store both original and normalized versions
+      clubNameMap.set(club.name.toLowerCase(), club);
+      clubNameMap.set(normalizeClubName(club.name), club);
     }
 
-    console.log(`Got ${markdown.length} chars of markdown, ${html.length} chars of HTML`);
-
-    // Try to extract events from JSON-LD first
-    let events = parseJsonLdEvents(html);
-    console.log(`Found ${events.length} events from JSON-LD`);
-
-    // If no JSON-LD events, use AI extraction
-    if (events.length === 0) {
-      const currentYear = new Date().getFullYear();
-      events = await extractEventsWithAI(markdown, organizerUrl, lovableKey, currentYear);
-      console.log(`Found ${events.length} events from AI extraction`);
-    }
-
+    // Step 2: Search for UCSD events on Eventbrite
+    console.log('Searching Eventbrite for UCSD events...');
+    const events = await searchUCSDEvents(FIRECRAWL_API_KEY, LOVABLE_API_KEY);
     result.eventsFound = events.length;
 
+    console.log(`Found ${events.length} events to process`);
+
     if (events.length === 0) {
-      result.success = true; // Not an error, just no events found
-      return result;
+      result.success = true;
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    // Get today's date for filtering
+    // Step 3: Match events to clubs and insert/update
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const seenOrganizers = new Set<string>();
 
-    // Process each event
     for (const event of events) {
       try {
         // Skip past events
@@ -451,6 +384,26 @@ async function syncClubEvents(
           console.log(`Skipping past event: ${event.title}`);
           continue;
         }
+
+        // Try to match organizer to a club (exact match)
+        const normalizedOrganizer = event.organizer_name.toLowerCase();
+        const normalizedOrganizerClean = normalizeClubName(event.organizer_name);
+        
+        let matchedClub = clubNameMap.get(normalizedOrganizer) || 
+                          clubNameMap.get(normalizedOrganizerClean);
+
+        if (!matchedClub) {
+          // Track unmatched organizers for logging
+          if (!seenOrganizers.has(event.organizer_name)) {
+            seenOrganizers.add(event.organizer_name);
+            result.unmatchedOrganizers.push(event.organizer_name);
+            console.log(`No match for organizer: "${event.organizer_name}"`);
+          }
+          continue;
+        }
+
+        result.eventsMatched++;
+        console.log(`Matched "${event.organizer_name}" to club "${matchedClub.name}" (${matchedClub.id})`);
 
         // Check if event already exists
         const { data: existing } = await externalSupabase
@@ -468,8 +421,8 @@ async function syncClubEvents(
           location: event.location || null,
           source_url: event.event_url,
           image_url: event.image_url || null,
-          club_id: clubId,
-          club_handle: clubId,
+          club_id: matchedClub.id,
+          club_handle: matchedClub.handle || matchedClub.id,
           external_source: 'eventbrite',
           external_id: event.external_id,
           source: 'eventbrite',
@@ -504,20 +457,30 @@ async function syncClubEvents(
           }
         }
 
-        // Rate limiting between events
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Rate limiting between DB operations
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
       } catch (eventError) {
         console.error(`Error processing event:`, eventError);
       }
     }
 
     result.success = true;
-    console.log(`Sync complete: ${result.eventsCreated} created, ${result.eventsUpdated} updated`);
-    return result;
+    console.log(`Sync complete: ${result.eventsMatched} matched, ${result.eventsCreated} created, ${result.eventsUpdated} updated`);
+    console.log(`Unmatched organizers: ${result.unmatchedOrganizers.join(', ') || 'none'}`);
+
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
   } catch (error) {
-    console.error('Sync error:', error);
-    result.error = error instanceof Error ? error.message : 'Sync failed';
-    return result;
+    console.error('Eventbrite sync error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
-}
+});
