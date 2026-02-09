@@ -363,7 +363,7 @@ Deno.serve(async (req) => {
     console.log('Fetching clubs from external database...');
     const { data: clubs, error: clubsError } = await externalSupabase
       .from('clubs')
-      .select('id, name, handle');
+      .select('id, name');
 
     if (clubsError) {
       console.error('Error fetching clubs:', JSON.stringify(clubsError));
@@ -380,7 +380,7 @@ Deno.serve(async (req) => {
     console.log(`Loaded ${clubs?.length || 0} clubs from database`);
 
     // Build a lookup map for exact matching
-    const clubNameMap = new Map<string, { id: string; name: string; handle: string }>();
+    const clubNameMap = new Map<string, { id: string; name: string }>();
     for (const club of clubs || []) {
       // Store both original and normalized versions
       clubNameMap.set(club.name.toLowerCase(), club);
