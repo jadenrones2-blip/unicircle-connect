@@ -230,6 +230,9 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
             event.club_name.toLowerCase().includes(c.name.toLowerCase())
           );
 
+          // Generate a stable external_id from the Eventbrite URL
+          const eventbriteId = eventUrl.match(/\/e\/[^/]*?-(\d+)(?:\?|$)/)?.[1] || eventUrl;
+
           const eventRecord = {
             title: event.title,
             start_time: event.start_time,
@@ -242,13 +245,15 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
             verified: false,
             caption: event.description,
             posted_at: new Date().toISOString(),
+            external_source: 'eventbrite',
+            external_id: eventbriteId,
           };
 
-          console.log('Inserting Eventbrite event:', eventRecord.title);
+          console.log('Upserting Eventbrite event:', eventRecord.title, '(external_id:', eventbriteId, ')');
 
           const { error: insertError } = await externalSupabase
             .from('events')
-            .insert(eventRecord);
+            .upsert(eventRecord, { onConflict: 'external_source,external_id', ignoreDuplicates: true });
 
           if (insertError) {
             console.error('Error inserting event:', insertError);
@@ -291,6 +296,10 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
             event.club_name.toLowerCase().includes(c.name.toLowerCase())
           );
 
+          const sourceUrl = event.eventbrite_url || citations[0] || null;
+          const additionalEventbriteId = sourceUrl?.match(/\/e\/[^/]*?-(\d+)(?:\?|$)/)?.[1] 
+            || `search-${event.title.replace(/\s+/g, '-').toLowerCase().slice(0, 50)}-${event.start_time}`;
+
           const eventRecord = {
             title: event.title,
             start_time: event.start_time,
@@ -299,15 +308,17 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
             club_id: matchingClub?.id || null,
             club_handle: null,
             source: 'eventbrite',
-            source_url: event.eventbrite_url || citations[0] || null,
+            source_url: sourceUrl,
             verified: false,
             caption: event.description,
             posted_at: new Date().toISOString(),
+            external_source: 'eventbrite',
+            external_id: additionalEventbriteId,
           };
 
           const { error: insertError } = await externalSupabase
             .from('events')
-            .insert(eventRecord);
+            .upsert(eventRecord, { onConflict: 'external_source,external_id', ignoreDuplicates: true });
 
           if (!insertError) {
             result.eventsExtracted++;
