@@ -14,6 +14,11 @@ export interface ExternalClubRecord {
   cover_image: string | null;
   recruitingStatus: RecruitmentStatus | null;
   recruitment_cycle: RecruitmentCycle | null;
+  // Eventbrite sync fields
+  eventbrite_organizer_url: string | null;
+  eventbrite_last_synced_at: string | null;
+  eventbrite_sync_status: "idle" | "syncing" | "success" | "error" | null;
+  eventbrite_sync_error: string | null;
 }
 
 interface UseExternalClubRecordResult {
