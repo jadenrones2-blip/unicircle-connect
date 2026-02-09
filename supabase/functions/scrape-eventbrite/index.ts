@@ -296,6 +296,10 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
             event.club_name.toLowerCase().includes(c.name.toLowerCase())
           );
 
+          const sourceUrl = event.eventbrite_url || citations[0] || null;
+          const additionalEventbriteId = sourceUrl?.match(/\/e\/[^/]*?-(\d+)(?:\?|$)/)?.[1] 
+            || `search-${event.title.replace(/\s+/g, '-').toLowerCase().slice(0, 50)}-${event.start_time}`;
+
           const eventRecord = {
             title: event.title,
             start_time: event.start_time,
@@ -304,15 +308,17 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
             club_id: matchingClub?.id || null,
             club_handle: null,
             source: 'eventbrite',
-            source_url: event.eventbrite_url || citations[0] || null,
+            source_url: sourceUrl,
             verified: false,
             caption: event.description,
             posted_at: new Date().toISOString(),
+            external_source: 'eventbrite',
+            external_id: additionalEventbriteId,
           };
 
           const { error: insertError } = await externalSupabase
             .from('events')
-            .insert(eventRecord);
+            .upsert(eventRecord, { onConflict: 'external_source,external_id', ignoreDuplicates: true });
 
           if (!insertError) {
             result.eventsExtracted++;
