@@ -359,9 +359,9 @@ Deno.serve(async (req) => {
       unmatchedOrganizers: [],
     };
 
-    // Step 1: Fetch all clubs from the database
-    console.log('Fetching clubs from database...');
-    const { data: clubs, error: clubsError } = await supabase
+    // Step 1: Fetch all clubs from the external database
+    console.log('Fetching clubs from external database...');
+    const { data: clubs, error: clubsError } = await externalSupabase
       .from('clubs')
       .select('id, name, handle');
 
