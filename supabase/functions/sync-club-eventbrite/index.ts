@@ -366,8 +366,12 @@ Deno.serve(async (req) => {
       .select('id, name, handle');
 
     if (clubsError) {
-      console.error('Error fetching clubs:', clubsError);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to fetch clubs' }), {
+      console.error('Error fetching clubs:', JSON.stringify(clubsError));
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Failed to fetch clubs',
+        details: clubsError 
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
