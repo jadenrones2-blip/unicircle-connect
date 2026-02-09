@@ -213,6 +213,12 @@ Only include events that are clearly associated with UCSD or UC San Diego studen
         const event = await extractEventFromPage(pageContent, eventUrl, LOVABLE_API_KEY, currentYear);
 
         if (event) {
+          // Skip past events
+          if (!isEventInFuture(event.start_time)) {
+            console.log(`Skipping past event: ${event.title} (${event.start_time})`);
+            continue;
+          }
+
           // Fetch clubs to find matching one
           const { data: clubs } = await externalSupabase
             .from('clubs')
