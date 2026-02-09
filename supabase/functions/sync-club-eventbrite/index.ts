@@ -334,7 +334,7 @@ Deno.serve(async (req) => {
 
     // Step 1: Fetch all clubs from the database
     console.log('Fetching clubs from database...');
-    const { data: clubs, error: clubsError } = await externalSupabase
+    const { data: clubs, error: clubsError } = await supabase
       .from('clubs')
       .select('id, name, handle');
 
