@@ -26,6 +26,18 @@ interface ScrapeResult {
   errors: string[];
 }
 
+// Check if event is in the future (today or later)
+function isEventInFuture(startTime: string): boolean {
+  try {
+    const eventDate = new Date(startTime);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return eventDate >= today;
+  } catch {
+    return false;
+  }
+}
+
 // Normalize external URL
 const normalizeExternalUrl = (value: string): string | null => {
   let v = value.trim();
