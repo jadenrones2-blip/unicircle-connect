@@ -295,8 +295,14 @@ Deno.serve(async (req) => {
   try {
     const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || '';
+    const EXTERNAL_SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
+
+    console.log('Checking environment variables...');
+    console.log('FIRECRAWL_API_KEY configured:', !!FIRECRAWL_API_KEY);
+    console.log('LOVABLE_API_KEY configured:', !!LOVABLE_API_KEY);
+    console.log('EXTERNAL_SUPABASE_URL configured:', !!rawExternalUrl);
+    console.log('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY configured:', !!EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
 
     if (!FIRECRAWL_API_KEY) {
       return new Response(JSON.stringify({ success: false, error: 'FIRECRAWL_API_KEY not configured' }), {
@@ -312,14 +318,35 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      return new Response(JSON.stringify({ success: false, error: 'Supabase credentials not configured' }), {
+    if (!rawExternalUrl || !EXTERNAL_SUPABASE_SERVICE_ROLE_KEY) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'External database not configured',
+        details: {
+          hasUrl: !!rawExternalUrl,
+          hasKey: !!EXTERNAL_SUPABASE_SERVICE_ROLE_KEY
+        }
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    // Normalize the external URL
+    let externalUrl = rawExternalUrl.trim();
+    externalUrl = externalUrl.replace(/\/(auth|rest|functions)\/v1.*$/i, "");
+    externalUrl = externalUrl.replace(/\/+$/, "");
+    if (!externalUrl.startsWith("http://") && !externalUrl.startsWith("https://")) {
+      if (externalUrl.includes(".") || externalUrl.includes("supabase.co")) {
+        externalUrl = `https://${externalUrl}`;
+      } else {
+        externalUrl = `https://${externalUrl}.supabase.co`;
+      }
+    }
+
+    console.log('Using external Supabase URL:', externalUrl);
+
+    const externalSupabase = createClient(externalUrl, EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
 
     console.log('Starting UCSD Eventbrite sync...');
 
@@ -332,15 +359,19 @@ Deno.serve(async (req) => {
       unmatchedOrganizers: [],
     };
 
-    // Step 1: Fetch all clubs from the database
-    console.log('Fetching clubs from database...');
-    const { data: clubs, error: clubsError } = await supabase
+    // Step 1: Fetch all clubs from the external database
+    console.log('Fetching clubs from external database...');
+    const { data: clubs, error: clubsError } = await externalSupabase
       .from('clubs')
-      .select('id, name, handle');
+      .select('id, name');
 
     if (clubsError) {
-      console.error('Error fetching clubs:', clubsError);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to fetch clubs' }), {
+      console.error('Error fetching clubs:', JSON.stringify(clubsError));
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Failed to fetch clubs',
+        details: clubsError 
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -349,7 +380,7 @@ Deno.serve(async (req) => {
     console.log(`Loaded ${clubs?.length || 0} clubs from database`);
 
     // Build a lookup map for exact matching
-    const clubNameMap = new Map<string, { id: string; name: string; handle: string }>();
+    const clubNameMap = new Map<string, { id: string; name: string }>();
     for (const club of clubs || []) {
       // Store both original and normalized versions
       clubNameMap.set(club.name.toLowerCase(), club);
@@ -405,7 +436,7 @@ Deno.serve(async (req) => {
         console.log(`Matched "${event.organizer_name}" to club "${matchedClub.name}" (${matchedClub.id})`);
 
         // Check if event already exists
-        const { data: existing } = await supabase
+        const { data: existing } = await externalSupabase
           .from('events')
           .select('id')
           .eq('external_source', 'eventbrite')
@@ -421,7 +452,7 @@ Deno.serve(async (req) => {
           source_url: event.event_url,
           image_url: event.image_url || null,
           club_id: matchedClub.id,
-          club_handle: matchedClub.handle || matchedClub.id,
+          club_handle: matchedClub.id,
           external_source: 'eventbrite',
           external_id: event.external_id,
           source: 'eventbrite',
@@ -431,7 +462,7 @@ Deno.serve(async (req) => {
 
         if (existing) {
           // Update existing event
-          const { error: updateError } = await supabase
+          const { error: updateError } = await externalSupabase
             .from('events')
             .update(eventRecord)
             .eq('id', existing.id);
@@ -444,7 +475,7 @@ Deno.serve(async (req) => {
           }
         } else {
           // Insert new event
-          const { error: insertError } = await supabase
+          const { error: insertError } = await externalSupabase
             .from('events')
             .insert(eventRecord);
 
