@@ -452,7 +452,7 @@ Deno.serve(async (req) => {
           source_url: event.event_url,
           image_url: event.image_url || null,
           club_id: matchedClub.id,
-          club_handle: matchedClub.handle || matchedClub.id,
+          club_handle: matchedClub.id,
           external_source: 'eventbrite',
           external_id: event.external_id,
           source: 'eventbrite',
