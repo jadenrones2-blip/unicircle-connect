@@ -103,7 +103,27 @@ export default function AdminEvents() {
       }
 
       const result = await response.json();
-      setEvents(result.data || []);
+      const allEvents: ExternalEvent[] = result.data || [];
+
+      // Filter out past events
+      const now = new Date();
+      const futureEvents = allEvents.filter((e) => {
+        const start = new Date(e.corrected_start_time || e.start_time);
+        return start >= now;
+      });
+
+      // Deduplicate by normalized title + start_time
+      const seen = new Set<string>();
+      const uniqueEvents = futureEvents.filter((event) => {
+        const title = (event.corrected_title || event.title || '').trim().toLowerCase();
+        const startTime = (event.corrected_start_time || event.start_time || '').split('.')[0];
+        const key = `${title}|${startTime}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      setEvents(uniqueEvents);
     } catch (err) {
       console.error('Error fetching unverified events:', err);
       toast.error('Failed to load review queue');
