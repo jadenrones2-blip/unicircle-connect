@@ -388,6 +388,48 @@ export type Database = {
         }
         Relationships: []
       }
+      event_sources: {
+        Row: {
+          created_at: string
+          events_synced: number | null
+          id: string
+          is_enabled: boolean
+          label: string | null
+          last_synced_at: string | null
+          source_type: Database["public"]["Enums"]["event_source_type"]
+          source_url: string
+          sync_error: string | null
+          sync_status: Database["public"]["Enums"]["sync_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          events_synced?: number | null
+          id?: string
+          is_enabled?: boolean
+          label?: string | null
+          last_synced_at?: string | null
+          source_type: Database["public"]["Enums"]["event_source_type"]
+          source_url: string
+          sync_error?: string | null
+          sync_status?: Database["public"]["Enums"]["sync_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          events_synced?: number | null
+          id?: string
+          is_enabled?: boolean
+          label?: string | null
+          last_synced_at?: string | null
+          source_type?: Database["public"]["Enums"]["event_source_type"]
+          source_url?: string
+          sync_error?: string | null
+          sync_status?: Database["public"]["Enums"]["sync_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       new_club_requests: {
         Row: {
           additional_notes: string | null
@@ -625,6 +667,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       waitlist: {
         Row: {
           created_at: string
@@ -649,8 +712,18 @@ export type Database = {
     }
     Functions: {
       get_user_email: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
+      event_source_type: "ucsd_calendar" | "eventbrite_organizer" | "manual"
+      sync_status: "idle" | "syncing" | "success" | "error"
       trust_level: "high" | "medium" | "low"
       verification_state:
         | "unverified"
@@ -784,6 +857,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
+      event_source_type: ["ucsd_calendar", "eventbrite_organizer", "manual"],
+      sync_status: ["idle", "syncing", "success", "error"],
       trust_level: ["high", "medium", "low"],
       verification_state: [
         "unverified",
