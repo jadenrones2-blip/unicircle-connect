@@ -112,14 +112,13 @@ export default function AdminEvents() {
         return start >= now;
       });
 
-      // Deduplicate by normalized title + start_time
+      // Deduplicate by normalized title (same event scraped multiple times)
       const seen = new Set<string>();
       const uniqueEvents = futureEvents.filter((event) => {
         const title = (event.corrected_title || event.title || '').trim().toLowerCase();
-        const startTime = (event.corrected_start_time || event.start_time || '').split('.')[0];
-        const key = `${title}|${startTime}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
+        if (!title) return true; // keep events without titles
+        if (seen.has(title)) return false;
+        seen.add(title);
         return true;
       });
 
