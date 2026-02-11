@@ -69,7 +69,7 @@ export default function ClubsCalendar() {
         location: event.corrected_location || event.location,
       }));
       
-      setRawEvents(processedEvents);
+      // setRawEvents moved to after dedup below
       
       // Helper to check if text is JSON error data
       const isErrorData = (text: string | null): boolean => {
@@ -85,7 +85,19 @@ export default function ClubsCalendar() {
         return event.title;
       };
       
-      const formattedEvents: CalendarEvent[] = processedEvents.map((event) => ({
+      // Deduplicate by normalized title
+      const seen = new Set<string>();
+      const dedupedEvents = processedEvents.filter((event) => {
+        const title = (event.title || '').trim().toLowerCase();
+        if (!title) return true;
+        if (seen.has(title)) return false;
+        seen.add(title);
+        return true;
+      });
+
+      setRawEvents(dedupedEvents);
+
+      const formattedEvents: CalendarEvent[] = dedupedEvents.map((event) => ({
         id: event.id,
         title: getDisplayTitle(event),
         start: event.start_time,
