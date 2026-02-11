@@ -82,7 +82,7 @@ export function useClubMemberships() {
       // Get user's profile for name info
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('display_name, email')
+        .select('display_name')
         .eq('user_id', userId)
         .maybeSingle();
 
