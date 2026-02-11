@@ -545,6 +545,71 @@ serve(async (req) => {
       );
     }
 
+    // ============ ADMIN DELETE (POST) ============
+    // Allows admins to reject/delete events without club ownership
+    if (req.method === "POST" && action === "admin-delete") {
+      const body = _parsedBody || await req.json();
+
+      if (!body.id) {
+        return new Response(
+          JSON.stringify({ error: "Event ID is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (table !== "events") {
+        return new Response(
+          JSON.stringify({ error: "Admin delete is only allowed for events" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: "Authentication required" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: hasAdmin } = await internalSupabase.rpc('has_role', {
+        _user_id: userId,
+        _role: 'admin',
+      });
+
+      if (!hasAdmin) {
+        return new Response(
+          JSON.stringify({ error: "Admin access required" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error } = await externalSupabase
+        .from("events")
+        .delete()
+        .eq("id", body.id);
+
+      if (error) {
+        console.error("Error in admin delete:", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to delete event" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      await logAuditEvent(internalSupabase, {
+        club_id: 'admin-review',
+        actor_user_id: userId,
+        action: 'events_admin_delete',
+        details: { event_id: body.id, reason: body.reason || 'rejected' },
+        ip_address: ipAddress,
+      });
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // ============ UPDATE (POST) ============
     if (req.method === "POST" && action === "update") {
       const body = _parsedBody || await req.json();
