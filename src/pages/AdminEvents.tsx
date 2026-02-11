@@ -186,17 +186,25 @@ export default function AdminEvents() {
     }
 
     // Use edge function for update
-    const { data: response, error } = await supabase.functions.invoke('external-db-proxy', {
-      body: {
-        table: 'events',
-        action: 'update',
-        id: editingEvent.id,
-        record: updates,
-      },
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=admin-review`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          id: editingEvent.id,
+          record: updates,
+        }),
+      }
+    );
 
-    if (error || response?.error) {
-      console.error('Error approving event:', error);
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}));
+      console.error('Error approving event:', result);
       toast.error('Failed to approve event');
     } else {
       toast.success('Event approved and will now appear on calendar!');

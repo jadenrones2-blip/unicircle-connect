@@ -262,8 +262,23 @@ serve(async (req) => {
     const { userId, userEmail } = await extractUserFromAuth(req, internalUrl, internalAnonKey);
 
     const url = new URL(req.url);
-    const table = url.searchParams.get("table");
-    const action = url.searchParams.get("action") || "select";
+    
+    // Support table/action from URL params (GET requests, frontend fetch) 
+    // or from request body (supabase.functions.invoke calls)
+    let table = url.searchParams.get("table");
+    let action = url.searchParams.get("action") || "select";
+    
+    // For POST requests, peek at body to extract table/action if not in URL
+    let _parsedBody: Record<string, unknown> | null = null;
+    if (req.method === "POST" && !table) {
+      try {
+        _parsedBody = await req.json();
+        if (_parsedBody?.table) table = String(_parsedBody.table);
+        if (_parsedBody?.action) action = String(_parsedBody.action);
+      } catch {
+        // Body parsing failed, will fall through to table validation
+      }
+    }
 
     if (!table) {
       return new Response(
@@ -350,7 +365,7 @@ serve(async (req) => {
 
     // ============ INSERT (POST) ============
     if (req.method === "POST" && action === "insert") {
-      const body = await req.json();
+      const body = _parsedBody || await req.json();
       
       if (!body.record) {
         return new Response(
@@ -450,8 +465,89 @@ serve(async (req) => {
     }
 
     // ============ UPDATE (POST) ============
+    // ============ ADMIN REVIEW (POST) ============
+    // Bypasses club-ownership checks but requires admin role
+    if (req.method === "POST" && action === "admin-review") {
+      const body = _parsedBody || await req.json();
+      
+      if (!body.id || !body.record) {
+        return new Response(
+          JSON.stringify({ error: "ID and record data are required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (table !== "events") {
+        return new Response(
+          JSON.stringify({ error: "Admin review is only allowed for events" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Require authentication
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: "Authentication required" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Verify admin role
+      const { data: hasAdmin } = await internalSupabase.rpc('has_role', {
+        _user_id: userId,
+        _role: 'admin',
+      });
+
+      if (!hasAdmin) {
+        console.warn(`Non-admin user ${userId} attempted admin-review`);
+        return new Response(
+          JSON.stringify({ error: "Admin access required" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Only allow review-safe fields
+      const allowedFields = ['verified', 'reviewed_at', 'corrected_title', 'corrected_start_time', 'corrected_end_time', 'corrected_location'];
+      const safeRecord: Record<string, unknown> = {};
+      for (const key of allowedFields) {
+        if (key in body.record) {
+          safeRecord[key] = body.record[key];
+        }
+      }
+
+      console.log(`Admin review event id=${body.id}:`, safeRecord);
+
+      const { data, error } = await externalSupabase
+        .from("events")
+        .update(safeRecord)
+        .eq("id", body.id)
+        .select();
+
+      if (error) {
+        console.error("Error in admin review:", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to update event" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      await logAuditEvent(internalSupabase, {
+        club_id: 'admin-review',
+        actor_user_id: userId,
+        action: 'events_admin_review',
+        details: { event_id: body.id, updated_fields: Object.keys(safeRecord) },
+        ip_address: ipAddress,
+      });
+
+      return new Response(
+        JSON.stringify({ data }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ============ UPDATE (POST) ============
     if (req.method === "POST" && action === "update") {
-      const body = await req.json();
+      const body = _parsedBody || await req.json();
       
       if (!body.id || !body.record) {
         return new Response(
