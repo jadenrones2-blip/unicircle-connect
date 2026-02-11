@@ -643,6 +643,30 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_clubs: {
+        Row: {
+          club_id: string
+          club_name: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          club_id: string
+          club_name: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          club_id?: string
+          club_name?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_interests: {
         Row: {
           created_at: string

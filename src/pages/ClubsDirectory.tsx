@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from "react";
+import { useEffect, useDeferredValue, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Search, X, AlertCircle, LayoutGrid, List, Shield, ChevronRight, Sparkles, Plus } from "lucide-react";
 import Header from "@/components/Header";
@@ -18,6 +18,9 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useClubs } from "@/hooks/useExternalDB";
+import { useAuth } from "@/hooks/useAuth";
+import { useSavedClubs } from "@/hooks/useSavedClubs";
+import { toast } from "sonner";
 
 const CATEGORY_OPTIONS = [
   "All",
@@ -52,6 +55,27 @@ const ClubsDirectory = () => {
   const [showClaimInfo, setShowClaimInfo] = useState(true);
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
+  const { user } = useAuth();
+  const { savedClubs, fetchSavedClubs, saveClub, unsaveClub, isSaved } = useSavedClubs();
+
+  useEffect(() => {
+    if (user) fetchSavedClubs(user.id);
+  }, [user, fetchSavedClubs]);
+
+  const handleToggleSave = async (clubId: string) => {
+    if (!user) {
+      toast.error('Please log in to save clubs');
+      return;
+    }
+    const club = clubs.find((c) => c.id === clubId);
+    if (isSaved(clubId)) {
+      const r = await unsaveClub(user.id, clubId);
+      if (r.success) toast.success('Club unsaved');
+    } else {
+      const r = await saveClub(user.id, clubId, club?.name || '');
+      if (r.success) toast.success('Club saved!');
+    }
+  };
 
   // Precompute normalized search/category keys once per dataset refresh
   const indexedClubs = useMemo(() => {
@@ -311,7 +335,7 @@ const ClubsDirectory = () => {
                 ) : (
                   <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredClubs.map((club) => (
-                      <ClubCard key={club.id} club={club} />
+                      <ClubCard key={club.id} club={club} isSaved={isSaved(club.id)} onToggleSave={handleToggleSave} />
                     ))}
                   </div>
                 )
