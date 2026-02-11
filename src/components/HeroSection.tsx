@@ -17,6 +17,17 @@ const HeroSection = () => {
 
       <div className="container mx-auto px-5 sm:px-6 flex-1 flex items-center">
         <div className="max-w-4xl mx-auto text-center">
+          {/* Beta badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold/10 border border-gold/20 mb-5"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
+            <span className="text-xs font-medium text-gold tracking-wide uppercase">Beta</span>
+          </motion.div>
+
           {/* Main headline - bold black */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
