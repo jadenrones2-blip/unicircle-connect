@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
@@ -7,7 +7,6 @@ import {
   MapPin, 
   Clock, 
   Share2, 
-  Heart,
   ExternalLink,
   Loader2,
   Shield,
@@ -19,21 +18,29 @@ import {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClaimClubModal from "@/components/ClaimClubModal";
+import SaveClubButton from "@/components/SaveClubButton";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClubs, useEvents } from "@/hooks/useExternalDB";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
+import { useAuth } from "@/hooks/useAuth";
+import { useSavedClubs } from "@/hooks/useSavedClubs";
 
 const ClubDetail = () => {
   const { id } = useParams();
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+  const { user } = useAuth();
+  const { savedClubs, fetchSavedClubs, saveClub, unsaveClub, isSaved } = useSavedClubs();
 
   const { data: clubs, loading: clubsLoading } = useClubs();
   const { data: events, loading: eventsLoading } = useEvents(clubs);
   const { isOwnerOf, loading: ownershipLoading } = useClubOwnership();
+
+  useEffect(() => {
+    if (user) fetchSavedClubs(user.id);
+  }, [user, fetchSavedClubs]);
 
   const club = useMemo(() => clubs.find(c => c.id === id), [clubs, id]);
   const clubEvents = useMemo(() => events.filter(e => e.clubId === id), [events, id]);
@@ -204,15 +211,14 @@ const ClubDetail = () => {
                   Express Interest
                 </Button>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="lg" 
-                    className="flex-1"
-                    onClick={() => setIsSaved(!isSaved)}
-                  >
-                    <Heart className={`w-4 h-4 mr-2 ${isSaved ? "fill-red-500 text-red-500" : ""}`} />
-                    {isSaved ? "Saved" : "Save"}
-                  </Button>
+                  <SaveClubButton
+                    clubId={club.id}
+                    clubName={club.name}
+                    isSaved={isSaved(club.id)}
+                    onSave={saveClub}
+                    onUnsave={unsaveClub}
+                    variant="button"
+                  />
                   <Button variant="outline" size="lg">
                     <Share2 className="w-4 h-4" />
                   </Button>

@@ -1,13 +1,15 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Club, RecruitingStatus } from "@/data/mockData";
 
 interface ClubCardProps {
   club: Club;
+  isSaved?: boolean;
+  onToggleSave?: (clubId: string) => void;
 }
 
 const getStatusStyles = (status: RecruitingStatus) => {
@@ -40,7 +42,7 @@ const isGreekOrg = (club: Club): boolean => {
          searchText.includes('sorority');
 };
 
-const ClubCardComponent = ({ club }: ClubCardProps) => {
+const ClubCardComponent = ({ club, isSaved, onToggleSave }: ClubCardProps) => {
   const showGreekTag = isGreekOrg(club);
   
   return (
@@ -70,15 +72,26 @@ const ClubCardComponent = ({ club }: ClubCardProps) => {
             </Badge>
           )}
         </div>
-        {/* Only show Open/Upcoming status, hide Closed */}
-        {club.recruitingStatus !== "closed" && (
-          <Badge
-            variant="outline"
-            className={`flex-shrink-0 text-xs ${getStatusStyles(club.recruitingStatus)}`}
-          >
-            {getStatusLabel(club.recruitingStatus)}
-          </Badge>
-        )}
+        <div className="flex items-center gap-1">
+          {onToggleSave && (
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSave(club.id); }}
+              className="p-1.5 rounded-full hover:bg-muted transition-colors"
+              title={isSaved ? "Unsave" : "Save"}
+            >
+              <Heart className={`w-4 h-4 transition-colors ${isSaved ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'}`} />
+            </button>
+          )}
+          {/* Only show Open/Upcoming status, hide Closed */}
+          {club.recruitingStatus !== "closed" && (
+            <Badge
+              variant="outline"
+              className={`flex-shrink-0 text-xs ${getStatusStyles(club.recruitingStatus)}`}
+            >
+              {getStatusLabel(club.recruitingStatus)}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Title */}

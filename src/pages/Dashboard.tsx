@@ -11,6 +11,7 @@ import {
   Loader2,
   FileText,
   UserCircle,
+  Heart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,10 +19,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
 import { useClubs } from '@/hooks/useExternalDB';
 import { useClubMemberships } from '@/hooks/useClubMemberships';
+import { useSavedClubs } from '@/hooks/useSavedClubs';
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
 import MyClubsSection from '@/components/dashboard/MyClubsSection';
 import ApplicationsSection from '@/components/dashboard/ApplicationsSection';
+import SavedClubsSection from '@/components/dashboard/SavedClubsSection';
 import RecommendedClubCard from '@/components/dashboard/RecommendedClubCard';
 import RecruitmentTrackerSection from '@/components/dashboard/RecruitmentTrackerSection';
 import type { Club } from '@/data/mockData';
@@ -129,6 +132,14 @@ export default function Dashboard() {
     hasApplied,
     isMember,
   } = useClubMemberships();
+  const {
+    savedClubs,
+    loading: savedLoading,
+    fetchSavedClubs,
+    saveClub,
+    unsaveClub,
+    isSaved: isClubSaved,
+  } = useSavedClubs();
   
   const [interests, setInterests] = useState<{ category: string; value: string }[]>([]);
   const [interestsLoading, setInterestsLoading] = useState(true);
@@ -147,6 +158,7 @@ export default function Dashboard() {
         fetchInterests(user.id),
         fetchMemberships(user.id),
         fetchApplications(user.id),
+        fetchSavedClubs(user.id),
       ]).then(([interestsData]) => {
         setInterests(
           interestsData.map((i) => ({ category: i.interest_category, value: i.interest_value }))
@@ -154,7 +166,7 @@ export default function Dashboard() {
         setInterestsLoading(false);
       });
     }
-  }, [user, fetchInterests, fetchMemberships, fetchApplications]);
+  }, [user, fetchInterests, fetchMemberships, fetchApplications, fetchSavedClubs]);
 
   const recommendedClubs = useMemo(() => {
     if (!clubs.length || !interests.length) return [];
@@ -169,6 +181,66 @@ export default function Dashboard() {
       .sort((a, b) => b.score - a.score)
       .slice(0, 12);
   }, [clubs, interests]);
+
+  // Recommendations based on saved clubs' categories + user interests
+  const savedClubRecommendations = useMemo(() => {
+    if (!clubs.length || !savedClubs.length) return [];
+
+    const savedIds = new Set(savedClubs.map((s) => s.club_id));
+    const savedClubObjects = clubs.filter((c) => savedIds.has(c.id));
+
+    // Collect categories and tags from saved clubs
+    const categorySet = new Set<string>();
+    savedClubObjects.forEach((club) => {
+      if (club.category) categorySet.add(club.category.toLowerCase());
+      if (club.categoryBucket) categorySet.add(club.categoryBucket.toLowerCase());
+      club.tags?.forEach((t) => { if (t) categorySet.add(t.toLowerCase()); });
+    });
+
+    // Also include user interest keywords
+    const interestTerms = new Set<string>();
+    interests.forEach(({ value }) => {
+      const mappedTerms = interestToClubMapping[value] || [value];
+      mappedTerms.forEach((t) => interestTerms.add(t.toLowerCase()));
+    });
+
+    // Score unsaved clubs by overlap with saved club categories + interest terms
+    const scored = clubs
+      .filter((c) => !savedIds.has(c.id))
+      .map((club) => {
+        const clubText = [club.category, club.categoryBucket, club.description, ...(club.tags || [])]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        
+        let score = 0;
+        const matchedCategories: string[] = [];
+
+        categorySet.forEach((cat) => {
+          if (clubText.includes(cat)) {
+            score += 2; // Saved club category match is stronger
+            matchedCategories.push(cat);
+          }
+        });
+
+        interestTerms.forEach((term) => {
+          if (clubText.includes(term)) score += 1;
+        });
+
+        return { club, score, matchedCategories };
+      })
+      .filter((c) => c.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+
+    return scored;
+  }, [clubs, savedClubs, interests]);
+
+  const handleUnsaveFromDashboard = async (clubId: string) => {
+    if (!user) return;
+    const result = await unsaveClub(user.id, clubId);
+    if (result.success) toast.success('Club unsaved');
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -287,6 +359,10 @@ export default function Dashboard() {
               <FileText className="h-4 w-4" />
               Applications ({applications.filter(a => a.status !== 'withdrawn').length})
             </TabsTrigger>
+            <TabsTrigger value="saved" className="gap-2">
+              <Heart className="h-4 w-4" />
+              Saved ({savedClubs.length})
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="my-clubs">
@@ -300,6 +376,15 @@ export default function Dashboard() {
             <ApplicationsSection 
               applications={applications} 
               onWithdraw={handleWithdraw}
+            />
+          </TabsContent>
+
+          <TabsContent value="saved">
+            <SavedClubsSection
+              savedClubIds={savedClubs.map((s) => s.club_id)}
+              clubs={clubs}
+              recommendedClubs={savedClubRecommendations}
+              onUnsave={handleUnsaveFromDashboard}
             />
           </TabsContent>
         </Tabs>
