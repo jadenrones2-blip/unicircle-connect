@@ -27,6 +27,7 @@ import ApplicationsSection from '@/components/dashboard/ApplicationsSection';
 import SavedClubsSection from '@/components/dashboard/SavedClubsSection';
 import RecommendedClubCard from '@/components/dashboard/RecommendedClubCard';
 import RecruitmentTrackerSection from '@/components/dashboard/RecruitmentTrackerSection';
+import { getRecommendationsFromSaved, extractClubKeywords } from '@/lib/clubRecommendations';
 import type { Club } from '@/data/mockData';
 
 // Mapping from quiz answers to club categories/tags
@@ -91,24 +92,22 @@ const interestToClubMapping: Record<string, string[]> = {
   collaborative: ['Community', 'Team', 'Collaborative'],
 };
 
-function calculateMatchScore(club: Club, interests: { category: string; value: string }[]): number {
+function calculateMatchScore(club: Club, interests: { category: string; value: string }[], clubKeywords: Set<string>): number {
   let score = 0;
-  const clubText = [
-    club.name,
-    club.category,
-    club.categoryBucket,
-    club.description,
-    ...(club.tags || []),
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
+  const clubText = [club.name, club.category, club.categoryBucket, club.description, ...(club.tags || [])]
+    .filter(Boolean).join(' ').toLowerCase();
 
   interests.forEach(({ value }) => {
     const matchTerms = interestToClubMapping[value] || [value];
     matchTerms.forEach((term) => {
       if (clubText.includes(term.toLowerCase())) {
         score += 1;
+      }
+    });
+    // Bonus: cluster-level match
+    matchTerms.forEach((term) => {
+      if (clubKeywords.has(term.toLowerCase())) {
+        score += 0.5;
       }
     });
   });
@@ -171,10 +170,13 @@ export default function Dashboard() {
   const recommendedClubs = useMemo(() => {
     if (!clubs.length || !interests.length) return [];
 
-    const scoredClubs = clubs.map((club) => ({
-      club,
-      score: calculateMatchScore(club, interests),
-    }));
+    const scoredClubs = clubs.map((club) => {
+      const clubKeywords = extractClubKeywords(club);
+      return {
+        club,
+        score: calculateMatchScore(club, interests, clubKeywords),
+      };
+    });
 
     return scoredClubs
       .filter((c) => c.score > 0)
@@ -185,55 +187,8 @@ export default function Dashboard() {
   // Recommendations based on saved clubs' categories + user interests
   const savedClubRecommendations = useMemo(() => {
     if (!clubs.length || !savedClubs.length) return [];
-
     const savedIds = new Set(savedClubs.map((s) => s.club_id));
-    const savedClubObjects = clubs.filter((c) => savedIds.has(c.id));
-
-    // Collect categories and tags from saved clubs
-    const categorySet = new Set<string>();
-    savedClubObjects.forEach((club) => {
-      if (club.category) categorySet.add(club.category.toLowerCase());
-      if (club.categoryBucket) categorySet.add(club.categoryBucket.toLowerCase());
-      club.tags?.forEach((t) => { if (t) categorySet.add(t.toLowerCase()); });
-    });
-
-    // Also include user interest keywords
-    const interestTerms = new Set<string>();
-    interests.forEach(({ value }) => {
-      const mappedTerms = interestToClubMapping[value] || [value];
-      mappedTerms.forEach((t) => interestTerms.add(t.toLowerCase()));
-    });
-
-    // Score unsaved clubs by overlap with saved club categories + interest terms
-    const scored = clubs
-      .filter((c) => !savedIds.has(c.id))
-      .map((club) => {
-        const clubText = [club.category, club.categoryBucket, club.description, ...(club.tags || [])]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-        
-        let score = 0;
-        const matchedCategories: string[] = [];
-
-        categorySet.forEach((cat) => {
-          if (clubText.includes(cat)) {
-            score += 2; // Saved club category match is stronger
-            matchedCategories.push(cat);
-          }
-        });
-
-        interestTerms.forEach((term) => {
-          if (clubText.includes(term)) score += 1;
-        });
-
-        return { club, score, matchedCategories };
-      })
-      .filter((c) => c.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 6);
-
-    return scored;
+    return getRecommendationsFromSaved(clubs, savedIds, interests, interestToClubMapping, 9);
   }, [clubs, savedClubs, interests]);
 
   const handleUnsaveFromDashboard = async (clubId: string) => {
