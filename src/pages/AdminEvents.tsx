@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Check, ExternalLink, RefreshCw, X, Zap } from 'lucide-react';
+import { Loader2, Check, ExternalLink, RefreshCw, X, Zap, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -45,6 +45,7 @@ export default function AdminEvents() {
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState<EditingEvent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
   const [scraping, setScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<{
     clubsProcessed: number;
@@ -234,6 +235,36 @@ export default function AdminEvents() {
     }
     
     setSaving(false);
+  };
+
+  const handleReject = async () => {
+    if (!editingEvent) return;
+    
+    setRejecting(true);
+    
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=admin-delete`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({ id: editingEvent.id, reason: 'rejected' }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Error rejecting event:', await response.json().catch(() => ({})));
+      toast.error('Failed to reject event');
+    } else {
+      toast.success('Event rejected and removed');
+      setEditingEvent(null);
+      fetchUnverifiedEvents();
+    }
+    
+    setRejecting(false);
   };
 
   const formatDateTime = (dateString: string | null) => {
@@ -504,19 +535,29 @@ export default function AdminEvents() {
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-border">
-                <Button variant="outline" onClick={() => setEditingEvent(null)} disabled={saving}>
-                  <X className="w-4 h-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button variant="gold" onClick={handleApprove} disabled={saving}>
-                  {saving ? (
+              <div className="flex justify-between pt-4 border-t border-border">
+                <Button variant="destructive" onClick={handleReject} disabled={saving || rejecting}>
+                  {rejecting ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <Check className="w-4 h-4 mr-2" />
+                    <Trash2 className="w-4 h-4 mr-2" />
                   )}
-                  Approve
+                  Reject
                 </Button>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={() => setEditingEvent(null)} disabled={saving || rejecting}>
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                  <Button variant="gold" onClick={handleApprove} disabled={saving || rejecting}>
+                    {saving ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4 mr-2" />
+                    )}
+                    Approve
+                  </Button>
+                </div>
               </div>
             </div>
           )}
