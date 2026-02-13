@@ -1,7 +1,24 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
-import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+// Use Web Crypto API for hashing (bcrypt Worker not available in edge runtime)
+async function sha256Hash(input: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hashToken(token: string): Promise<string> {
+  // Add a salt prefix for defense in depth
+  return sha256Hash('unicircle-claim-salt:' + token);
+}
+
+async function compareToken(rawToken: string, storedHash: string): Promise<boolean> {
+  const hash = await hashToken(rawToken);
+  return hash === storedHash;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -441,7 +458,7 @@ const handler = async (req: Request): Promise<Response> => {
       const tokenExpiry = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
       
       // Hash the token before storing (defense in depth)
-      const hashedToken = await bcrypt.hash(rawToken);
+      const hashedToken = await hashToken(rawToken);
 
       // Create claim request with hashed token, user_id, and trust info
       const { data: claim, error: insertError } = await supabase
@@ -551,7 +568,7 @@ const handler = async (req: Request): Promise<Response> => {
       let claim = null;
       for (const pendingClaim of pendingClaims || []) {
         try {
-          const isMatch = await bcrypt.compare(token, pendingClaim.verification_token);
+          const isMatch = await compareToken(token, pendingClaim.verification_token);
           if (isMatch) {
             claim = pendingClaim;
             break;
