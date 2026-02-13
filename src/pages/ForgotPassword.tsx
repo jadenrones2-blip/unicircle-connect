@@ -5,7 +5,7 @@ import { Mail, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabasePkce } from '@/lib/supabasePkce';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
 
@@ -27,7 +27,7 @@ export default function ForgotPassword() {
     setEmail(emailToSend);
     setLoading(true);
     try {
-      const { error } = await supabasePkce.auth.resetPasswordForEmail(emailToSend, {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailToSend, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
