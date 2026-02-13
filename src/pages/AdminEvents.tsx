@@ -51,6 +51,7 @@ export default function AdminEvents() {
     clubsProcessed: number;
     postsFetched: number;
     eventsExtracted: number;
+    clubBreakdown?: Record<string, number>;
   } | null>(null);
 
   const handleScrapeInstagram = async () => {
@@ -71,6 +72,7 @@ export default function AdminEvents() {
           clubsProcessed: data.clubsSearched || 0,
           postsFetched: 0,
           eventsExtracted: data.eventsExtracted || 0,
+          clubBreakdown: data.clubBreakdown || undefined,
         });
         toast.success(`Found ${data.eventsExtracted || 0} events from web search`);
         fetchUnverifiedEvents();
@@ -332,21 +334,32 @@ export default function AdminEvents() {
           </div>
 
           {scrapeResult && (
-            <div className="premium-card p-4 mb-6 border-gold/30">
+            <div className="premium-card p-4 mb-6 border-gold/30 space-y-3">
               <div className="flex items-center gap-6 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Clubs Processed:</span>{' '}
+                  <span className="text-muted-foreground">Clubs Searched:</span>{' '}
                   <span className="font-semibold text-foreground">{scrapeResult.clubsProcessed}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Posts Fetched:</span>{' '}
-                  <span className="font-semibold text-foreground">{scrapeResult.postsFetched}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Events Extracted:</span>{' '}
                   <span className="font-semibold text-gold">{scrapeResult.eventsExtracted}</span>
                 </div>
               </div>
+              {scrapeResult.clubBreakdown && Object.keys(scrapeResult.clubBreakdown).length > 0 && (
+                <div className="border-t border-border pt-3">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Events by Club</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(scrapeResult.clubBreakdown)
+                      .sort(([, a], [, b]) => b - a)
+                      .map(([club, count]) => (
+                        <span key={club} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold/10 text-sm">
+                          <span className="text-foreground font-medium">{club}</span>
+                          <span className="text-gold font-semibold">{count}</span>
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

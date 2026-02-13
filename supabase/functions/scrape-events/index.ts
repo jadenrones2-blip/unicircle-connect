@@ -100,11 +100,12 @@ Deno.serve(async (req) => {
 
     console.log(`Found ${cleanClubs.length} clubs to search for events`);
 
-    const result: ScrapeResult = {
+    const result: ScrapeResult & { clubBreakdown?: Record<string, number> } = {
       clubsSearched: 0,
       eventsExtracted: 0,
       errors: [],
     };
+    const clubBreakdown: Record<string, number> = {};
 
     // Get current date for search context
     const today = new Date();
@@ -221,6 +222,8 @@ I need specific event details: event name, exact date and time, location on camp
           result.errors.push(`Failed to insert: ${event.title}`);
         } else {
           result.eventsExtracted++;
+          const clubLabel = matchingClub?.name || event.club_name || 'Unknown';
+          clubBreakdown[clubLabel] = (clubBreakdown[clubLabel] || 0) + 1;
         }
       } catch (eventError) {
         console.error('Error processing event:', eventError);
@@ -229,6 +232,8 @@ I need specific event details: event name, exact date and time, location on camp
     }
 
     console.log('Scrape complete:', result);
+
+    result.clubBreakdown = clubBreakdown;
 
     return new Response(JSON.stringify({
       success: true,
