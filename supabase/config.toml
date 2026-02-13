@@ -36,5 +36,3 @@ verify_jwt = false
 [functions.scrape-instagram]
 verify_jwt = false
 
-[functions.scrape-discord]
-verify_jwt = false
