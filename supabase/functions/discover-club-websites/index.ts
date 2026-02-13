@@ -129,8 +129,64 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const limit = body.limit || 20;
     const dryRun = body.dryRun || false;
-
+    const cleanup = body.cleanup || false;
     const offset = body.offset || 0;
+
+    // ============ CLEANUP MODE ============
+    if (cleanup) {
+      console.log('Running cleanup of bad website URLs...');
+      const BAD_DOMAINS = [
+        'issuu.com', 'ucsdguardian.org', 'wixsite.com', 'asucsd.wixsite.com',
+        'yelp.com', 'wikipedia.org', 'wiktionary.org', 'google.com', 'amazon.com',
+        'goodreads.com', 'imdb.com', 'nytimes.com', 'cnn.com', 'medium.com',
+        'substack.com', 'change.org', 'gofundme.com', 'glassdoor.com', 'indeed.com',
+        'campuslabs.com', 'engage.ucsd.edu', 'getinvolved.ucsd.edu', 'thegivingblock.com',
+        'escholarship.org', 'discoriot.org', 'jhandtherapy.org', 'zotspot.uci.edu',
+        'instagram.com', 'facebook.com', 'twitter.com', 'x.com', 'tiktok.com',
+        'linkedin.com', 'youtube.com', 'discord.gg', 'discord.com', 'linktr.ee',
+        'reddit.com', 'pinterest.com', 'snapchat.com', 'twitch.tv', 'github.com',
+        'studentorg.ucsd.edu', 'ucsd.edu', 'students.ucsd.edu', 'blink.ucsd.edu',
+        'tritonlink.ucsd.edu', 'eventbrite.com', 'meetup.com', 'luma.com', 'lu.ma',
+        'play.google.com', 'apple.com',
+      ];
+
+      // Fetch all clubs with websites
+      const { data: clubsWithSites, error: fetchErr } = await externalSupabase
+        .from('clubs')
+        .select('id, name, website')
+        .not('website', 'is', null)
+        .limit(1000);
+
+      if (fetchErr) throw new Error(`Fetch error: ${fetchErr.message}`);
+
+      const toClean: Array<{ id: string; name: string; website: string }> = [];
+      for (const club of (clubsWithSites || [])) {
+        if (!club.website) continue;
+        try {
+          const hostname = new URL(club.website).hostname.toLowerCase();
+          if (BAD_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d))) {
+            toClean.push(club);
+          }
+        } catch {
+          toClean.push(club); // Malformed URL, clean it too
+        }
+      }
+
+      console.log(`Found ${toClean.length} clubs with bad website URLs`);
+
+      if (!dryRun) {
+        for (const club of toClean) {
+          await externalSupabase.from('clubs').update({ website: null }).eq('id', club.id);
+        }
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        cleaned: toClean.length,
+        dryRun,
+        clubs: toClean.map(c => ({ name: c.name, badUrl: c.website })),
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
 
     console.log(`Discovering club websites (limit: ${limit}, offset: ${offset}, dryRun: ${dryRun})`);
 
