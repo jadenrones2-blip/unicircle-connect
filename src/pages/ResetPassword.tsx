@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { supabasePkce } from '@/lib/supabasePkce';
+
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
 
@@ -64,21 +64,18 @@ export default function ResetPassword() {
       const hashParams = new URLSearchParams(hash);
       const searchParams = new URLSearchParams(window.location.search);
 
-      // 1) PKCE recovery links come back as ?code=...
+      // If there's a code param, exchange it (legacy PKCE links)
       const code = searchParams.get('code');
       if (code) {
-        // Use the PKCE client which has the stored code_verifier
-        const { error: exchangeError } = await supabasePkce.auth.exchangeCodeForSession(code);
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (exchangeError) {
-          console.error('PKCE exchange error:', exchangeError);
-          setInvalid(exchangeError.message || 'The reset link is invalid or has expired.');
+          console.error('Code exchange error:', exchangeError);
+          // Don't block — fall through to check for existing session
+        } else {
+          setValid();
+          clearUrl();
           return;
         }
-        // After PKCE exchange, also refresh the main client's session
-        await supabase.auth.getSession();
-        setValid();
-        clearUrl();
-        return;
       }
 
       // 2) If we already have a session, prefer it over any URL error params.
