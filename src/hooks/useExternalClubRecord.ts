@@ -47,8 +47,8 @@ export function useExternalClubRecord(clubId?: string): UseExternalClubRecordRes
       url.searchParams.set("table", "clubs");
       url.searchParams.set("select", "*");
       url.searchParams.set("limit", "1");
-      // Use 'handle' for reliable club identification (matches club_handle in ownership)
-      url.searchParams.set("filters", JSON.stringify({ handle: clubId }));
+      // Use 'id' to match the external club record
+      url.searchParams.set("filters", JSON.stringify({ id: clubId }));
 
       const response = await fetch(url.toString(), {
         headers: {
