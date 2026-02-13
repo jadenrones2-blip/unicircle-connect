@@ -248,7 +248,7 @@ async function extractEventsFromInstagram(
 ): Promise<ScrapedEvent[]> {
   const today = new Date().toISOString().split('T')[0];
   
-  const systemPrompt = `You are an expert at extracting event information from Instagram posts and club social media.
+const systemPrompt = `You are an expert at extracting event information from Instagram posts, stories, captions, and club social media.
 Your task is to identify ANY upcoming events and extract structured data.
 
 Today's date is ${today}. Assume current year if not specified.
@@ -258,17 +258,21 @@ For each event found, extract:
 - description: Brief description of the event (from captions/descriptions)
 - start_time: ISO 8601 datetime (assume Pacific timezone / UTC-8 if not specified)
 - end_time: ISO 8601 datetime if mentioned (optional)
-- location: Physical location if mentioned
+- location: Physical location if mentioned (if not mentioned, leave null)
 - club_name: "${club.name}"
 
 Rules:
-- Extract ALL types of events: meetings, socials, workshops, parties, game nights, fundraisers, info sessions, GBMs, mixers, study sessions, volunteering, performances, showcases, etc.
-- Even if a date is vague like "this Friday" or "next week", calculate the actual date from today (${today})
+- Extract ALL types of events: meetings, socials, workshops, parties, game nights, fundraisers, info sessions, GBMs, mixers, study sessions, volunteering, performances, showcases, concerts, movie nights, food events, etc.
+- Even if a date is vague like "this Friday", "next week", "coming soon", "tmrw", calculate the actual date from today (${today})
 - If only a day is mentioned without time, use 6:00 PM Pacific as default
-- If a post mentions "RSVP", "join us", "come out", "link in bio for tickets" — it's likely an event
-- Look for dates in ALL formats: "Feb 15", "2/15", "Friday night", "this weekend", etc.
-- Skip only things that are clearly NOT events (memes, shoutouts, throwback photos)
-- Be INCLUSIVE rather than conservative — it's better to extract a possible event than miss a real one`;
+- Look for abbreviations and casual language: "fri" = Friday, "sat" = Saturday, "tmrw" = tomorrow, "tonite" = tonight, "nxt" = next
+- If a post mentions "pull up", "come through", "be there", "swag", "vibes", "lit", "join us", "RSVP", "link in bio", it's likely an event
+- Look for times in all formats: "6pm", "6:00 PM", "18:00", "evening", "night", "morning", "afternoon"
+- Look for dates in ALL formats: "Feb 15", "2/15", "Friday night", "this weekend", "next Friday", "Jan 20th", "Valentine's Day"
+- Extract events even if time/location is incomplete — null values are acceptable
+- Skip ONLY things that are clearly NOT events (memes, shoutouts, throwback photos, announcements, recruitment posts)
+- Be AGGRESSIVE rather than conservative — it's better to extract a possible event than miss a real one
+- If you see patterns like "Fridays at 7pm" or "Weekly meetings on Tuesdays", extract as recurring events with the next occurrence`;
 
   const userPrompt = `Extract ALL upcoming events from this Instagram/social media content for the club "${club.name}":
 
