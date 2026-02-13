@@ -18,13 +18,14 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirect');
+  const showAdmin = searchParams.get('role') === 'admin';
   const { signIn } = useAuth();
   const { hasCompletedOnboarding } = useUserInterests();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<LoginMode>(
-    redirectTo?.includes('club-admin') ? 'club-owner' : redirectTo?.includes('admin') ? 'admin' : 'student'
+    showAdmin ? 'admin' : redirectTo?.includes('club-admin') ? 'club-owner' : 'student'
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -149,19 +150,21 @@ export default function Login() {
             <Building2 className="h-4 w-4" />
             Club Owner
           </button>
-          <button
-            type="button"
-            onClick={() => setMode('admin')}
-            className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all',
-              mode === 'admin'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <Shield className="h-4 w-4" />
-            Admin
-          </button>
+          {showAdmin && (
+            <button
+              type="button"
+              onClick={() => setMode('admin')}
+              className={cn(
+                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all',
+                mode === 'admin'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Shield className="h-4 w-4" />
+              Admin
+            </button>
+          )}
         </div>
 
         {/* Card */}
