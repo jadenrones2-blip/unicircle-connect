@@ -1,5 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,35 +8,89 @@ const corsHeaders = {
 
 // Extract email from page content
 function extractEmail(content: string): string | null {
-  // Look for "Organization Email" pattern first (most reliable)
   const orgEmailMatch = content.match(/Organization Email\s*\[?\*?\*?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
-  if (orgEmailMatch) {
-    return orgEmailMatch[1].toLowerCase();
-  }
+  if (orgEmailMatch) return orgEmailMatch[1].toLowerCase();
 
-  // Look for mailto links
   const mailtoMatch = content.match(/mailto:([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
-  if (mailtoMatch) {
-    return mailtoMatch[1].toLowerCase();
-  }
+  if (mailtoMatch) return mailtoMatch[1].toLowerCase();
 
-  // Generic email pattern - find the first non-ucsd.edu email (likely the org email)
   const emailPattern = /([a-zA-Z0-9._%+-]+@(?!ucsd\.edu)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi;
   const matches = content.match(emailPattern);
-  if (matches && matches.length > 0) {
-    return matches[0].toLowerCase();
+  if (matches && matches.length > 0) return matches[0].toLowerCase();
+
+  const anyEmailMatch = content.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
+  if (anyEmailMatch) return anyEmailMatch[1].toLowerCase();
+
+  return null;
+}
+
+
+
+
+// Extract Instagram handle from page content
+function extractInstagram(content: string): string | null {
+  const falsePositives = ['ucsd', 'username', 'your', 'p', 'reel', 'explore', 'stories', 'accounts', 'about', 'help', 'privacy', 'terms'];
+
+  // The studentorg.ucsd.edu pages use "Social Media<handle>Fund Manager" pattern
+  const socialMediaMatch = content.match(/Social\s*Media\s*([a-zA-Z0-9._]{3,30})\s*(?:Fund|$)/i);
+  if (socialMediaMatch?.[1]) {
+    const handle = socialMediaMatch[1].toLowerCase();
+    if (!falsePositives.includes(handle)) return handle;
   }
 
-  // If no external email, look for any email
-  const anyEmailMatch = content.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/i);
-  if (anyEmailMatch) {
-    return anyEmailMatch[1].toLowerCase();
+  // Also try full Instagram URL patterns
+  const igUrlMatch = content.match(/instagram\.com\/([a-zA-Z0-9._]{3,30})\/?/i);
+  if (igUrlMatch?.[1]) {
+    const handle = igUrlMatch[1].replace(/[.,;!)\]]+$/, '').toLowerCase();
+    if (!falsePositives.includes(handle) && handle.length >= 3) return handle;
   }
 
   return null;
 }
 
-serve(async (req) => {
+// Extract website from page - look for non-social, non-university links
+function extractWebsiteFromContent(content: string): string | null {
+  const excludedDomains = [
+    'instagram.com', 'facebook.com', 'twitter.com', 'tiktok.com',
+    'linkedin.com', 'youtube.com', 'discord.gg', 'discord.com',
+    'studentorg.ucsd.edu', 'ucsd.edu', 'linktr.ee',
+    'snapchat.com', 'twitch.tv', 'github.com', 'x.com',
+    'students.ucsd.edu', 'blink.ucsd.edu', 'mailto:',
+  ];
+  const isExcluded = (url: string) => excludedDomains.some(d => url.toLowerCase().includes(d));
+
+  // Look for explicitly labeled website links
+  const websitePatterns = [
+    /(?:website|web\s*site|homepage|official\s*site|org\s*website)\s*[:：]?\s*\[?\s*(https?:\/\/[^\s\)\]<>"]+)/i,
+    /\[(?:website|web\s*site|visit|homepage|official)\]\((https?:\/\/[^\s\)]+)\)/i,
+  ];
+
+  for (const pattern of websitePatterns) {
+    const match = content.match(pattern);
+    if (match?.[1]) {
+      const url = match[1].replace(/[.,;!)\]]+$/, '');
+      if (!isExcluded(url) && url.length > 12) return url;
+    }
+  }
+
+  return null;
+}
+const normalizeExternalUrl = (value: string): string | null => {
+  let v = value.trim();
+  if (!v) return null;
+  v = v.replace(/\/(auth|rest|functions)\/v1.*$/i, "");
+  v = v.replace(/\/+$/, "");
+  if (!v.startsWith("http://") && !v.startsWith("https://")) {
+    if (v.includes(".") || v.includes("supabase.co")) {
+      v = `https://${v}`;
+    } else {
+      v = `https://${v}.supabase.co`;
+    }
+  }
+  try { new URL(v); return v; } catch { return null; }
+};
+
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -47,53 +100,40 @@ serve(async (req) => {
     const externalKey = (Deno.env.get("EXTERNAL_SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
     const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
 
-    // Normalize the external URL
-    const normalizeExternalUrl = (value: string): string | null => {
-      let v = value.trim();
-      if (!v) return null;
-      v = v.replace(/\/(auth|rest|functions)\/v1.*$/i, "");
-      v = v.replace(/\/+$/, "");
-      if (!v.startsWith("http://") && !v.startsWith("https://")) {
-        if (v.includes(".") || v.includes("supabase.co")) {
-          v = `https://${v}`;
-        } else {
-          v = `https://${v}.supabase.co`;
-        }
-      }
-      try {
-        new URL(v);
-        return v;
-      } catch {
-        return null;
-      }
-    };
-
     const externalUrl = normalizeExternalUrl(rawExternalUrl);
 
     if (!externalUrl || !externalKey) {
       throw new Error("External database credentials not configured");
     }
-
     if (!firecrawlKey) {
       throw new Error("Firecrawl API key not configured");
     }
 
     const externalSupabase = createClient(externalUrl, externalKey);
 
-    // Get request body
     const body = await req.json().catch(() => ({}));
-    const limit = body.limit || 50; // Process in batches
+    const limit = body.limit || 50;
     const dryRun = body.dryRun || false;
+    // mode: "all" scrapes email+website+instagram, "email" only email (legacy)
+    const mode = body.mode || "all";
 
-    console.log(`Starting email scrape (limit: ${limit}, dryRun: ${dryRun})`);
+    console.log(`Starting scrape (limit: ${limit}, dryRun: ${dryRun}, mode: ${mode})`);
 
-    // Fetch clubs without emails that have details_url
-    const { data: clubs, error: fetchError } = await externalSupabase
+    // Fetch clubs that have details_url and are missing at least one field
+    let query = externalSupabase
       .from("clubs")
-      .select("id, name, details_url, email")
-      .is("email", null)
+      .select("id, name, details_url, email, website, instagram")
       .not("details_url", "is", null)
       .limit(limit);
+
+    if (mode === "email") {
+      query = query.is("email", null);
+    } else {
+      // Fetch clubs missing any of the three fields
+      query = query.or("email.is.null,website.is.null,instagram.is.null");
+    }
+
+    const { data: clubs, error: fetchError } = await query;
 
     if (fetchError) {
       throw new Error(`Failed to fetch clubs: ${fetchError.message}`);
@@ -101,11 +141,11 @@ serve(async (req) => {
 
     if (!clubs || clubs.length === 0) {
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: "No clubs without emails found",
+        JSON.stringify({
+          success: true,
+          message: "No clubs needing data found",
           processed: 0,
-          updated: 0 
+          updated: 0,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -113,14 +153,23 @@ serve(async (req) => {
 
     console.log(`Found ${clubs.length} clubs to process`);
 
-    const results: { id: string; name: string; email: string | null; error?: string }[] = [];
+    interface Result {
+      id: string;
+      name: string;
+      email: string | null;
+      website: string | null;
+      instagram: string | null;
+      error?: string;
+    }
+
+    const results: Result[] = [];
     let updatedCount = 0;
 
     for (const club of clubs) {
       try {
-        console.log(`Scraping: ${club.name} - ${club.details_url}`);
+        const clubName = (club.name || '').replace(/\n/g, ' ').trim();
+        console.log(`Scraping: ${clubName} - ${club.details_url}`);
 
-        // Scrape the page using Firecrawl
         const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
           method: "POST",
           headers: {
@@ -137,8 +186,8 @@ serve(async (req) => {
 
         if (!scrapeResponse.ok) {
           const errorText = await scrapeResponse.text();
-          console.error(`Firecrawl error for ${club.name}: ${scrapeResponse.status} - ${errorText}`);
-          results.push({ id: club.id, name: club.name, email: null, error: `Scrape failed: ${scrapeResponse.status}` });
+          console.error(`Firecrawl error for ${clubName}: ${scrapeResponse.status} - ${errorText}`);
+          results.push({ id: club.id, name: clubName, email: null, website: null, instagram: null, error: `Scrape failed: ${scrapeResponse.status}` });
           continue;
         }
 
@@ -146,60 +195,71 @@ serve(async (req) => {
         const markdown = scrapeData.data?.markdown || scrapeData.markdown || "";
 
         if (!markdown) {
-          console.log(`No content found for ${club.name}`);
-          results.push({ id: club.id, name: club.name, email: null, error: "No content" });
+          console.log(`No content found for ${clubName}`);
+          results.push({ id: club.id, name: clubName, email: null, website: null, instagram: null, error: "No content" });
           continue;
         }
 
-        // Extract email from content
-        const email = extractEmail(markdown);
+        // Extract all fields
+        const email = !club.email ? extractEmail(markdown) : null;
+        const website = !club.website ? extractWebsiteFromContent(markdown) : null;
+        const instagram = !club.instagram ? extractInstagram(markdown) : null;
 
-        if (email) {
-          console.log(`Found email for ${club.name}: ${email}`);
+        const updatePayload: Record<string, string> = {};
+        if (email) updatePayload.email = email;
+        if (website) updatePayload.website = website;
+        if (instagram) updatePayload.instagram = instagram;
+
+        if (Object.keys(updatePayload).length > 0) {
+          console.log(`Found for ${clubName}: email=${email || 'n/a'}, website=${website || 'n/a'}, ig=${instagram || 'n/a'}`);
 
           if (!dryRun) {
-            // Update the club record
             const { error: updateError } = await externalSupabase
               .from("clubs")
-              .update({ email })
+              .update(updatePayload)
               .eq("id", club.id);
 
             if (updateError) {
-              console.error(`Update error for ${club.name}: ${updateError.message}`);
-              results.push({ id: club.id, name: club.name, email, error: `Update failed: ${updateError.message}` });
+              console.error(`Update error for ${clubName}: ${updateError.message}`);
+              results.push({ id: club.id, name: clubName, email, website, instagram, error: `Update failed: ${updateError.message}` });
             } else {
               updatedCount++;
-              results.push({ id: club.id, name: club.name, email });
+              results.push({ id: club.id, name: clubName, email, website, instagram });
             }
           } else {
-            results.push({ id: club.id, name: club.name, email });
+            results.push({ id: club.id, name: clubName, email, website, instagram });
           }
         } else {
-          console.log(`No email found for ${club.name}`);
-          results.push({ id: club.id, name: club.name, email: null });
+          console.log(`No new data found for ${clubName}`);
+          results.push({ id: club.id, name: clubName, email: null, website: null, instagram: null });
         }
 
         // Small delay to avoid rate limiting
         await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (clubError) {
         console.error(`Error processing ${club.name}:`, clubError);
-        results.push({ 
-          id: club.id, 
-          name: club.name, 
-          email: null, 
-          error: clubError instanceof Error ? clubError.message : "Unknown error" 
+        results.push({
+          id: club.id,
+          name: (club.name || '').trim(),
+          email: null,
+          website: null,
+          instagram: null,
+          error: clubError instanceof Error ? clubError.message : "Unknown error",
         });
       }
     }
 
     const foundEmails = results.filter((r) => r.email).length;
-    console.log(`Completed: ${results.length} processed, ${foundEmails} emails found, ${updatedCount} updated`);
+    const foundWebsites = results.filter((r) => r.website).length;
+    const foundInstagrams = results.filter((r) => r.instagram).length;
+
+    console.log(`Completed: ${results.length} processed, ${foundEmails} emails, ${foundWebsites} websites, ${foundInstagrams} instagrams found, ${updatedCount} updated`);
 
     return new Response(
       JSON.stringify({
         success: true,
         processed: results.length,
-        found: foundEmails,
+        found: { emails: foundEmails, websites: foundWebsites, instagrams: foundInstagrams },
         updated: dryRun ? 0 : updatedCount,
         dryRun,
         results,
@@ -209,9 +269,9 @@ serve(async (req) => {
   } catch (error) {
     console.error("Scrape error:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error instanceof Error ? error.message : "Unknown error" 
+      JSON.stringify({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
