@@ -610,6 +610,77 @@ serve(async (req) => {
       );
     }
 
+    // ============ ADMIN BULK DELETE (POST) ============
+    if (req.method === "POST" && action === "admin-bulk-delete") {
+      const body = _parsedBody || await req.json();
+
+      if (!body.ids || !Array.isArray(body.ids) || body.ids.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Array of event IDs is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (body.ids.length > 200) {
+        return new Response(
+          JSON.stringify({ error: "Maximum 200 events can be deleted at once" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (table !== "events") {
+        return new Response(
+          JSON.stringify({ error: "Admin bulk delete is only allowed for events" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: "Authentication required" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { data: hasAdmin } = await internalSupabase.rpc('has_role', {
+        _user_id: userId,
+        _role: 'admin',
+      });
+
+      if (!hasAdmin) {
+        return new Response(
+          JSON.stringify({ error: "Admin access required" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error } = await externalSupabase
+        .from("events")
+        .delete()
+        .in("id", body.ids);
+
+      if (error) {
+        console.error("Error in admin bulk delete:", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to delete events" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      await logAuditEvent(internalSupabase, {
+        club_id: 'admin-review',
+        actor_user_id: userId,
+        action: 'events_admin_bulk_delete',
+        details: { event_ids: body.ids, count: body.ids.length, reason: body.reason || 'bulk_rejected' },
+        ip_address: ipAddress,
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, deleted: body.ids.length }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // ============ UPDATE (POST) ============
     if (req.method === "POST" && action === "update") {
       const body = _parsedBody || await req.json();
