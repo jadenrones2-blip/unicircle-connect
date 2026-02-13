@@ -167,6 +167,13 @@ export default function AdminEvents() {
   const handleApprove = async () => {
     if (!editingEvent) return;
     
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      toast.error('You must be logged in to approve events. Go to /login?role=admin');
+      return;
+    }
+    
     setSaving(true);
     
     const updates: Record<string, unknown> = {
@@ -174,7 +181,6 @@ export default function AdminEvents() {
       reviewed_at: new Date().toISOString(),
     };
     
-    // Only set corrected fields if they have values
     if (editingEvent.corrected_title.trim()) {
       updates.corrected_title = editingEvent.corrected_title.trim();
     }
@@ -188,7 +194,6 @@ export default function AdminEvents() {
       updates.corrected_location = editingEvent.corrected_location.trim();
     }
 
-    // Use edge function for update
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=admin-review`,
       {
@@ -196,7 +201,7 @@ export default function AdminEvents() {
         headers: {
           'Content-Type': 'application/json',
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           id: editingEvent.id,
@@ -212,7 +217,6 @@ export default function AdminEvents() {
     } else {
       toast.success('Event approved and will now appear on calendar!');
       
-      // Send email notification to club owner
       const finalTitle = editingEvent.corrected_title.trim() || editingEvent.title;
       const finalStartTime = editingEvent.corrected_start_time 
         ? new Date(editingEvent.corrected_start_time).toISOString()
@@ -242,6 +246,13 @@ export default function AdminEvents() {
   const handleReject = async () => {
     if (!editingEvent) return;
     
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      toast.error('You must be logged in to reject events. Go to /login?role=admin');
+      return;
+    }
+    
     setRejecting(true);
     
     const response = await fetch(
@@ -251,7 +262,7 @@ export default function AdminEvents() {
         headers: {
           'Content-Type': 'application/json',
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ id: editingEvent.id, reason: 'rejected' }),
       }
