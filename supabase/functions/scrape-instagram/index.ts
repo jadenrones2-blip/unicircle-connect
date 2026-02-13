@@ -90,38 +90,56 @@ Deno.serve(async (req) => {
     // Scrape Instagram for each club
     for (const club of clubsWithInstagram) {
       try {
-        // Normalize Instagram handle
-        let instagramUrl = club.instagram.trim();
-        if (!instagramUrl.startsWith('http')) {
-          instagramUrl = `https://instagram.com/${instagramUrl.replace('@', '')}`;
+        // Normalize Instagram handle to just the username
+        let handle = club.instagram.trim().replace('@', '');
+        if (handle.startsWith('http')) {
+          // Extract handle from URL
+          const match = handle.match(/instagram\.com\/([^/?]+)/);
+          handle = match ? match[1] : handle;
         }
+        handle = handle.replace(/\/$/, '');
 
-        console.log(`Scraping Instagram for ${club.name}: ${instagramUrl}`);
+        // Try multiple sources for better coverage
+        const sources = [
+          `https://www.picnob.com/profile/${handle}/`,
+          `https://imginn.com/${handle}/`,
+          `https://instagram.com/${handle}/`,
+        ];
 
-        // Use Firecrawl to scrape Instagram
-        const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            url: instagramUrl,
-            formats: ['markdown'],
-            onlyMainContent: true,
-            waitFor: 3000, // Wait for Instagram to load
-          }),
-        });
+        console.log(`Scraping Instagram for ${club.name} (@${handle})`);
 
-        if (!scrapeResponse.ok) {
-          const errorText = await scrapeResponse.text();
-          console.error(`Firecrawl error for ${club.name}:`, errorText);
-          result.errors.push(`Failed to scrape Instagram for ${club.name}`);
-          continue;
+        let content = '';
+        for (const sourceUrl of sources) {
+          try {
+            const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${FIRECRAWL_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                url: sourceUrl,
+                formats: ['markdown'],
+                onlyMainContent: true,
+                waitFor: 5000,
+              }),
+            });
+
+            if (scrapeResponse.ok) {
+              const scrapeData = await scrapeResponse.json();
+              const scraped = scrapeData.data?.markdown || scrapeData.markdown || '';
+              if (scraped.length > content.length) {
+                content = scraped;
+                console.log(`Got ${scraped.length} chars from ${sourceUrl}`);
+              }
+            }
+          } catch (e) {
+            console.log(`Source ${sourceUrl} failed, trying next...`);
+          }
+          
+          // If we got good content, stop trying other sources
+          if (content.length > 200) break;
         }
-
-        const scrapeData = await scrapeResponse.json();
-        const content = scrapeData.data?.markdown || scrapeData.markdown || '';
 
         if (!content || content.length < 50) {
           console.log(`No meaningful content from ${club.name} Instagram`);
@@ -142,9 +160,9 @@ Deno.serve(async (req) => {
               end_time: event.end_time || null,
               location: event.location || 'UCSD Campus',
               club_id: club.id,
-              club_handle: null,
+              club_handle: handle,
               source: 'instagram',
-              source_url: instagramUrl,
+              source_url: `https://instagram.com/${handle}/`,
               verified: false,
               caption: event.description,
               posted_at: new Date().toISOString(),
@@ -230,30 +248,31 @@ async function extractEventsFromInstagram(
 ): Promise<ScrapedEvent[]> {
   const today = new Date().toISOString().split('T')[0];
   
-  const systemPrompt = `You are an expert at extracting event information from Instagram posts and stories.
-Your task is to identify upcoming events and extract structured data.
+  const systemPrompt = `You are an expert at extracting event information from Instagram posts and club social media.
+Your task is to identify ANY upcoming events and extract structured data.
 
-Today's date is ${today}.
+Today's date is ${today}. Assume current year if not specified.
 
 For each event found, extract:
 - title: A clear, concise event title
 - description: Brief description of the event (from captions/descriptions)
-- start_time: ISO 8601 datetime (assume Pacific timezone if not specified)
+- start_time: ISO 8601 datetime (assume Pacific timezone / UTC-8 if not specified)
 - end_time: ISO 8601 datetime if mentioned (optional)
 - location: Physical location if mentioned
 - club_name: "${club.name}"
 
 Rules:
-- Only extract actual upcoming events (meetings, socials, workshops, parties, game nights, fundraisers, etc.)
-- Skip past events or general announcements
-- If a date is mentioned without year, use current year
-- If time is not specified, make a reasonable guess based on event type (e.g., parties at 9 PM, meetings at 7 PM)
-- Be conservative - only extract events you're confident about
-- Extract event details from captions, comments, and post descriptions`;
+- Extract ALL types of events: meetings, socials, workshops, parties, game nights, fundraisers, info sessions, GBMs, mixers, study sessions, volunteering, performances, showcases, etc.
+- Even if a date is vague like "this Friday" or "next week", calculate the actual date from today (${today})
+- If only a day is mentioned without time, use 6:00 PM Pacific as default
+- If a post mentions "RSVP", "join us", "come out", "link in bio for tickets" — it's likely an event
+- Look for dates in ALL formats: "Feb 15", "2/15", "Friday night", "this weekend", etc.
+- Skip only things that are clearly NOT events (memes, shoutouts, throwback photos)
+- Be INCLUSIVE rather than conservative — it's better to extract a possible event than miss a real one`;
 
-  const userPrompt = `Extract all upcoming events from this Instagram content for ${club.name}:
+  const userPrompt = `Extract ALL upcoming events from this Instagram/social media content for the club "${club.name}":
 
-${content.slice(0, 5000)}
+${content.slice(0, 8000)}
 
 Return a JSON array of events. If no events are found, return an empty array [].`;
 

@@ -6,7 +6,8 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Check, ExternalLink, RefreshCw, X, Zap, Trash2 } from 'lucide-react';
+import { Loader2, Check, ExternalLink, RefreshCw, X, Zap, Trash2, Square, CheckSquare } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import {
@@ -47,6 +48,8 @@ export default function AdminEvents() {
   const [saving, setSaving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [scraping, setScraping] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkRejecting, setBulkRejecting] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<{
     clubsProcessed: number;
     postsFetched: number;
@@ -85,6 +88,59 @@ export default function AdminEvents() {
     } finally {
       setScraping(false);
     }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === events.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(events.map(e => e.id)));
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedIds.size === 0) return;
+    
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      toast.error('You must be logged in');
+      return;
+    }
+
+    setBulkRejecting(true);
+
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=admin-bulk-delete`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ids: Array.from(selectedIds), reason: 'bulk_rejected' }),
+      }
+    );
+
+    if (!response.ok) {
+      toast.error('Failed to reject events');
+    } else {
+      toast.success(`Rejected ${selectedIds.size} events`);
+      setSelectedIds(new Set());
+      fetchUnverifiedEvents();
+    }
+
+    setBulkRejecting(false);
   };
 
   const fetchUnverifiedEvents = useCallback(async () => {
@@ -386,9 +442,38 @@ export default function AdminEvents() {
             </div>
           ) : (
             <div className="premium-card overflow-hidden">
+              {selectedIds.size > 0 && (
+                <div className="flex items-center gap-3 px-4 py-3 bg-destructive/10 border-b border-border">
+                  <span className="text-sm font-medium text-foreground">
+                    {selectedIds.size} selected
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={handleBulkReject}
+                    disabled={bulkRejecting}
+                  >
+                    {bulkRejecting ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4 mr-2" />
+                    )}
+                    Reject Selected
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+                    Clear
+                  </Button>
+                </div>
+              )}
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={events.length > 0 && selectedIds.size === events.length}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead>Club</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead className="max-w-[200px]">Caption</TableHead>
@@ -399,7 +484,13 @@ export default function AdminEvents() {
                 </TableHeader>
                 <TableBody>
                   {events.map((event) => (
-                    <TableRow key={event.id}>
+                    <TableRow key={event.id} className={selectedIds.has(event.id) ? 'bg-muted/50' : ''}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(event.id)}
+                          onCheckedChange={() => toggleSelect(event.id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         {event.club_handle ? (
                           <span className="text-gold font-medium">@{event.club_handle}</span>
