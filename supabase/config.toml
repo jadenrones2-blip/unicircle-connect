@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.sync-club-eventbrite]
 verify_jwt = false
+
+[functions.scrape-instagram]
+verify_jwt = false
