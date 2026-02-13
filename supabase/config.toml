@@ -39,3 +39,9 @@ verify_jwt = false
 [functions.scrape-club-websites]
 verify_jwt = false
 
+[functions.discover-club-websites]
+verify_jwt = false
+
+[functions.scrape-club-emails]
+verify_jwt = false
+
