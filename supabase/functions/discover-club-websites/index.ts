@@ -134,6 +134,70 @@ Deno.serve(async (req) => {
 
     // ============ CLEANUP MODE ============
     if (cleanup) {
+      const cleanupType = body.cleanupType || 'websites'; // 'websites' or 'names'
+
+      if (cleanupType === 'names') {
+        console.log('Running cleanup of malformed club names...');
+
+        // Fetch all clubs
+        const { data: allClubs, error: fetchErr } = await externalSupabase
+          .from('clubs')
+          .select('id, name')
+          .not('name', 'is', null)
+          .limit(1000);
+
+        if (fetchErr) throw new Error(`Fetch error: ${fetchErr.message}`);
+
+        const toClean: Array<{ id: string; oldName: string; newName: string }> = [];
+        for (const club of (allClubs || [])) {
+          if (!club.name) continue;
+          
+          // Clean: remove leading/trailing whitespace, newlines, tabs
+          const cleaned = club.name.trim().replace(/[\n\r\t]/g, ' ').replace(/\s+/g, ' ');
+          
+          // If changed, mark for update
+          if (cleaned !== club.name && cleaned.length > 0) {
+            toClean.push({ id: club.id, oldName: club.name, newName: cleaned });
+          }
+        }
+
+        console.log(`Found ${toClean.length} clubs with malformed names`);
+
+        if (!dryRun) {
+          // Build a map of id -> newName for efficient batch processing
+          const idToNewName = new Map(toClean.map(c => [c.id, c.newName]));
+          let updated = 0;
+          
+          // Process in smaller batches to stay under timeout
+          const batchSize = 20;
+          for (let i = 0; i < toClean.length; i += batchSize) {
+            const batch = toClean.slice(i, i + batchSize);
+            console.log(`Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(toClean.length / batchSize)}`);
+            
+            // Update each record in parallel within batch
+            const updatePromises = batch.map(club =>
+              externalSupabase
+                .from('clubs')
+                .update({ name: club.newName })
+                .eq('id', club.id)
+                .then(() => { updated++; })
+            );
+            
+            await Promise.all(updatePromises);
+          }
+          
+          console.log(`Updated ${updated} club names`);
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          cleaned: toClean.length,
+          dryRun,
+          sample: toClean.slice(0, 5),
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Original website cleanup
       console.log('Running cleanup of bad website URLs...');
       const BAD_DOMAINS = [
         'issuu.com', 'ucsdguardian.org', 'wixsite.com', 'asucsd.wixsite.com',
