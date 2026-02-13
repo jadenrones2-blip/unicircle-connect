@@ -58,6 +58,12 @@ export function useExternalClubRecord(clubId?: string): UseExternalClubRecordRes
       });
 
       if (!response.ok) {
+        // Gracefully handle cases where club doesn't exist in external DB
+        if (response.status === 500) {
+          console.warn("Club not found in external DB:", clubId);
+          setClub(null);
+          return;
+        }
         const text = await response.text().catch(() => "");
         throw new Error(text || `Failed to fetch club (${response.status})`);
       }
