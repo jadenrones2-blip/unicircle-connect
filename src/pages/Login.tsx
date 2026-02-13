@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, ArrowRight, Sparkles, Building2 } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, Sparkles, Building2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
 import { cn } from '@/lib/utils';
 
-type LoginMode = 'student' | 'club-owner';
+type LoginMode = 'student' | 'club-owner' | 'admin';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<LoginMode>(
-    redirectTo?.includes('club-admin') ? 'club-owner' : 'student'
+    redirectTo?.includes('club-admin') ? 'club-owner' : redirectTo?.includes('admin') ? 'admin' : 'student'
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +34,7 @@ export default function Login() {
       return;
     }
 
-    // Validate UCSD email for student login
+    // Validate UCSD email for student login only
     if (mode === 'student' && !email.toLowerCase().endsWith('@ucsd.edu')) {
       toast.error('Students must use a UCSD email address (@ucsd.edu)');
       return;
@@ -46,7 +46,21 @@ export default function Login() {
       if (error) throw error;
 
       if (data.user) {
-        if (mode === 'club-owner') {
+        if (mode === 'admin') {
+          // Check if user has platform admin role
+          const { data: hasAdmin } = await supabase.rpc('has_role', {
+            _user_id: data.user.id,
+            _role: 'admin',
+          });
+
+          if (hasAdmin) {
+            navigate('/admin/events');
+            toast.success('Welcome, Admin!');
+          } else {
+            await supabase.auth.signOut();
+            toast.error('This account does not have platform admin access.', { duration: 5000 });
+          }
+        } else if (mode === 'club-owner') {
           // Check if user owns any clubs
           const { data: ownedClubs } = await supabase
             .from('club_owners')
@@ -58,13 +72,11 @@ export default function Login() {
             navigate('/club-admin');
             toast.success('Welcome to your Club Admin Portal!');
           } else {
-            // They don't own clubs yet - sign them out and show error
             await supabase.auth.signOut();
             toast.error(
               'No clubs found for this account. You must claim a club first before accessing the admin portal.',
               { duration: 6000 }
             );
-            // Redirect to clubs page so they can find and claim their club
             navigate('/clubs');
           }
         } else {
@@ -101,9 +113,11 @@ export default function Login() {
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Welcome Back</h1>
           <p className="text-muted-foreground mt-2">
-            {mode === 'club-owner' 
-              ? 'Sign in to manage your club' 
-              : 'Sign in to discover clubs tailored to your interests'}
+            {mode === 'admin'
+              ? 'Sign in to review and approve events'
+              : mode === 'club-owner' 
+                ? 'Sign in to manage your club' 
+                : 'Sign in to discover clubs tailored to your interests'}
           </p>
         </div>
 
@@ -113,7 +127,7 @@ export default function Login() {
             type="button"
             onClick={() => setMode('student')}
             className={cn(
-              'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all',
+              'flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all',
               mode === 'student'
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -126,7 +140,7 @@ export default function Login() {
             type="button"
             onClick={() => setMode('club-owner')}
             className={cn(
-              'flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-all',
+              'flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all',
               mode === 'club-owner'
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -134,6 +148,19 @@ export default function Login() {
           >
             <Building2 className="h-4 w-4" />
             Club Owner
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('admin')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all',
+              mode === 'admin'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Shield className="h-4 w-4" />
+            Admin
           </button>
         </div>
 
@@ -188,9 +215,11 @@ export default function Login() {
               type="submit"
               className={cn(
                 'w-full',
-                mode === 'club-owner' 
-                  ? 'bg-gold hover:bg-gold/90 text-primary-foreground' 
-                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                mode === 'admin'
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                  : mode === 'club-owner' 
+                    ? 'bg-gold hover:bg-gold/90 text-primary-foreground' 
+                    : 'bg-primary hover:bg-primary/90 text-primary-foreground'
               )}
               disabled={loading}
             >
@@ -198,7 +227,7 @@ export default function Login() {
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  {mode === 'club-owner' ? 'Sign In as Club Owner' : 'Sign In'}
+                  {mode === 'admin' ? 'Sign In as Admin' : mode === 'club-owner' ? 'Sign In as Club Owner' : 'Sign In'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -226,7 +255,12 @@ export default function Login() {
           className="mt-6 text-center"
         >
           <div className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
-            {mode === 'club-owner' ? (
+            {mode === 'admin' ? (
+              <>
+                <Shield className="h-4 w-4 text-primary" />
+                Review and approve scraped events
+              </>
+            ) : mode === 'club-owner' ? (
               <>
                 <Building2 className="h-4 w-4 text-gold" />
                 Manage your club's events and profile
