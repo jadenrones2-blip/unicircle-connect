@@ -31,6 +31,14 @@ const EXCLUDED_DOMAINS = [
   'yelp.com', 'wikipedia.org', 'wiktionary.org',
   'google.com', 'apple.com', 'play.google.com',
   'eventbrite.com', 'meetup.com', 'luma.com', 'lu.ma',
+  // News/directory sites that aren't club websites
+  'issuu.com', 'ucsdguardian.org', 'asucsd.wixsite.com',
+  'wixsite.com', 'zotspot.uci.edu', 'discoriot.org',
+  'jhandtherapy.org', 'escholarship.org', 'amazon.com',
+  'goodreads.com', 'imdb.com', 'nytimes.com', 'cnn.com',
+  'medium.com', 'substack.com', 'change.org', 'gofundme.com',
+  'campuslabs.com', 'engage.ucsd.edu', 'getinvolved.ucsd.edu',
+  'thegivingblock.com', 'glassdoor.com', 'indeed.com',
 ];
 
 function isExcludedUrl(url: string): boolean {
@@ -45,7 +53,6 @@ function isExcludedUrl(url: string): boolean {
 function pickBestWebsite(results: any[], clubName: string): string | null {
   if (!results || results.length === 0) return null;
 
-  // Filter to non-excluded URLs
   const candidates = results
     .filter((r: any) => r.url && !isExcludedUrl(r.url))
     .map((r: any) => ({
@@ -59,30 +66,42 @@ function pickBestWebsite(results: any[], clubName: string): string | null {
   const nameLower = clubName.toLowerCase();
   const nameWords = nameLower.split(/\s+/).filter(w => w.length > 2);
 
-  // Score each candidate
-  let best = candidates[0];
+  let best: typeof candidates[0] | null = null;
   let bestScore = 0;
 
   for (const c of candidates) {
     let score = 0;
-    // Title contains club name words
-    const matchingWords = nameWords.filter(w => c.title.includes(w));
-    score += matchingWords.length * 2;
-    // URL contains club name words
     const urlLower = c.url.toLowerCase();
-    const urlMatches = nameWords.filter(w => urlLower.includes(w));
-    score += urlMatches.length * 3;
-    // Bonus for .org, .com domains
-    if (urlLower.includes('.org')) score += 1;
-    // Penalize very long URLs (likely deep pages)
+    const hostname = new URL(c.url).hostname.toLowerCase();
     const path = new URL(c.url).pathname;
-    if (path.split('/').length > 3) score -= 2;
+
+    // Strong signal: URL/domain contains club name words
+    const urlMatches = nameWords.filter(w => hostname.includes(w));
+    score += urlMatches.length * 4;
+
+    // Title contains club name words
+    const titleMatches = nameWords.filter(w => c.title.includes(w));
+    score += titleMatches.length * 2;
+
+    // Bonus for root/shallow pages (actual homepages)
+    if (path === '/' || path === '') score += 3;
+    else if (path.split('/').filter(Boolean).length <= 2) score += 1;
+    else score -= 3; // Deep pages are likely not the club's own site
+
+    // Bonus for .org domains (common for clubs)
+    if (hostname.endsWith('.org')) score += 2;
+
+    // Description mentions UCSD
+    if (c.description.includes('ucsd') || c.description.includes('uc san diego')) score += 1;
 
     if (score > bestScore) {
       bestScore = score;
       best = c;
     }
   }
+
+  // Require a minimum confidence score to avoid false positives
+  if (!best || bestScore < 3) return null;
 
   return best.url;
 }
@@ -111,7 +130,9 @@ Deno.serve(async (req) => {
     const limit = body.limit || 20;
     const dryRun = body.dryRun || false;
 
-    console.log(`Discovering club websites (limit: ${limit}, dryRun: ${dryRun})`);
+    const offset = body.offset || 0;
+
+    console.log(`Discovering club websites (limit: ${limit}, offset: ${offset}, dryRun: ${dryRun})`);
 
     // Fetch clubs that don't have a website yet
     const { data: clubs, error: fetchError } = await externalSupabase
@@ -119,14 +140,15 @@ Deno.serve(async (req) => {
       .select('id, name')
       .is('website', null)
       .not('name', 'is', null)
-      .limit(limit);
+      .order('name', { ascending: true })
+      .range(offset, offset + limit - 1);
 
     if (fetchError) throw new Error(`Failed to fetch clubs: ${fetchError.message}`);
 
     if (!clubs || clubs.length === 0) {
       return new Response(JSON.stringify({
         success: true,
-        message: 'No clubs without websites found',
+        message: 'No more clubs without websites found',
         processed: 0,
         found: 0,
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -138,7 +160,10 @@ Deno.serve(async (req) => {
     let foundCount = 0;
 
     for (const club of clubs) {
-      const clubName = (club.name || '').replace(/\n/g, ' ').trim();
+      // Clean up malformed names (newlines, trailing category suffixes)
+      let clubName = (club.name || '').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+      // Remove trailing category words that got appended from scraping
+      clubName = clubName.replace(/\s+(Service|Health|Educational|Social|Media|Cultural|Political|Religious|Recreational|Professional|Academic)\s*$/i, '').trim();
       if (clubName.length < 3) continue;
 
       try {
@@ -152,7 +177,7 @@ Deno.serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            query: `"${clubName}" UCSD official website`,
+            query: `"${clubName}" UCSD club organization website`,
             limit: 5,
           }),
         });
