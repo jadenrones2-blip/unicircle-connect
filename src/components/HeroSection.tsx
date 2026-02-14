@@ -12,8 +12,8 @@ const HeroSection = () => {
   return (
     <section className="min-h-[85vh] sm:min-h-[90vh] flex flex-col items-center justify-center pt-20 sm:pt-20 pb-16 sm:pb-8 relative overflow-hidden">
       {/* Subtle gradient background */}
-      <div className="absolute top-1/4 right-1/4 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] bg-gold/10 rounded-full blur-[80px] sm:blur-[120px] -z-10" />
-      <div className="absolute bottom-1/4 left-1/4 w-[150px] sm:w-[300px] h-[150px] sm:h-[300px] bg-primary/10 rounded-full blur-[60px] sm:blur-[100px] -z-10" />
+      <div className="absolute top-1/4 right-1/4 w-[200px] sm:w-[400px] h-[200px] sm:h-[400px] bg-gold/8 rounded-full blur-[80px] sm:blur-[120px] -z-10" />
+      <div className="absolute bottom-1/3 left-1/3 w-[150px] sm:w-[300px] h-[150px] sm:h-[300px] bg-primary/5 rounded-full blur-[60px] sm:blur-[100px] -z-10" />
 
       <div className="container mx-auto px-5 sm:px-6 flex-1 flex items-center">
         <div className="max-w-4xl mx-auto text-center">
@@ -28,42 +28,27 @@ const HeroSection = () => {
             <span className="text-xs font-medium text-gold tracking-wide uppercase">Beta</span>
           </motion.div>
 
-          {/* Main headline - bold black */}
+          {/* Main headline */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.15] mb-2 sm:mb-3 text-foreground tracking-tight"
+            className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] mb-4 sm:mb-6 text-foreground tracking-tight"
           >
-            Connection shouldn't be this hard.
+            Recruitment infrastructure
+            <br />
+            <span className="text-gold">for student organizations.</span>
           </motion.h1>
-          
-          {/* Secondary headline - lighter with gold accent */}
+
+          {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
-            className="font-display text-xl sm:text-3xl md:text-4xl lg:text-5xl leading-[1.25] sm:leading-[1.2] mb-6 sm:mb-10 tracking-tight"
+            transition={{ delay: 0.15, duration: 0.5 }}
+            className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8 sm:mb-10 px-2 sm:px-0"
           >
-            <span className="text-charcoal font-normal">Find your </span>
-            <span className="text-gold font-semibold">circle</span>
-            <span className="text-charcoal font-normal">. Not another feed.</span>
+            A structured system for managing intake, evaluation, and transparent applicant tracking — built for scale.
           </motion.p>
-
-          {/* Subtext - two lines */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="max-w-2xl mx-auto mb-6 sm:mb-10 px-2 sm:px-0"
-          >
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed mb-1">
-              Most platforms show you people you already follow.
-            </p>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
-              UniCircle helps you discover clubs, events, and people you haven't met yet.
-            </p>
-          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -72,8 +57,8 @@ const HeroSection = () => {
             className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 px-4 sm:px-0"
           >
             <Button variant="gold" size="lg" className="group px-8 w-full sm:w-auto" asChild>
-              <Link to="/login">
-                Start Discovering
+              <Link to="/clubs">
+                Claim your club
                 <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>
@@ -89,12 +74,12 @@ const HeroSection = () => {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="text-sm text-muted-foreground"
           >
-            Stop scrolling. Start belonging.
+            Currently available at UC San Diego.
           </motion.p>
         </div>
       </div>
 
-      {/* Scroll indicator - hidden on mobile */}
+      {/* Scroll indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

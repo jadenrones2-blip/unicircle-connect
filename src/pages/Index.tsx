@@ -1,11 +1,11 @@
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import ProblemSection from "@/components/ProblemSection";
+import SolutionSection from "@/components/SolutionSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
-import RecruitmentSection from "@/components/RecruitmentSection";
+import BenefitsSection from "@/components/BenefitsSection";
 import WhyUnicircleSection from "@/components/WhyUnicircleSection";
 import FAQSection from "@/components/FAQSection";
-import SurveySection from "@/components/SurveySection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 
@@ -14,10 +14,10 @@ const Index = () => {
     <main className="min-h-screen bg-background overflow-x-hidden">
       <Header />
       <HeroSection />
-      <SurveySection />
       <ProblemSection />
+      <SolutionSection />
       <HowItWorksSection />
-      <RecruitmentSection />
+      <BenefitsSection />
       <WhyUnicircleSection />
       <FAQSection />
       <CTASection />
