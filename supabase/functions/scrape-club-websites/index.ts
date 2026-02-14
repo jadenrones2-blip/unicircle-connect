@@ -142,8 +142,8 @@ Deno.serve(async (req) => {
               });
 
             if (insertError) {
-              console.error('Error inserting event:', insertError.message);
-              result.errors.push(`Insert failed: ${event.title}`);
+              console.error('Error inserting event:', JSON.stringify(insertError));
+              result.errors.push(`Insert failed: ${event.title} - ${insertError.message || JSON.stringify(insertError)}`);
             } else {
               result.eventsExtracted++;
               result.clubBreakdown[club.name] = (result.clubBreakdown[club.name] || 0) + 1;
