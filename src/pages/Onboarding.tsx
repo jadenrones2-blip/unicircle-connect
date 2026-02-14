@@ -105,16 +105,26 @@ const RESUME_STEP_INDEX = quizQuestions.length;
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { saveInterests, loading: savingInterests } = useUserInterests();
+  const { saveInterests, loading: savingInterests, hasCompletedOnboarding } = useUserInterests();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [resumeKeywords, setResumeKeywords] = useState<ExtractedKeywords | null>(null);
 
+  
+
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login');
+      return;
     }
-  }, [user, authLoading, navigate]);
+    if (!authLoading && user) {
+      hasCompletedOnboarding(user.id).then((completed) => {
+        if (completed) {
+          navigate('/dashboard');
+        }
+      });
+    }
+  }, [user, authLoading, navigate, hasCompletedOnboarding]);
 
   const isResumeStep = currentStep === RESUME_STEP_INDEX;
   const currentQuestion = isResumeStep ? null : quizQuestions[currentStep];
