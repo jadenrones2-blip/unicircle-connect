@@ -112,6 +112,44 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // ============ AUTH + ADMIN CHECK ============
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const internalUrl = Deno.env.get("SUPABASE_URL")!;
+    const internalAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const internalServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const authSupabase = createClient(internalUrl, internalAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const authToken = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(authToken);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const adminSupabase = createClient(internalUrl, internalServiceKey);
+    const { data: isAdmin } = await adminSupabase.rpc('has_role', {
+      _user_id: claimsData.claims.sub,
+      _role: 'admin',
+    });
+
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
     const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || '';
     const EXTERNAL_SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');

@@ -23,16 +23,52 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // ============ AUTH + ADMIN CHECK ============
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const authSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const authToken = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(authToken);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const adminCheckSupabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: isAdmin } = await adminCheckSupabase.rpc('has_role', {
+      _user_id: claimsData.claims.sub,
+      _role: 'admin',
+    });
+
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const { eventTitle, clubHandle, startTime, location }: EventApprovedRequest = await req.json();
 
     if (!eventTitle || !clubHandle) {
       throw new Error("Missing required fields: eventTitle and clubHandle");
     }
 
-    // Initialize Supabase client to look up club owner
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Use admin client to look up club owner
+    const supabase = adminCheckSupabase;
 
     // Look up the club owner by club_id (which matches club_handle)
     const { data: owner, error: ownerError } = await supabase
