@@ -161,6 +161,14 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
+      // Verify we still have a valid session before attempting update
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession) {
+        setError('Your session has expired. Please request a new password reset link.');
+        setIsValidSession(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({ password });
       
       if (error) throw error;
@@ -168,13 +176,20 @@ export default function ResetPassword() {
       setSuccess(true);
       toast.success('Password updated successfully!');
       
-      // Redirect to login after a short delay
+      // Sign out to clear the recovery session, then redirect to login
+      await supabase.auth.signOut();
+      
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update password';
-      toast.error(message);
+      if (message.toLowerCase().includes('session') || message.toLowerCase().includes('token') || message.toLowerCase().includes('not authenticated')) {
+        setError('Your session has expired. Please request a new password reset link.');
+        setIsValidSession(false);
+      } else {
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
     }
