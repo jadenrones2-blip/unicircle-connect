@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
 
             const { error: insertError } = await externalSupabase
               .from('events')
-              .upsert({
+              .insert({
                 title: event.title,
                 start_time: event.start_time,
                 end_time: event.end_time || null,
@@ -136,9 +136,6 @@ Deno.serve(async (req) => {
                 verified: false,
                 caption: event.description,
                 posted_at: new Date().toISOString(),
-              }, {
-                onConflict: 'external_source,external_id',
-                ignoreDuplicates: true,
               });
 
             if (insertError) {
