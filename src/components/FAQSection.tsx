@@ -10,32 +10,32 @@ const faqs = [
   {
     question: "What is UniCircle?",
     answer:
-      "UniCircle is a discovery platform that helps students find clubs, events, and communities on campus. Unlike social feeds that show you what you already follow, we help you discover what you haven't found yet.",
+      "UniCircle is recruitment infrastructure for student organizations. It provides a structured system for managing applicant intake, evaluation, and transparent status tracking — designed to scale with growing organizations.",
   },
   {
     question: "Is UniCircle free?",
     answer:
-      "Yes, completely free. Sign up with your campus email and start exploring.",
+      "Yes. UniCircle is free for both organizations and students. Claim your club with a verified email and start managing recruitment immediately.",
   },
   {
-    question: "How is this different from other platforms?",
+    question: "Who is UniCircle for?",
     answer:
-      "Most platforms are built for content consumption — you scroll, you watch, you leave. UniCircle is built for action. We help you find clubs to join, events to attend, and people to meet in real life.",
+      "Primarily for student organizations that manage structured recruitment cycles — clubs, fraternities, sororities, professional organizations, and student-run teams. Students benefit from transparent application tracking and structured discovery.",
   },
   {
-    question: "How do I find clubs that match my interests?",
+    question: "How do I add my organization?",
     answer:
-      "After signing up, a quick onboarding quiz helps us understand what you're looking for. From there, we surface clubs and events tailored to you — no algorithm games, just relevance.",
+      "Navigate to the clubs directory, find your organization, and claim it with a verified email. Once verified, you'll have access to your admin portal with recruitment tools, event management, and profile editing.",
   },
   {
-    question: "I'm a club leader. How do I add my club?",
+    question: "Can applicants see their status?",
     answer:
-      "Club leaders can claim their organization through our verification process. Once verified, you get a dashboard to manage your profile, post events, and track recruitment.",
+      "Yes. When your organization uses UniCircle's recruitment pipeline, applicants can track their position in the process and receive automated updates when they advance or receive a decision.",
   },
   {
-    question: "Can I track my club applications?",
+    question: "How does the evaluation system work?",
     answer:
-      "Yes. If a club uses our recruitment tools, you'll see exactly where you stand in their process — no more wondering if they ever saw your application.",
+      "Define custom recruitment stages and evaluation criteria. Import applicants via CSV or direct intake. Use structured scoring, AI-assisted screening, and drag-and-drop pipeline management to move applicants through your workflow.",
   },
 ];
 
@@ -44,7 +44,6 @@ const FAQSection = () => {
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-3xl mx-auto">
-          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -55,15 +54,11 @@ const FAQSection = () => {
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
               FAQ
             </span>
-            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 tracking-tight">
-              Questions? We've got answers.
+            <h2 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-4 tracking-tight">
+              Common questions
             </h2>
-            <p className="text-muted-foreground text-lg">
-              Here's what students usually ask.
-            </p>
           </motion.div>
 
-          {/* Accordion */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
