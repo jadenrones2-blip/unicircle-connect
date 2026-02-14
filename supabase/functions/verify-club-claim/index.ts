@@ -507,9 +507,10 @@ const handler = async (req: Request): Promise<Response> => {
         const resend = new Resend(resendApiKey);
         const verifyUrl = `${redirectUrl || "https://unicircle-connect.lovable.app"}/verify-claim?token=${rawToken}`;
 
+        console.log(`[CLAIM] Sending verification email to ${userEmail} for club ${clubName}`);
         try {
-          await resend.emails.send({
-            from: "UniCircle <noreply@unicircle.club>",
+          const emailResult = await resend.emails.send({
+            from: "UniCircle <onboarding@resend.dev>",
             to: [userEmail],
             subject: `Verify your ownership of ${clubName}`,
             html: `
@@ -532,9 +533,12 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
             `,
           });
+          console.log("[CLAIM] Email send result:", JSON.stringify(emailResult));
         } catch (emailError) {
-          console.error("Error sending email:", emailError);
+          console.error("[CLAIM] Error sending email:", JSON.stringify(emailError));
         }
+      } else {
+        console.warn("[CLAIM] RESEND_API_KEY not configured, skipping email");
       }
 
       return new Response(
