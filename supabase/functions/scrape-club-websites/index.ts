@@ -296,7 +296,7 @@ Rules:
 
   const userPrompt = `Extract ALL upcoming events from this website content for "${club.name}":
 
-${content.slice(0, 12000)}
+${content.slice(0, 24000)}
 
 Return structured event data. If no events found, return an empty array.`;
 
