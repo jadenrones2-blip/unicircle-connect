@@ -119,7 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to the user
     const userEmailResponse = await resend.emails.send({
-      from: "Unicircle <onboarding@resend.dev>",
+      from: "Unicircle <noreply@unicircle.app>",
       to: [sanitizedEmail],
       subject: "Welcome to the Unicircle Waitlist! 🎉",
       html: `

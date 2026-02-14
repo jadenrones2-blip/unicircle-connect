@@ -510,7 +510,7 @@ const handler = async (req: Request): Promise<Response> => {
         console.log(`[CLAIM] Sending verification email to ${userEmail} for club ${clubName}`);
         try {
           const emailResult = await resend.emails.send({
-            from: "UniCircle <onboarding@resend.dev>",
+            from: "UniCircle <noreply@unicircle.app>",
             to: [userEmail],
             subject: `Verify your ownership of ${clubName}`,
             html: `
