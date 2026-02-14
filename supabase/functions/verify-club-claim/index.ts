@@ -422,7 +422,15 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Check if this user already has a pending claim for this club
+      // Auto-expire stale pending claims whose tokens have expired
+      await supabase
+        .from("club_claim_requests")
+        .update({ status: "expired" })
+        .eq("club_id", clubId)
+        .eq("status", "pending")
+        .lt("token_expires_at", new Date().toISOString());
+
+      // Check if this user already has a pending (non-expired) claim for this club
       const { data: existingUserClaim } = await supabase
         .from("club_claim_requests")
         .select("id, status")

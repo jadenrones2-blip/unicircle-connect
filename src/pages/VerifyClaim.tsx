@@ -47,9 +47,26 @@ export default function VerifyClaim() {
           },
         });
 
-        if (error || data?.error) {
+        if (error) {
+          let errorMessage = 'Verification failed';
+          try {
+            const errorBody = await (error as any)?.context?.json?.();
+            if (errorBody?.error) {
+              errorMessage = errorBody.error;
+            }
+          } catch {
+            if (error.message && !error.message.includes('non-2xx')) {
+              errorMessage = error.message;
+            }
+          }
           setStatus('error');
-          setResult({ errorMessage: data?.error || error?.message || 'Verification failed' });
+          setResult({ errorMessage });
+          return;
+        }
+
+        if (data?.error) {
+          setStatus('error');
+          setResult({ errorMessage: data.error });
           return;
         }
 

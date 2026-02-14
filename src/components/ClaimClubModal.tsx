@@ -77,8 +77,27 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
         },
       });
 
-      if (error || response?.error) {
-        throw new Error(response?.error || error?.message || 'Failed to submit claim');
+      // When edge function returns non-2xx, supabase-js puts the response body in error.context
+      if (error) {
+        // Try to extract the actual error message from the response body
+        let errorMessage = 'Failed to submit claim request';
+        try {
+          // supabase-js FunctionsHttpError stores the response in context
+          const errorBody = await (error as any)?.context?.json?.();
+          if (errorBody?.error) {
+            errorMessage = errorBody.error;
+          }
+        } catch {
+          // If we can't parse the error context, use the generic message
+          if (error.message && !error.message.includes('non-2xx')) {
+            errorMessage = error.message;
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      if (response?.error) {
+        throw new Error(response.error);
       }
 
       setSentEmail(user.email || '');
