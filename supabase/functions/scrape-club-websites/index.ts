@@ -48,6 +48,10 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const body = await req.json().catch(() => ({}));
+    const limit = body.limit || 5;
+    const offset = body.offset || 0;
+
     const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || '';
@@ -64,12 +68,13 @@ Deno.serve(async (req) => {
 
     const externalSupabase = createClient(externalUrl, EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch clubs with website URLs
+    // Fetch clubs with website URLs (paginated)
     const { data: clubs, error: clubsError } = await externalSupabase
       .from('clubs')
       .select('id, name, website')
       .not('website', 'is', null)
-      .limit(500);
+      .order('name', { ascending: true })
+      .range(offset, offset + limit - 1);
 
     if (clubsError) {
       console.error('Error fetching clubs:', clubsError);
@@ -84,7 +89,7 @@ Deno.serve(async (req) => {
       }))
       .filter((c: Club) => c.name.length > 2 && c.website.length > 5);
 
-    console.log(`Found ${clubsWithWebsite.length} clubs with websites`);
+    console.log(`Processing ${clubsWithWebsite.length} clubs (offset: ${offset}, limit: ${limit})`);
 
     const result: ScrapeResult = {
       clubsScraped: 0,
@@ -97,67 +102,54 @@ Deno.serve(async (req) => {
       try {
         console.log(`Processing ${club.name}: ${club.website}`);
 
-        // Step 1: Use Firecrawl Map to find event/calendar pages
-        const eventPages = await discoverEventPages(club.website, FIRECRAWL_API_KEY);
-
-        if (eventPages.length === 0) {
-          console.log(`No event pages found for ${club.name}`);
+        // Scrape the homepage directly (skip Map to save time/credits)
+        const content = await scrapePageContent(club.website, FIRECRAWL_API_KEY);
+        if (!content || content.length < 50) {
+          console.log(`No meaningful content from ${club.website}`);
+          result.errors.push(`No content: ${club.name}`);
           continue;
         }
 
-        console.log(`Found ${eventPages.length} event page(s) for ${club.name}: ${eventPages.join(', ')}`);
+        console.log(`Got ${content.length} chars from ${club.name}`);
 
-        // Step 2: Scrape each event page
-        for (const pageUrl of eventPages.slice(0, 3)) {
+        // Extract events via AI
+        const events = await extractEventsFromPage(content, club, LOVABLE_API_KEY);
+        console.log(`Extracted ${events.length} events from ${club.name}`);
+
+        // Insert events with deduplication
+        for (const event of events) {
           try {
-            const content = await scrapePageContent(pageUrl, FIRECRAWL_API_KEY);
-            if (!content || content.length < 50) {
-              console.log(`No meaningful content from ${pageUrl}`);
-              continue;
+            const externalId = generateEventId(event.title, event.start_time, club.id);
+
+            const { error: insertError } = await externalSupabase
+              .from('events')
+              .upsert({
+                title: event.title,
+                start_time: event.start_time,
+                end_time: event.end_time || null,
+                location: event.location || null,
+                club_id: club.id,
+                source: 'website',
+                source_url: club.website,
+                external_source: 'club_website',
+                external_id: externalId,
+                verified: false,
+                caption: event.description,
+                posted_at: new Date().toISOString(),
+              }, {
+                onConflict: 'external_source,external_id',
+                ignoreDuplicates: true,
+              });
+
+            if (insertError) {
+              console.error('Error inserting event:', insertError.message);
+              result.errors.push(`Insert failed: ${event.title}`);
+            } else {
+              result.eventsExtracted++;
+              result.clubBreakdown[club.name] = (result.clubBreakdown[club.name] || 0) + 1;
             }
-
-            // Step 3: Extract events via AI
-            const events = await extractEventsFromPage(content, club, LOVABLE_API_KEY);
-            console.log(`Extracted ${events.length} events from ${pageUrl}`);
-
-            // Step 4: Insert events with deduplication
-            for (const event of events) {
-              try {
-                const externalId = generateEventId(event.title, event.start_time, club.id);
-
-                const { error: insertError } = await externalSupabase
-                  .from('events')
-                  .upsert({
-                    title: event.title,
-                    start_time: event.start_time,
-                    end_time: event.end_time || null,
-                    location: event.location || null,
-                    club_id: club.id,
-                    source: 'website',
-                    source_url: pageUrl,
-                    external_source: 'club_website',
-                    external_id: externalId,
-                    verified: false,
-                    caption: event.description,
-                    posted_at: new Date().toISOString(),
-                  }, {
-                    onConflict: 'external_source,external_id',
-                    ignoreDuplicates: true,
-                  });
-
-                if (insertError) {
-                  console.error('Error inserting event:', insertError.message);
-                  result.errors.push(`Insert failed: ${event.title}`);
-                } else {
-                  result.eventsExtracted++;
-                  result.clubBreakdown[club.name] = (result.clubBreakdown[club.name] || 0) + 1;
-                }
-              } catch (e) {
-                console.error('Event insert error:', e);
-              }
-            }
-          } catch (pageError) {
-            console.error(`Error scraping page ${pageUrl}:`, pageError);
+          } catch (e) {
+            console.error('Event insert error:', e);
           }
         }
 
