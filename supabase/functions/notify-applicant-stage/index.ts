@@ -123,6 +123,30 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // ============ AUTH + CLUB OWNERSHIP CHECK ============
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const authSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const authToken = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(authToken);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     const { 
       applicantId, 
       applicantEmail, 
@@ -135,6 +159,23 @@ const handler = async (req: Request): Promise<Response> => {
     // Validate required fields
     if (!applicantEmail || !applicantName || !stageName || !clubName) {
       throw new Error("Missing required fields");
+    }
+
+    // Verify club ownership
+    if (clubId) {
+      const { data: ownership } = await authSupabase
+        .from("club_owners")
+        .select("id")
+        .eq("club_id", clubId)
+        .eq("user_id", claimsData.claims.sub)
+        .maybeSingle();
+
+      if (!ownership) {
+        return new Response(
+          JSON.stringify({ error: "Not authorized for this club" }),
+          { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
     }
 
     // Check if this stage should trigger a notification
