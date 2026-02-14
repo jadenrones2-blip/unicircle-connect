@@ -52,7 +52,7 @@ export function useStudentRecruitment() {
       // Fetch applicant records for this user's email
       const { data: applicantData, error: applicantError } = await supabase
         .from('applicants')
-        .select('*')
+        .select('id, club_id, stage_id, first_name, last_name, email, major, year, metadata, created_at, updated_at')
         .eq('email', user.email);
 
       if (applicantError) {
