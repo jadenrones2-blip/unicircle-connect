@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { FileText, GripVertical, BarChart3, ShieldCheck, GitBranch, Bell } from "lucide-react";
+import { PipelinePreview } from "./PipelinePreview";
 
 const capabilities = [
   {
@@ -79,6 +80,8 @@ const SolutionSection = () => {
               </motion.div>
             ))}
           </div>
+
+          <PipelinePreview />
         </div>
       </div>
     </section>
