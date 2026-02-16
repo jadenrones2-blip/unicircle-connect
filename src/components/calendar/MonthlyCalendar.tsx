@@ -90,24 +90,24 @@ export function MonthlyCalendar({ events, loading, error, onRefetch }: MonthlyCa
   return (
     <div className="w-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={handlePrevMonth}>
+          <Button variant="outline" size="icon" onClick={handlePrevMonth} className="h-8 w-8">
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <h2 className="text-xl md:text-2xl font-display font-semibold min-w-[200px] text-center">
+          <h2 className="text-lg md:text-2xl font-display font-semibold min-w-[140px] md:min-w-[200px] text-center">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
-          <Button variant="outline" size="icon" onClick={handleNextMonth}>
+          <Button variant="outline" size="icon" onClick={handleNextMonth} className="h-8 w-8">
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleToday}>
+          <Button variant="outline" size="sm" onClick={handleToday} className="h-8 text-xs">
             Today
           </Button>
-          <Button variant="ghost" size="icon" onClick={onRefetch} disabled={loading}>
+          <Button variant="ghost" size="icon" onClick={onRefetch} disabled={loading} className="h-8 w-8">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
@@ -149,14 +149,14 @@ export function MonthlyCalendar({ events, loading, error, onRefetch }: MonthlyCa
             return (
               <div
                 key={index}
-                className={`min-h-[100px] md:min-h-[120px] p-2 border-r border-b border-border last:border-r-0 transition-colors ${
+                className={`min-h-[70px] md:min-h-[120px] p-1 md:p-2 border-r border-b border-border last:border-r-0 transition-colors ${
                   !isCurrentMonth ? 'bg-muted/30' : 'hover:bg-muted/20'
                 } ${isDayToday ? 'bg-gold/5' : ''}`}
               >
                 {/* Day Number */}
-                <div className={`text-sm font-medium mb-1 ${
+                <div className={`text-[10px] md:text-sm font-medium mb-1 ${
                   isDayToday 
-                    ? 'w-7 h-7 rounded-full bg-gold text-primary-foreground flex items-center justify-center' 
+                    ? 'w-5 h-5 md:w-7 md:h-7 rounded-full bg-gold text-primary-foreground flex items-center justify-center' 
                     : isCurrentMonth 
                       ? 'text-foreground' 
                       : 'text-muted-foreground/50'
@@ -200,7 +200,7 @@ export function MonthlyCalendar({ events, loading, error, onRefetch }: MonthlyCa
       <div className="mt-4 text-sm text-muted-foreground text-center">
         {events.length} total event{events.length !== 1 ? 's' : ''} loaded
         <span className="mx-2">•</span>
-        <span className="text-green-500">● Realtime connected</span>
+        <span className="text-gold">● Realtime connected</span>
       </div>
 
       {/* Event Detail Modal */}
