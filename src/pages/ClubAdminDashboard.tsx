@@ -86,15 +86,15 @@ export default function ClubAdminDashboard() {
       <div className="min-h-screen flex w-full bg-background">
         <ClubAdminSidebar />
         
-        <main className="flex-1">
-          <header className="h-16 border-b border-border flex items-center px-4 gap-4">
+        <main className="flex-1 min-w-0">
+          <header className="h-14 sm:h-16 border-b border-border flex items-center px-3 sm:px-4 gap-3 sm:gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-display font-semibold text-foreground">
+            <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground truncate">
               Club Admin Portal
             </h1>
           </header>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Provisional Warning Banner */}
             {hasProvisionalClub && (
               <div className="mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
@@ -124,11 +124,11 @@ export default function ClubAdminDashboard() {
               </div>
             )}
 
-            <div className="mb-8">
-              <h2 className="text-2xl font-display font-bold text-foreground mb-2">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground mb-1 sm:mb-2">
                 Welcome back!
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Manage your clubs and events from this dashboard.
               </p>
             </div>
@@ -139,12 +139,12 @@ export default function ClubAdminDashboard() {
             ))}
 
             {/* Recruitment Cards - Prominent Section */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <div className="mb-6 sm:mb-8">
+              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
                 <Users className="w-5 h-5 text-gold" />
                 Recruitment
               </h3>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {ownedClubs.map((club) => (
                   <RecruitmentDashboardCard 
                     key={`recruitment-${club.clubId}`}
@@ -155,12 +155,12 @@ export default function ClubAdminDashboard() {
               </div>
             </div>
 
-            <h3 className="text-lg font-semibold text-foreground mb-4">My Clubs</h3>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">My Clubs</h3>
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {ownedClubs.map((club) => (
                 <div
                   key={club.clubId}
-                  className={`premium-card p-6 transition-colors ${
+                  className={`premium-card p-4 sm:p-6 transition-colors ${
                     club.verificationState === 'provisional' 
                       ? 'border-yellow-500/30 hover:border-yellow-500/50' 
                       : 'hover:border-gold/30'
