@@ -256,46 +256,46 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoImage} alt="UniCircle" className="h-8" />
+            <img src={logoImage} alt="UniCircle" className="h-7 sm:h-8" />
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 sm:gap-4">
             <Link to="/clubs">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <Users className="h-4 w-4 mr-2" />
-                All Clubs
+              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3">
+                <Users className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">All Clubs</span>
               </Button>
             </Link>
             <Link to="/events">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
-                <Calendar className="h-4 w-4 mr-2" />
-                Events
+              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3">
+                <Calendar className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Events</span>
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="px-2 sm:px-3">
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-5 sm:py-8">
         {/* Welcome section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <div className="flex items-center gap-3 mb-2">
-            <UserCircle className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          <div className="flex items-center gap-3 mb-1 sm:mb-2">
+            <UserCircle className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
               Your Dashboard
             </h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage your clubs, track applications, and discover new communities.
           </p>
         </motion.div>
@@ -304,18 +304,18 @@ export default function Dashboard() {
         <RecruitmentTrackerSection />
 
         {/* Tabs for My Clubs / Applications */}
-        <Tabs defaultValue="my-clubs" className="mb-10">
-          <TabsList className="mb-6">
-            <TabsTrigger value="my-clubs" className="gap-2">
-              <Users className="h-4 w-4" />
-              My Clubs ({memberships.length})
+        <Tabs defaultValue="my-clubs" className="mb-8 sm:mb-10">
+          <TabsList className="mb-4 sm:mb-6 w-full sm:w-auto grid grid-cols-3 sm:flex">
+            <TabsTrigger value="my-clubs" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">My </span>Clubs ({memberships.length})
             </TabsTrigger>
-            <TabsTrigger value="applications" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Applications ({applications.filter(a => a.status !== 'withdrawn').length})
+            <TabsTrigger value="applications" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Applications</span><span className="sm:hidden">Apps</span> ({applications.filter(a => a.status !== 'withdrawn').length})
             </TabsTrigger>
-            <TabsTrigger value="saved" className="gap-2">
-              <Heart className="h-4 w-4" />
+            <TabsTrigger value="saved" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+              <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Saved ({savedClubs.length})
             </TabsTrigger>
           </TabsList>
@@ -350,21 +350,21 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
             <div className="flex items-center gap-3">
               <Sparkles className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold text-foreground">
+              <h2 className="text-lg sm:text-xl font-semibold text-foreground">
                 Recommended for You
               </h2>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleRetakeQuiz}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Retake Quiz
+                <RefreshCw className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Retake Quiz</span>
               </Button>
               <Button variant="outline" size="sm" onClick={() => refetch()}>
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
+                <RefreshCw className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
             </div>
           </div>

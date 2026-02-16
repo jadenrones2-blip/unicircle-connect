@@ -110,11 +110,11 @@ export default function Login() {
         className="w-full max-w-md"
       >
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <Link to="/" className="inline-block">
-            <img src={logoImage} alt="UniCircle" className="h-12 mx-auto mb-4" />
+            <img src={logoImage} alt="UniCircle" className="h-10 sm:h-12 mx-auto mb-3 sm:mb-4" />
           </Link>
-          <h1 className="text-2xl font-bold text-foreground">Welcome Back</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Welcome Back</h1>
           <p className="text-muted-foreground mt-2">
             {mode === 'admin'
               ? 'Sign in to review and approve events'
@@ -125,12 +125,12 @@ export default function Login() {
         </div>
 
         {/* Mode Toggle */}
-        <div className="flex gap-2 mb-6 p-1 bg-muted rounded-lg">
+        <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 p-1 bg-muted rounded-lg">
           <button
             type="button"
             onClick={() => setMode('student')}
             className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all',
+              'flex-1 flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-all',
               mode === 'student'
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -143,7 +143,7 @@ export default function Login() {
             type="button"
             onClick={() => setMode('club-owner')}
             className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-sm font-medium transition-all',
+              'flex-1 flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-all',
               mode === 'club-owner'
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -170,8 +170,8 @@ export default function Login() {
         </div>
 
         {/* Card */}
-        <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="bg-card border border-border rounded-2xl p-5 sm:p-8 shadow-lg">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground">
                 Email
