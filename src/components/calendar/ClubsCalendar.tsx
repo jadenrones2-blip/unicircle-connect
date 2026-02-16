@@ -214,8 +214,8 @@ export default function ClubsCalendar() {
       />
 
       {/* Events List View */}
-      <div className="premium-card p-6">
-        <h3 className="text-xl font-display font-semibold text-foreground mb-4 flex items-center gap-2">
+      <div className="premium-card p-4 md:p-6">
+        <h3 className="text-lg md:text-xl font-display font-semibold text-foreground mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5 text-gold" />
           All Events
         </h3>
@@ -227,41 +227,77 @@ export default function ClubsCalendar() {
         ) : rawEvents.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">No events found</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Club</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Time</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rawEvents.map((event) => (
-                  <TableRow 
-                    key={event.id} 
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => {
-                      setSelectedEvent(event);
-                      setIsModalOpen(true);
-                    }}
-                  >
-                    <TableCell className="font-medium">{getListDisplayTitle(event)}</TableCell>
-                    <TableCell>
-                      {event.club_handle ? (
-                        <span className="text-gold">@{event.club_handle}</span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{formatEventDate(event.start_time)}</TableCell>
-                    <TableCell className="text-right text-muted-foreground">{formatEventTime(event.start_time)}</TableCell>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Event</TableHead>
+                    <TableHead>Club</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Time</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {rawEvents.map((event) => (
+                    <TableRow 
+                      key={event.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => {
+                        setSelectedEvent(event);
+                        setIsModalOpen(true);
+                      }}
+                    >
+                      <TableCell className="font-medium">{getListDisplayTitle(event)}</TableCell>
+                      <TableCell>
+                        {event.club_handle ? (
+                          <span className="text-gold">@{event.club_handle}</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{formatEventDate(event.start_time)}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{formatEventTime(event.start_time)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="flex flex-col gap-3 md:hidden">
+              {rawEvents.map((event) => (
+                <div 
+                  key={event.id} 
+                  className="p-4 bg-muted/30 border border-border rounded-lg active:scale-[0.98] transition-all"
+                  onClick={() => {
+                    setSelectedEvent(event);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <h4 className="font-semibold text-foreground line-clamp-1">{getListDisplayTitle(event)}</h4>
+                    <span className="text-xs font-medium text-gold whitespace-nowrap">
+                      {formatEventTime(event.start_time)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      {event.club_handle && <span>@{event.club_handle}</span>}
+                    </div>
+                    <span>{formatEventDate(event.start_time)}</span>
+                  </div>
+                  {event.location && (
+                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                      <MapPin className="w-3 h-3 text-gold/60" />
+                      <span className="line-clamp-1">{event.location}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

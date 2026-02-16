@@ -16,20 +16,20 @@ const CalendarApp = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-28 pb-8 md:pt-36 md:pb-12 px-4">
+      <section className="pt-24 pb-6 md:pt-36 md:pb-12 px-4">
         <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-3xl mx-auto"
           >
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Calendar className="w-8 h-8 text-gold" />
-              <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
+            <div className="flex items-center justify-center gap-2 md:gap-3 mb-3 md:mb-4">
+              <Calendar className="w-6 h-6 md:w-8 md:h-8 text-gold" />
+              <h1 className="text-2xl md:text-4xl font-display font-bold text-foreground">
                 Events <span className="text-gradient-gold">Calendar</span>
               </h1>
             </div>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-sm md:text-base text-muted-foreground mb-4">
               Browse and discover upcoming events. Updates in real-time.
             </p>
             {isClubOwner ? (

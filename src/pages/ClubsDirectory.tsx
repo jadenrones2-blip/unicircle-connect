@@ -140,26 +140,26 @@ const ClubsDirectory = () => {
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-28 pb-6 md:pt-32 md:pb-8 px-4">
+      <section className="pt-24 pb-4 md:pt-32 md:pb-8 px-4">
         <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center max-w-2xl mx-auto"
           >
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
+            <h1 className="text-2xl md:text-4xl font-display font-bold text-foreground mb-2 md:mb-3">
               Clubs Directory
             </h1>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-sm md:text-base text-muted-foreground mb-4">
               {loading
                 ? "Loading clubs..."
                 : `Explore ${clubs.length} student organizations`}
             </p>
             <RequestNewClubModal
               trigger={
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Can't find your club? Request to add it
+                <Button variant="outline" size="sm" className="gap-2 h-9 text-xs md:text-sm">
+                  <Plus className="w-3.5 h-3.5" />
+                  Request to add your club
                 </Button>
               }
             />
@@ -177,9 +177,9 @@ const ClubsDirectory = () => {
             className="pb-4 px-4"
           >
             <div className="container mx-auto max-w-4xl">
-              <Alert className="bg-gold/5 border-gold/20 relative">
-                <div className="flex items-start gap-3">
-                  <div className="shrink-0 mt-0.5">
+              <Alert className="bg-gold/5 border-gold/20 relative p-3 md:p-4">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <div className="shrink-0 mt-0.5 hidden sm:block">
                     <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
                       <Shield className="w-4 h-4 text-gold" />
                     </div>
@@ -189,24 +189,22 @@ const ClubsDirectory = () => {
                       <Sparkles className="w-3.5 h-3.5 text-gold" />
                       <span className="text-sm font-semibold text-foreground">Are you a club leader?</span>
                     </div>
-                    <AlertDescription className="text-sm text-muted-foreground">
+                    <AlertDescription className="text-xs md:text-sm text-muted-foreground">
                       <span className="block mb-2">
-                        Claim your club to access the Admin Portal where you can manage events, track recruitment, and update your club's profile.
+                        Claim your club to manage events and update your profile.
                       </span>
-                      <div className="flex flex-col sm:flex-row gap-2 text-xs">
+                      <div className="flex flex-col sm:flex-row gap-x-3 gap-y-1.5 text-[10px] md:text-xs">
                         <span className="flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[10px]">1</span>
-                          Search for your club below
+                          <span className="w-4 h-4 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[9px]">1</span>
+                          Search your club
                         </span>
-                        <ChevronRight className="hidden sm:block w-3 h-3 text-muted-foreground/50" />
                         <span className="flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[10px]">2</span>
-                          Click "Claim this club" on the detail page
+                          <span className="w-4 h-4 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[9px]">2</span>
+                          Click "Claim this club"
                         </span>
-                        <ChevronRight className="hidden sm:block w-3 h-3 text-muted-foreground/50" />
                         <span className="flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[10px]">3</span>
-                          Verify via email
+                          <span className="w-4 h-4 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[9px]">3</span>
+                          Verify email
                         </span>
                       </div>
                     </AlertDescription>
@@ -227,66 +225,68 @@ const ClubsDirectory = () => {
       </AnimatePresence>
 
       {/* Search and Filter Controls */}
-      <section className="pb-8 px-4">
+      <section className="pb-6 md:pb-8 px-4">
         <div className="container mx-auto max-w-4xl">
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col md:flex-row gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search clubs"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                className="pl-10 pr-10 h-12"
+                className="pl-9 md:pl-10 pr-10 h-10 md:h-12 text-sm md:text-base"
               />
               {searchText && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 md:h-8 md:w-8 p-0"
                   onClick={() => setSearchText("")}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </Button>
               )}
             </div>
 
-            {/* Category Dropdown */}
-            <Select
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
-            >
-              <SelectTrigger className="w-full sm:w-[180px] h-12">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORY_OPTIONS.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              {/* Category Dropdown */}
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
+                <SelectTrigger className="flex-1 md:w-[180px] h-10 md:h-12 text-sm">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            {/* View Toggle */}
-            <div className="flex border border-border rounded-lg overflow-hidden h-12">
-              <Toggle
-                pressed={viewMode === "list"}
-                onPressedChange={() => setViewMode("list")}
-                className="rounded-none border-0 px-3 data-[state=on]:bg-muted"
-                aria-label="List view"
-              >
-                <List className="w-5 h-5" />
-              </Toggle>
-              <Toggle
-                pressed={viewMode === "grid"}
-                onPressedChange={() => setViewMode("grid")}
-                className="rounded-none border-0 border-l border-border px-3 data-[state=on]:bg-muted"
-                aria-label="Grid view"
-              >
-                <LayoutGrid className="w-5 h-5" />
-              </Toggle>
+              {/* View Toggle */}
+              <div className="flex border border-border rounded-lg overflow-hidden h-10 md:h-12">
+                <Toggle
+                  pressed={viewMode === "list"}
+                  onPressedChange={() => setViewMode("list")}
+                  className="rounded-none border-0 px-2 md:px-3 data-[state=on]:bg-muted"
+                  aria-label="List view"
+                >
+                  <List className="w-4 h-4 md:w-5 md:h-5" />
+                </Toggle>
+                <Toggle
+                  pressed={viewMode === "grid"}
+                  onPressedChange={() => setViewMode("grid")}
+                  className="rounded-none border-0 border-l border-border px-2 md:px-3 data-[state=on]:bg-muted"
+                  aria-label="Grid view"
+                >
+                  <LayoutGrid className="w-4 h-4 md:w-5 md:h-5" />
+                </Toggle>
+              </div>
             </div>
           </div>
         </div>
