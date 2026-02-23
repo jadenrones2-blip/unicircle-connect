@@ -78,17 +78,15 @@ export default function Login() {
           //   toast.error('No clubs found...', { duration: 6000 });
           //   navigate('/clubs');
           // } else {
-          {
-            // Student login flow
-            const completed = await hasCompletedOnboarding(data.user.id);
-            if (completed) {
-              navigate(redirectTo || '/dashboard');
-            } else {
-              navigate('/onboarding');
-            }
-            toast.success('Welcome back!');
+          // Student login flow
+          const completed = await hasCompletedOnboarding(data.user.id);
+          if (completed) {
+            navigate(redirectTo || '/dashboard');
+          } else {
+            navigate('/onboarding');
           }
-          }
+          toast.success('Welcome back!');
+        }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       toast.error(message);
