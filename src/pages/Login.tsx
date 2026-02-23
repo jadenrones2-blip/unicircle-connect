@@ -36,10 +36,11 @@ export default function Login() {
     }
 
     // Validate UCSD email for student login only
-    if (mode === 'student' && !email.toLowerCase().endsWith('@ucsd.edu')) {
-      toast.error('Students must use a UCSD email address (@ucsd.edu)');
-      return;
-    }
+    // TODO: Re-enable for production
+    // if (mode === 'student' && !email.toLowerCase().endsWith('@ucsd.edu')) {
+    //   toast.error('Students must use a UCSD email address (@ucsd.edu)');
+    //   return;
+    // }
 
     setLoading(true);
     try {
