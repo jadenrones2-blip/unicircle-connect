@@ -87,6 +87,7 @@ export default function Login() {
           }
           toast.success('Welcome back!');
         }
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
       toast.error(message);
