@@ -27,8 +27,12 @@ export default function ForgotPassword() {
     setEmail(emailToSend);
     setLoading(true);
     try {
+      // Use published URL for redirect so the link is always valid
+      const redirectBase = import.meta.env.PROD 
+        ? 'https://unicircle-connect.lovable.app'
+        : window.location.origin;
       const { error } = await supabase.auth.resetPasswordForEmail(emailToSend, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${redirectBase}/reset-password`,
       });
 
       if (error) throw error;
