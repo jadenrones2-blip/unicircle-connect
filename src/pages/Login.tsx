@@ -63,26 +63,22 @@ export default function Login() {
             toast.error('This account does not have platform admin access.', { duration: 5000 });
           }
         } else {
-          // Auto-detect club ownership regardless of selected mode
-          const { data: ownedClubs } = await supabase
-            .from('club_owners')
-            .select('id')
-            .eq('user_id', data.user.id)
-            .limit(1);
-
-          if (ownedClubs && ownedClubs.length > 0) {
-            // User is a club owner — route to admin portal
-            navigate('/club-admin');
-            toast.success('Welcome to your Club Admin Portal!');
-          } else if (mode === 'club-owner') {
-            // Tried club-owner mode but has no clubs
-            await supabase.auth.signOut();
-            toast.error(
-              'No clubs found for this account. You must claim a club first before accessing the admin portal.',
-              { duration: 6000 }
-            );
-            navigate('/clubs');
-          } else {
+          // TODO: Re-enable club-owner auto-redirect for production
+          // const { data: ownedClubs } = await supabase
+          //   .from('club_owners')
+          //   .select('id')
+          //   .eq('user_id', data.user.id)
+          //   .limit(1);
+          //
+          // if (ownedClubs && ownedClubs.length > 0) {
+          //   navigate('/club-admin');
+          //   toast.success('Welcome to your Club Admin Portal!');
+          // } else if (mode === 'club-owner') {
+          //   await supabase.auth.signOut();
+          //   toast.error('No clubs found...', { duration: 6000 });
+          //   navigate('/clubs');
+          // } else {
+          {
             // Student login flow
             const completed = await hasCompletedOnboarding(data.user.id);
             if (completed) {
