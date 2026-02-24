@@ -50,19 +50,19 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
           ? "bg-background/95 backdrop-blur-md border-b border-border py-2 shadow-sm" 
           : "bg-background/80 backdrop-blur-sm py-4"
       }`}
     >
       <div className="container mx-auto flex items-center justify-between px-4 md:px-6 h-14 md:h-16">
-        {/* Logo - left-aligned */}
+        {/* Logo */}
         <Link to="/" className="flex items-center flex-shrink-0">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
             whileHover={{ scale: 1.02 }}
           >
             <img 
@@ -73,7 +73,7 @@ const Header = () => {
           </motion.div>
         </Link>
 
-        {/* Navigation with animated underlines */}
+        {/* Navigation */}
         <nav className="hidden md:flex items-center gap-10">
           {navLinks.map((link, index) => (
             <motion.div
@@ -84,16 +84,11 @@ const Header = () => {
             >
               <Link 
                 to={link.href} 
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 relative group"
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors duration-200 relative group tracking-[0.1em] uppercase"
               >
                 <link.icon className="w-3.5 h-3.5 inline-block mr-1.5 opacity-70 group-hover:opacity-100 transition-opacity" />
                 {link.label}
-                <motion.span 
-                  className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-gold to-gold-light rounded-full"
-                  initial={{ width: 0 }}
-                  whileHover={{ width: "100%" }}
-                  transition={{ duration: 0.3 }}
-                />
+                <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-gold group-hover:w-full transition-all duration-200" />
               </Link>
             </motion.div>
           ))}
@@ -108,7 +103,7 @@ const Header = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
                   <Avatar className="h-10 w-10 border-2 border-gold/30">
-                    <AvatarFallback className="bg-gold/10 text-gold font-semibold">
+                    <AvatarFallback className="bg-gold/10 text-gold font-bold text-sm">
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
@@ -118,7 +113,7 @@ const Header = () => {
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
                   {isClubOwner && (
-                    <p className="text-xs text-gold">Club Owner</p>
+                    <p className="text-xs text-gold font-semibold">Club Owner</p>
                   )}
                 </div>
                 <DropdownMenuSeparator />
@@ -149,7 +144,7 @@ const Header = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
             >
               <Button variant="gold" size="default" className="relative group overflow-hidden" asChild>
@@ -158,12 +153,6 @@ const Header = () => {
                     <LogIn className="w-4 h-4" />
                     Login
                   </span>
-                  {/* Shimmer effect */}
-                  <motion.div 
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full"
-                    animate={{ translateX: ["-100%", "200%"] }}
-                    transition={{ repeat: Infinity, duration: 2, ease: "linear", repeatDelay: 1 }}
-                  />
                 </Link>
               </Button>
             </motion.div>
@@ -172,7 +161,7 @@ const Header = () => {
 
         {/* Mobile menu button */}
         <motion.button
-          className="md:hidden p-2 hover:bg-secondary rounded-lg transition-colors border border-transparent hover:border-gold/20"
+          className="md:hidden p-2 hover:bg-secondary rounded-lg transition-colors"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           whileTap={{ scale: 0.95 }}
         >
@@ -183,7 +172,7 @@ const Header = () => {
                 initial={{ rotate: -90, opacity: 0 }}
                 animate={{ rotate: 0, opacity: 1 }}
                 exit={{ rotate: 90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.15 }}
               >
                 <X className="w-5 h-5 text-foreground" />
               </motion.div>
@@ -193,7 +182,7 @@ const Header = () => {
                 initial={{ rotate: 90, opacity: 0 }}
                 animate={{ rotate: 0, opacity: 1 }}
                 exit={{ rotate: -90, opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.15 }}
               >
                 <Menu className="w-5 h-5 text-foreground" />
               </motion.div>
@@ -202,28 +191,28 @@ const Header = () => {
         </motion.button>
       </div>
 
-      {/* Mobile Menu with slide animation */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
             className="md:hidden overflow-hidden"
           >
-            <div className="bg-card/95 backdrop-blur-xl border-b border-gold/10 px-4 py-6 mt-2">
+            <div className="bg-card/95 backdrop-blur-xl border-b border-border px-4 py-6 mt-2">
               <nav className="flex flex-col gap-2">
                 {navLinks.map((link, index) => (
                   <motion.div
                     key={link.href}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
+                    transition={{ delay: index * 0.08 }}
                   >
                     <Link
                       to={link.href}
-                      className="block text-base text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 border border-transparent hover:border-gold/10"
+                      className="block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 tracking-[0.1em] uppercase"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <link.icon className="w-4 h-4 inline-block mr-2 opacity-70" />
@@ -237,11 +226,11 @@ const Header = () => {
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 }}
+                      transition={{ delay: 0.24 }}
                     >
                       <Link
                         to={isClubOwner ? "/club-admin" : "/dashboard"}
-                        className="block text-base text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 border border-transparent hover:border-gold/10"
+                        className="block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 tracking-[0.1em] uppercase"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <LayoutDashboard className="w-4 h-4 inline-block mr-2 opacity-70" />
@@ -251,7 +240,7 @@ const Header = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 }}
+                      transition={{ delay: 0.32 }}
                       className="mt-4"
                     >
                       <Button 
@@ -272,7 +261,7 @@ const Header = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
+                    transition={{ delay: 0.24 }}
                     className="mt-4"
                   >
                     <Button variant="gold" size="lg" className="w-full" asChild>
