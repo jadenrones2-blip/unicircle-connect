@@ -89,7 +89,7 @@ export default function ClubAdminDashboard() {
         <main className="flex-1 min-w-0">
           <header className="h-14 sm:h-16 border-b border-border flex items-center px-3 sm:px-4 gap-3 sm:gap-4">
             <SidebarTrigger />
-            <h1 className="text-lg sm:text-xl font-display font-semibold text-foreground truncate">
+            <h1 className="text-lg sm:text-xl font-display font-bold text-foreground truncate tracking-tight">
               Club Admin Portal
             </h1>
           </header>
@@ -125,7 +125,7 @@ export default function ClubAdminDashboard() {
             )}
 
             <div className="mb-6 sm:mb-8">
-              <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground mb-1 sm:mb-2">
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-foreground mb-1 sm:mb-2 tracking-tight">
                 Welcome back!
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground">
@@ -140,8 +140,8 @@ export default function ClubAdminDashboard() {
 
             {/* Recruitment Cards - Prominent Section */}
             <div className="mb-6 sm:mb-8">
-              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
-                <Users className="w-5 h-5 text-gold" />
+              <h3 className="text-xs font-semibold text-muted-foreground mb-3 sm:mb-4 flex items-center gap-2 tracking-[0.15em] uppercase">
+                <Users className="w-4 h-4 text-gold" />
                 Recruitment
               </h3>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -155,7 +155,7 @@ export default function ClubAdminDashboard() {
               </div>
             </div>
 
-            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">My Clubs</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground mb-3 sm:mb-4 tracking-[0.15em] uppercase">My Clubs</h3>
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {ownedClubs.map((club) => (
                 <div

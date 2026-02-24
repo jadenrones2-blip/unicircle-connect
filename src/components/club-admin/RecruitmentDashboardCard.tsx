@@ -39,7 +39,7 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
               <Users className="w-5 h-5 text-gold" />
             </div>
             <div>
-              <CardTitle className="text-base">Start Recruiting</CardTitle>
+              <CardTitle className="text-base font-display font-bold tracking-tight">Start Recruiting</CardTitle>
               <p className="text-sm text-muted-foreground">{clubName}</p>
             </div>
           </div>
@@ -69,7 +69,7 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
               <Users className="w-5 h-5 text-yellow-600" />
             </div>
             <div>
-              <CardTitle className="text-base">Finish Setup</CardTitle>
+              <CardTitle className="text-base font-display font-bold tracking-tight">Finish Setup</CardTitle>
               <p className="text-sm text-muted-foreground">{clubName}</p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
               <Users className="w-5 h-5 text-gold" />
             </div>
             <div>
-              <CardTitle className="text-base">Recruitment</CardTitle>
+              <CardTitle className="text-base font-display font-bold tracking-tight">Recruitment</CardTitle>
               <p className="text-sm text-muted-foreground">{clubName}</p>
             </div>
           </div>
@@ -118,8 +118,8 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
         <div className="flex gap-1 mb-4">
           {applicantsByStage.map((stage, idx) => (
             <div key={idx} className="flex-1 text-center">
-              <div className="text-lg font-semibold text-foreground">{stage.count}</div>
-              <div className="text-[10px] text-muted-foreground truncate">{stage.label}</div>
+              <div className="text-lg font-display font-bold text-foreground">{stage.count}</div>
+              <div className="text-[10px] text-muted-foreground truncate uppercase tracking-wider font-medium">{stage.label}</div>
             </div>
           ))}
         </div>

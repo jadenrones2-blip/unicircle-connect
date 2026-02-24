@@ -84,8 +84,8 @@ export default function SavedClubsSection({
       {recommendedClubs.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground">
+            <Sparkles className="h-5 w-5 text-gold" />
+            <h3 className="font-display text-lg font-bold text-foreground tracking-tight">
               Similar Clubs You Might Like
             </h3>
           </div>

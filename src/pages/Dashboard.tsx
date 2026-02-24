@@ -253,9 +253,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-border bg-background/95 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src={logoImage} alt="UniCircle" className="h-7 sm:h-8" />
@@ -263,18 +263,18 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-1 sm:gap-4">
             <Link to="/clubs">
-              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3">
+              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3 text-xs tracking-wide uppercase">
                 <Users className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">All Clubs</span>
+                <span className="hidden sm:inline">Clubs</span>
               </Button>
             </Link>
             <Link to="/events">
-              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3">
+              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3 text-xs tracking-wide uppercase">
                 <Calendar className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Events</span>
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="px-2 sm:px-3">
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="px-2 sm:px-3 text-xs tracking-wide uppercase">
               <LogOut className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Sign Out</span>
             </Button>
@@ -290,8 +290,8 @@ export default function Dashboard() {
           className="mb-6 sm:mb-8"
         >
           <div className="flex items-center gap-3 mb-1 sm:mb-2">
-            <UserCircle className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+            <UserCircle className="h-5 w-5 sm:h-6 sm:w-6 text-gold" />
+            <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight">
               Your Dashboard
             </h1>
           </div>
@@ -306,15 +306,15 @@ export default function Dashboard() {
         {/* Tabs for My Clubs / Applications */}
         <Tabs defaultValue="my-clubs" className="mb-8 sm:mb-10">
           <TabsList className="mb-4 sm:mb-6 w-full sm:w-auto grid grid-cols-3 sm:flex">
-            <TabsTrigger value="my-clubs" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+            <TabsTrigger value="my-clubs" className="gap-1 sm:gap-2 text-xs sm:text-sm tracking-wide uppercase font-semibold">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">My </span>Clubs ({memberships.length})
             </TabsTrigger>
-            <TabsTrigger value="applications" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+            <TabsTrigger value="applications" className="gap-1 sm:gap-2 text-xs sm:text-sm tracking-wide uppercase font-semibold">
               <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">Applications</span><span className="sm:hidden">Apps</span> ({applications.filter(a => a.status !== 'withdrawn').length})
             </TabsTrigger>
-            <TabsTrigger value="saved" className="gap-1 sm:gap-2 text-xs sm:text-sm">
+            <TabsTrigger value="saved" className="gap-1 sm:gap-2 text-xs sm:text-sm tracking-wide uppercase font-semibold">
               <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Saved ({savedClubs.length})
             </TabsTrigger>
@@ -352,8 +352,8 @@ export default function Dashboard() {
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
             <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h2 className="text-lg sm:text-xl font-semibold text-foreground">
+              <Sparkles className="h-5 w-5 text-gold" />
+              <h2 className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight">
                 Recommended for You
               </h2>
             </div>
