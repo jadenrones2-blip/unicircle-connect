@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { lovable } from '@/integrations/lovable/index';
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
 import { cn } from '@/lib/utils';
