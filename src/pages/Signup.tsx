@@ -206,6 +206,7 @@ export default function Signup() {
                 try {
                   const { error } = await lovable.auth.signInWithOAuth('google', {
                     redirect_uri: window.location.origin,
+                    extraParams: mode === 'student' ? { hd: 'ucsd.edu' } : undefined,
                   });
                   if (error) throw error;
                 } catch (err) {
