@@ -233,10 +233,10 @@ export default function ClubAdminEvents() {
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div>
-                <h1 className="text-xl font-display font-semibold text-foreground">
+                <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
                   {club.clubName}
                 </h1>
-                <p className="text-sm text-muted-foreground">Event Management</p>
+                <p className="text-xs text-muted-foreground tracking-wide uppercase font-medium">Event Management</p>
               </div>
             </div>
             <Button variant="gold" asChild>

@@ -72,7 +72,7 @@ export function ClubAdminSidebar() {
         )}
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
             {!collapsed && 'Navigation'}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -115,7 +115,7 @@ export function ClubAdminSidebar() {
 
         {!collapsed && ownedClubs.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
               My Clubs
             </SidebarGroupLabel>
             <SidebarGroupContent>

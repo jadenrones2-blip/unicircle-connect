@@ -29,13 +29,13 @@ export default function RecommendedClubCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="group bg-card border border-border rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all duration-300"
+      className="group bg-card border border-border rounded-lg overflow-hidden hover:border-gold/30 hover:shadow-md transition-all duration-200"
     >
       {/* Content */}
       <div className="p-5">
         {/* Header badges */}
         <div className="flex items-center justify-between mb-3">
-          <Badge className="bg-primary/10 text-primary border-0">
+          <Badge className="bg-gold/10 text-gold border-0 text-[10px] tracking-wider uppercase font-semibold">
             <Sparkles className="h-3 w-3 mr-1" />
             {score} {score === 1 ? 'match' : 'matches'}
           </Badge>
@@ -48,7 +48,7 @@ export default function RecommendedClubCard({
 
         {/* Title */}
         <Link to={`/clubs/${club.id}`}>
-          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-2">
+          <h3 className="font-display font-bold text-foreground group-hover:text-gold transition-colors line-clamp-1 mb-2 tracking-tight">
             {club.name}
           </h3>
         </Link>
