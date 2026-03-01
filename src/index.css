@@ -233,6 +233,19 @@
     height: 2px;
     background: hsl(var(--gold));
   }
+
+  .glass-card {
+    background: hsl(var(--foreground) / 0.03);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid hsl(var(--foreground) / 0.08);
+    box-shadow: 0 8px 32px hsl(0 0% 0% / 0.15);
+  }
+
+  .glass-card-hover:hover {
+    border-color: hsl(var(--gold) / 0.25);
+    box-shadow: 0 0 30px -5px hsl(var(--gold) / 0.1);
+  }
 }
 
 /* FullCalendar Theme Overrides */
@@ -351,4 +364,12 @@
   background: hsl(var(--muted));
   color: hsl(var(--foreground));
   font-weight: 600;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

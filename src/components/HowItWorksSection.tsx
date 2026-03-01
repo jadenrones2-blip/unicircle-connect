@@ -1,50 +1,48 @@
 import { motion } from "framer-motion";
 import { ClipboardCheck, Layers, Send } from "lucide-react";
+import AnimatedWords from "./AnimatedWords";
+import GoldMeshBackground from "./GoldMeshBackground";
 
 const steps = [
-  {
-    icon: ClipboardCheck,
-    number: "01",
-    title: "Claim & configure",
-    description: "Verify ownership of your organization. Define your recruitment stages, criteria, and evaluation workflow.",
-  },
-  {
-    icon: Layers,
-    number: "02",
-    title: "Manage the pipeline",
-    description: "Import applicants via CSV or direct intake. Move them through stages, score candidates, and collaborate with reviewers.",
-  },
-  {
-    icon: Send,
-    number: "03",
-    title: "Communicate transparently",
-    description: "Applicants receive automated updates as they progress. Decisions are delivered clearly — no ambiguity.",
-  },
+  { icon: ClipboardCheck, number: "01", title: "Claim", desc: "Verify your org and configure stages." },
+  { icon: Layers, number: "02", title: "Manage", desc: "Import applicants. Score and advance." },
+  { icon: Send, number: "03", title: "Communicate", desc: "Automated updates. Clear decisions." },
 ];
 
 const HowItWorksSection = () => {
   return (
-    <section id="how" className="py-16 md:py-24 bg-primary text-primary-foreground">
-      <div className="container mx-auto px-5 sm:px-6">
+    <section id="how" className="py-16 md:py-24 bg-primary text-primary-foreground relative overflow-hidden">
+      <GoldMeshBackground />
+      <div className="container mx-auto px-5 sm:px-6 relative z-10">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
               Workflow
             </span>
-            <h2 className="font-display text-3xl md:text-4xl font-semibold">
-              How it works
-            </h2>
+            <AnimatedWords
+              text="Three steps. That's it."
+              as="h2"
+              className="font-display text-3xl md:text-5xl font-semibold text-primary-foreground"
+              goldWords={["it."]}
+            />
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            {/* Connecting line */}
-            <div className="hidden md:block absolute top-16 left-[16.5%] right-[16.5%] h-px bg-gradient-to-r from-gold/0 via-gold/30 to-gold/0" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 relative">
+            {/* Animated connecting line */}
+            <motion.div
+              className="hidden sm:block absolute top-[3.5rem] left-[16.5%] right-[16.5%] h-px"
+              style={{ background: "linear-gradient(90deg, transparent, hsl(43 76% 52% / 0.4), transparent)" }}
+              initial={{ scaleX: 0 }}
+              whileInView={{ scaleX: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, delay: 0.5 }}
+            />
 
             {steps.map((step, index) => (
               <motion.div
@@ -55,17 +53,13 @@ const HowItWorksSection = () => {
                 transition={{ delay: index * 0.15, duration: 0.5 }}
                 className="relative text-center"
               >
-                <div className="relative z-10 w-12 h-12 mx-auto mb-6 rounded-full border-2 border-primary-foreground/20 bg-primary flex items-center justify-center">
-                  <step.icon className="w-5 h-5 text-gold" />
+                <div className="relative z-10 w-16 h-16 mx-auto mb-5 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center">
+                  <step.icon className="w-7 h-7 text-gold" />
                 </div>
 
-                <div className="p-6 rounded-lg border bg-primary-foreground/5 border-primary-foreground/10">
-                  <span className="text-gold/60 text-xs font-medium">{step.number}</span>
-                  <h3 className="font-display text-xl font-semibold mt-2 mb-3">{step.title}</h3>
-                  <p className="text-sm text-primary-foreground/70 leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
+                <span className="text-gold/50 text-xs font-semibold tracking-[0.15em] block mb-1">{step.number}</span>
+                <h3 className="font-display text-xl font-semibold text-primary-foreground mb-1">{step.title}</h3>
+                <p className="text-sm text-primary-foreground/50">{step.desc}</p>
               </motion.div>
             ))}
           </div>

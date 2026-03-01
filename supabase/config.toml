@@ -48,3 +48,6 @@ verify_jwt = false
 [functions.scrape-csi]
 verify_jwt = false
 
+[functions.scrape-luma-events]
+verify_jwt = false
+
