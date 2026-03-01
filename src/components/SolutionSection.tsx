@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { FileText, GripVertical, BarChart3, ShieldCheck, GitBranch, Bell } from "lucide-react";
 import { PipelinePreview } from "./PipelinePreview";
+import AnimatedWords from "./AnimatedWords";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const capabilities = [
   {
@@ -36,6 +38,8 @@ const capabilities = [
 ];
 
 const SolutionSection = () => {
+  const { playHover } = useSoundEffects();
+
   return (
     <section className="py-16 md:py-24 bg-secondary/50">
       <div className="container mx-auto px-4 md:px-6">
@@ -50,9 +54,12 @@ const SolutionSection = () => {
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
               The system
             </span>
-            <h2 className="font-display text-3xl md:text-4xl font-semibold mb-4">
-              Built for structured recruitment.
-            </h2>
+            <AnimatedWords
+              text="Built for structured recruitment."
+              as="h2"
+              className="font-display text-3xl md:text-4xl font-semibold mb-4"
+              goldWords={["structured"]}
+            />
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light">
               A complete operational layer for managing recruitment cycles — from intake to decision.
             </p>
@@ -66,7 +73,8 @@ const SolutionSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.08, duration: 0.5 }}
-                className="p-6 rounded-xl border border-border bg-card hover:border-gold/30 hover:shadow-md transition-all duration-300"
+                className="p-6 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default"
+                onMouseEnter={playHover}
               >
                 <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center mb-4">
                   <item.icon className="w-5 h-5 text-gold" />

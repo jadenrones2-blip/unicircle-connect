@@ -2,8 +2,12 @@ import { motion } from "framer-motion";
 import { Search, CalendarCheck, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import AnimatedWords from "./AnimatedWords";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const WhyUnicircleSection = () => {
+  const { playClick, playHover } = useSoundEffects();
+
   return (
     <section className="py-16 md:py-24 bg-secondary/50">
       <div className="container mx-auto px-4 md:px-6">
@@ -18,9 +22,12 @@ const WhyUnicircleSection = () => {
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
               Discovery
             </span>
-            <h2 className="font-display text-3xl md:text-4xl font-semibold mb-4">
-              Structured discovery for students and organizations.
-            </h2>
+            <AnimatedWords
+              text="Structured discovery for students and organizations."
+              as="h2"
+              className="font-display text-3xl md:text-4xl font-semibold mb-4"
+              goldWords={["discovery"]}
+            />
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light">
               A structured layer that connects students to the right organizations and events — intentionally.
             </p>
@@ -32,7 +39,8 @@ const WhyUnicircleSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="flex gap-4 p-6 rounded-xl bg-card border border-border hover:border-gold/30 transition-colors"
+              className="flex gap-4 p-6 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default"
+              onMouseEnter={playHover}
             >
               <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
                 <Search className="w-5 h-5 text-gold" />
@@ -52,7 +60,8 @@ const WhyUnicircleSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="flex gap-4 p-6 rounded-xl bg-card border border-border hover:border-gold/30 transition-colors"
+              className="flex gap-4 p-6 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default"
+              onMouseEnter={playHover}
             >
               <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
                 <CalendarCheck className="w-5 h-5 text-gold" />
@@ -74,7 +83,14 @@ const WhyUnicircleSection = () => {
             viewport={{ once: true }}
             className="text-center"
           >
-            <Button variant="outline" size="lg" className="group" asChild>
+            <Button
+              variant="outline"
+              size="lg"
+              className="group"
+              asChild
+              onMouseEnter={playHover}
+              onClick={playClick}
+            >
               <Link to="/clubs">
                 Browse the directory
                 <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
