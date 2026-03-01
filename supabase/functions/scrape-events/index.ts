@@ -169,13 +169,10 @@ Search for:
 
 I need specific event details: event name, exact date and time, location on campus, and hosting club name.`;
 
-    const PERPLEXITY_GATEWAY_URL = 'https://connector-gateway.lovable.dev/perplexity';
-
-    const perplexityResponse = await fetch(`${PERPLEXITY_GATEWAY_URL}/chat/completions`, {
+    const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'X-Connection-Api-Key': PERPLEXITY_API_KEY,
+        'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
