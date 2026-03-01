@@ -77,7 +77,7 @@ const KanbanMockup = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 + colIdx * 0.1, duration: 0.5 }}
-            className="flex flex-col"
+            className="flex flex-col min-w-[140px] md:min-w-0 snap-start"
           >
             <div className="flex items-center justify-between mb-2.5 px-1">
               <div className="flex items-center gap-1.5">
