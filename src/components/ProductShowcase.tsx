@@ -12,18 +12,21 @@ const tabs = [
     label: "Recruitment Pipeline", 
     description: "Drag-and-drop applicants through custom stages. Score, review, and decide — all in one view.",
     image: pipelineScreenshot,
+    url: "unicircle.app/admin/recruitment",
   },
   { 
-    id: "analytics", 
-    label: "Analytics Dashboard", 
-    description: "Track applications, acceptance rates, and scoring trends across recruitment cycles.",
+    id: "review", 
+    label: "Applicant Review", 
+    description: "AI-powered summaries, weighted rubrics, and a verdict bar for high-velocity candidate evaluation.",
     image: analyticsScreenshot,
+    url: "unicircle.app/admin/review",
   },
   { 
     id: "applicant", 
-    label: "Applicant View", 
+    label: "Student Tracker", 
     description: "Students see real-time status, progress bars, and timeline updates for every application.",
     image: applicantScreenshot,
+    url: "unicircle.app/dashboard",
   },
 ];
 
@@ -110,9 +113,7 @@ const ProductShowcase = () => {
                   </div>
                   <div className="flex-1 flex justify-center">
                     <div className="px-3 md:px-4 py-0.5 md:py-1 rounded-md bg-primary-foreground/5 text-[9px] md:text-[10px] text-primary-foreground/40 font-mono">
-                      {activeTab === "pipeline" && "unicircle.app/admin/recruitment"}
-                      {activeTab === "analytics" && "unicircle.app/admin/analytics"}
-                      {activeTab === "applicant" && "unicircle.app/dashboard"}
+                      {activeTabData?.url}
                     </div>
                   </div>
                 </div>
