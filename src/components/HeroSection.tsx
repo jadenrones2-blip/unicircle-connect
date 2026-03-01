@@ -3,6 +3,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import GoldMeshBackground from "./GoldMeshBackground";
+import FloatingParticles from "./FloatingParticles";
 import AnimatedWords from "./AnimatedWords";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
@@ -17,6 +18,7 @@ const HeroSection = () => {
   return (
     <section className="min-h-screen flex flex-col items-center justify-center pt-20 sm:pt-20 pb-16 sm:pb-8 relative overflow-hidden bg-primary">
       <GoldMeshBackground />
+      <FloatingParticles />
 
       <div className="container mx-auto px-5 sm:px-6 flex-1 flex items-center">
         <div className="max-w-4xl mx-auto text-center">
