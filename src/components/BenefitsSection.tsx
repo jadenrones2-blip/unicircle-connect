@@ -4,21 +4,9 @@ import AnimatedWords from "./AnimatedWords";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const benefits = [
-  {
-    icon: Eye,
-    title: "Track your application status",
-    description: "See exactly where you stand in the recruitment process for every organization you've applied to.",
-  },
-  {
-    icon: Bell,
-    title: "Receive stage updates",
-    description: "Get notified when you advance to the next stage or receive a decision — automatically.",
-  },
-  {
-    icon: Compass,
-    title: "Discover aligned organizations",
-    description: "Find organizations that match your interests, goals, and experience — intentionally, not randomly.",
-  },
+  { icon: Eye, title: "Track status" },
+  { icon: Bell, title: "Get updates" },
+  { icon: Compass, title: "Discover clubs" },
 ];
 
 const BenefitsSection = () => {
@@ -39,17 +27,14 @@ const BenefitsSection = () => {
               For applicants
             </span>
             <AnimatedWords
-              text="Clear and transparent for applicants."
+              text="Full transparency. Always."
               as="h2"
-              className="font-display text-3xl md:text-4xl font-semibold mb-4"
-              goldWords={["transparent"]}
+              className="font-display text-3xl md:text-5xl font-semibold"
+              goldWords={["transparency."]}
             />
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto font-light">
-              Applicants deserve visibility into the process.
-            </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-3 gap-5">
             {benefits.map((benefit, index) => (
               <motion.div
                 key={benefit.title}
@@ -57,18 +42,15 @@ const BenefitsSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
-                className="p-6 rounded-xl glass-card glass-card-hover transition-all duration-300 text-center cursor-default"
+                className="flex flex-col items-center gap-4 p-8 rounded-xl glass-card glass-card-hover transition-all duration-300 text-center cursor-default"
                 onMouseEnter={playHover}
               >
-                <div className="w-12 h-12 rounded-lg bg-gold/10 flex items-center justify-center mx-auto mb-4">
-                  <benefit.icon className="w-6 h-6 text-gold" />
+                <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center">
+                  <benefit.icon className="w-8 h-8 text-gold" />
                 </div>
-                <h3 className="font-display font-semibold text-foreground mb-2">
+                <h3 className="font-display font-semibold text-foreground text-sm tracking-wide">
                   {benefit.title}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {benefit.description}
-                </p>
               </motion.div>
             ))}
           </div>

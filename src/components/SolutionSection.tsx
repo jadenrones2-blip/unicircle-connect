@@ -5,36 +5,12 @@ import AnimatedWords from "./AnimatedWords";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const capabilities = [
-  {
-    icon: FileText,
-    title: "Application intake with resume upload",
-    description: "Structured forms that capture the data you need. Resumes are parsed automatically.",
-  },
-  {
-    icon: GripVertical,
-    title: "Drag-and-drop applicant pipeline",
-    description: "Move applicants through customizable stages with a visual kanban workflow.",
-  },
-  {
-    icon: BarChart3,
-    title: "Structured scoring and evaluation",
-    description: "Consistent evaluation criteria across reviewers. AI-assisted screening available.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Reviewer permissions",
-    description: "Control who can view, evaluate, and advance applicants at each stage.",
-  },
-  {
-    icon: GitBranch,
-    title: "Stage-based applicant tracking",
-    description: "Define your recruitment stages. Track every applicant's position in the pipeline.",
-  },
-  {
-    icon: Bell,
-    title: "Clear communication and updates",
-    description: "Automated email notifications when applicants advance. No manual follow-ups.",
-  },
+  { icon: FileText, title: "Application intake" },
+  { icon: GripVertical, title: "Drag-and-drop pipeline" },
+  { icon: BarChart3, title: "Structured scoring" },
+  { icon: ShieldCheck, title: "Reviewer permissions" },
+  { icon: GitBranch, title: "Stage tracking" },
+  { icon: Bell, title: "Auto notifications" },
 ];
 
 const SolutionSection = () => {
@@ -55,36 +31,30 @@ const SolutionSection = () => {
               The system
             </span>
             <AnimatedWords
-              text="Built for structured recruitment."
+              text="Everything you need. Nothing you don't."
               as="h2"
-              className="font-display text-3xl md:text-4xl font-semibold mb-4"
-              goldWords={["structured"]}
+              className="font-display text-3xl md:text-5xl font-semibold"
+              goldWords={["need."]}
             />
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light">
-              A complete operational layer for managing recruitment cycles — from intake to decision.
-            </p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
             {capabilities.map((item, index) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.08, duration: 0.5 }}
-                className="p-6 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default"
+                transition={{ delay: index * 0.06, duration: 0.4 }}
+                className="flex flex-col items-center gap-3 p-5 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default text-center"
                 onMouseEnter={playHover}
               >
-                <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center mb-4">
-                  <item.icon className="w-5 h-5 text-gold" />
+                <div className="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center">
+                  <item.icon className="w-6 h-6 text-gold" />
                 </div>
-                <h3 className="font-display font-semibold text-foreground mb-2 text-sm">
+                <span className="text-xs font-semibold text-foreground tracking-wide">
                   {item.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {item.description}
-                </p>
+                </span>
               </motion.div>
             ))}
           </div>

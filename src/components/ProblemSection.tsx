@@ -4,36 +4,12 @@ import AnimatedWords from "./AnimatedWords";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const challenges = [
-  {
-    icon: Users,
-    title: "Hundreds of applicants",
-    detail: "Volume increases every cycle, and manual processes don't keep up.",
-  },
-  {
-    icon: ClipboardList,
-    title: "Multiple reviewers",
-    detail: "Coordinating evaluation across team members creates bottlenecks.",
-  },
-  {
-    icon: BarChart3,
-    title: "Manual scoring",
-    detail: "Spreadsheet-based evaluation is slow, inconsistent, and hard to audit.",
-  },
-  {
-    icon: Unlink,
-    title: "Disconnected tools",
-    detail: "Data lives across forms, sheets, emails, and group chats — fragmented by default.",
-  },
-  {
-    icon: EyeOff,
-    title: "Limited transparency",
-    detail: "Applicants have no visibility into where they stand. Clubs lack a clear overview.",
-  },
-  {
-    icon: Clock,
-    title: "Time-consuming coordination",
-    detail: "Scheduling, status updates, and communication take hours every week.",
-  },
+  { icon: Users, title: "Volume overload" },
+  { icon: ClipboardList, title: "Reviewer bottlenecks" },
+  { icon: BarChart3, title: "Manual scoring" },
+  { icon: Unlink, title: "Disconnected tools" },
+  { icon: EyeOff, title: "Zero transparency" },
+  { icon: Clock, title: "Wasted hours" },
 ];
 
 const ProblemSection = () => {
@@ -51,43 +27,33 @@ const ProblemSection = () => {
             className="mb-12 text-center"
           >
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
-              The challenge
+              The problem
             </span>
             <AnimatedWords
-              text="Recruitment becomes complex at scale."
+              text="Recruitment doesn't scale."
               as="h2"
-              className="font-display text-3xl md:text-4xl font-semibold mb-4"
-              goldWords={["complex"]}
+              className="font-display text-3xl md:text-5xl font-semibold"
+              goldWords={["scale."]}
             />
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto font-light">
-              As organizations grow, the operational demands of recruitment increase significantly.
-            </p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {challenges.map((challenge, index) => (
               <motion.div
                 key={challenge.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.08, duration: 0.5 }}
-                className="group p-5 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default"
+                transition={{ delay: index * 0.06, duration: 0.4 }}
+                className="group flex flex-col items-center gap-3 p-5 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default text-center"
                 onMouseEnter={playHover}
               >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center group-hover:bg-gold/10 transition-colors duration-300">
-                    <challenge.icon className="w-5 h-5 text-muted-foreground group-hover:text-gold transition-colors duration-300" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-sm text-foreground mb-1">
-                      {challenge.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {challenge.detail}
-                    </p>
-                  </div>
+                <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center group-hover:bg-gold/10 transition-colors duration-300">
+                  <challenge.icon className="w-6 h-6 text-muted-foreground group-hover:text-gold transition-colors duration-300" />
                 </div>
+                <span className="text-xs font-semibold text-foreground tracking-wide">
+                  {challenge.title}
+                </span>
               </motion.div>
             ))}
           </div>

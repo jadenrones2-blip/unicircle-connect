@@ -33,29 +33,18 @@ const HeroSection = () => {
             <span className="text-xs font-semibold text-gold tracking-[0.15em] uppercase">Beta</span>
           </motion.div>
 
-          {/* Main headline */}
           <AnimatedWords
-            text="Recruitment infrastructure for student organizations."
+            text="Recruit with precision."
             as="h1"
-            className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] mb-5 sm:mb-7 text-primary-foreground"
-            goldWords={["infrastructure"]}
+            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] mb-8 sm:mb-10 text-primary-foreground"
+            goldWords={["precision."]}
           />
-
-          {/* Subheadline */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
-            className="text-base sm:text-lg md:text-xl text-primary-foreground/60 leading-relaxed max-w-2xl mx-auto mb-10 sm:mb-12 px-2 sm:px-0"
-          >
-            A structured system for managing intake, evaluation, and transparent applicant tracking — built for scale.
-          </motion.p>
 
           {/* CTA glassmorphism card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
             className="glass-card inline-flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center p-6 sm:p-8 rounded-2xl mb-6 sm:mb-8"
           >
             <Button
@@ -86,10 +75,10 @@ const HeroSection = () => {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.5 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
             className="text-sm text-primary-foreground/40 tracking-wide"
           >
-            Currently available at UC San Diego.
+            Currently at UC San Diego.
           </motion.p>
         </div>
       </div>
@@ -98,7 +87,7 @@ const HeroSection = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.5 }}
+        transition={{ delay: 1, duration: 0.5 }}
         className="hidden sm:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 cursor-pointer"
         onClick={scrollToContent}
       >
