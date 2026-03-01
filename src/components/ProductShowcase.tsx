@@ -115,7 +115,6 @@ const ProductShowcase = () => {
                     <div className="px-3 md:px-4 py-0.5 md:py-1 rounded-md bg-primary-foreground/5 text-[9px] md:text-[10px] text-primary-foreground/40 font-mono">
                       {activeTabData?.url}
                     </div>
-                    </div>
                   </div>
                 </div>
 
