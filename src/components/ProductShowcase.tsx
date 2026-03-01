@@ -5,7 +5,7 @@ import AnimatedWords from "./AnimatedWords";
 import { 
   Users, Star, MoreHorizontal, ArrowRight, Check, X, 
   Mail, FileText, GripVertical, BarChart3, Clock, ChevronRight,
-  TrendingUp, UserCheck, Send
+  TrendingUp, UserCheck, Send, MoveHorizontal
 } from "lucide-react";
 
 // Mock Kanban Board
