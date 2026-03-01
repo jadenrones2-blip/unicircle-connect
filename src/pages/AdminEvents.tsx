@@ -56,6 +56,46 @@ export default function AdminEvents() {
     eventsExtracted: number;
     clubBreakdown?: Record<string, number>;
   } | null>(null);
+  const [scrapingCSI, setScrapingCSI] = useState(false);
+  const [csiScrapeResult, setCsiScrapeResult] = useState<{
+    clubsScraped: number;
+    withEmail: number;
+    withInstagram: number;
+    creditsUsed: number;
+    categoryBreakdown?: Record<string, number>;
+  } | null>(null);
+
+  const handleScrapeCSI = async () => {
+    setScrapingCSI(true);
+    setCsiScrapeResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-csi');
+
+      if (error) {
+        console.error('CSI scrape error:', error);
+        toast.error(`CSI error: ${error.message || JSON.stringify(error)}`);
+        return;
+      }
+
+      if (data?.success) {
+        setCsiScrapeResult({
+          clubsScraped: data.clubsScraped || 0,
+          withEmail: data.withEmail || 0,
+          withInstagram: data.withInstagram || 0,
+          creditsUsed: data.creditsUsed || 0,
+          categoryBreakdown: data.categoryBreakdown || undefined,
+        });
+        toast.success(`Scraped ${data.clubsScraped} clubs — ${data.withEmail} emails found`);
+      } else {
+        toast.error(data?.error || 'CSI scrape failed');
+      }
+    } catch (err) {
+      toast.error('Failed to scrape CSI contacts');
+    } finally {
+      setScrapingCSI(false);
+    }
+  };
 
   const handleScrapeInstagram = async () => {
     setScraping(true);
@@ -385,6 +425,14 @@ export default function AdminEvents() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Button variant="outline" onClick={handleScrapeCSI} disabled={scrapingCSI}>
+                {scrapingCSI ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4 mr-2" />
+                )}
+                {scrapingCSI ? 'Scraping CSI...' : 'Scrape CSI Contacts'}
+              </Button>
               <Button variant="gold" onClick={handleScrapeInstagram} disabled={scraping}>
                 {scraping ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -427,6 +475,48 @@ export default function AdminEvents() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {csiScrapeResult && (
+            <div className="premium-card p-4 mb-6 border-border space-y-3">
+              <h4 className="text-sm font-semibold text-foreground">CSI Contacts Scraped</h4>
+              <div className="flex items-center gap-6 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Clubs Scraped:</span>{' '}
+                  <span className="font-semibold text-foreground">{csiScrapeResult.clubsScraped}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">With Email:</span>{' '}
+                  <span className="font-semibold text-green-500">{csiScrapeResult.withEmail}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">With Instagram:</span>{' '}
+                  <span className="font-semibold text-foreground">{csiScrapeResult.withInstagram}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Credits Used:</span>{' '}
+                  <span className="font-semibold text-foreground">{csiScrapeResult.creditsUsed}</span>
+                </div>
+              </div>
+              {csiScrapeResult.categoryBreakdown && Object.keys(csiScrapeResult.categoryBreakdown).length > 0 && (
+                <div className="border-t border-border pt-3">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Clubs by Category</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(csiScrapeResult.categoryBreakdown)
+                      .sort(([, a], [, b]) => b - a)
+                      .map(([cat, count]) => (
+                        <span key={cat} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm">
+                          <span className="text-foreground font-medium">{cat}</span>
+                          <span className="text-muted-foreground font-semibold">{count}</span>
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground pt-1">
+                Contacts saved to <span className="font-mono">csi_club_contacts</span> table in Supabase. Export from Table Editor to get your outreach CSV.
+              </p>
             </div>
           )}
 

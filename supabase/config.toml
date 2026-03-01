@@ -45,3 +45,6 @@ verify_jwt = false
 [functions.scrape-club-emails]
 verify_jwt = false
 
+[functions.scrape-csi]
+verify_jwt = false
+
