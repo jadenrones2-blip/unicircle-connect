@@ -95,7 +95,7 @@ const EventsCalendar = () => {
 
   const typeColors: Record<string, string> = {
     recruitment: "bg-gold",
-    event: "bg-accent",
+    event: "bg-primary",
     workshop: "bg-blue-500",
     social: "bg-green-500"
   };
@@ -300,7 +300,7 @@ const EventsCalendar = () => {
                           <Link
                             key={event.id}
                             to={`/clubs/${event.clubId}`}
-                            className={`block text-xs p-1.5 rounded truncate text-foreground hover:opacity-80 transition-opacity ${typeColors[event.type]}`}
+                            className={`block text-xs p-1.5 rounded truncate text-white hover:opacity-80 transition-opacity ${typeColors[event.type]}`}
                           >
                             {event.title}
                           </Link>
@@ -332,7 +332,7 @@ const EventsCalendar = () => {
                     <span className="text-muted-foreground">Recruitment</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded bg-accent" />
+                    <div className="w-3 h-3 rounded bg-primary" />
                     <span className="text-muted-foreground">Event</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -351,20 +351,20 @@ const EventsCalendar = () => {
       </section>
 
       {/* Recruitment CTA */}
-      <section className="py-16 px-4 bg-gradient-to-br from-card to-accent/50 border-t border-border">
+      <section className="py-16 px-4 bg-gradient-to-br from-primary to-primary/90">
         <div className="container mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-primary-foreground mb-4">
               Running a Club?
             </h2>
-            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+            <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">
               List your events and recruitment drives to reach thousands of students
             </p>
-            <Button variant="gold" size="lg">
+            <Button variant="outline" size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
               Add Your Event
             </Button>
           </motion.div>
