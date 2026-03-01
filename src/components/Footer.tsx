@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const Footer = () => {
+  const { playHover } = useSoundEffects();
+
   const mainLinks = [
     { label: "Home", href: "/" },
     { label: "Clubs", href: "/clubs" },
@@ -14,7 +17,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="py-8 sm:py-12 border-t border-border bg-background">
+    <footer className="py-8 sm:py-12 border-t border-border/50 bg-background">
       <div className="container mx-auto px-5 sm:px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
           <motion.div
@@ -33,6 +36,7 @@ const Footer = () => {
                 key={link.label}
                 to={link.href}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors relative group"
+                onMouseEnter={playHover}
               >
                 {link.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-px bg-gold transition-all duration-300 group-hover:w-full" />
@@ -52,13 +56,14 @@ const Footer = () => {
               key={link.label}
               to={link.href}
               className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
+              onMouseEnter={playHover}
             >
               {link.label}
             </Link>
           ))}
         </div>
 
-        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border text-center space-y-2">
+        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border/50 text-center space-y-2">
           <p className="text-xs text-muted-foreground/60">
             © 2025 UniCircle. All rights reserved.
           </p>
