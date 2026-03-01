@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import TextMarquee from "@/components/TextMarquee";
@@ -29,8 +30,25 @@ const tabContent: Record<TabId, React.FC[]> = {
   faq: [FAQSection],
 };
 
+const isValidTab = (hash: string): hash is TabId =>
+  tabs.some((t) => t.id === hash);
+
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<TabId>("product");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const initialTab = (() => {
+    const hash = location.hash.replace("#", "");
+    return isValidTab(hash) ? hash : "product";
+  })();
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
+
+  const handleTabChange = useCallback(
+    (tab: TabId) => {
+      setActiveTab(tab);
+      navigate(`#${tab}`, { replace: true });
+    },
+    [navigate]
+  );
 
   return (
     <main className="min-h-screen bg-background overflow-x-hidden">
