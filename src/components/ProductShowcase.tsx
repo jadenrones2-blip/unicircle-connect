@@ -69,7 +69,7 @@ const KanbanMockup = () => {
       </div>
 
       {/* Kanban */}
-      <div className="p-4 grid grid-cols-4 gap-3 min-h-[280px]">
+      <div className="p-3 md:p-4 flex md:grid md:grid-cols-4 gap-3 min-h-[220px] md:min-h-[280px] overflow-x-auto snap-x snap-mandatory scrollbar-hide">
         {columns.map((col, colIdx) => (
           <motion.div
             key={col.title}
