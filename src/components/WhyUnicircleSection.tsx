@@ -23,14 +23,11 @@ const WhyUnicircleSection = () => {
               Discovery
             </span>
             <AnimatedWords
-              text="Structured discovery for students and organizations."
+              text="Find your people."
               as="h2"
-              className="font-display text-3xl md:text-4xl font-semibold mb-4"
-              goldWords={["discovery"]}
+              className="font-display text-3xl md:text-5xl font-semibold"
+              goldWords={["people."]}
             />
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-light">
-              A structured layer that connects students to the right organizations and events — intentionally.
-            </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-6 mb-10">
@@ -39,20 +36,18 @@ const WhyUnicircleSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
-              className="flex gap-4 p-6 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default"
+              className="flex flex-col items-center gap-4 p-8 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default text-center"
               onMouseEnter={playHover}
             >
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
-                <Search className="w-5 h-5 text-gold" />
+              <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center">
+                <Search className="w-8 h-8 text-gold" />
               </div>
-              <div>
-                <h3 className="font-display font-semibold text-foreground mb-1">
-                  Searchable directory
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Every student organization in one place — searchable by category, interest, and activity. No fragmented sources.
-                </p>
-              </div>
+              <h3 className="font-display font-semibold text-foreground">
+                Club directory
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Every organization. One search.
+              </p>
             </motion.div>
 
             <motion.div
@@ -60,20 +55,18 @@ const WhyUnicircleSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="flex gap-4 p-6 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default"
+              className="flex flex-col items-center gap-4 p-8 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default text-center"
               onMouseEnter={playHover}
             >
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center">
-                <CalendarCheck className="w-5 h-5 text-gold" />
+              <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center">
+                <CalendarCheck className="w-8 h-8 text-gold" />
               </div>
-              <div>
-                <h3 className="font-display font-semibold text-foreground mb-1">
-                  Centralized event calendar
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  A single view of campus events — sourced, moderated, and organized. No missed opportunities.
-                </p>
-              </div>
+              <h3 className="font-display font-semibold text-foreground">
+                Event calendar
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Every event. One view.
+              </p>
             </motion.div>
           </div>
 
@@ -92,7 +85,7 @@ const WhyUnicircleSection = () => {
               onClick={playClick}
             >
               <Link to="/clubs">
-                Browse the directory
+                Browse directory
                 <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>

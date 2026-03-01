@@ -10,7 +10,7 @@ const CTASection = () => {
   const { playClick, playHover } = useSoundEffects();
 
   return (
-    <section id="cta" className="scroll-mt-24 py-16 md:py-24 bg-primary text-primary-foreground relative overflow-hidden">
+    <section id="cta" className="scroll-mt-24 py-20 md:py-32 bg-primary text-primary-foreground relative overflow-hidden">
       <GoldMeshBackground />
 
       <div className="container mx-auto px-5 sm:px-6 relative z-10">
@@ -21,27 +21,17 @@ const CTASection = () => {
           className="max-w-2xl mx-auto text-center"
         >
           <AnimatedWords
-            text="Your recruitment workflow, structured."
+            text="Ready to start?"
             as="h2"
-            className="font-display text-2xl sm:text-3xl md:text-5xl font-semibold mb-4 sm:mb-6 leading-tight text-primary-foreground"
-            goldWords={["structured."]}
+            className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold mb-8 sm:mb-10 text-primary-foreground"
+            goldWords={["start?"]}
           />
-
-          <motion.p
-            className="text-primary-foreground/60 text-base sm:text-lg mb-8 font-light px-2 sm:px-0"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-          >
-            Claim your organization and set up your recruitment pipeline in minutes.
-          </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
             className="glass-card inline-flex flex-col sm:flex-row gap-3 justify-center p-6 rounded-2xl"
           >
             <Button
@@ -66,7 +56,7 @@ const CTASection = () => {
               onClick={playClick}
             >
               <Link to="/signup">
-                Create a student account
+                Create account
               </Link>
             </Button>
           </motion.div>
