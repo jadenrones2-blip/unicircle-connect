@@ -3,13 +3,11 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import listPlugin from '@fullcalendar/list';
 import { EventClickArg } from '@fullcalendar/core';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
 import { Loader2, Calendar, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
-import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Table,
   TableBody,
@@ -41,12 +39,12 @@ export default function ClubsCalendar() {
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<ExternalEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const isMobile = useIsMobile();
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     
     try {
+      // Use edge function instead of direct client
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&orderBy=start_time&orderAsc=true&limit=500&filters=${encodeURIComponent(JSON.stringify({ verified: true }))}`,
         {
@@ -62,6 +60,7 @@ export default function ClubsCalendar() {
       const result = await response.json();
       const data = result.data || [];
 
+      // Apply coalesce logic for corrected fields
       const processedEvents = (data as ExternalEvent[]).map(event => ({
         ...event,
         title: event.corrected_title || event.title,
@@ -70,11 +69,15 @@ export default function ClubsCalendar() {
         location: event.corrected_location || event.location,
       }));
       
+      // setRawEvents moved to after dedup below
+      
+      // Helper to check if text is JSON error data
       const isErrorData = (text: string | null): boolean => {
         if (!text) return false;
         return text.startsWith('{"') || text.startsWith('{\"') || text.includes('"error"');
       };
 
+      // Get clean display title - fall back to club_handle if title is error data
       const getDisplayTitle = (event: ExternalEvent): string => {
         if (isErrorData(event.title)) {
           return event.club_handle ? `@${event.club_handle}` : 'Event';
@@ -82,6 +85,7 @@ export default function ClubsCalendar() {
         return event.title;
       };
       
+      // Deduplicate by normalized title
       const seen = new Set<string>();
       const dedupedEvents = processedEvents.filter((event) => {
         const title = (event.title || '').trim().toLowerCase();
@@ -117,7 +121,10 @@ export default function ClubsCalendar() {
 
   useEffect(() => {
     fetchEvents();
+    
+    // Poll for updates every 30 seconds
     const pollInterval = setInterval(fetchEvents, 30000);
+
     return () => {
       clearInterval(pollInterval);
     };
@@ -173,11 +180,13 @@ export default function ClubsCalendar() {
     }
   };
 
+  // Helper to check if text is JSON error data (for list view)
   const isErrorData = (text: string | null): boolean => {
     if (!text) return false;
     return text.startsWith('{"') || text.startsWith('{\"') || text.includes('"error"');
   };
 
+  // Get clean display title for list view
   const getListDisplayTitle = (event: ExternalEvent): string => {
     if (isErrorData(event.title)) {
       return event.club_handle ? `@${event.club_handle}` : 'Event';
@@ -188,38 +197,26 @@ export default function ClubsCalendar() {
   return (
     <div className="clubs-calendar space-y-8">
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
-        initialView={isMobile ? "listWeek" : "dayGridMonth"}
-        headerToolbar={isMobile ? {
-          left: 'prev,next',
-          center: 'title',
-          right: 'listWeek,dayGridMonth'
-        } : {
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        initialView="dayGridMonth"
+        headerToolbar={{
           left: 'prev,next today',
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        }}
-        buttonText={{
-          listWeek: 'List',
-          dayGridMonth: 'Month',
-          timeGridWeek: 'Week',
-          timeGridDay: 'Day',
-          today: 'Today'
         }}
         events={events}
         eventClick={handleEventClick}
         height="auto"
         eventDisplay="block"
-        dayMaxEvents={isMobile ? 2 : 3}
+        dayMaxEvents={3}
         moreLinkClick="popover"
         displayEventTime={false}
-        titleFormat={isMobile ? { month: 'short', year: 'numeric' } : undefined}
       />
 
       {/* Events List View */}
-      <div className="premium-card p-3 md:p-6">
-        <h3 className="text-base md:text-xl font-display font-semibold text-foreground mb-3 md:mb-4 flex items-center gap-2">
-          <Calendar className="w-4 h-4 md:w-5 md:h-5 text-gold" />
+      <div className="premium-card p-4 md:p-6">
+        <h3 className="text-lg md:text-xl font-display font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-gold" />
           All Events
         </h3>
         
@@ -269,31 +266,31 @@ export default function ClubsCalendar() {
             </div>
 
             {/* Mobile Card View */}
-            <div className="flex flex-col gap-2 md:hidden">
+            <div className="flex flex-col gap-3 md:hidden">
               {rawEvents.map((event) => (
                 <div 
                   key={event.id} 
-                  className="p-3 bg-muted/30 border border-border rounded-lg active:scale-[0.98] transition-all"
+                  className="p-4 bg-muted/30 border border-border rounded-lg active:scale-[0.98] transition-all"
                   onClick={() => {
                     setSelectedEvent(event);
                     setIsModalOpen(true);
                   }}
                 >
-                  <div className="flex justify-between items-start gap-2 mb-1.5">
-                    <h4 className="font-semibold text-sm text-foreground line-clamp-1">{getListDisplayTitle(event)}</h4>
-                    <span className="text-[10px] font-medium text-gold whitespace-nowrap">
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <h4 className="font-semibold text-foreground line-clamp-1">{getListDisplayTitle(event)}</h4>
+                    <span className="text-xs font-medium text-gold whitespace-nowrap">
                       {formatEventTime(event.start_time)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       {event.club_handle && <span>@{event.club_handle}</span>}
                     </div>
                     <span>{formatEventDate(event.start_time)}</span>
                   </div>
                   {event.location && (
-                    <div className="flex items-center gap-1 mt-1.5 text-[11px] text-muted-foreground">
-                      <MapPin className="w-3 h-3 text-gold/60 flex-shrink-0" />
+                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                      <MapPin className="w-3 h-3 text-gold/60" />
                       <span className="line-clamp-1">{event.location}</span>
                     </div>
                   )}

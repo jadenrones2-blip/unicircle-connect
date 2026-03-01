@@ -366,45 +366,6 @@
   font-weight: 600;
 }
 
-/* Mobile calendar overrides */
-@media (max-width: 767px) {
-  .clubs-calendar .fc-toolbar {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .clubs-calendar .fc-toolbar-title {
-    font-size: 1rem !important;
-  }
-  .clubs-calendar .fc-button {
-    padding: 0.25rem 0.5rem !important;
-    font-size: 0.7rem !important;
-  }
-  .clubs-calendar .fc-daygrid-day-frame {
-    min-height: 50px !important;
-  }
-  .clubs-calendar .fc-event {
-    font-size: 0.625rem;
-    padding: 0.0625rem 0.25rem;
-  }
-  .clubs-calendar .fc-col-header-cell-cushion {
-    font-size: 0.625rem;
-    padding: 0.5rem 0;
-  }
-  .clubs-calendar .fc-daygrid-day-number {
-    font-size: 0.7rem;
-    padding: 0.25rem;
-  }
-  .clubs-calendar .fc-day-today .fc-daygrid-day-number {
-    width: 1.25rem;
-    height: 1.25rem;
-    font-size: 0.65rem;
-  }
-  .clubs-calendar .fc-list-event-title a,
-  .clubs-calendar .fc-list-event-time {
-    font-size: 0.8rem;
-  }
-}
-
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
