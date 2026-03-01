@@ -113,9 +113,8 @@ const ProductShowcase = () => {
                   </div>
                   <div className="flex-1 flex justify-center">
                     <div className="px-3 md:px-4 py-0.5 md:py-1 rounded-md bg-primary-foreground/5 text-[9px] md:text-[10px] text-primary-foreground/40 font-mono">
-                      {activeTab === "pipeline" && "unicircle.app/admin/recruitment"}
-                      {activeTab === "analytics" && "unicircle.app/admin/analytics"}
-                      {activeTab === "applicant" && "unicircle.app/dashboard"}
+                      {activeTabData?.url}
+                    </div>
                     </div>
                   </div>
                 </div>
