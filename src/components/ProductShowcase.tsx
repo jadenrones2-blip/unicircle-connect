@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { useIsMobile } from "@/hooks/use-mobile";
 import AnimatedWords from "./AnimatedWords";
 import { 
   Users, Star, MoreHorizontal, ArrowRight, Check, X, 
   Mail, FileText, GripVertical, BarChart3, Clock, ChevronRight,
-  TrendingUp, UserCheck, Send
+  TrendingUp, UserCheck, Send, ChevronLeft
 } from "lucide-react";
 
 // Mock Kanban Board
@@ -114,6 +115,31 @@ const KanbanMockup = () => {
             </div>
           </motion.div>
         ))}
+      </div>
+
+      {/* Mobile swipe hint */}
+      <div className="flex md:hidden items-center justify-center gap-2 px-4 pb-3 pt-1">
+        <motion.div
+          className="flex items-center gap-1.5 text-[10px] text-primary-foreground/30"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 1.2 }}
+        >
+          <motion.div
+            animate={{ x: [0, -4, 0, 4, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ChevronLeft className="w-3 h-3" />
+          </motion.div>
+          <span>Swipe to explore</span>
+          <motion.div
+            animate={{ x: [0, 4, 0, -4, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ChevronRight className="w-3 h-3" />
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
