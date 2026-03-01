@@ -365,3 +365,11 @@
   color: hsl(var(--foreground));
   font-weight: 600;
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
