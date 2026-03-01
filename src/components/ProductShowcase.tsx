@@ -332,7 +332,7 @@ const ProductShowcase = () => {
           </motion.div>
 
           {/* Tab switcher */}
-          <div className="flex justify-center mb-8 gap-1 p-1 rounded-xl bg-primary-foreground/5 border border-border/20 max-w-fit mx-auto overflow-x-auto">
+          <div className="flex justify-center mb-8 gap-1 p-1 rounded-xl bg-primary-foreground/5 border border-border/20 max-w-fit mx-auto overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
