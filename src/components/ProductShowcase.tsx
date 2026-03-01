@@ -115,6 +115,24 @@ const KanbanMockup = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Mobile swipe hint */}
+      <motion.div
+        className="flex md:hidden items-center justify-center gap-2 pt-3 pb-1"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: 1.2 }}
+      >
+        <motion.div
+          animate={{ x: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+          className="flex items-center gap-1.5 text-primary-foreground/30"
+        >
+          <MoveHorizontal className="w-3.5 h-3.5" />
+          <span className="text-[10px] font-medium tracking-wide">Swipe to explore</span>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
