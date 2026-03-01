@@ -69,7 +69,7 @@ const KanbanMockup = () => {
       </div>
 
       {/* Kanban */}
-      <div className="p-4 grid grid-cols-4 gap-3 min-h-[280px]">
+      <div className="p-3 md:p-4 flex md:grid md:grid-cols-4 gap-3 min-h-[220px] md:min-h-[280px] overflow-x-auto snap-x snap-mandatory scrollbar-hide">
         {columns.map((col, colIdx) => (
           <motion.div
             key={col.title}
@@ -77,7 +77,7 @@ const KanbanMockup = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 + colIdx * 0.1, duration: 0.5 }}
-            className="flex flex-col"
+            className="flex flex-col min-w-[140px] md:min-w-0 snap-start"
           >
             <div className="flex items-center justify-between mb-2.5 px-1">
               <div className="flex items-center gap-1.5">
@@ -141,7 +141,7 @@ const AnalyticsMockup = () => {
 
       <div className="p-4">
         {/* Stats row */}
-        <div className="grid grid-cols-4 gap-3 mb-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-5">
           {[
             { label: "Total Applied", value: "247", change: "+18%", icon: Users },
             { label: "Under Review", value: "84", change: "+12%", icon: Clock },
@@ -332,12 +332,12 @@ const ProductShowcase = () => {
           </motion.div>
 
           {/* Tab switcher */}
-          <div className="flex justify-center mb-8 gap-1 p-1 rounded-xl bg-primary-foreground/5 border border-border/20 max-w-fit mx-auto">
+          <div className="flex justify-center mb-8 gap-1 p-1 rounded-xl bg-primary-foreground/5 border border-border/20 max-w-fit mx-auto overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => { setActiveTab(tab.id); playClick(); }}
-                className={`px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all duration-200 ${
+                className={`px-3 md:px-4 py-2 rounded-lg text-[10px] md:text-xs font-semibold tracking-wide transition-all duration-200 whitespace-nowrap ${
                   activeTab === tab.id
                     ? "bg-gold text-primary shadow-md"
                     : "text-primary-foreground/50 hover:text-primary-foreground/80"
