@@ -4,9 +4,9 @@ import AnimatedWords from "./AnimatedWords";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const benefits = [
-  { icon: Eye, title: "Track status" },
-  { icon: Bell, title: "Get updates" },
-  { icon: Compass, title: "Discover clubs" },
+  { icon: Eye, title: "Track status", desc: "See where you stand in real time." },
+  { icon: Bell, title: "Get updates", desc: "Notified when you advance or get a decision." },
+  { icon: Compass, title: "Discover clubs", desc: "Find orgs that match your interests." },
 ];
 
 const BenefitsSection = () => {
@@ -34,7 +34,7 @@ const BenefitsSection = () => {
             />
           </motion.div>
 
-          <div className="grid grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-3 gap-5">
             {benefits.map((benefit, index) => (
               <motion.div
                 key={benefit.title}
@@ -42,15 +42,16 @@ const BenefitsSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
-                className="flex flex-col items-center gap-4 p-8 rounded-xl glass-card glass-card-hover transition-all duration-300 text-center cursor-default"
+                className="flex flex-col items-center gap-3 p-8 rounded-xl glass-card glass-card-hover transition-all duration-300 text-center cursor-default"
                 onMouseEnter={playHover}
               >
-                <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center">
-                  <benefit.icon className="w-8 h-8 text-gold" />
+                <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center">
+                  <benefit.icon className="w-7 h-7 text-gold" />
                 </div>
-                <h3 className="font-display font-semibold text-foreground text-sm tracking-wide">
+                <h3 className="font-display font-semibold text-foreground">
                   {benefit.title}
                 </h3>
+                <p className="text-sm text-muted-foreground">{benefit.desc}</p>
               </motion.div>
             ))}
           </div>

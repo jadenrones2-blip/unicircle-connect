@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import TextMarquee from "@/components/TextMarquee";
 import ProblemSection from "@/components/ProblemSection";
 import SolutionSection from "@/components/SolutionSection";
+import ProductShowcase from "@/components/ProductShowcase";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import BenefitsSection from "@/components/BenefitsSection";
 import WhyUnicircleSection from "@/components/WhyUnicircleSection";
@@ -18,6 +19,7 @@ const Index = () => {
       <TextMarquee />
       <ProblemSection />
       <SolutionSection />
+      <ProductShowcase />
       <HowItWorksSection />
       <BenefitsSection />
       <WhyUnicircleSection />
