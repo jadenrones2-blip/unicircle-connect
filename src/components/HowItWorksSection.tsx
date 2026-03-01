@@ -4,9 +4,9 @@ import AnimatedWords from "./AnimatedWords";
 import GoldMeshBackground from "./GoldMeshBackground";
 
 const steps = [
-  { icon: ClipboardCheck, number: "01", title: "Claim" },
-  { icon: Layers, number: "02", title: "Manage" },
-  { icon: Send, number: "03", title: "Communicate" },
+  { icon: ClipboardCheck, number: "01", title: "Claim", desc: "Verify your org and configure stages." },
+  { icon: Layers, number: "02", title: "Manage", desc: "Import applicants. Score and advance." },
+  { icon: Send, number: "03", title: "Communicate", desc: "Automated updates. Clear decisions." },
 ];
 
 const HowItWorksSection = () => {
@@ -33,10 +33,10 @@ const HowItWorksSection = () => {
             />
           </motion.div>
 
-          <div className="grid grid-cols-3 gap-6 relative">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 relative">
             {/* Animated connecting line */}
             <motion.div
-              className="hidden md:block absolute top-16 left-[16.5%] right-[16.5%] h-px"
+              className="hidden sm:block absolute top-[3.5rem] left-[16.5%] right-[16.5%] h-px"
               style={{ background: "linear-gradient(90deg, transparent, hsl(43 76% 52% / 0.4), transparent)" }}
               initial={{ scaleX: 0 }}
               whileInView={{ scaleX: 1 }}
@@ -53,12 +53,13 @@ const HowItWorksSection = () => {
                 transition={{ delay: index * 0.15, duration: 0.5 }}
                 className="relative text-center"
               >
-                <div className="relative z-10 w-16 h-16 mx-auto mb-4 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center">
+                <div className="relative z-10 w-16 h-16 mx-auto mb-5 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center">
                   <step.icon className="w-7 h-7 text-gold" />
                 </div>
 
                 <span className="text-gold/50 text-xs font-semibold tracking-[0.15em] block mb-1">{step.number}</span>
-                <h3 className="font-display text-lg md:text-xl font-semibold text-primary-foreground">{step.title}</h3>
+                <h3 className="font-display text-xl font-semibold text-primary-foreground mb-1">{step.title}</h3>
+                <p className="text-sm text-primary-foreground/50">{step.desc}</p>
               </motion.div>
             ))}
           </div>
