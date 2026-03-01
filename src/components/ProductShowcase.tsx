@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { useIsMobile } from "@/hooks/use-mobile";
 import AnimatedWords from "./AnimatedWords";
 import { 
   Users, Star, MoreHorizontal, ArrowRight, Check, X, 
   Mail, FileText, GripVertical, BarChart3, Clock, ChevronRight,
-  TrendingUp, UserCheck, Send
+  TrendingUp, UserCheck, Send, ChevronLeft
 } from "lucide-react";
 
 // Mock Kanban Board
