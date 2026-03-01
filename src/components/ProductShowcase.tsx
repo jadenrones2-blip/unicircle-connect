@@ -12,18 +12,21 @@ const tabs = [
     label: "Recruitment Pipeline", 
     description: "Drag-and-drop applicants through custom stages. Score, review, and decide — all in one view.",
     image: pipelineScreenshot,
+    url: "unicircle.app/admin/recruitment",
   },
   { 
-    id: "analytics", 
-    label: "Analytics Dashboard", 
-    description: "Track applications, acceptance rates, and scoring trends across recruitment cycles.",
+    id: "review", 
+    label: "Applicant Review", 
+    description: "AI-powered summaries, weighted rubrics, and a verdict bar for high-velocity candidate evaluation.",
     image: analyticsScreenshot,
+    url: "unicircle.app/admin/review",
   },
   { 
     id: "applicant", 
-    label: "Applicant View", 
+    label: "Student Tracker", 
     description: "Students see real-time status, progress bars, and timeline updates for every application.",
     image: applicantScreenshot,
+    url: "unicircle.app/dashboard",
   },
 ];
 
