@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Users, ClipboardList, BarChart3, Unlink, EyeOff, Clock } from "lucide-react";
 import AnimatedWords from "./AnimatedWords";
+import ScrollHeadline from "./ScrollHeadline";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const challenges = [
@@ -29,11 +30,9 @@ const ProblemSection = () => {
             <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
               The problem
             </span>
-            <AnimatedWords
+            <ScrollHeadline
               text="Recruitment doesn't scale."
-              as="h2"
-              className="font-display text-3xl md:text-5xl font-semibold"
-              goldWords={["scale."]}
+              className="font-display text-3xl md:text-5xl font-semibold justify-center"
             />
           </motion.div>
 
