@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, UserPlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import GoldMeshBackground from "./GoldMeshBackground";
@@ -11,8 +11,7 @@ const HeroSection = () => {
   const { playClick, playHover } = useSoundEffects();
 
   const scrollToContent = () => {
-    const problemSection = document.getElementById("problem");
-    problemSection?.scrollIntoView({ behavior: "smooth" });
+    window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
   };
 
   return (
@@ -55,15 +54,28 @@ const HeroSection = () => {
               onMouseEnter={playHover}
               onClick={playClick}
             >
-              <Link to="/clubs">
-                Claim your club
-                <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              <Link to="/signup">
+                Sign up free
+                <UserPlus className="w-4 h-4 ml-1 group-hover:scale-110 transition-transform" />
               </Link>
             </Button>
             <Button
               variant="outline"
               size="lg"
               className="group w-full sm:w-auto border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+              asChild
+              onMouseEnter={playHover}
+              onClick={playClick}
+            >
+              <Link to="/clubs">
+                Claim your club
+                <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="group w-full sm:w-auto text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
               onClick={() => { playClick(); scrollToContent(); }}
               onMouseEnter={playHover}
             >
