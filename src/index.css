@@ -265,6 +265,21 @@
   --fc-list-event-hover-bg-color: hsl(var(--muted));
 }
 
+/* Dark mode: make events gold so they stand out on black */
+.dark .clubs-calendar {
+  --fc-event-bg-color: hsl(var(--gold));
+  --fc-event-border-color: hsl(var(--gold-dark));
+  --fc-event-text-color: hsl(0 0% 6%);
+  --fc-page-bg-color: transparent;
+  --fc-border-color: hsl(0 0% 20%);
+  --fc-neutral-bg-color: hsl(0 0% 10%);
+  --fc-button-bg-color: hsl(0 0% 15%);
+  --fc-button-border-color: hsl(0 0% 25%);
+  --fc-button-hover-bg-color: hsl(0 0% 20%);
+  --fc-button-hover-border-color: hsl(var(--gold) / 0.5);
+  --fc-today-bg-color: hsl(var(--gold) / 0.12);
+}
+
 .clubs-calendar .fc {
   font-family: var(--font-body);
 }

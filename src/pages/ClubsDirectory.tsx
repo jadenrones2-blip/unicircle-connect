@@ -136,7 +136,7 @@ const ClubsDirectory = () => {
   const hasActiveFilters = searchText || selectedCategory !== "All";
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-black dark">
       <Header />
 
       {/* Hero Section */}

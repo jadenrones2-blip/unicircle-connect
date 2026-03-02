@@ -214,7 +214,7 @@ export default function ClubsCalendar() {
       />
 
       {/* Events List View */}
-      <div className="premium-card p-4 md:p-6">
+      <div className="p-4 md:p-6 rounded-lg border border-white/10 bg-white/5">
         <h3 className="text-lg md:text-xl font-display font-semibold text-foreground mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5 text-gold" />
           All Events
@@ -232,33 +232,33 @@ export default function ClubsCalendar() {
             <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Club</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Time</TableHead>
+                  <TableRow className="border-white/10">
+                    <TableHead className="text-white/50">Event</TableHead>
+                    <TableHead className="text-white/50">Club</TableHead>
+                    <TableHead className="text-white/50">Date</TableHead>
+                    <TableHead className="text-right text-white/50">Time</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rawEvents.map((event) => (
-                    <TableRow 
-                      key={event.id} 
-                      className="cursor-pointer hover:bg-muted/50"
+                    <TableRow
+                      key={event.id}
+                      className="cursor-pointer border-white/10 hover:bg-white/5"
                       onClick={() => {
                         setSelectedEvent(event);
                         setIsModalOpen(true);
                       }}
                     >
-                      <TableCell className="font-medium">{getListDisplayTitle(event)}</TableCell>
+                      <TableCell className="font-medium text-white">{getListDisplayTitle(event)}</TableCell>
                       <TableCell>
                         {event.club_handle ? (
                           <span className="text-gold">@{event.club_handle}</span>
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <span className="text-white/30">—</span>
                         )}
                       </TableCell>
-                      <TableCell>{formatEventDate(event.start_time)}</TableCell>
-                      <TableCell className="text-right text-muted-foreground">{formatEventTime(event.start_time)}</TableCell>
+                      <TableCell className="text-white/80">{formatEventDate(event.start_time)}</TableCell>
+                      <TableCell className="text-right text-white/50">{formatEventTime(event.start_time)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -268,9 +268,9 @@ export default function ClubsCalendar() {
             {/* Mobile Card View */}
             <div className="flex flex-col gap-3 md:hidden">
               {rawEvents.map((event) => (
-                <div 
-                  key={event.id} 
-                  className="p-4 bg-muted/30 border border-border rounded-lg active:scale-[0.98] transition-all"
+                <div
+                  key={event.id}
+                  className="p-4 bg-white/5 border border-gold/20 rounded-lg active:scale-[0.98] transition-all hover:border-gold/50 hover:bg-white/10"
                   onClick={() => {
                     setSelectedEvent(event);
                     setIsModalOpen(true);
