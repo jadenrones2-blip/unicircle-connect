@@ -27,6 +27,7 @@ import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TestResumeUpload from "./pages/TestResumeUpload";
 import SocialAssets from "./pages/SocialAssets";
+import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
           <Route path="/club-admin/clubs/:clubId/recruitment" element={<ClubAdminRecruitment />} />
           <Route path="/club-admin/profile" element={<AdminProfileSettings />} />
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/test-resume" element={<TestResumeUpload />} />
