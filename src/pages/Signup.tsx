@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { lovable } from '@/integrations/lovable/index';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
 import { cn } from '@/lib/utils';
@@ -204,9 +204,12 @@ export default function Signup() {
               onClick={async () => {
                 setLoading(true);
                 try {
-                  const { error } = await lovable.auth.signInWithOAuth('google', {
-                    redirect_uri: window.location.origin,
-                    extraParams: mode === 'student' ? { hd: 'ucsd.edu' } : undefined,
+                  const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                      redirectTo: `${window.location.origin}/auth/callback`,
+                      queryParams: mode === 'student' ? { hd: 'ucsd.edu' } : undefined,
+                    },
                   });
                   if (error) throw error;
                 } catch (err) {
