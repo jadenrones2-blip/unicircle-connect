@@ -39,49 +39,49 @@ const HeroSection = () => {
             goldWords={["precision."]}
           />
 
-          {/* CTA glassmorphism card */}
+          {/* CTA buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="glass-card inline-flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center p-6 sm:p-8 rounded-2xl mb-6 sm:mb-8"
+            className="flex flex-col items-center gap-4 mb-6 sm:mb-8"
           >
-            <Button
-              variant="gold"
-              size="lg"
-              className="group px-10 w-full sm:w-auto"
-              asChild
-              onMouseEnter={playHover}
-              onClick={playClick}
-            >
-              <Link to="/signup">
-                Sign up free
-                <UserPlus className="w-4 h-4 ml-1 group-hover:scale-110 transition-transform" />
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="group w-full sm:w-auto border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
-              asChild
-              onMouseEnter={playHover}
-              onClick={playClick}
-            >
-              <Link to="/clubs">
-                Claim your club
-                <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="lg"
-              className="group w-full sm:w-auto text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                variant="gold"
+                size="lg"
+                className="group px-10 w-full sm:w-auto"
+                asChild
+                onMouseEnter={playHover}
+                onClick={playClick}
+              >
+                <Link to="/signup">
+                  Sign up free
+                  <UserPlus className="w-4 h-4 ml-1 group-hover:scale-110 transition-transform" />
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="group w-full sm:w-auto border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+                asChild
+                onMouseEnter={playHover}
+                onClick={playClick}
+              >
+                <Link to="/clubs">
+                  Claim your club
+                  <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+            </div>
+            <button
+              className="flex items-center gap-1.5 text-sm text-primary-foreground/40 hover:text-primary-foreground/70 transition-colors"
               onClick={() => { playClick(); scrollToContent(); }}
               onMouseEnter={playHover}
             >
               See how it works
-              <ChevronDown className="w-4 h-4 ml-1 group-hover:translate-y-0.5 transition-transform" />
-            </Button>
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
           </motion.div>
 
           <motion.p

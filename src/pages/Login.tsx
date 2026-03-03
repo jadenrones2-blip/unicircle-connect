@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
 import { cn } from '@/lib/utils';
@@ -250,9 +249,12 @@ export default function Login() {
               onClick={async () => {
                 setLoading(true);
                 try {
-                  const { error } = await lovable.auth.signInWithOAuth('google', {
-                    redirect_uri: window.location.origin,
-                    extraParams: mode === 'student' ? { hd: 'ucsd.edu' } : undefined,
+                  const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                      redirectTo: window.location.origin,
+                      queryParams: mode === 'student' ? { hd: 'ucsd.edu' } : undefined,
+                    },
                   });
                   if (error) throw error;
                 } catch (err) {
