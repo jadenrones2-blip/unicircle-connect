@@ -2,44 +2,20 @@ import { useRef, useMemo, useEffect, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-const ECHO_DEPTH = 5;
-const INERTIA = 0.04;
+// ─── Config ─────────────────────────────────────────────────────────────────
+const ECHO_DEPTH = 7;
+const DAMPING = 0.92;       // how fast spin decays after impulse
+const DRAG_SENSITIVITY = 0.008;
+const KEY_IMPULSE = 0.18;   // rotation kick per keypress
 
-const PRIMARY_RINGS = [
-  { radius: 2.2, tube: 0.16, rotation: [Math.PI / 2, 0, 0] as [number, number, number], position: [0, 0, 0] as [number, number, number] },
-  { radius: 2.2, tube: 0.16, rotation: [0, Math.PI / 3, Math.PI / 6] as [number, number, number], position: [0.4, 0, 0] as [number, number, number] },
-  { radius: 2.2, tube: 0.16, rotation: [Math.PI / 4, Math.PI / 2, 0] as [number, number, number], position: [-0.4, 0, 0] as [number, number, number] },
-];
-
-function Ring({
-  radius, tube, rotation, position, opacity = 1,
-}: {
-  radius: number; tube: number;
-  rotation: [number, number, number];
-  position: [number, number, number];
-  opacity?: number;
-}) {
-  return (
-    <mesh rotation={rotation} position={position}>
-      <torusGeometry args={[radius, tube, 64, 128]} />
-      <meshStandardMaterial
-        color="#c0c0c0"
-        metalness={0.9}
-        roughness={0.1}
-        transparent
-        opacity={opacity}
-      />
-    </mesh>
-  );
-}
-
+// ─── Echo tunnel: smaller rings receding into Z ──────────────────────────────
 function EchoRings() {
   const echoes = useMemo(() => {
     const items = [];
     for (let i = 1; i <= ECHO_DEPTH; i++) {
-      const scale = Math.pow(0.72, i);
-      const z = -i * 3.2;
-      const opacity = Math.max(0.04, 0.5 * Math.pow(0.58, i));
+      const scale = Math.pow(0.75, i);
+      const z = -i * 2.8;
+      const opacity = Math.max(0.03, 0.55 * Math.pow(0.6, i));
       items.push({ scale, z, opacity, key: i });
     }
     return items;
@@ -49,60 +25,120 @@ function EchoRings() {
     <>
       {echoes.map(({ scale, z, opacity, key }) => (
         <group key={key} scale={scale} position={[0, 0, z]}>
-          {PRIMARY_RINGS.map((r, i) => (
-            <Ring key={i} {...r} opacity={opacity} />
-          ))}
+          <mesh>
+            <torusGeometry args={[2.4, 0.14, 64, 128]} />
+            <meshStandardMaterial
+              color="#b8b8b8"
+              metalness={0.95}
+              roughness={0.08}
+              transparent
+              opacity={opacity}
+            />
+          </mesh>
         </group>
       ))}
     </>
   );
 }
 
+// ─── Main scene with physics ─────────────────────────────────────────────────
 function Scene() {
   const groupRef = useRef<THREE.Group>(null!);
-  const mouse = useRef({ x: 0, y: 0 });
-  const smoothed = useRef({ x: 0, y: 0 });
 
+  // Physics state
+  const vel = useRef({ x: 0, y: 0 });
+
+  // Drag state
+  const drag = useRef({ active: false, lastX: 0, lastY: 0 });
+
+  // ── keyboard impulse ──────────────────────────────────────────────────────
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouse.current.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+    const onKey = () => {
+      vel.current.x += (Math.random() - 0.5) * KEY_IMPULSE;
+      vel.current.y += (Math.random() - 0.5) * KEY_IMPULSE;
     };
-    window.addEventListener('mousemove', onMove);
-    return () => window.removeEventListener('mousemove', onMove);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  useFrame((_, delta) => {
-    smoothed.current.x += (mouse.current.x - smoothed.current.x) * INERTIA;
-    smoothed.current.y += (mouse.current.y - smoothed.current.y) * INERTIA;
+  // ── mouse / touch drag ────────────────────────────────────────────────────
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      drag.current.active = true;
+      drag.current.lastX = e.clientX;
+      drag.current.lastY = e.clientY;
+    };
+    const onMove = (e: MouseEvent) => {
+      if (!drag.current.active) return;
+      const dx = e.clientX - drag.current.lastX;
+      const dy = e.clientY - drag.current.lastY;
+      vel.current.y += dx * DRAG_SENSITIVITY;
+      vel.current.x += dy * DRAG_SENSITIVITY;
+      drag.current.lastX = e.clientX;
+      drag.current.lastY = e.clientY;
+    };
+    const onUp = () => { drag.current.active = false; };
 
-    if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.12 + smoothed.current.x * 0.008;
-      groupRef.current.rotation.x += delta * 0.05 + smoothed.current.y * 0.005;
-      groupRef.current.rotation.z += delta * 0.04;
-    }
+    window.addEventListener('mousedown', onDown);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousedown', onDown);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, []);
+
+  // ── animation loop ────────────────────────────────────────────────────────
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+
+    // idle slow drift
+    vel.current.y += delta * 0.06;
+    vel.current.x += Math.sin(Date.now() * 0.0003) * delta * 0.012;
+
+    // apply velocity
+    groupRef.current.rotation.y += vel.current.y * delta * 60 * 0.016;
+    groupRef.current.rotation.x += vel.current.x * delta * 60 * 0.016;
+
+    // dampen
+    vel.current.x *= DAMPING;
+    vel.current.y *= DAMPING;
   });
 
   return (
     <group ref={groupRef}>
-      {PRIMARY_RINGS.map((r, i) => <Ring key={i} {...r} />)}
+      {/* Primary ring */}
+      <mesh>
+        <torusGeometry args={[2.4, 0.14, 64, 128]} />
+        <meshStandardMaterial
+          color="#d0d0d0"
+          metalness={0.95}
+          roughness={0.08}
+        />
+      </mesh>
+
+      {/* Tunnel echoes */}
       <EchoRings />
-      <spotLight position={[6, 5, -4]} intensity={60} color="#ffffff" angle={0.35} penumbra={0.2} />
-      <pointLight position={[-5, 2, 2]} intensity={10} color="#9ecfff" />
-      <pointLight position={[0, -4, 1]} intensity={5} color="#ffd580" />
-      <ambientLight intensity={0.4} />
+
+      {/* Rim lighting */}
+      <spotLight position={[6, 4, -3]} intensity={80} color="#ffffff" angle={0.3} penumbra={0.15} />
+      <pointLight position={[-4, 3, 2]} intensity={12} color="#a8d8ff" />
+      <pointLight position={[2, -4, 1]} intensity={6} color="#ffd580" />
+      <ambientLight intensity={0.25} />
     </group>
   );
 }
 
+// ─── Canvas wrapper ──────────────────────────────────────────────────────────
 export default function HeroCanvas() {
   return (
     <div
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ zIndex: 0 }}
+      className="absolute inset-0 w-full h-full"
+      style={{ zIndex: 0, cursor: 'grab' }}
     >
       <Canvas
-        camera={{ position: [0, 0, 7], fov: 55 }}
+        camera={{ position: [0, 0, 7], fov: 50 }}
         style={{ background: '#0D0D0D' }}
         gl={{
           antialias: true,

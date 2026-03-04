@@ -17,7 +17,7 @@ const HeroSection = () => {
     <section className="min-h-screen flex flex-col items-center justify-center pt-20 sm:pt-20 pb-16 sm:pb-8 relative overflow-hidden" style={{ background: '#0D0D0D' }}>
       <HeroCanvas />
 
-      <div className="container mx-auto px-5 sm:px-6 flex-1 flex items-center relative z-10">
+      <div className="container mx-auto px-5 sm:px-6 flex-1 flex items-center relative z-10 pointer-events-none [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
         <div className="max-w-4xl mx-auto text-center">
           {/* Beta badge */}
           <motion.div
