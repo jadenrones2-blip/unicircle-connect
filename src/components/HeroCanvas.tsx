@@ -2,20 +2,20 @@ import { useRef, useMemo, useEffect, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-// ─── Config ─────────────────────────────────────────────────────────────────
+// ─── Config ──────────────────────────────────────────────────────────────────
 const ECHO_DEPTH = 7;
-const DAMPING = 0.92;       // how fast spin decays after impulse
-const DRAG_SENSITIVITY = 0.008;
-const KEY_IMPULSE = 0.18;   // rotation kick per keypress
+const DAMPING = 0.88;
+const DRAG_SENSITIVITY = 0.007;
+const KEY_IMPULSE = 0.22;
 
-// ─── Echo tunnel: smaller rings receding into Z ──────────────────────────────
+// ─── Echo tunnel ─────────────────────────────────────────────────────────────
 function EchoRings() {
   const echoes = useMemo(() => {
     const items = [];
     for (let i = 1; i <= ECHO_DEPTH; i++) {
       const scale = Math.pow(0.75, i);
       const z = -i * 2.8;
-      const opacity = Math.max(0.03, 0.55 * Math.pow(0.6, i));
+      const opacity = Math.max(0.02, 0.5 * Math.pow(0.58, i));
       items.push({ scale, z, opacity, key: i });
     }
     return items;
@@ -26,9 +26,9 @@ function EchoRings() {
       {echoes.map(({ scale, z, opacity, key }) => (
         <group key={key} scale={scale} position={[0, 0, z]}>
           <mesh>
-            <torusGeometry args={[2.4, 0.14, 64, 128]} />
+            <torusGeometry args={[2.4, 0.13, 64, 128]} />
             <meshStandardMaterial
-              color="#b8b8b8"
+              color="#b0b0b0"
               metalness={0.95}
               roughness={0.08}
               transparent
@@ -41,27 +41,26 @@ function EchoRings() {
   );
 }
 
-// ─── Main scene with physics ─────────────────────────────────────────────────
+// ─── Main scene ───────────────────────────────────────────────────────────────
 function Scene() {
   const groupRef = useRef<THREE.Group>(null!);
 
-  // Physics state
-  const vel = useRef({ x: 0, y: 0 });
-
-  // Drag state
+  // User-driven impulse (separate from autonomous motion)
+  const impulse = useRef({ x: 0, y: 0 });
   const drag = useRef({ active: false, lastX: 0, lastY: 0 });
+  const clock = useRef(0);
 
   // ── keyboard impulse ──────────────────────────────────────────────────────
   useEffect(() => {
     const onKey = () => {
-      vel.current.x += (Math.random() - 0.5) * KEY_IMPULSE;
-      vel.current.y += (Math.random() - 0.5) * KEY_IMPULSE;
+      impulse.current.x += (Math.random() - 0.5) * KEY_IMPULSE;
+      impulse.current.y += (Math.random() - 0.5) * KEY_IMPULSE;
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // ── mouse / touch drag ────────────────────────────────────────────────────
+  // ── drag ─────────────────────────────────────────────────────────────────
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
       drag.current.active = true;
@@ -72,8 +71,8 @@ function Scene() {
       if (!drag.current.active) return;
       const dx = e.clientX - drag.current.lastX;
       const dy = e.clientY - drag.current.lastY;
-      vel.current.y += dx * DRAG_SENSITIVITY;
-      vel.current.x += dy * DRAG_SENSITIVITY;
+      impulse.current.y += dx * DRAG_SENSITIVITY;
+      impulse.current.x += dy * DRAG_SENSITIVITY;
       drag.current.lastX = e.clientX;
       drag.current.lastY = e.clientY;
     };
@@ -92,45 +91,59 @@ function Scene() {
   // ── animation loop ────────────────────────────────────────────────────────
   useFrame((_, delta) => {
     if (!groupRef.current) return;
+    clock.current += delta;
+    const t = clock.current;
 
-    // idle slow drift
-    vel.current.y += delta * 0.06;
-    vel.current.x += Math.sin(Date.now() * 0.0003) * delta * 0.012;
+    // ── Autonomous organic motion (never perfectly repeating) ──
+    // Main slow Y spin
+    const autoY = t * 0.18;
+    // Multi-frequency X wobble — looks like it's breathing
+    const autoX =
+      Math.sin(t * 0.31) * 0.55 +
+      Math.sin(t * 0.77) * 0.22 +
+      Math.sin(t * 0.13) * 0.18;
+    // Subtle Z roll
+    const autoZ =
+      Math.sin(t * 0.19) * 0.14 +
+      Math.sin(t * 0.53) * 0.08;
 
-    // apply velocity
-    groupRef.current.rotation.y += vel.current.y * delta * 60 * 0.016;
-    groupRef.current.rotation.x += vel.current.x * delta * 60 * 0.016;
+    // Gentle float on Y position
+    const floatY = Math.sin(t * 0.42) * 0.12 + Math.sin(t * 0.27) * 0.06;
 
-    // dampen
-    vel.current.x *= DAMPING;
-    vel.current.y *= DAMPING;
+    groupRef.current.rotation.y = autoY + impulse.current.y;
+    groupRef.current.rotation.x = autoX + impulse.current.x;
+    groupRef.current.rotation.z = autoZ;
+    groupRef.current.position.y = floatY;
+
+    // Dampen user impulse — decays back to autonomous motion
+    impulse.current.x *= DAMPING;
+    impulse.current.y *= DAMPING;
   });
 
   return (
     <group ref={groupRef}>
       {/* Primary ring */}
       <mesh>
-        <torusGeometry args={[2.4, 0.14, 64, 128]} />
+        <torusGeometry args={[2.4, 0.13, 64, 128]} />
         <meshStandardMaterial
-          color="#d0d0d0"
-          metalness={0.95}
-          roughness={0.08}
+          color="#d8d8d8"
+          metalness={0.96}
+          roughness={0.07}
         />
       </mesh>
 
-      {/* Tunnel echoes */}
       <EchoRings />
 
-      {/* Rim lighting */}
-      <spotLight position={[6, 4, -3]} intensity={80} color="#ffffff" angle={0.3} penumbra={0.15} />
-      <pointLight position={[-4, 3, 2]} intensity={12} color="#a8d8ff" />
-      <pointLight position={[2, -4, 1]} intensity={6} color="#ffd580" />
-      <ambientLight intensity={0.25} />
+      {/* Rim lights */}
+      <spotLight position={[7, 4, -3]} intensity={90} color="#ffffff" angle={0.28} penumbra={0.1} />
+      <spotLight position={[-5, -2, 2]} intensity={20} color="#c8e0ff" angle={0.5} penumbra={0.5} />
+      <pointLight position={[0, 5, 3]} intensity={8} color="#ffd580" />
+      <ambientLight intensity={0.18} />
     </group>
   );
 }
 
-// ─── Canvas wrapper ──────────────────────────────────────────────────────────
+// ─── Canvas ───────────────────────────────────────────────────────────────────
 export default function HeroCanvas() {
   return (
     <div
