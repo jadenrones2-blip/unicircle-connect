@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useLenis } from "@/hooks/useLenis";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import TextMarquee from "@/components/TextMarquee";
@@ -34,6 +35,7 @@ const isValidTab = (hash: string): hash is TabId =>
   tabs.some((t) => t.id === hash);
 
 const Index = () => {
+  useLenis();
   const location = useLocation();
   const navigate = useNavigate();
   const initialTab = (() => {

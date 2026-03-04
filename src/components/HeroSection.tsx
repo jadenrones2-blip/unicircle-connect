@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import AnimatedWords from "./AnimatedWords";
 import HeroCanvas from "./HeroCanvas";
+import MagneticButton from "./MagneticButton";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const HeroSection = () => {
@@ -45,32 +46,36 @@ const HeroSection = () => {
             className="flex flex-col items-center gap-4 mb-6 sm:mb-8"
           >
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                variant="gold"
-                size="lg"
-                className="group px-10 w-full sm:w-auto"
-                asChild
-                onMouseEnter={playHover}
-                onClick={playClick}
-              >
-                <Link to="/signup">
-                  Sign up free
-                  <UserPlus className="w-4 h-4 ml-1 group-hover:scale-110 transition-transform" />
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="group w-full sm:w-auto border-white/20 text-white hover:bg-white/10"
-                asChild
-                onMouseEnter={playHover}
-                onClick={playClick}
-              >
-                <Link to="/clubs">
-                  Claim your club
-                  <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
+              <MagneticButton>
+                <Button
+                  variant="gold"
+                  size="lg"
+                  className="group px-10 w-full sm:w-auto"
+                  asChild
+                  onMouseEnter={playHover}
+                  onClick={playClick}
+                >
+                  <Link to="/signup">
+                    Sign up free
+                    <UserPlus className="w-4 h-4 ml-1 group-hover:scale-110 transition-transform" />
+                  </Link>
+                </Button>
+              </MagneticButton>
+              <MagneticButton>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="group w-full sm:w-auto border-white/20 text-white hover:bg-white/10"
+                  asChild
+                  onMouseEnter={playHover}
+                  onClick={playClick}
+                >
+                  <Link to="/clubs">
+                    Claim your club
+                    <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+              </MagneticButton>
             </div>
             <button
               className="flex items-center gap-1.5 text-sm text-white/40 hover:text-primary-foreground/70 transition-colors"
