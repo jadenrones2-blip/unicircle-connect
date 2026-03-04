@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { FileText, GripVertical, BarChart3, ShieldCheck, GitBranch, Bell } from "lucide-react";
 import { PipelinePreview } from "./PipelinePreview";
 import AnimatedWords from "./AnimatedWords";
+import TiltCard from "./TiltCard";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const capabilities = [
@@ -46,16 +47,18 @@ const SolutionSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.06, duration: 0.4 }}
-                className="flex items-start gap-4 p-5 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default"
-                onMouseEnter={playHover}
               >
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
-                  <item.icon className="w-5 h-5 text-gold" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground mb-0.5">{item.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                </div>
+                <TiltCard className="group flex items-start gap-4 p-5 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default h-full">
+                  <div className="flex items-start gap-4 w-full" onMouseEnter={playHover}>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
+                      <item.icon className="w-5 h-5 text-gold" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-0.5">{item.title}</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                </TiltCard>
               </motion.div>
             ))}
           </div>

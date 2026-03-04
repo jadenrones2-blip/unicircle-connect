@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import AnimatedWords from "./AnimatedWords";
+import MagneticButton from "./MagneticButton";
 import GoldMeshBackground from "./GoldMeshBackground";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
@@ -34,31 +35,35 @@ const CTASection = () => {
             transition={{ delay: 0.3 }}
             className="glass-card inline-flex flex-col sm:flex-row gap-3 justify-center p-6 rounded-2xl"
           >
-            <Button
-              variant="gold"
-              size="lg"
-              className="group"
-              asChild
-              onMouseEnter={playHover}
-              onClick={playClick}
-            >
-              <Link to="/clubs">
-                Claim your club
-                <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
-              asChild
-              onMouseEnter={playHover}
-              onClick={playClick}
-            >
-              <Link to="/signup">
-                Create account
-              </Link>
-            </Button>
+            <MagneticButton>
+              <Button
+                variant="gold"
+                size="lg"
+                className="group"
+                asChild
+                onMouseEnter={playHover}
+                onClick={playClick}
+              >
+                <Link to="/clubs">
+                  Claim your club
+                  <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Button>
+            </MagneticButton>
+            <MagneticButton>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+                asChild
+                onMouseEnter={playHover}
+                onClick={playClick}
+              >
+                <Link to="/signup">
+                  Create account
+                </Link>
+              </Button>
+            </MagneticButton>
           </motion.div>
         </motion.div>
       </div>

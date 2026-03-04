@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 interface TextMarqueeProps {
@@ -10,9 +11,14 @@ const TextMarquee = ({
   speed = 20,
 }: TextMarqueeProps) => {
   const repeated = `${text}${text}${text}${text}`;
+  const [hovered, setHovered] = useState(false);
 
   return (
-    <div className="relative overflow-hidden py-6 bg-primary border-y border-border/20">
+    <div
+      className="relative overflow-hidden py-6 bg-primary border-y border-border/20"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <motion.div
         className="whitespace-nowrap"
         animate={{ x: ["0%", "-50%"] }}
@@ -20,12 +26,15 @@ const TextMarquee = ({
           x: {
             repeat: Infinity,
             repeatType: "loop",
-            duration: speed,
+            duration: hovered ? speed * 0.35 : speed,
             ease: "linear",
           },
         }}
       >
-        <span className="text-4xl sm:text-5xl md:text-6xl font-display font-bold tracking-[0.15em] uppercase text-gradient-gold opacity-15 select-none">
+        <span
+          className="text-4xl sm:text-5xl md:text-6xl font-display font-bold tracking-[0.15em] uppercase text-gradient-gold select-none transition-all duration-500"
+          style={{ opacity: hovered ? 0.45 : 0.15 }}
+        >
           {repeated}
         </span>
       </motion.div>

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Users, ClipboardList, BarChart3, Unlink, EyeOff, Clock } from "lucide-react";
 import AnimatedWords from "./AnimatedWords";
 import ScrollHeadline from "./ScrollHeadline";
+import TiltCard from "./TiltCard";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const challenges = [
@@ -44,16 +45,18 @@ const ProblemSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.06, duration: 0.4 }}
-                className="group flex items-start gap-4 p-5 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default"
-                onMouseEnter={playHover}
               >
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center group-hover:bg-gold/10 transition-colors duration-300">
-                  <challenge.icon className="w-5 h-5 text-muted-foreground group-hover:text-gold transition-colors duration-300" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground mb-0.5">{challenge.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{challenge.detail}</p>
-                </div>
+                <TiltCard className="group flex items-start gap-4 p-5 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default h-full" >
+                  <div className="flex items-start gap-4 w-full" onMouseEnter={playHover}>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center group-hover:bg-gold/10 transition-colors duration-300">
+                      <challenge.icon className="w-5 h-5 text-muted-foreground group-hover:text-gold transition-colors duration-300" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground mb-0.5">{challenge.title}</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{challenge.detail}</p>
+                    </div>
+                  </div>
+                </TiltCard>
               </motion.div>
             ))}
           </div>
