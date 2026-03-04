@@ -2,9 +2,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronDown, UserPlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import GoldMeshBackground from "./GoldMeshBackground";
-import FloatingParticles from "./FloatingParticles";
 import AnimatedWords from "./AnimatedWords";
+import HeroCanvas from "./HeroCanvas";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const HeroSection = () => {
@@ -15,9 +14,8 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center pt-20 sm:pt-20 pb-16 sm:pb-8 relative overflow-hidden bg-primary">
-      <GoldMeshBackground />
-      <FloatingParticles />
+    <section className="min-h-screen flex flex-col items-center justify-center pt-20 sm:pt-20 pb-16 sm:pb-8 relative overflow-hidden" style={{ background: '#0D0D0D' }}>
+      <HeroCanvas />
 
       <div className="container mx-auto px-5 sm:px-6 flex-1 flex items-center">
         <div className="max-w-4xl mx-auto text-center">
@@ -35,7 +33,7 @@ const HeroSection = () => {
           <AnimatedWords
             text="Recruit with precision."
             as="h1"
-            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] mb-8 sm:mb-10 text-primary-foreground"
+            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] mb-8 sm:mb-10 text-white"
             goldWords={["precision."]}
           />
 
@@ -63,7 +61,7 @@ const HeroSection = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="group w-full sm:w-auto border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+                className="group w-full sm:w-auto border-white/20 text-white hover:bg-white/10"
                 asChild
                 onMouseEnter={playHover}
                 onClick={playClick}
@@ -75,7 +73,7 @@ const HeroSection = () => {
               </Button>
             </div>
             <button
-              className="flex items-center gap-1.5 text-sm text-primary-foreground/40 hover:text-primary-foreground/70 transition-colors"
+              className="flex items-center gap-1.5 text-sm text-white/40 hover:text-primary-foreground/70 transition-colors"
               onClick={() => { playClick(); scrollToContent(); }}
               onMouseEnter={playHover}
             >
@@ -88,7 +86,7 @@ const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7, duration: 0.5 }}
-            className="text-sm text-primary-foreground/40 tracking-wide"
+            className="text-sm text-white/40 tracking-wide"
           >
             Currently at UC San Diego.
           </motion.p>
@@ -103,7 +101,7 @@ const HeroSection = () => {
         className="hidden sm:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 cursor-pointer"
         onClick={scrollToContent}
       >
-        <span className="text-xs font-semibold text-primary-foreground/40 tracking-[0.2em] uppercase">Scroll</span>
+        <span className="text-xs font-semibold text-white/40 tracking-[0.2em] uppercase">Scroll</span>
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
