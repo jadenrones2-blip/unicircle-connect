@@ -1,32 +1,16 @@
 import { useRef, useMemo, useEffect, Suspense } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Environment, MeshTransmissionMaterial } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-// ─── Config ────────────────────────────────────────────────────────────────
-const ECHO_DEPTH = 6;
+const ECHO_DEPTH = 5;
 const INERTIA = 0.04;
 
-// ─── Primary ring definitions ───────────────────────────────────────────────
 const PRIMARY_RINGS = [
-  {
-    radius: 2.2, tube: 0.16,
-    rotation: [Math.PI / 2, 0, 0] as [number, number, number],
-    position: [0, 0, 0] as [number, number, number],
-  },
-  {
-    radius: 2.2, tube: 0.16,
-    rotation: [0, Math.PI / 3, Math.PI / 6] as [number, number, number],
-    position: [0.4, 0, 0] as [number, number, number],
-  },
-  {
-    radius: 2.2, tube: 0.16,
-    rotation: [Math.PI / 4, Math.PI / 2, 0] as [number, number, number],
-    position: [-0.4, 0, 0] as [number, number, number],
-  },
+  { radius: 2.2, tube: 0.16, rotation: [Math.PI / 2, 0, 0] as [number, number, number], position: [0, 0, 0] as [number, number, number] },
+  { radius: 2.2, tube: 0.16, rotation: [0, Math.PI / 3, Math.PI / 6] as [number, number, number], position: [0.4, 0, 0] as [number, number, number] },
+  { radius: 2.2, tube: 0.16, rotation: [Math.PI / 4, Math.PI / 2, 0] as [number, number, number], position: [-0.4, 0, 0] as [number, number, number] },
 ];
 
-// ─── Single torus ring ──────────────────────────────────────────────────────
 function Ring({
   radius, tube, rotation, position, opacity = 1,
 }: {
@@ -38,14 +22,10 @@ function Ring({
   return (
     <mesh rotation={rotation} position={position}>
       <torusGeometry args={[radius, tube, 64, 128]} />
-      <MeshTransmissionMaterial
-        transmission={0.92}
-        roughness={0.05}
-        thickness={0.5}
-        ior={1.5}
-        chromaticAberration={0.04}
-        color="#d0d0d0"
-        envMapIntensity={2.0}
+      <meshStandardMaterial
+        color="#c0c0c0"
+        metalness={0.9}
+        roughness={0.1}
         transparent
         opacity={opacity}
       />
@@ -53,7 +33,6 @@ function Ring({
   );
 }
 
-// ─── Recursive echo rings receding into Z ───────────────────────────────────
 function EchoRings() {
   const echoes = useMemo(() => {
     const items = [];
@@ -79,12 +58,10 @@ function EchoRings() {
   );
 }
 
-// ─── Scene: rotation + mouse parallax ──────────────────────────────────────
 function Scene() {
   const groupRef = useRef<THREE.Group>(null!);
   const mouse = useRef({ x: 0, y: 0 });
   const smoothed = useRef({ x: 0, y: 0 });
-  const { gl } = useThree();
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -96,7 +73,6 @@ function Scene() {
   }, []);
 
   useFrame((_, delta) => {
-    // inertia-lag mouse
     smoothed.current.x += (mouse.current.x - smoothed.current.x) * INERTIA;
     smoothed.current.y += (mouse.current.y - smoothed.current.y) * INERTIA;
 
@@ -111,30 +87,27 @@ function Scene() {
     <group ref={groupRef}>
       {PRIMARY_RINGS.map((r, i) => <Ring key={i} {...r} />)}
       <EchoRings />
-
-      {/* Rim lights */}
       <spotLight position={[6, 5, -4]} intensity={60} color="#ffffff" angle={0.35} penumbra={0.2} />
       <pointLight position={[-5, 2, 2]} intensity={10} color="#9ecfff" />
       <pointLight position={[0, -4, 1]} intensity={5} color="#ffd580" />
-      <ambientLight intensity={0.2} />
-
-      <Environment preset="city" />
+      <ambientLight intensity={0.4} />
     </group>
   );
 }
 
-// ─── Exported canvas ────────────────────────────────────────────────────────
 export default function HeroCanvas() {
   return (
-    <div className="absolute inset-0 w-full h-full pointer-events-none">
+    <div
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ zIndex: 0 }}
+    >
       <Canvas
         camera={{ position: [0, 0, 7], fov: 55 }}
+        style={{ background: '#0D0D0D' }}
         gl={{
           antialias: true,
-          alpha: true,
+          alpha: false,
           powerPreference: 'high-performance',
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.15,
         }}
         dpr={[1, 1.5]}
       >
