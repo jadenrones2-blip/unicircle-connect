@@ -48,13 +48,13 @@ export default function Login() {
       if (error) throw error;
 
       if (data.user) {
+        const userId = data.user.id;
+
         if (mode === 'admin') {
-          // Check if user has platform admin role
           const { data: hasAdmin } = await supabase.rpc('has_role', {
-            _user_id: data.user.id,
+            _user_id: userId,
             _role: 'admin',
           });
-
           if (hasAdmin) {
             navigate('/admin/events');
             toast.success('Welcome, Admin!');
@@ -63,11 +63,13 @@ export default function Login() {
             toast.error('This account does not have platform admin access.', { duration: 5000 });
           }
         } else {
-          const { data: ownedClubs } = await supabase
-            .from('club_owners')
-            .select('id')
-            .eq('user_id', data.user.id)
-            .limit(1);
+          // Run club ownership + onboarding checks in parallel
+          const [ownedClubsResult, completedOnboarding] = await Promise.all([
+            supabase.from('club_owners').select('id').eq('user_id', userId).limit(1),
+            hasCompletedOnboarding(userId),
+          ]);
+
+          const ownedClubs = ownedClubsResult.data;
 
           if (ownedClubs && ownedClubs.length > 0) {
             navigate('/club-admin');
@@ -77,13 +79,7 @@ export default function Login() {
             toast.error('No clubs found for this account. Please claim your club first.', { duration: 6000 });
             navigate('/clubs');
           } else {
-            // Student login flow
-            const completed = await hasCompletedOnboarding(data.user.id);
-            if (completed) {
-              navigate(redirectTo || '/dashboard');
-            } else {
-              navigate('/onboarding');
-            }
+            navigate(completedOnboarding ? (redirectTo || '/dashboard') : '/onboarding');
             toast.success('Welcome back!');
           }
         }

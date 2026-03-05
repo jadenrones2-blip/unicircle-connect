@@ -61,16 +61,6 @@ export function useAuth() {
   }, []);
 
   const signOut = useCallback(async () => {
-    // Get user before signing out to clear their interests (for demo reset)
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    
-    if (currentUser) {
-      await supabase
-        .from('user_interests')
-        .delete()
-        .eq('user_id', currentUser.id);
-    }
-    
     const { error } = await supabase.auth.signOut();
     return { error };
   }, []);
