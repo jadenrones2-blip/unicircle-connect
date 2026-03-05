@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Image, FileText, Link2, Calendar, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Check, Image, FileText, Link2, Calendar, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { ClubOwnership } from '@/hooks/useClubOwnership';
 import { useExternalClubRecord } from '@/hooks/useExternalClubRecord';
 
@@ -20,7 +20,6 @@ interface OnboardingChecklistProps {
 }
 
 export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
   const [hasEvents, setHasEvents] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const { club: clubRecord, loading: loadingClub } = useExternalClubRecord(club.clubId);
@@ -58,108 +57,139 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
   if (completedCount === totalCount && !isLoading) return null;
 
   return (
-    <div
-      className="rounded-2xl mb-6 overflow-hidden"
-      style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}
-    >
-      {/* Header */}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
-      >
-        <div className="flex items-center gap-4">
-          {/* Circular progress */}
-          <div className="relative w-10 h-10 shrink-0">
-            <svg className="w-10 h-10 -rotate-90" viewBox="0 0 40 40">
-              <circle cx="20" cy="20" r="17" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="2.5" />
-              <circle
-                cx="20" cy="20" r="17" fill="none"
-                stroke="hsl(43 74% 56%)"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeDasharray={`${2 * Math.PI * 17}`}
-                strokeDashoffset={`${2 * Math.PI * 17 * (1 - progressPercent / 100)}`}
-                className="transition-all duration-700"
-              />
-            </svg>
-            <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-white">
-              {completedCount}/{totalCount}
-            </span>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-white tracking-tight">Complete your club setup</p>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              {isLoading ? 'Checking progress…' : `${totalCount - completedCount} step${totalCount - completedCount !== 1 ? 's' : ''} remaining`}
-            </p>
-          </div>
+    <div className="mb-10 w-full">
+      {/* Header row */}
+      <div className="flex items-end justify-between mb-1">
+        <div>
+          <p className="text-[10px] font-semibold tracking-[0.22em] uppercase text-zinc-600 mb-1.5">
+            Getting Started
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight leading-none">
+            Complete your club setup
+          </h2>
         </div>
-        {isExpanded
-          ? <ChevronUp className="w-4 h-4 text-zinc-600" />
-          : <ChevronDown className="w-4 h-4 text-zinc-600" />}
-      </button>
 
-      {/* Thin progress line */}
-      <div className="h-px w-full" style={{ background: 'rgba(255,255,255,0.05)' }}>
+        {/* Circular progress */}
+        <div className="relative w-11 h-11 shrink-0">
+          <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="2.5" />
+            <motion.circle
+              cx="22" cy="22" r="18" fill="none"
+              stroke="hsl(43 74% 56%)"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeDasharray={`${2 * Math.PI * 18}`}
+              initial={{ strokeDashoffset: 2 * Math.PI * 18 }}
+              animate={{ strokeDashoffset: 2 * Math.PI * 18 * (1 - progressPercent / 100) }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            />
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold text-white tabular-nums">
+            {completedCount}/{totalCount}
+          </span>
+        </div>
+      </div>
+
+      {/* Gold progress bar */}
+      <div className="mt-4 mb-2 h-px w-full" style={{ background: 'rgba(255,255,255,0.05)' }}>
         <motion.div
           className="h-full"
           style={{ background: 'hsl(43 74% 56%)' }}
           initial={{ width: 0 }}
           animate={{ width: `${progressPercent}%` }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
         />
       </div>
 
-      {/* Items */}
-      <AnimatePresence>
-        {isExpanded && !isLoading && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="overflow-hidden"
-          >
-            <ul className="px-3 py-3 space-y-1">
-              {checklistItems.map((item, i) => (
-                <motion.li
+      {/* Task rows — staggered drop-in */}
+      {!isLoading && (
+        <div className="mt-1 overflow-hidden">
+          {checklistItems.map((item, i) => {
+            const num = String(i + 1).padStart(2, '0');
+
+            if (item.completed) {
+              return (
+                <motion.div
                   key={item.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.06 }}
+                  initial={{ opacity: 0, y: -14, clipPath: 'inset(0 0 100% 0)' }}
+                  animate={{ opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)' }}
+                  transition={{ delay: i * 0.13, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-center gap-5 sm:gap-7 py-4 sm:py-5"
+                  style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
                 >
-                  {item.completed ? (
-                    <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(234,179,8,0.12)' }}>
-                        <Check className="w-3.5 h-3.5 text-gold" />
-                      </div>
-                      <span className="text-sm text-zinc-600 line-through">{item.title}</span>
-                    </div>
-                  ) : (
-                    <Link
-                      to={item.href}
-                      className="group flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                          <item.icon className="w-3.5 h-3.5 text-zinc-400" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">{item.title}</p>
-                          <p className="text-xs text-zinc-600">{item.description}</p>
-                        </div>
-                      </div>
-                      <span className="text-[11px] font-semibold text-zinc-500 group-hover:text-white transition-colors flex items-center gap-1">
-                        {item.ctaText}
-                        <ArrowRight className="w-3 h-3" />
-                      </span>
-                    </Link>
-                  )}
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  <span className="text-3xl sm:text-4xl font-display font-bold tabular-nums w-10 sm:w-12 shrink-0 select-none"
+                    style={{ color: 'rgba(255,255,255,0.08)' }}>
+                    {num}
+                  </span>
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: 'rgba(234,179,8,0.12)' }}
+                  >
+                    <Check className="w-3.5 h-3.5 text-gold" />
+                  </div>
+                  <span className="flex-1 text-sm sm:text-base text-zinc-600 line-through">{item.title}</span>
+                  <span className="text-[11px] font-semibold tracking-wide text-gold/50 uppercase">Done</span>
+                </motion.div>
+              );
+            }
+
+            return (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: -14, clipPath: 'inset(0 0 100% 0)' }}
+                animate={{ opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)' }}
+                transition={{ delay: i * 0.13, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+              >
+                <Link
+                  to={item.href}
+                  className="group flex items-center gap-5 sm:gap-7 py-4 sm:py-5 -mx-3 px-3 rounded-xl hover:bg-white/[0.025] transition-all duration-200"
+                >
+                  <span
+                    className="text-3xl sm:text-4xl font-display font-bold tabular-nums w-10 sm:w-12 shrink-0 select-none transition-colors duration-200 group-hover:text-zinc-500"
+                    style={{ color: 'rgba(255,255,255,0.08)' }}
+                  >
+                    {num}
+                  </span>
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors duration-200"
+                    style={{ background: 'rgba(255,255,255,0.05)' }}
+                  >
+                    <item.icon className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm sm:text-base font-semibold text-white leading-tight">{item.title}</p>
+                    <p className="text-xs text-zinc-600 mt-0.5 truncate">{item.description}</p>
+                  </div>
+                  <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide uppercase text-zinc-600 group-hover:text-white transition-colors duration-200 shrink-0">
+                    {item.ctaText}
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
+                  </span>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="mt-1">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="flex items-center gap-7 py-5"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+            >
+              <div className="w-12 h-8 rounded" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              <div className="w-7 h-7 rounded-full" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3.5 w-40 rounded" style={{ background: 'rgba(255,255,255,0.04)' }} />
+                <div className="h-2.5 w-28 rounded" style={{ background: 'rgba(255,255,255,0.03)' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
