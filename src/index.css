@@ -6,7 +6,7 @@
 @tailwind components;
 @tailwind utilities;
 
-* { cursor: none !important; }
+*:not(input):not(textarea):not([contenteditable]) { cursor: none !important; }
 
 @layer base {
   :root {
