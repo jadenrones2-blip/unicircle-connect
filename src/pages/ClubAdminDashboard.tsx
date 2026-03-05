@@ -70,7 +70,7 @@ export default function ClubAdminDashboard() {
             <span className="text-sm font-semibold text-white tracking-tight">Club Admin</span>
           </header>
 
-          <div className="p-5 sm:p-7 max-w-4xl">
+          <div className="p-5 sm:p-7 w-full">
 
             {/* Provisional warning */}
             {hasProvisionalClub && (
@@ -114,20 +114,12 @@ export default function ClubAdminDashboard() {
               <OnboardingChecklist key={`checklist-${club.clubId}`} club={club} />
             ))}
 
-            {/* Recruitment — locked / waitlist */}
-            <section className="mb-8">
-              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-3">
-                Recruitment Infrastructure
-              </p>
-              <LockedRecruitmentCard clubId={ownedClubs[0]?.clubId ?? ''} />
-            </section>
-
             {/* My Clubs */}
-            <section>
+            <section className="mb-8">
               <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-3">
                 My Clubs
               </p>
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {ownedClubs.map((club, i) => (
                   <motion.div
                     key={club.clubId}
@@ -143,11 +135,9 @@ export default function ClubAdminDashboard() {
                       </h3>
                       <VerificationPip state={club.verificationState} />
                     </div>
-
                     <p className="text-[11px] text-zinc-600 mb-4">
                       Claimed {new Date(club.verifiedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
-
                     <div className="flex flex-wrap gap-2">
                       <Link
                         to={`/club-admin/clubs/${club.clubId}/edit`}
@@ -177,6 +167,14 @@ export default function ClubAdminDashboard() {
                   </motion.div>
                 ))}
               </div>
+            </section>
+
+            {/* Recruitment — locked / waitlist */}
+            <section className="mb-8">
+              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-3">
+                Recruitment Infrastructure
+              </p>
+              <LockedRecruitmentCard clubId={ownedClubs[0]?.clubId ?? ''} />
             </section>
           </div>
         </main>

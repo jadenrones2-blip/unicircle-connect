@@ -147,7 +147,7 @@ export default function ClubAdminEdit() {
               </div>
             </header>
 
-            <div className="p-6 max-w-2xl">
+            <div className="p-6 w-full max-w-4xl">
               <Skeleton className="h-4 w-32 mb-6" />
 
               <div className="premium-card p-6 space-y-6">
@@ -243,7 +243,7 @@ export default function ClubAdminEdit() {
             </div>
           </header>
 
-          <div className="p-6 max-w-2xl">
+          <div className="p-6 w-full max-w-4xl">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
