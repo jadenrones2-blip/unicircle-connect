@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Calendar, Users, Shield, AlertTriangle, CheckCircle2, XCircle, Settings } from 'lucide-react';
 import { OnboardingChecklist } from '@/components/club-admin/OnboardingChecklist';
 import { RecruitmentDashboardCard } from '@/components/club-admin/RecruitmentDashboardCard';
+import { LockedRecruitmentCard } from '@/components/club-admin/LockedRecruitmentCard';
 
 function VerificationBadge({ state }: { state: VerificationState }) {
   switch (state) {
@@ -146,12 +147,13 @@ export default function ClubAdminDashboard() {
               </h3>
               <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {ownedClubs.map((club) => (
-                  <RecruitmentDashboardCard 
+                  <RecruitmentDashboardCard
                     key={`recruitment-${club.clubId}`}
                     clubId={club.clubId}
                     clubName={club.clubName}
                   />
                 ))}
+                <LockedRecruitmentCard clubId={ownedClubs[0]?.clubId ?? ''} />
               </div>
             </div>
 
