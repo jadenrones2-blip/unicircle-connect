@@ -35,11 +35,8 @@ export function WaitlistModal({ open, onClose, clubId }: WaitlistModalProps) {
 
     setLoading(true);
     try {
-      await supabase.from('recruitment_waitlist').insert({
-        club_id: clubId,
-        expected_volume: parseInt(volume),
-        bottleneck,
-        recruitment_date: date,
+      await supabase.from('waitlist').insert({
+        email: `${clubId}|${volume}|${bottleneck}|${date}`,
       });
       toast.success("You're on the list. We'll be in touch.");
       onClose();
