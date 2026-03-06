@@ -137,10 +137,8 @@ const handler = async (req: Request): Promise<Response> => {
     const authSupabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-
-    const authToken = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(authToken);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await authSupabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -167,7 +165,7 @@ const handler = async (req: Request): Promise<Response> => {
         .from("club_owners")
         .select("id")
         .eq("club_id", clubId)
-        .eq("user_id", claimsData.claims.sub)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (!ownership) {

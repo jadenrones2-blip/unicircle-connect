@@ -60,10 +60,8 @@ Deno.serve(async (req) => {
     const authSupabase = createClient(internalUrl, internalAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-
-    const authToken = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(authToken);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await authSupabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -71,7 +69,7 @@ Deno.serve(async (req) => {
 
     const adminSupabase = createClient(internalUrl, internalServiceKey);
     const { data: isAdmin } = await adminSupabase.rpc('has_role', {
-      _user_id: claimsData.claims.sub, _role: 'admin',
+      _user_id: user.id, _role: 'admin',
     });
 
     if (!isAdmin) {
