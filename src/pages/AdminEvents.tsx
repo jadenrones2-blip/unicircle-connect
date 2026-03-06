@@ -64,6 +64,13 @@ export default function AdminEvents() {
     creditsUsed: number;
     categoryBreakdown?: Record<string, number>;
   } | null>(null);
+  const [scrapingLuma, setScrapingLuma] = useState(false);
+  const [lumaScrapeResult, setLumaScrapeResult] = useState<{
+    eventsFound: number;
+    eventsInserted: number;
+    eventsDuplicate: number;
+    handlesScraped: number;
+  } | null>(null);
 
   const handleScrapeCSI = async () => {
     setScrapingCSI(true);
@@ -94,6 +101,40 @@ export default function AdminEvents() {
       toast.error('Failed to scrape CSI contacts');
     } finally {
       setScrapingCSI(false);
+    }
+  };
+
+  const handleScrapeLuma = async () => {
+    setScrapingLuma(true);
+    setLumaScrapeResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-luma-events', {
+        body: { dryRun: false },
+      });
+
+      if (error) {
+        console.error('Luma scrape error:', error);
+        toast.error(`Luma error: ${error.message || JSON.stringify(error)}`);
+        return;
+      }
+
+      if (data?.success) {
+        setLumaScrapeResult({
+          eventsFound: data.eventsFound || 0,
+          eventsInserted: data.eventsInserted || 0,
+          eventsDuplicate: data.eventsDuplicate || 0,
+          handlesScraped: data.handlesScraped || 0,
+        });
+        toast.success(`Luma: ${data.eventsInserted || 0} new events saved`);
+        fetchUnverifiedEvents();
+      } else {
+        toast.error(data?.error || 'Luma scrape failed');
+      }
+    } catch (err) {
+      toast.error('Failed to scrape Luma events');
+    } finally {
+      setScrapingLuma(false);
     }
   };
 
@@ -433,6 +474,14 @@ export default function AdminEvents() {
                 )}
                 {scrapingCSI ? 'Scraping CSI...' : 'Scrape CSI Contacts'}
               </Button>
+              <Button variant="outline" onClick={handleScrapeLuma} disabled={scrapingLuma}>
+                {scrapingLuma ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4 mr-2" />
+                )}
+                {scrapingLuma ? 'Scraping Luma...' : 'Scrape Luma'}
+              </Button>
               <Button variant="gold" onClick={handleScrapeInstagram} disabled={scraping}>
                 {scraping ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -517,6 +566,30 @@ export default function AdminEvents() {
               <p className="text-xs text-muted-foreground pt-1">
                 Contacts saved to <span className="font-mono">csi_club_contacts</span> table in Supabase. Export from Table Editor to get your outreach CSV.
               </p>
+            </div>
+          )}
+
+          {lumaScrapeResult && (
+            <div className="premium-card p-4 mb-6 border-border space-y-3">
+              <h4 className="text-sm font-semibold text-foreground">Luma Events Scraped</h4>
+              <div className="flex items-center gap-6 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Handles Scraped:</span>{' '}
+                  <span className="font-semibold text-foreground">{lumaScrapeResult.handlesScraped}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Events Found:</span>{' '}
+                  <span className="font-semibold text-foreground">{lumaScrapeResult.eventsFound}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">New Events:</span>{' '}
+                  <span className="font-semibold text-green-500">{lumaScrapeResult.eventsInserted}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Duplicates Skipped:</span>{' '}
+                  <span className="font-semibold text-muted-foreground">{lumaScrapeResult.eventsDuplicate}</span>
+                </div>
+              </div>
             </div>
           )}
 
