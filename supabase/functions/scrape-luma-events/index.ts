@@ -252,13 +252,14 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization') || '';
     const providedKey = authHeader.replace('Bearer ', '').trim();
 
+    const internalAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
     const isServiceRole = providedKey === internalServiceKey;
     const isScraperSecret = scraperSecret && providedKey === scraperSecret;
+    const isAnonKey = providedKey === internalAnonKey;
 
     // Also accept any valid Supabase user session as a fallback
     let isValidUser = false;
-    if (!isServiceRole && !isScraperSecret && authHeader.startsWith('Bearer ')) {
-      const internalAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    if (!isServiceRole && !isScraperSecret && !isAnonKey && authHeader.startsWith('Bearer ')) {
       const authSupabase = createClient(internalUrl, internalAnonKey, {
         global: { headers: { Authorization: authHeader } },
       });
@@ -266,7 +267,7 @@ Deno.serve(async (req) => {
       isValidUser = !!user;
     }
 
-    if (!isServiceRole && !isScraperSecret && !isValidUser) {
+    if (!isServiceRole && !isScraperSecret && !isAnonKey && !isValidUser) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
