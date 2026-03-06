@@ -464,13 +464,14 @@ Deno.serve(async (req) => {
 
         // Save back discovered handles to clubs table if we matched a club
         if (!dryRun && info.clubId && events.length > 0) {
-          // Best-effort: store luma_handle on the club record if the column exists
-          await db
-            .from('clubs')
-            .update({ luma_handle: handle })
-            .eq('id', info.clubId)
-            .then(() => {}) // ignore error if column doesn't exist
-            .catch(() => {});
+          try {
+            await db
+              .from('clubs')
+              .update({ luma_handle: handle })
+              .eq('id', info.clubId);
+          } catch {
+            // ignore if column doesn't exist
+          }
         }
 
         await delay(300);
