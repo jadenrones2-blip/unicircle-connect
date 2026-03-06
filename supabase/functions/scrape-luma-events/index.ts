@@ -244,37 +244,31 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ── Auth: require admin ──────────────────────────────────────────────────
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
+    // ── Auth: accept service role key or scraper secret ─────────────────────
     const internalUrl = Deno.env.get('SUPABASE_URL')!;
-    const internalAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const internalServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const scraperSecret = Deno.env.get('SCRAPER_SECRET') || '';
 
-    const authSupabase = createClient(internalUrl, internalAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: userError } = await authSupabase.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const authHeader = req.headers.get('Authorization') || '';
+    const providedKey = authHeader.replace('Bearer ', '').trim();
+
+    const isServiceRole = providedKey === internalServiceKey;
+    const isScraperSecret = scraperSecret && providedKey === scraperSecret;
+
+    // Also accept any valid Supabase user session as a fallback
+    let isValidUser = false;
+    if (!isServiceRole && !isScraperSecret && authHeader.startsWith('Bearer ')) {
+      const internalAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+      const authSupabase = createClient(internalUrl, internalAnonKey, {
+        global: { headers: { Authorization: authHeader } },
       });
+      const { data: { user } } = await authSupabase.auth.getUser();
+      isValidUser = !!user;
     }
 
-    const adminSupabase = createClient(internalUrl, internalServiceKey);
-    const { data: isAdmin } = await adminSupabase.rpc('has_role', {
-      _user_id: user.id,
-      _role: 'admin',
-    });
-
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: 'Admin access required' }), {
-        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    if (!isServiceRole && !isScraperSecret && !isValidUser) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
