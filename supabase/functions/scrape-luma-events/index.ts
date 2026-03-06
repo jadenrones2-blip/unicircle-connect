@@ -2,48 +2,241 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ClubRecord {
-  id: string;
-  name: string;
-  website: string | null;
-  instagram: string | null;
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface LumaGeoAddress {
+  address?: string;
+  city?: string;
+  region?: string;
+  country?: string;
+  full_address?: string;
 }
 
-interface ScrapedEvent {
+interface LumaEvent {
+  api_id: string;
+  name: string;
+  description?: string;
+  start_at: string;
+  end_at?: string;
+  cover_url?: string;
+  url: string;
+  geo_address_info?: LumaGeoAddress;
+  timezone?: string;
+  event_type?: string;
+}
+
+interface LumaCalendarEntry {
+  event?: LumaEvent;
+}
+
+interface LumaCalendarResponse {
+  entries?: LumaCalendarEntry[];
+  has_more?: boolean;
+  next_cursor?: string;
+}
+
+interface LumaDiscoverResponse {
+  events?: Array<{ event: LumaEvent; calendar?: { name?: string } }>;
+  has_more?: boolean;
+  next_cursor?: string;
+}
+
+interface NormalizedEvent {
   title: string;
   description: string;
   start_time: string;
-  end_time?: string;
-  location?: string;
-  luma_url?: string;
+  end_time: string | null;
+  location: string | null;
+  cover_image: string | null;
+  luma_event_id: string;
+  luma_url: string;
+  club_id: string | null;
+  club_handle: string | null;
 }
 
-const normalizeExternalUrl = (value: string): string | null => {
-  let v = value.trim();
-  if (!v) return null;
-  v = v.replace(/\/(auth|rest|functions)\/v1.*$/i, '');
-  v = v.replace(/\/+$/, '');
-  if (!v.startsWith('http://') && !v.startsWith('https://')) {
-    if (v.includes('.') || v.includes('supabase.co')) {
-      v = `https://${v}`;
-    } else {
-      v = `https://${v}.supabase.co`;
-    }
-  }
-  try { new URL(v); return v; } catch { return null; }
+// ─── Seed list: known UCSD club Luma handles ─────────────────────────────────
+// These are org/user slugs from lu.ma/<slug>
+// Expand this list as you discover more
+const KNOWN_UCSD_HANDLES = [
+  'acm-ucsd',
+  'ucsddesign',
+  'ucsdprelaw',
+  'tritontech',
+  'ucsdai',
+  'ucsdentrepreneurs',
+  'sdh-ucsd',
+  'ucsd-pre-med',
+  'ucsdblockchain',
+  'tritonhacks',
+  'ucsdfinance',
+  'ucsdconsulting',
+  'cses-ucsd',
+  'ieee-ucsd',
+  'ucsd-acm-w',
+  'ucsdcs',
+  'ucsdrobotics',
+];
+
+// ─── Luma API helpers ─────────────────────────────────────────────────────────
+
+const LUMA_BASE = 'https://api.lu.ma';
+
+const LUMA_HEADERS = {
+  'Accept': 'application/json',
+  'x-luma-source': 'web',
+  'User-Agent': 'Mozilla/5.0 (compatible; UniCircle/1.0)',
 };
 
 function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(r => setTimeout(r, ms));
 }
 
-function generateEventId(title: string, startTime: string, clubId: string): string {
-  const normalized = `luma_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50)}_${startTime.slice(0, 10)}_${clubId.slice(0, 8)}`;
-  return normalized;
+/**
+ * Fetch events from a specific Luma calendar by handle/slug.
+ * Calls: GET /public/v1/calendar/get-items?calendar_api_id=<handle>&period=future
+ */
+async function fetchCalendarEvents(handle: string): Promise<LumaEvent[]> {
+  const url = `${LUMA_BASE}/public/v1/calendar/get-items?calendar_api_id=${encodeURIComponent(handle)}&period=future&pagination_limit=50`;
+
+  try {
+    const res = await fetch(url, { headers: LUMA_HEADERS });
+
+    if (!res.ok) {
+      console.log(`Calendar ${handle}: HTTP ${res.status}`);
+      return [];
+    }
+
+    const data: LumaCalendarResponse = await res.json();
+    const entries = data.entries || [];
+    const events = entries
+      .map(e => e.event)
+      .filter((e): e is LumaEvent => !!e && !!e.api_id && !!e.start_at);
+
+    console.log(`Calendar ${handle}: found ${events.length} upcoming events`);
+    return events;
+  } catch (err) {
+    console.error(`Calendar fetch error (${handle}):`, err);
+    return [];
+  }
 }
+
+/**
+ * Discover UCSD events via Luma's search/discover API.
+ * Calls: GET /public/v1/discover/get-paginated-events with location + query
+ */
+async function discoverUCSDEvents(query: string, cursor?: string): Promise<{ events: LumaEvent[]; next_cursor?: string }> {
+  const params = new URLSearchParams({
+    q: query,
+    period: 'future',
+    pagination_limit: '100',
+    ...(cursor ? { pagination_cursor: cursor } : {}),
+  });
+
+  const url = `${LUMA_BASE}/public/v1/discover/get-paginated-events?${params}`;
+
+  try {
+    const res = await fetch(url, { headers: LUMA_HEADERS });
+
+    if (!res.ok) {
+      console.log(`Discover (${query}): HTTP ${res.status}`);
+      // Try fallback endpoint
+      return await discoverFallback(query);
+    }
+
+    const data: LumaDiscoverResponse = await res.json();
+    const events = (data.events || [])
+      .map(e => e.event)
+      .filter((e): e is LumaEvent => !!e && !!e.api_id && !!e.start_at);
+
+    console.log(`Discover (${query}): found ${events.length} events`);
+    return { events, next_cursor: data.next_cursor };
+  } catch (err) {
+    console.error(`Discover error (${query}):`, err);
+    return { events: [] };
+  }
+}
+
+/**
+ * Fallback: try the location-based discover endpoint
+ */
+async function discoverFallback(query: string): Promise<{ events: LumaEvent[] }> {
+  const params = new URLSearchParams({
+    near: 'San Diego, CA',
+    period: 'future',
+    pagination_limit: '50',
+    q: query,
+  });
+
+  const url = `${LUMA_BASE}/public/v1/discover/get-events-by-location?${params}`;
+
+  try {
+    const res = await fetch(url, { headers: LUMA_HEADERS });
+    if (!res.ok) return { events: [] };
+
+    const data = await res.json();
+    const rawEvents = data.events || data.entries || [];
+    const events = rawEvents
+      .map((e: any) => e.event || e)
+      .filter((e: any): e is LumaEvent => !!e?.api_id && !!e?.start_at);
+
+    console.log(`Discover fallback (${query}): found ${events.length} events`);
+    return { events };
+  } catch {
+    return { events: [] };
+  }
+}
+
+/**
+ * Extract a Luma handle from a URL string.
+ * e.g. "https://lu.ma/acm-ucsd" → "acm-ucsd"
+ *      "lu.ma/tritonhacks"      → "tritonhacks"
+ */
+function extractLumaHandle(url: string): string | null {
+  if (!url) return null;
+  const match = url.match(/lu\.ma\/([a-zA-Z0-9_-]+)/);
+  if (!match) return null;
+  const slug = match[1];
+  // Skip generic Luma pages
+  if (['discover', 'home', 'pricing', 'blog', 'login', 'signup'].includes(slug)) return null;
+  return slug;
+}
+
+/**
+ * Normalize a Luma event into our DB schema.
+ */
+function normalizeEvent(lumaEvent: LumaEvent, clubId: string | null, clubHandle: string | null): NormalizedEvent {
+  const geo = lumaEvent.geo_address_info;
+  let location: string | null = null;
+  if (geo) {
+    location = geo.full_address || geo.address || [geo.city, geo.region].filter(Boolean).join(', ') || null;
+  }
+
+  // Strip HTML from description
+  const rawDesc = lumaEvent.description || '';
+  const description = rawDesc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 2000);
+
+  const eventUrl = lumaEvent.url.startsWith('http')
+    ? lumaEvent.url
+    : `https://lu.ma/${lumaEvent.url}`;
+
+  return {
+    title: lumaEvent.name.trim(),
+    description,
+    start_time: lumaEvent.start_at,
+    end_time: lumaEvent.end_at || null,
+    location,
+    cover_image: lumaEvent.cover_url || null,
+    luma_event_id: lumaEvent.api_id,
+    luma_url: eventUrl,
+    club_id: clubId,
+    club_handle: clubHandle,
+  };
+}
+
+// ─── Main handler ─────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -51,18 +244,18 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ============ AUTH + ADMIN CHECK ============
+    // ── Auth: require admin ──────────────────────────────────────────────────
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const internalUrl = Deno.env.get('SUPABASE_URL')!;
     const internalAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const internalServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
     const authSupabase = createClient(internalUrl, internalAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -71,8 +264,7 @@ Deno.serve(async (req) => {
     const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(authToken);
     if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -84,175 +276,233 @@ Deno.serve(async (req) => {
 
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // ============ CONFIG ============
-    const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    // ── External DB ──────────────────────────────────────────────────────────
     const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || '';
-    const EXTERNAL_SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
+    const externalServiceKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY') || '';
 
-    if (!FIRECRAWL_API_KEY) throw new Error('FIRECRAWL_API_KEY not configured');
-    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
-    if (!rawExternalUrl || !EXTERNAL_SUPABASE_SERVICE_ROLE_KEY) {
+    if (!rawExternalUrl || !externalServiceKey) {
       throw new Error('External Supabase credentials not configured');
     }
 
-    const externalUrl = normalizeExternalUrl(rawExternalUrl);
-    if (!externalUrl) throw new Error('Invalid EXTERNAL_SUPABASE_URL format');
+    let externalUrl = rawExternalUrl.trim()
+      .replace(/\/(auth|rest|functions)\/v1.*$/i, '')
+      .replace(/\/+$/, '');
+    if (!externalUrl.startsWith('http')) externalUrl = `https://${externalUrl}`;
 
-    const externalSupabase = createClient(externalUrl, EXTERNAL_SUPABASE_SERVICE_ROLE_KEY);
+    const db = createClient(externalUrl, externalServiceKey);
 
+    // ── Request config ───────────────────────────────────────────────────────
     const body = await req.json().catch(() => ({}));
-    const limit = body.limit || 10;
-    const offset = body.offset || 0;
-    const dryRun = body.dryRun || false;
-    // Optional: pass specific club IDs to target
-    const targetClubIds: string[] = body.clubIds || [];
+    const dryRun: boolean = body.dryRun ?? false;
+    // Strategies to run (default: both)
+    const runDiscover: boolean = body.runDiscover ?? true;
+    const runPerClub: boolean = body.runPerClub ?? true;
+    // Extra handles to scrape (in addition to seed + DB)
+    const extraHandles: string[] = body.extraHandles ?? [];
 
-    // ============ STRATEGY ============
-    // 1. Fetch clubs from external DB
-    // 2. For each club, search Firecrawl for "club name lu.ma" or scrape their linktree
-    // 3. Scrape discovered Luma pages for event data
-    // 4. Use AI to extract structured events
-    // 5. Insert as unverified drafts
+    console.log(`\n=== Luma scraper start | dryRun=${dryRun} | discover=${runDiscover} | perClub=${runPerClub} ===`);
 
-    let clubsQuery = externalSupabase
-      .from('clubs')
-      .select('id, name, website, instagram')
-      .not('name', 'is', null)
-      .order('name', { ascending: true });
+    // ── Collect all Luma handles ─────────────────────────────────────────────
+    // Start with seed list + any extras passed in
+    const handleMap = new Map<string, { clubId: string | null; clubName: string | null }>();
 
-    if (targetClubIds.length > 0) {
-      clubsQuery = clubsQuery.in('id', targetClubIds);
-    } else {
-      clubsQuery = clubsQuery.range(offset, offset + limit - 1);
+    for (const h of [...KNOWN_UCSD_HANDLES, ...extraHandles]) {
+      handleMap.set(h.toLowerCase(), { clubId: null, clubName: null });
     }
 
-    const { data: clubs, error: clubsError } = await clubsQuery;
-    if (clubsError) throw new Error(`Failed to fetch clubs: ${clubsError.message}`);
+    // Scan clubs table for lu.ma URLs stored in website / instagram fields
+    const { data: clubs } = await db
+      .from('clubs')
+      .select('id, name, website, instagram, luma_handle')
+      .not('name', 'is', null);
 
-    const clubList = (clubs || []).map((c: any) => ({
-      id: c.id,
-      name: (c.name || '').replace(/[\n\r\t]+/g, ' ').replace(/\s+/g, ' ').trim(),
-      website: c.website || null,
-      instagram: c.instagram || null,
-    })).filter((c: ClubRecord) => c.name.length > 2);
-
-    console.log(`Processing ${clubList.length} clubs for Luma events (offset: ${offset})`);
-
-    const result = {
-      clubsProcessed: 0,
-      lumaPagesfound: 0,
-      eventsExtracted: 0,
-      eventsInserted: 0,
-      errors: [] as string[],
-      clubBreakdown: {} as Record<string, { lumaUrls: string[]; events: number }>,
-    };
-
-    for (const club of clubList) {
-      try {
-        console.log(`\n--- Processing: ${club.name} ---`);
-
-        // Step 1: Find Luma pages for this club
-        const lumaUrls = await findLumaPages(club, FIRECRAWL_API_KEY);
-
-        if (lumaUrls.length === 0) {
-          console.log(`No Luma pages found for ${club.name}`);
-          result.clubBreakdown[club.name] = { lumaUrls: [], events: 0 };
-          result.clubsProcessed++;
-          continue;
-        }
-
-        console.log(`Found ${lumaUrls.length} Luma URLs for ${club.name}: ${lumaUrls.join(', ')}`);
-        result.lumaPagesfound += lumaUrls.length;
-        result.clubBreakdown[club.name] = { lumaUrls, events: 0 };
-
-        // Step 2: Scrape each Luma page
-        let allEvents: ScrapedEvent[] = [];
-
-        for (const lumaUrl of lumaUrls.slice(0, 3)) {
-          const content = await scrapePageContent(lumaUrl, FIRECRAWL_API_KEY);
-          if (!content || content.length < 30) {
-            console.log(`No content from ${lumaUrl}`);
-            continue;
-          }
-
-          console.log(`Got ${content.length} chars from ${lumaUrl}`);
-
-          // Step 3: Extract events via AI
-          const events = await extractEventsFromLuma(content, club.name, lumaUrl, LOVABLE_API_KEY);
-          console.log(`Extracted ${events.length} events from ${lumaUrl}`);
-          allEvents = allEvents.concat(events);
-
-          await delay(300);
-        }
-
-        // Step 4: Insert events as unverified drafts
-        if (!dryRun) {
-          for (const event of allEvents) {
-            try {
-              const externalId = generateEventId(event.title, event.start_time, club.id);
-
-              const { error: insertError } = await externalSupabase
-                .from('events')
-                .insert({
-                  title: event.title,
-                  start_time: event.start_time,
-                  end_time: event.end_time || null,
-                  location: event.location || null,
-                  club_id: club.id,
-                  club_handle: club.id,
-                  source: 'luma',
-                  source_url: event.luma_url || null,
-                  external_source: 'luma',
-                  external_id: externalId,
-                  verified: false,
-                  caption: event.description,
-                  posted_at: new Date().toISOString(),
-                });
-
-              if (insertError) {
-                // Duplicate key = already exists, not a real error
-                if (insertError.message?.includes('duplicate') || insertError.code === '23505') {
-                  console.log(`Duplicate event skipped: ${event.title}`);
-                } else {
-                  console.error('Insert error:', JSON.stringify(insertError));
-                  result.errors.push(`Insert failed: ${event.title} - ${insertError.message}`);
-                }
-              } else {
-                result.eventsInserted++;
-                result.clubBreakdown[club.name].events++;
-              }
-            } catch (e) {
-              console.error('Event insert error:', e);
-            }
-          }
-        }
-
-        result.eventsExtracted += allEvents.length;
-        result.clubsProcessed++;
-
-        // Rate limit between clubs
-        await delay(500);
-      } catch (clubError) {
-        console.error(`Error processing ${club.name}:`, clubError);
-        result.errors.push(`${club.name}: ${clubError instanceof Error ? clubError.message : 'Unknown'}`);
-        result.clubsProcessed++;
+    for (const club of clubs || []) {
+      // Check luma_handle column (if it exists)
+      if (club.luma_handle) {
+        const h = club.luma_handle.toLowerCase().trim();
+        if (h) handleMap.set(h, { clubId: club.id, clubName: club.name });
+      }
+      // Check website for lu.ma links
+      const websiteHandle = club.website ? extractLumaHandle(club.website) : null;
+      if (websiteHandle) {
+        handleMap.set(websiteHandle.toLowerCase(), { clubId: club.id, clubName: club.name });
+      }
+      // Check instagram bio-link style fields
+      const igHandle = club.instagram ? extractLumaHandle(club.instagram) : null;
+      if (igHandle) {
+        handleMap.set(igHandle.toLowerCase(), { clubId: club.id, clubName: club.name });
       }
     }
 
-    console.log('\n=== Luma scrape complete ===');
-    console.log(JSON.stringify(result, null, 2));
+    // Build a name → id lookup for matching events from the discover strategy
+    const clubNameIndex: Array<{ id: string; name: string; nameLower: string }> = (clubs || [])
+      .filter(c => c.name)
+      .map(c => ({ id: c.id, name: c.name, nameLower: c.name.toLowerCase() }));
 
-    return new Response(JSON.stringify({ success: true, dryRun, ...result }), {
+    console.log(`Found ${handleMap.size} Luma handles to scrape`);
+
+    // ── Result tracking ──────────────────────────────────────────────────────
+    const stats = {
+      handlesScraped: 0,
+      eventsFound: 0,
+      eventsInserted: 0,
+      eventsDuplicate: 0,
+      eventsErrored: 0,
+      errors: [] as string[],
+    };
+
+    const seenLumaIds = new Set<string>();
+
+    // ── Helper: upsert one event ─────────────────────────────────────────────
+    async function upsertEvent(ev: NormalizedEvent) {
+      if (seenLumaIds.has(ev.luma_event_id)) return; // already queued
+      seenLumaIds.add(ev.luma_event_id);
+      stats.eventsFound++;
+
+      if (dryRun) {
+        console.log(`[dry] ${ev.title} | ${ev.start_time} | club=${ev.club_id ?? 'unknown'}`);
+        return;
+      }
+
+      try {
+        const record = {
+          title: ev.title,
+          caption: ev.description,
+          start_time: ev.start_time,
+          end_time: ev.end_time,
+          location: ev.location,
+          cover_image: ev.cover_image,
+          club_id: ev.club_id,
+          club_handle: ev.club_handle,
+          source: 'luma',
+          source_url: ev.luma_url,
+          external_source: 'luma',
+          external_id: ev.luma_event_id,
+          verified: false,
+          posted_at: new Date().toISOString(),
+        };
+
+        const { error } = await db
+          .from('events')
+          .upsert(record, {
+            onConflict: 'external_id,external_source',
+            ignoreDuplicates: true,
+          });
+
+        if (error) {
+          if (error.code === '23505' || error.message?.includes('duplicate')) {
+            stats.eventsDuplicate++;
+          } else {
+            console.error(`Insert error (${ev.title}):`, error.message);
+            stats.eventsErrored++;
+            stats.errors.push(`${ev.title}: ${error.message}`);
+          }
+        } else {
+          stats.eventsInserted++;
+          console.log(`+ ${ev.title} | ${ev.start_time.slice(0, 10)}`);
+        }
+      } catch (e) {
+        stats.eventsErrored++;
+        stats.errors.push(`${ev.title}: ${e instanceof Error ? e.message : 'unknown'}`);
+      }
+    }
+
+    // ── Strategy 1: Discover UCSD events via Luma search ────────────────────
+    if (runDiscover) {
+      console.log('\n--- Strategy 1: Luma discover ---');
+
+      const discoverQueries = [
+        'ucsd',
+        'UC San Diego',
+        'ucsd club',
+      ];
+
+      for (const q of discoverQueries) {
+        const { events } = await discoverUCSDEvents(q);
+
+        for (const lumaEvent of events) {
+          // Try to match to a known club by name
+          let matchedClubId: string | null = null;
+          let matchedHandle: string | null = null;
+
+          const eventName = lumaEvent.name.toLowerCase();
+          const eventDesc = (lumaEvent.description || '').toLowerCase();
+          const combined = eventName + ' ' + eventDesc;
+
+          for (const club of clubNameIndex) {
+            // Check if club name appears in the event text
+            if (club.nameLower.length > 3 && combined.includes(club.nameLower)) {
+              matchedClubId = club.id;
+              matchedHandle = club.id;
+              break;
+            }
+          }
+
+          // Also try to extract handle from the event URL
+          const urlHandle = extractLumaHandle(lumaEvent.url);
+          if (urlHandle && handleMap.has(urlHandle)) {
+            const info = handleMap.get(urlHandle)!;
+            matchedClubId = matchedClubId ?? info.clubId;
+            matchedHandle = matchedHandle ?? info.clubId;
+          }
+
+          await upsertEvent(normalizeEvent(lumaEvent, matchedClubId, matchedHandle));
+        }
+
+        await delay(600);
+      }
+    }
+
+    // ── Strategy 2: Per-club calendar scraping ───────────────────────────────
+    if (runPerClub) {
+      console.log(`\n--- Strategy 2: Per-club calendars (${handleMap.size} handles) ---`);
+
+      for (const [handle, info] of handleMap.entries()) {
+        const events = await fetchCalendarEvents(handle);
+        stats.handlesScraped++;
+
+        for (const lumaEvent of events) {
+          await upsertEvent(normalizeEvent(lumaEvent, info.clubId, info.clubId));
+        }
+
+        // Save back discovered handles to clubs table if we matched a club
+        if (!dryRun && info.clubId && events.length > 0) {
+          // Best-effort: store luma_handle on the club record if the column exists
+          await db
+            .from('clubs')
+            .update({ luma_handle: handle })
+            .eq('id', info.clubId)
+            .then(() => {}) // ignore error if column doesn't exist
+            .catch(() => {});
+        }
+
+        await delay(300);
+      }
+    }
+
+    // ── Summary ──────────────────────────────────────────────────────────────
+    console.log('\n=== Luma scrape complete ===');
+    console.log(JSON.stringify(stats, null, 2));
+
+    return new Response(JSON.stringify({
+      success: true,
+      dryRun,
+      handlesScraped: stats.handlesScraped,
+      eventsFound: stats.eventsFound,
+      eventsInserted: stats.eventsInserted,
+      eventsDuplicate: stats.eventsDuplicate,
+      eventsErrored: stats.eventsErrored,
+      errors: stats.errors.slice(0, 20), // cap error list
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (error) {
-    console.error('Scrape error:', error);
+    console.error('Scraper fatal error:', error);
     return new Response(JSON.stringify({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -262,267 +512,3 @@ Deno.serve(async (req) => {
     });
   }
 });
-
-/**
- * Find Luma event pages for a club using multiple strategies:
- * 1. Search Firecrawl for "club name site:lu.ma"
- * 2. If club has a website, check if it's a linktree and follow links to lu.ma
- * 3. If club has an Instagram, search for "club_handle lu.ma"
- */
-async function findLumaPages(club: ClubRecord, firecrawlKey: string): Promise<string[]> {
-  const lumaUrls = new Set<string>();
-
-  // Strategy 1: Direct Firecrawl search for the club on lu.ma
-  try {
-    const searchQuery = `"${club.name}" site:lu.ma`;
-    console.log(`Searching: ${searchQuery}`);
-
-    const response = await fetch('https://api.firecrawl.dev/v1/search', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${firecrawlKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: searchQuery,
-        limit: 10,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      const results = data.data || data.results || [];
-
-      for (const r of results) {
-        const url = r.url || '';
-        if (url.includes('lu.ma') || url.includes('luma.com')) {
-          // Filter out generic luma pages
-          if (!url.match(/^https?:\/\/(www\.)?lu\.ma\/?$/)) {
-            lumaUrls.add(url);
-          }
-        }
-      }
-    } else {
-      console.error('Luma search failed:', response.status);
-    }
-  } catch (e) {
-    console.error('Search error:', e);
-  }
-
-  await delay(400);
-
-  // Strategy 2: If club has a Linktree, scrape it for lu.ma links
-  if (club.website && club.website.includes('linktr.ee')) {
-    try {
-      console.log(`Scraping linktree: ${club.website}`);
-      const content = await scrapePageContent(club.website, firecrawlKey);
-      
-      // Extract lu.ma links from linktree content
-      const lumaLinkRegex = /https?:\/\/(?:www\.)?lu\.ma\/[^\s"'<>)\]]+/g;
-      const matches = content.match(lumaLinkRegex) || [];
-      for (const match of matches) {
-        lumaUrls.add(match.replace(/[.,;!?]+$/, ''));
-      }
-    } catch (e) {
-      console.error('Linktree scrape error:', e);
-    }
-
-    await delay(300);
-  }
-
-  // Strategy 3: Search with Instagram handle if available
-  if (lumaUrls.size === 0 && club.instagram) {
-    const handle = club.instagram.replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/.*$/, '').trim();
-    if (handle.length > 2) {
-      try {
-        const searchQuery = `${handle} site:lu.ma`;
-        console.log(`Instagram-based search: ${searchQuery}`);
-
-        const response = await fetch('https://api.firecrawl.dev/v1/search', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${firecrawlKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: searchQuery,
-            limit: 5,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const results = data.data || data.results || [];
-
-          for (const r of results) {
-            const url = r.url || '';
-            if ((url.includes('lu.ma') || url.includes('luma.com')) && !url.match(/^https?:\/\/(www\.)?lu\.ma\/?$/)) {
-              lumaUrls.add(url);
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Instagram search error:', e);
-      }
-
-      await delay(400);
-    }
-  }
-
-  return Array.from(lumaUrls);
-}
-
-/**
- * Scrape a page's content using Firecrawl.
- */
-async function scrapePageContent(url: string, apiKey: string): Promise<string> {
-  try {
-    let formattedUrl = url.trim();
-    if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
-      formattedUrl = `https://${formattedUrl}`;
-    }
-
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: formattedUrl,
-        formats: ['markdown'],
-        onlyMainContent: true,
-        waitFor: 5000,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('Firecrawl scrape error:', response.status);
-      return '';
-    }
-
-    const data = await response.json();
-    return data.data?.markdown || data.markdown || '';
-  } catch (error) {
-    console.error('Scrape error:', error);
-    return '';
-  }
-}
-
-/**
- * Extract structured events from Luma page content using AI.
- */
-async function extractEventsFromLuma(
-  content: string,
-  clubName: string,
-  sourceUrl: string,
-  apiKey: string
-): Promise<ScrapedEvent[]> {
-  const today = new Date().toISOString().split('T')[0];
-
-  const systemPrompt = `You are an expert at extracting event information from Luma (lu.ma) event pages.
-Your task is to identify ALL upcoming events and extract structured data.
-
-Today's date is ${today}. Only extract events on or after today.
-
-For each event, extract:
-- title: Clear event title (NOT the organizer name)
-- description: Brief description of the event (1-2 sentences)
-- start_time: ISO 8601 datetime (assume Pacific timezone / UTC-8 if not specified)
-- end_time: ISO 8601 datetime if available
-- location: Physical or virtual location if mentioned
-- luma_url: The specific lu.ma URL for the event if visible
-
-Rules:
-- Luma pages often list multiple upcoming events — extract ALL of them
-- If a page is a single event detail, extract just that one event
-- Skip past events
-- If only a date is given without time, default to 18:00 Pacific
-- The club/org name is "${clubName}" — use it for context but don't use it as the event title
-- If the title seems to be just the org name, append the date or event type to differentiate`;
-
-  const userPrompt = `Extract ALL upcoming events from this Luma page content for "${clubName}" (source: ${sourceUrl}):
-
-${content.slice(0, 20000)}
-
-Return structured event data. If no events found, return an empty array.`;
-
-  try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        tools: [{
-          type: 'function',
-          function: {
-            name: 'extract_events',
-            description: 'Extract event information from Luma page content',
-            parameters: {
-              type: 'object',
-              properties: {
-                events: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      title: { type: 'string' },
-                      description: { type: 'string' },
-                      start_time: { type: 'string', description: 'ISO 8601 datetime' },
-                      end_time: { type: 'string', description: 'ISO 8601 datetime (optional)' },
-                      location: { type: 'string', description: 'Event location (optional)' },
-                      luma_url: { type: 'string', description: 'Direct lu.ma event URL (optional)' },
-                    },
-                    required: ['title', 'description', 'start_time'],
-                  },
-                },
-              },
-              required: ['events'],
-            },
-          },
-        }],
-        tool_choice: { type: 'function', function: { name: 'extract_events' } },
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI extraction error:', response.status, errorText);
-      return [];
-    }
-
-    const data = await response.json();
-
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      const parsed = JSON.parse(toolCall.function.arguments);
-      const events = parsed.events || [];
-      return events.filter((e: ScrapedEvent) => {
-        try {
-          return new Date(e.start_time) >= new Date(today);
-        } catch {
-          return true;
-        }
-      });
-    }
-
-    // Fallback: parse from text
-    const textContent = data.choices?.[0]?.message?.content;
-    if (textContent) {
-      const jsonMatch = textContent.match(/\[[\s\S]*\]/);
-      if (jsonMatch) return JSON.parse(jsonMatch[0]);
-    }
-
-    return [];
-  } catch (error) {
-    console.error('AI extraction failed:', error);
-    return [];
-  }
-}
