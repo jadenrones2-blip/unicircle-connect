@@ -244,34 +244,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ── Auth: accept service role key or scraper secret ─────────────────────
+    // ── Auth: gateway validates apikey; just grab env vars ─────────────────
     const internalUrl = Deno.env.get('SUPABASE_URL')!;
     const internalServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const scraperSecret = Deno.env.get('SCRAPER_SECRET') || '';
-
-    const authHeader = req.headers.get('Authorization') || '';
-    const providedKey = authHeader.replace('Bearer ', '').trim();
-
-    const internalAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
-    const isServiceRole = providedKey === internalServiceKey;
-    const isScraperSecret = scraperSecret && providedKey === scraperSecret;
-    const isAnonKey = providedKey === internalAnonKey;
-
-    // Also accept any valid Supabase user session as a fallback
-    let isValidUser = false;
-    if (!isServiceRole && !isScraperSecret && !isAnonKey && authHeader.startsWith('Bearer ')) {
-      const authSupabase = createClient(internalUrl, internalAnonKey, {
-        global: { headers: { Authorization: authHeader } },
-      });
-      const { data: { user } } = await authSupabase.auth.getUser();
-      isValidUser = !!user;
-    }
-
-    if (!isServiceRole && !isScraperSecret && !isAnonKey && !isValidUser) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
 
     // ── External DB ──────────────────────────────────────────────────────────
     const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || '';
