@@ -1,40 +1,30 @@
 import { useEffect, useDeferredValue, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Search, X, AlertCircle, LayoutGrid, List, Shield, ChevronRight, Sparkles, Plus } from "lucide-react";
+import { Loader2, Search, X, AlertCircle, Sparkles, Plus } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
-import ClubListItem from "@/components/ClubListItem";
 import RequestNewClubModal from "@/components/RequestNewClubModal";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Toggle } from "@/components/ui/toggle";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useClubs } from "@/hooks/useExternalDB";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
 import { toast } from "sonner";
 
-const CATEGORY_OPTIONS = [
-  "All",
-  "Academic",
-  "Cultural",
-  "Fraternity",
-  "Greek Life",
-  "Professional",
-  "Service",
-  "Social",
-  "Sorority",
-  "Spiritual",
-  "Sports",
-  "Tech / STEM",
+const CATEGORIES = [
+  { label: 'All', color: 'hsl(43 74% 56%)' },
+  { label: 'Academic', color: '#60a5fa' },
+  { label: 'Cultural', color: '#fb923c' },
+  { label: 'Fraternity', color: '#a78bfa' },
+  { label: 'Greek Life', color: '#c084fc' },
+  { label: 'Professional', color: '#818cf8' },
+  { label: 'Service', color: '#34d399' },
+  { label: 'Social', color: '#f472b6' },
+  { label: 'Sorority', color: '#fb7185' },
+  { label: 'Spiritual', color: '#2dd4bf' },
+  { label: 'Sports', color: '#f87171' },
+  { label: 'Tech / STEM', color: '#22d3ee' },
 ];
 
 // Greek life related terms for combined filtering
@@ -51,8 +41,6 @@ const normalizeText = (value: string) =>
 const ClubsDirectory = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
-  const [showClaimInfo, setShowClaimInfo] = useState(true);
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
   const { user } = useAuth();
@@ -136,169 +124,103 @@ const ClubsDirectory = () => {
   const hasActiveFilters = searchText || selectedCategory !== "All";
 
   return (
-    <main className="min-h-screen bg-black dark">
+    <main className="min-h-screen bg-[#0A0A0A] dark">
       <Header />
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-4 md:pt-32 md:pb-8 px-4">
-        <div className="container mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-2xl mx-auto"
-          >
-            <h1 className="text-2xl md:text-4xl font-display font-bold text-foreground mb-2 md:mb-3">
-              Clubs Directory
-            </h1>
-            <p className="text-sm md:text-base text-muted-foreground mb-4">
-              {loading
-                ? "Loading clubs..."
-                : `Explore ${clubs.length} student organizations`}
-            </p>
-            <RequestNewClubModal
-              trigger={
-                <Button variant="outline" size="sm" className="gap-2 h-9 text-xs md:text-sm">
-                  <Plus className="w-3.5 h-3.5" />
-                  Request to add your club
-                </Button>
-              }
+      {/* Hero */}
+      <section className="pt-28 pb-6 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-[10px] tracking-[0.22em] uppercase text-zinc-600 mb-2">
+            UC San Diego
+          </p>
+          <h1 className="text-3xl md:text-5xl font-display font-bold text-white tracking-tight mb-2">
+            Student Organizations
+          </h1>
+          <p className="text-zinc-500 mb-6">
+            {loading ? "Loading clubs..." : `${clubs.length} clubs across every interest`}
+          </p>
+
+          {/* Search */}
+          <div className="relative max-w-lg mx-auto">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Search clubs..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full h-12 bg-white/5 border-white/10 text-white pl-11 pr-10 rounded-2xl focus:border-white/30 focus:ring-0 placeholder:text-zinc-600"
             />
-          </motion.div>
+            {searchText && (
+              <button
+                onClick={() => setSearchText("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          <RequestNewClubModal
+            trigger={
+              <button className="mt-3 text-xs text-zinc-600 hover:text-white transition-colors">
+                Can't find your club? Request it
+              </button>
+            }
+          />
         </div>
       </section>
 
-      {/* Club Claiming Info Banner */}
-      <AnimatePresence>
-        {showClaimInfo && (
-          <motion.section
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="pb-4 px-4"
-          >
-            <div className="container mx-auto max-w-4xl">
-              <Alert className="bg-gold/5 border-gold/20 relative p-3 md:p-4">
-                <div className="flex items-start gap-2 md:gap-3">
-                  <div className="shrink-0 mt-0.5 hidden sm:block">
-                    <div className="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
-                      <Shield className="w-4 h-4 text-gold" />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Sparkles className="w-3.5 h-3.5 text-gold" />
-                      <span className="text-sm font-semibold text-foreground">Are you a club leader?</span>
-                    </div>
-                    <AlertDescription className="text-xs md:text-sm text-muted-foreground">
-                      <span className="block mb-2">
-                        Claim your club to manage events and update your profile.
-                      </span>
-                      <div className="flex flex-col sm:flex-row gap-x-3 gap-y-1.5 text-[10px] md:text-xs">
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-4 h-4 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[9px]">1</span>
-                          Search your club
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-4 h-4 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[9px]">2</span>
-                          Click "Claim this club"
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-4 h-4 rounded-full bg-gold/10 text-gold flex items-center justify-center font-medium text-[9px]">3</span>
-                          Verify email
-                        </span>
-                      </div>
-                    </AlertDescription>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0 h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                    onClick={() => setShowClaimInfo(false)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </Alert>
-            </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
-
-      {/* Search and Filter Controls */}
-      <section className="pb-6 md:pb-8 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="flex flex-col md:flex-row gap-3">
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search clubs"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                className="pl-9 md:pl-10 pr-10 h-10 md:h-12 text-sm md:text-base"
-              />
-              {searchText && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 md:h-8 md:w-8 p-0"
-                  onClick={() => setSearchText("")}
+      {/* Category pills - horizontal scroll */}
+      <section className="pb-6 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {CATEGORIES.map((cat) => {
+              const isActive = selectedCategory === cat.label;
+              return (
+                <button
+                  key={cat.label}
+                  onClick={() => setSelectedCategory(cat.label)}
+                  className="shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-150 whitespace-nowrap"
+                  style={
+                    isActive
+                      ? {
+                          background: cat.color,
+                          color: '#000',
+                          border: `1px solid ${cat.color}`,
+                        }
+                      : {
+                          background: 'transparent',
+                          color: '#71717a',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                        }
+                  }
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLButtonElement).style.color = '#71717a';
+                    }
+                  }}
                 >
-                  <X className="w-3.5 h-3.5" />
-                </Button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Category Dropdown */}
-              <Select
-                value={selectedCategory}
-                onValueChange={setSelectedCategory}
-              >
-                <SelectTrigger className="flex-1 md:w-[180px] h-10 md:h-12 text-sm">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORY_OPTIONS.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* View Toggle */}
-              <div className="flex border border-border rounded-lg overflow-hidden h-10 md:h-12">
-                <Toggle
-                  pressed={viewMode === "list"}
-                  onPressedChange={() => setViewMode("list")}
-                  className="rounded-none border-0 px-2 md:px-3 data-[state=on]:bg-muted"
-                  aria-label="List view"
-                >
-                  <List className="w-4 h-4 md:w-5 md:h-5" />
-                </Toggle>
-                <Toggle
-                  pressed={viewMode === "grid"}
-                  onPressedChange={() => setViewMode("grid")}
-                  className="rounded-none border-0 border-l border-border px-2 md:px-3 data-[state=on]:bg-muted"
-                  aria-label="Grid view"
-                >
-                  <LayoutGrid className="w-4 h-4 md:w-5 md:h-5" />
-                </Toggle>
-              </div>
-            </div>
+                  {cat.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* Results */}
       <section className="pb-20 px-4">
-        <div className="container mx-auto">
+        <div className="max-w-5xl mx-auto">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16">
               <Loader2 className="w-8 h-8 text-gold animate-spin mb-4" />
-              <p className="text-muted-foreground">Loading clubs...</p>
+              <p className="text-zinc-500">Loading clubs...</p>
             </div>
           ) : error ? (
             <motion.div
@@ -306,56 +228,68 @@ const ClubsDirectory = () => {
               animate={{ opacity: 1 }}
               className="text-center py-16"
             >
-              <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-destructive" />
+              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-red-500" />
               </div>
-              <h3 className="text-lg font-display font-semibold text-foreground mb-2">
+              <h3 className="text-lg font-display font-semibold text-white mb-2">
                 Error loading clubs
               </h3>
-              <p className="text-muted-foreground">{error}</p>
+              <p className="text-zinc-500">{error}</p>
             </motion.div>
           ) : (
             <>
-              {/* Results Count */}
-              <p className="text-sm text-muted-foreground mb-6 text-center">
-                Showing {filteredClubs.length} club
-                {filteredClubs.length !== 1 ? "s" : ""}
-                {selectedCategory !== "All" && ` in ${selectedCategory}`}
-                {searchText && ` matching "${searchText}"`}
+              {/* Results count */}
+              <p className="text-xs text-zinc-600 mb-5">
+                {filteredClubs.length} clubs{selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''}
               </p>
 
-              {/* Clubs List/Grid */}
               {filteredClubs.length > 0 ? (
-                viewMode === "list" ? (
-                  <div className="flex flex-col gap-3 max-w-4xl mx-auto">
-                    {filteredClubs.map((club) => (
-                      <ClubListItem key={club.id} club={club} />
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={selectedCategory + deferredSearchText}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                  >
+                    {filteredClubs.map((club, i) => (
+                      <motion.div
+                        key={club.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: Math.min(i * 0.04, 0.3), duration: 0.35 }}
+                      >
+                        <ClubCard
+                          club={club}
+                          isSaved={isSaved(club.id)}
+                          onToggleSave={handleToggleSave}
+                        />
+                      </motion.div>
                     ))}
-                  </div>
-                ) : (
-                  <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {filteredClubs.map((club) => (
-                      <ClubCard key={club.id} club={club} isSaved={isSaved(club.id)} onToggleSave={handleToggleSave} />
-                    ))}
-                  </div>
-                )
+                  </motion.div>
+                </AnimatePresence>
               ) : (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="text-center py-16"
                 >
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                    <Search className="w-8 h-8 text-muted-foreground" />
+                  <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-8 h-8 text-zinc-600" />
                   </div>
-                  <h3 className="text-lg font-display font-semibold text-foreground mb-2">
+                  <h3 className="text-lg font-display font-semibold text-white mb-2">
                     No clubs match your search.
                   </h3>
-                  <p className="text-muted-foreground mb-4">
+                  <p className="text-zinc-500 mb-4">
                     Try adjusting your search or category filter
                   </p>
                   {hasActiveFilters && (
-                    <Button variant="outline" onClick={clearFilters}>
+                    <Button
+                      variant="outline"
+                      onClick={clearFilters}
+                      className="border-white/10 text-zinc-300 hover:text-white hover:border-white/30"
+                    >
                       Clear filters
                     </Button>
                   )}

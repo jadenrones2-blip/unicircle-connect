@@ -2,8 +2,6 @@ import { memo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Heart } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import type { Club, RecruitingStatus } from "@/data/mockData";
 
 interface ClubCardProps {
@@ -12,107 +10,101 @@ interface ClubCardProps {
   onToggleSave?: (clubId: string) => void;
 }
 
-const getStatusStyles = (status: RecruitingStatus) => {
-  switch (status) {
-    case "open":
-      return "bg-green-500/10 text-green-600 border-green-500/20";
-    case "upcoming":
-      return "bg-gold/10 text-gold border-gold/20";
-    case "closed":
-      return "bg-muted text-muted-foreground border-border";
-  }
+const CATEGORY_COLORS: Record<string, string> = {
+  academic: '#60a5fa',
+  cultural: '#fb923c',
+  fraternity: '#a78bfa',
+  'greek life': '#c084fc',
+  professional: '#818cf8',
+  service: '#34d399',
+  social: '#f472b6',
+  sorority: '#fb7185',
+  spiritual: '#2dd4bf',
+  sports: '#f87171',
+  'tech / stem': '#22d3ee',
+  tech: '#22d3ee',
+  stem: '#22d3ee',
 };
 
-const getStatusLabel = (status: RecruitingStatus) => {
-  switch (status) {
-    case "open":
-      return "Open";
-    case "upcoming":
-      return "Upcoming";
-    case "closed":
-      return "Closed";
-  }
-};
-
-const isGreekOrg = (club: Club): boolean => {
-  const searchText = `${club.name} ${club.category} ${club.categoryBucket || ''}`.toLowerCase();
-  return searchText.includes('panhellenic') || 
-         searchText.includes('interfraternity') || 
-         searchText.includes('fraternity') || 
-         searchText.includes('sorority');
-};
+function getCategoryColor(category: string): string {
+  const key = category.toLowerCase().trim();
+  return CATEGORY_COLORS[key] ?? 'hsl(43 74% 56%)'; // default gold
+}
 
 const ClubCardComponent = ({ club, isSaved, onToggleSave }: ClubCardProps) => {
-  const showGreekTag = isGreekOrg(club);
-  
+  const categoryColor = getCategoryColor(club.categoryBucket || club.category || '');
+
   return (
     <motion.div
-      initial={false}
-      whileHover={{ y: -2 }}
-      transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="group bg-card border border-border rounded-lg overflow-hidden hover:border-gold/30 hover:shadow-md transition-all duration-300 p-5"
+      whileHover={{ y: -3 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="h-full"
     >
-      {/* Header with category and status */}
-      <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          {club.category && (
-            <Badge
-              variant="secondary"
-              className="bg-muted text-muted-foreground border-0 text-xs"
+      <Link
+        to={`/clubs/${club.id}`}
+        className="group flex flex-col h-full rounded-2xl overflow-hidden relative"
+        style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}
+      >
+        {/* Top color accent line */}
+        <div className="h-[2px] w-full shrink-0" style={{ background: categoryColor }} />
+
+        <div className="flex flex-col flex-1 p-5">
+          {/* Category + status row */}
+          <div className="flex items-center justify-between mb-3">
+            <span
+              className="text-[10px] font-semibold tracking-[0.15em] uppercase"
+              style={{ color: categoryColor }}
             >
-              {club.category}
-            </Badge>
+              {club.categoryBucket || club.category || 'Club'}
+            </span>
+            <div className="flex items-center gap-2">
+              {club.recruitingStatus === 'open' && (
+                <span className="text-[10px] font-medium text-green-500 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                  Open
+                </span>
+              )}
+              {club.recruitingStatus === 'upcoming' && (
+                <span className="text-[10px] font-medium text-[hsl(43_74%_56%)] flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[hsl(43_74%_56%)] inline-block" />
+                  Soon
+                </span>
+              )}
+              {onToggleSave && (
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSave(club.id); }}
+                  className="transition-colors"
+                  aria-label={isSaved ? "Unsave club" : "Save club"}
+                >
+                  <Heart
+                    className={`w-3.5 h-3.5 ${isSaved ? 'fill-red-500 text-red-500' : 'text-zinc-600 hover:text-zinc-300'}`}
+                  />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Name */}
+          <h3 className="font-display text-base font-bold text-white leading-tight mb-2 group-hover:text-[hsl(43_74%_56%)] transition-colors line-clamp-2">
+            {club.name}
+          </h3>
+
+          {/* Description */}
+          {club.description ? (
+            <p className="text-xs text-zinc-500 line-clamp-3 flex-1 mb-4 leading-relaxed">
+              {club.description}
+            </p>
+          ) : (
+            <div className="flex-1 mb-4" />
           )}
-          {showGreekTag && (
-            <Badge
-              variant="secondary"
-              className="bg-purple-500/10 text-purple-600 border-purple-500/20 text-xs"
-            >
-              Greek
-            </Badge>
-          )}
+
+          {/* Footer */}
+          <div className="flex items-center justify-between mt-auto">
+            <span className="text-[11px] text-zinc-600">View club</span>
+            <ArrowRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-[hsl(43_74%_56%)] group-hover:translate-x-1 transition-all" />
+          </div>
         </div>
-        <div className="flex items-center gap-1">
-          {onToggleSave && (
-            <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSave(club.id); }}
-              className="p-1.5 rounded-full hover:bg-muted transition-colors"
-              title={isSaved ? "Unsave" : "Save"}
-            >
-              <Heart className={`w-4 h-4 transition-colors ${isSaved ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'}`} />
-            </button>
-          )}
-          {/* Only show Open/Upcoming status, hide Closed */}
-          {club.recruitingStatus !== "closed" && (
-            <Badge
-              variant="outline"
-              className={`flex-shrink-0 text-xs ${getStatusStyles(club.recruitingStatus)}`}
-            >
-              {getStatusLabel(club.recruitingStatus)}
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      {/* Title */}
-      <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-gold transition-colors leading-tight mb-2">
-        {club.name}
-      </h3>
-
-      {/* Description */}
-      {club.description && (
-        <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-          {club.description}
-        </p>
-      )}
-
-      {/* Action */}
-      <Button variant="outline" size="sm" className="w-full group/btn" asChild>
-        <Link to={`/clubs/${club.id}`}>
-          View Club
-          <ArrowRight className="w-3.5 h-3.5 ml-2 transition-transform group-hover/btn:translate-x-1" />
-        </Link>
-      </Button>
+      </Link>
     </motion.div>
   );
 };
