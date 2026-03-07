@@ -2,17 +2,15 @@ import { motion } from "framer-motion";
 import AnimatedWords from "./AnimatedWords";
 
 const challenges = [
-  { number: "01", title: "Volume overload",       detail: "Hundreds of applicants, no system to handle them." },
-  { number: "02", title: "Reviewer bottlenecks",  detail: "Multiple reviewers, zero coordination." },
-  { number: "03", title: "Manual scoring",         detail: "Spreadsheets can't scale. Period." },
-  { number: "04", title: "Disconnected tools",     detail: "Forms, sheets, emails — all fragmented." },
-  { number: "05", title: "Zero transparency",      detail: "Applicants never know where they stand." },
-  { number: "06", title: "Wasted hours",           detail: "Status updates and follow-ups eat your week." },
+  { number: "01", title: "Volume overload",      detail: "Hundreds of applicants, no system to handle them." },
+  { number: "02", title: "Reviewer chaos",       detail: "Multiple reviewers, zero coordination." },
+  { number: "03", title: "Zero transparency",    detail: "Applicants never know where they stand." },
+  { number: "04", title: "Wasted hours",         detail: "Status updates and follow-ups eat your week." },
 ];
 
 const ProblemSection = () => {
   return (
-    <section id="problem" className="py-24 md:py-36 border-t border-border/20">
+    <section id="problem" className="py-16 md:py-24 border-t border-border/20">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-28">
 
@@ -52,7 +50,7 @@ const ProblemSection = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.07, duration: 0.4 }}
-                className="flex items-start gap-6 py-6"
+                className="flex items-start gap-6 py-4"
               >
                 <span className="text-[11px] font-semibold text-foreground/20 tracking-widest mt-0.5 flex-shrink-0 w-6">
                   {c.number}

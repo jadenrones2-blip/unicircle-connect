@@ -9,10 +9,10 @@ const steps = [
 
 const HowItWorksSection = () => {
   return (
-    <section id="how" className="py-24 md:py-36 border-t border-border/20">
+    <section id="how" className="py-16 md:py-24 border-t border-border/20">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
 
-        <div className="mb-16 md:mb-20">
+        <div className="mb-10 md:mb-12">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}

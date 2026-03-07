@@ -8,7 +8,7 @@ const CTASection = () => {
   const { playClick, playHover } = useSoundEffects();
 
   return (
-    <section id="cta" className="py-24 md:py-36 border-t border-border/20 bg-primary text-primary-foreground">
+    <section id="cta" className="py-16 md:py-24 border-t border-border/20 bg-primary text-primary-foreground">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-12">
 

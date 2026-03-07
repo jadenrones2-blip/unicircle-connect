@@ -323,10 +323,10 @@ const ProductShowcase = () => {
   const { playClick } = useSoundEffects();
 
   return (
-    <section className="py-24 md:py-36 bg-primary text-primary-foreground border-t border-primary-foreground/[0.06]">
+    <section className="py-16 md:py-24 bg-primary text-primary-foreground border-t border-primary-foreground/[0.06]">
 
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
-        <div className="mb-12 md:mb-16">
+        <div className="mb-8 md:mb-10">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
