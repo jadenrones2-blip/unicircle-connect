@@ -71,6 +71,21 @@ export default function AdminEvents() {
     eventsDuplicate: number;
     handlesScraped: number;
   } | null>(null);
+  const [scrapingMulti, setScrapingMulti] = useState(false);
+  const [multiScrapeResult, setMultiScrapeResult] = useState<{
+    searchesRun: number;
+    eventsFound: number;
+    eventsInserted: number;
+    eventsDuplicate: number;
+  } | null>(null);
+  const [scrapingApify, setScrapingApify] = useState(false);
+  const [apifyScrapeResult, setApifyScrapeResult] = useState<{
+    accountsScraped: number;
+    postsScraped: number;
+    postsWithEventKeywords: number;
+    eventsInserted: number;
+    eventsDuplicate: number;
+  } | null>(null);
 
   const handleScrapeCSI = async () => {
     setScrapingCSI(true);
@@ -135,6 +150,63 @@ export default function AdminEvents() {
       toast.error('Failed to scrape Luma events');
     } finally {
       setScrapingLuma(false);
+    }
+  };
+
+  const handleScrapeMulti = async () => {
+    setScrapingMulti(true);
+    setMultiScrapeResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-events-multi');
+      if (error) {
+        toast.error(`Multi-scraper error: ${error.message || JSON.stringify(error)}`);
+        return;
+      }
+      if (data?.success) {
+        setMultiScrapeResult({
+          searchesRun: data.searchesRun || 0,
+          eventsFound: data.eventsFound || 0,
+          eventsInserted: data.eventsInserted || 0,
+          eventsDuplicate: data.eventsDuplicate || 0,
+        });
+        toast.success(`Found ${data.eventsInserted || 0} new events across Eventbrite, Partiful & Luma`);
+        fetchUnverifiedEvents();
+      } else {
+        toast.error(data?.error || 'Multi-scraper failed');
+      }
+    } catch {
+      toast.error('Failed to run multi-platform scraper');
+    } finally {
+      setScrapingMulti(false);
+    }
+  };
+
+  const handleScrapeApify = async () => {
+    setScrapingApify(true);
+    setApifyScrapeResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('scrape-instagram-apify');
+      if (error) {
+        toast.error(`Instagram error: ${error.message || JSON.stringify(error)}`);
+        return;
+      }
+      if (data?.success) {
+        setApifyScrapeResult({
+          accountsScraped: data.accountsScraped || 0,
+          postsScraped: data.postsScraped || 0,
+          postsWithEventKeywords: data.postsWithEventKeywords || 0,
+          eventsInserted: data.eventsInserted || 0,
+          eventsDuplicate: data.eventsDuplicate || 0,
+        });
+        toast.success(`Instagram: ${data.eventsInserted || 0} new events extracted from ${data.accountsScraped || 0} clubs`);
+        fetchUnverifiedEvents();
+      } else {
+        toast.error(data?.error || 'Instagram scraper failed');
+      }
+    } catch {
+      toast.error('Failed to run Instagram scraper');
+    } finally {
+      setScrapingApify(false);
     }
   };
 
@@ -474,13 +546,13 @@ export default function AdminEvents() {
                 )}
                 {scrapingCSI ? 'Scraping CSI...' : 'Scrape CSI Contacts'}
               </Button>
-              <Button variant="outline" onClick={handleScrapeLuma} disabled={scrapingLuma}>
-                {scrapingLuma ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Zap className="w-4 h-4 mr-2" />
-                )}
-                {scrapingLuma ? 'Scraping Luma...' : 'Scrape Luma'}
+              <Button variant="outline" onClick={handleScrapeMulti} disabled={scrapingMulti}>
+                {scrapingMulti ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
+                {scrapingMulti ? 'Searching...' : 'Scrape Web'}
+              </Button>
+              <Button variant="outline" onClick={handleScrapeApify} disabled={scrapingApify}>
+                {scrapingApify ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
+                {scrapingApify ? 'Scraping IG...' : 'Scrape Instagram'}
               </Button>
               <Button variant="gold" onClick={handleScrapeInstagram} disabled={scraping}>
                 {scraping ? (
@@ -588,6 +660,58 @@ export default function AdminEvents() {
                 <div>
                   <span className="text-muted-foreground">Duplicates Skipped:</span>{' '}
                   <span className="font-semibold text-muted-foreground">{lumaScrapeResult.eventsDuplicate}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {multiScrapeResult && (
+            <div className="premium-card p-4 mb-6 border-border space-y-2">
+              <h4 className="text-sm font-semibold text-foreground">Web Scrape — Eventbrite, Partiful, Luma</h4>
+              <div className="flex items-center gap-6 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Searches Run:</span>{' '}
+                  <span className="font-semibold text-foreground">{multiScrapeResult.searchesRun}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Events Found:</span>{' '}
+                  <span className="font-semibold text-foreground">{multiScrapeResult.eventsFound}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">New Events:</span>{' '}
+                  <span className="font-semibold text-green-500">{multiScrapeResult.eventsInserted}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Duplicates:</span>{' '}
+                  <span className="font-semibold text-muted-foreground">{multiScrapeResult.eventsDuplicate}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {apifyScrapeResult && (
+            <div className="premium-card p-4 mb-6 border-border space-y-2">
+              <h4 className="text-sm font-semibold text-foreground">Instagram Scrape — Club Accounts</h4>
+              <div className="flex items-center gap-6 text-sm flex-wrap">
+                <div>
+                  <span className="text-muted-foreground">Accounts:</span>{' '}
+                  <span className="font-semibold text-foreground">{apifyScrapeResult.accountsScraped}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Posts Scraped:</span>{' '}
+                  <span className="font-semibold text-foreground">{apifyScrapeResult.postsScraped}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Event Posts:</span>{' '}
+                  <span className="font-semibold text-foreground">{apifyScrapeResult.postsWithEventKeywords}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">New Events:</span>{' '}
+                  <span className="font-semibold text-green-500">{apifyScrapeResult.eventsInserted}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Duplicates:</span>{' '}
+                  <span className="font-semibold text-muted-foreground">{apifyScrapeResult.eventsDuplicate}</span>
                 </div>
               </div>
             </div>

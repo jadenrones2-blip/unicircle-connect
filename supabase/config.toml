@@ -51,3 +51,9 @@ verify_jwt = false
 [functions.scrape-luma-events]
 verify_jwt = false
 
+[functions.scrape-events-multi]
+verify_jwt = false
+
+[functions.scrape-instagram-apify]
+verify_jwt = false
+
