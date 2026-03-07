@@ -2,20 +2,20 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  Users, Star, CheckCircle, Clock, ChevronRight,
-  Calendar, ArrowRight, Zap, TrendingUp, BarChart3,
-  FileText, MessageSquare, Award, Eye, Filter,
+  Users, Star, CheckCircle, Clock,
+  Calendar, ArrowRight, TrendingUp,
+  FileText, ChevronRight, Eye,
 } from 'lucide-react';
-import logoImage from '@/assets/unicircle-logo-new.png';
+import Header from '@/components/Header';
 
-// ─── Fake Data ────────────────────────────────────────────────────────────────
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const STAGES = [
-  { id: 'applied',     label: 'Applied',      color: '#6366f1', bg: 'rgba(99,102,241,0.15)' },
-  { id: 'screening',   label: 'Screening',    color: '#f59e0b', bg: 'rgba(245,158,11,0.15)' },
-  { id: 'coffee_chat', label: 'Coffee Chat',  color: '#3b82f6', bg: 'rgba(59,130,246,0.15)' },
-  { id: 'final',       label: 'Final Round',  color: '#8b5cf6', bg: 'rgba(139,92,246,0.15)' },
-  { id: 'accepted',    label: 'Accepted',     color: '#10b981', bg: 'rgba(16,185,129,0.15)' },
+  { id: 'applied',     label: 'Applied',      color: '#6366f1' },
+  { id: 'screening',   label: 'Screening',    color: '#f59e0b' },
+  { id: 'coffee_chat', label: 'Coffee Chat',  color: '#3b82f6' },
+  { id: 'final',       label: 'Final Round',  color: '#8b5cf6' },
+  { id: 'accepted',    label: 'Accepted',     color: '#10b981' },
 ];
 
 const APPLICANTS = [
@@ -32,125 +32,103 @@ const APPLICANTS = [
 ];
 
 const CATEGORIES = [
-  { name: 'Leadership Experience', weight: 30, scores: [8, 9, 7] },
-  { name: 'Technical Skills',      weight: 25, scores: [7, 8, 9] },
-  { name: 'Culture Fit',           weight: 25, scores: [9, 8, 8] },
-  { name: 'Communication',         weight: 20, scores: [8, 7, 9] },
+  { name: 'Leadership',   weight: 30, scores: [8, 9, 7] },
+  { name: 'Technical',    weight: 25, scores: [7, 8, 9] },
+  { name: 'Culture Fit',  weight: 25, scores: [9, 8, 8] },
+  { name: 'Communication', weight: 20, scores: [8, 7, 9] },
 ];
 
 const REVIEWERS = ['Jamie L.', 'Chris M.', 'Sam R.'];
-
 const APPLICANT_STAGES = ['Applied', 'Screening', 'Interview', 'Decision'];
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function ApplicantCard({
-  applicant,
-  onClick,
-  delay = 0,
-}: {
-  applicant: typeof APPLICANTS[0];
-  onClick: () => void;
-  delay?: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.3 }}
-      onClick={onClick}
-      className="group bg-white/[0.04] border border-white/[0.08] rounded-xl p-3 cursor-pointer hover:border-white/20 hover:bg-white/[0.07] transition-all"
-    >
-      <div className="flex items-start justify-between mb-2.5">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold"
-            style={{ backgroundColor: applicant.color + '30', border: `1.5px solid ${applicant.color}50`, color: applicant.color }}
-          >
-            {applicant.initials}
-          </div>
-          <div>
-            <div className="text-[13px] font-semibold text-white leading-none">{applicant.name}</div>
-            <div className="text-[11px] text-white/40 mt-0.5">{applicant.year} · {applicant.major}</div>
-          </div>
-        </div>
-        <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-white/50 transition-colors mt-0.5" />
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <Star className="w-3 h-3 fill-[#C9A84C] text-[#C9A84C]" />
-          <span className="text-[12px] font-bold text-white">{applicant.score}</span>
-          <span className="text-[11px] text-white/30">/100</span>
-        </div>
-        {applicant.tag && (
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-            applicant.tag === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' :
-            applicant.tag === 'Top Pick' ? 'bg-[#C9A84C]/20 text-[#C9A84C]' :
-            'bg-blue-500/20 text-blue-400'
-          }`}>
-            {applicant.tag}
-          </span>
-        )}
-      </div>
-    </motion.div>
-  );
-}
+// ─── Pipeline Tab ─────────────────────────────────────────────────────────────
 
 function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPLICANTS[0]) => void }) {
   return (
     <motion.div
       key="pipeline"
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.35 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
       {/* Stats row */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden mb-10">
         {[
-          { label: 'Total Applicants', value: '10', icon: Users,      color: '#6366f1' },
-          { label: 'Avg Score',        value: '81.9', icon: Star,     color: '#C9A84C' },
-          { label: 'Acceptance Rate',  value: '20%',  icon: TrendingUp, color: '#10b981' },
-          { label: 'Under Review',     value: '5',    icon: Eye,      color: '#8b5cf6' },
+          { label: 'Applicants', value: '10',   icon: Users,       color: '#6366f1' },
+          { label: 'Avg Score',  value: '81.9', icon: Star,        color: '#C9A84C' },
+          { label: 'Accepted',   value: '20%',  icon: TrendingUp,  color: '#10b981' },
+          { label: 'In Review',  value: '5',    icon: Eye,         color: '#8b5cf6' },
         ].map((s) => (
-          <div key={s.label} className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3">
-            <s.icon className="w-4 h-4" style={{ color: s.color }} />
+          <div key={s.label} className="bg-[#0A0A0A] px-6 py-5 flex items-center gap-4">
+            <s.icon className="w-5 h-5 flex-shrink-0" style={{ color: s.color }} />
             <div>
-              <div className="text-white font-bold text-sm leading-none">{s.value}</div>
-              <div className="text-white/40 text-[11px] mt-0.5">{s.label}</div>
+              <div className="text-xl font-bold text-white">{s.value}</div>
+              <div className="text-xs text-white/35 mt-0.5 tracking-wide">{s.label}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Kanban board */}
-      <div className="overflow-x-auto pb-4">
-        <div className="flex gap-4 min-w-max">
-          {STAGES.map((stage, si) => {
+      {/* Kanban */}
+      <div className="overflow-x-auto pb-2">
+        <div className="flex gap-5 min-w-max">
+          {STAGES.map((stage) => {
             const cards = APPLICANTS.filter(a => a.stage === stage.id);
             return (
-              <div key={stage.id} className="w-56">
-                <div className="flex items-center justify-between mb-3 px-0.5">
+              <div key={stage.id} className="w-52">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: stage.color }} />
-                    <span className="text-[13px] font-semibold text-white/80">{stage.label}</span>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stage.color }} />
+                    <span className="text-xs font-semibold text-white/60 tracking-wide uppercase">{stage.label}</span>
                   </div>
-                  <span className="text-[11px] text-white/40 bg-white/[0.06] rounded-full px-2 py-0.5 font-medium">
-                    {cards.length}
-                  </span>
+                  <span className="text-xs text-white/30 tabular-nums">{cards.length}</span>
                 </div>
-                <div className="space-y-2">
-                  {cards.map((a, ai) => (
-                    <ApplicantCard
+                <div className="space-y-2.5">
+                  {cards.map((a, i) => (
+                    <motion.div
                       key={a.id}
-                      applicant={a}
-                      delay={si * 0.04 + ai * 0.04}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
                       onClick={() => onSelectApplicant(a)}
-                    />
+                      className="group bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.07] hover:border-white/[0.15] rounded-xl p-3.5 cursor-pointer transition-all"
+                    >
+                      <div className="flex items-start justify-between mb-2.5">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                            style={{ backgroundColor: a.color + '25', border: `1.5px solid ${a.color}40`, color: a.color }}
+                          >
+                            {a.initials}
+                          </div>
+                          <div>
+                            <div className="text-[13px] font-semibold text-white leading-none">{a.name}</div>
+                            <div className="text-[11px] text-white/35 mt-0.5">{a.year} · {a.major}</div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-3 h-3 text-white/15 group-hover:text-white/40 mt-0.5 transition-colors" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-[#C9A84C] text-[#C9A84C]" />
+                          <span className="text-[12px] font-bold text-white">{a.score}</span>
+                        </div>
+                        {a.tag && (
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                            a.tag === 'Accepted' ? 'bg-emerald-500/15 text-emerald-400' :
+                            a.tag === 'Top Pick' ? 'bg-[#C9A84C]/15 text-[#C9A84C]' :
+                            'bg-blue-500/15 text-blue-400'
+                          }`}>
+                            {a.tag}
+                          </span>
+                        )}
+                      </div>
+                    </motion.div>
                   ))}
                   {cards.length === 0 && (
-                    <div className="border border-dashed border-white/[0.08] rounded-xl p-5 text-center">
-                      <div className="text-[11px] text-white/25">Empty</div>
+                    <div className="border border-dashed border-white/[0.06] rounded-xl p-6 text-center">
+                      <div className="text-[11px] text-white/20">Empty</div>
                     </div>
                   )}
                 </div>
@@ -163,6 +141,8 @@ function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPL
   );
 }
 
+// ─── Evaluate Tab ─────────────────────────────────────────────────────────────
+
 function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; onSelect: (a: typeof APPLICANTS[0]) => void }) {
   const compositeScore = CATEGORIES.reduce((total, cat) => {
     const avg = cat.scores.reduce((a, b) => a + b, 0) / cat.scores.length;
@@ -172,191 +152,175 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
   return (
     <motion.div
       key="evaluate"
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.35 }}
-      className="grid grid-cols-1 lg:grid-cols-3 gap-5"
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="grid grid-cols-1 lg:grid-cols-3 gap-6"
     >
-      {/* Sidebar: applicant list */}
-      <div className="space-y-2">
-        <div className="text-[11px] font-semibold text-white/40 uppercase tracking-widest mb-3">Applicants</div>
-        {APPLICANTS.slice(0, 7).map((a) => (
-          <div
-            key={a.id}
-            onClick={() => onSelect(a)}
-            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
-              selected.id === a.id
-                ? 'border-[#C9A84C]/50 bg-[#C9A84C]/[0.06]'
-                : 'border-white/[0.07] bg-white/[0.03] hover:border-white/15'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold"
-                style={{ backgroundColor: a.color + '25', color: a.color, border: `1.5px solid ${a.color}40` }}
-              >
-                {a.initials}
+      {/* Applicant list */}
+      <div>
+        <p className="text-[11px] font-semibold text-white/30 uppercase tracking-[0.15em] mb-4">Applicants</p>
+        <div className="space-y-1.5">
+          {APPLICANTS.slice(0, 7).map((a) => (
+            <div
+              key={a.id}
+              onClick={() => onSelect(a)}
+              className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                selected.id === a.id
+                  ? 'border-[#C9A84C]/40 bg-[#C9A84C]/[0.05]'
+                  : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold"
+                  style={{ backgroundColor: a.color + '20', color: a.color, border: `1.5px solid ${a.color}35` }}
+                >
+                  {a.initials}
+                </div>
+                <div>
+                  <div className="text-[13px] font-medium text-white">{a.name}</div>
+                  <div className="text-[11px] text-white/35">{a.major}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-[13px] font-semibold text-white leading-none">{a.name}</div>
-                <div className="text-[11px] text-white/40">{a.major}</div>
-              </div>
+              <div className="text-[13px] font-bold text-[#C9A84C]">{a.score}</div>
             </div>
-            <div className="text-[13px] font-bold text-[#C9A84C]">{a.score}</div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Scorecard */}
-      <div className="lg:col-span-2">
-        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                style={{ backgroundColor: selected.color + '25', color: selected.color, border: `1.5px solid ${selected.color}40` }}
-              >
-                {selected.initials}
-              </div>
-              <div>
-                <div className="text-lg font-bold text-white">{selected.name}</div>
-                <div className="text-sm text-white/50">{selected.year} · {selected.major}</div>
-              </div>
+      <div className="lg:col-span-2 bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6">
+        <div className="flex items-start justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+              style={{ backgroundColor: selected.color + '20', color: selected.color, border: `1.5px solid ${selected.color}35` }}
+            >
+              {selected.initials}
             </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-[#C9A84C]">{compositeScore}</div>
-              <div className="text-[11px] text-white/40 mt-0.5">Composite Score</div>
+            <div>
+              <div className="text-base font-bold text-white">{selected.name}</div>
+              <div className="text-sm text-white/40">{selected.year} · {selected.major}</div>
             </div>
           </div>
+          <div className="text-right">
+            <div className="text-4xl font-bold text-[#C9A84C] leading-none">{compositeScore}</div>
+            <div className="text-[11px] text-white/30 mt-1 tracking-wide">Composite</div>
+          </div>
+        </div>
 
-          {/* Reviewer legend */}
-          <div className="flex gap-4 mb-5 pb-5 border-b border-white/[0.06]">
-            {REVIEWERS.map((r, i) => (
-              <div key={i} className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-semibold text-white/60">
-                  {r[0]}
+        <div className="flex gap-5 mb-6 pb-5 border-b border-white/[0.06]">
+          {REVIEWERS.map((r, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <div className="w-5 h-5 rounded-full bg-white/[0.08] flex items-center justify-center text-[10px] font-semibold text-white/50">
+                {r[0]}
+              </div>
+              <span className="text-[11px] text-white/35">{r}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-6">
+          {CATEGORIES.map((cat, i) => {
+            const avg = cat.scores.reduce((a, b) => a + b, 0) / cat.scores.length;
+            const variance = Math.max(...cat.scores) - Math.min(...cat.scores);
+            return (
+              <div key={cat.name}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-white">{cat.name}</span>
+                    <span className="text-[11px] text-white/25 bg-white/[0.04] px-1.5 py-0.5 rounded">{cat.weight}%</span>
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    {variance > 1 && (
+                      <span className="text-[10px] text-amber-400/80 bg-amber-400/[0.08] px-2 py-0.5 rounded-full">
+                        ±{variance}
+                      </span>
+                    )}
+                    <span className="text-sm font-bold text-white tabular-nums">{avg.toFixed(1)}<span className="text-white/25 font-normal text-xs">/10</span></span>
+                  </div>
                 </div>
-                <span className="text-[11px] text-white/40">{r}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Categories */}
-          <div className="space-y-5">
-            {CATEGORIES.map((cat, i) => {
-              const avg = cat.scores.reduce((a, b) => a + b, 0) / cat.scores.length;
-              const variance = Math.max(...cat.scores) - Math.min(...cat.scores);
-              const weighted = ((avg / 10) * cat.weight).toFixed(1);
-
-              return (
-                <div key={cat.name}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-semibold text-white">{cat.name}</span>
-                      <span className="text-[11px] text-white/30 bg-white/[0.05] px-1.5 py-0.5 rounded-md">
-                        {cat.weight}%
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {variance > 1 && (
-                        <span className="text-[11px] text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-full">
-                          ±{variance} variance
-                        </span>
-                      )}
-                      <span className="text-[13px] font-bold text-white">
-                        {avg.toFixed(1)}<span className="text-white/30 font-normal">/10</span>
-                      </span>
-                      <span className="text-[11px] text-[#C9A84C] font-semibold w-10 text-right">+{weighted}</span>
-                    </div>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="h-1.5 bg-white/[0.07] rounded-full overflow-hidden mb-2">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${avg * 10}%` }}
-                      transition={{ duration: 0.9, delay: i * 0.1, ease: 'easeOut' }}
-                      className="h-full rounded-full bg-gradient-to-r from-[#C9A84C] to-[#E8C96D]"
-                    />
-                  </div>
-
-                  {/* Per-reviewer dots */}
-                  <div className="flex gap-4">
-                    {cat.scores.map((score, ri) => (
-                      <div key={ri} className="flex items-center gap-1.5">
-                        <div className="w-4 h-4 rounded-full bg-white/[0.08] flex items-center justify-center text-[9px] font-semibold text-white/50">
-                          {REVIEWERS[ri][0]}
-                        </div>
-                        <span className="text-[12px] text-white/50 font-medium">{score}</span>
+                <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden mb-2.5">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${avg * 10}%` }}
+                    transition={{ duration: 1, delay: i * 0.1, ease: 'easeOut' }}
+                    className="h-full rounded-full bg-gradient-to-r from-[#C9A84C] to-[#E8C96D]"
+                  />
+                </div>
+                <div className="flex gap-4">
+                  {cat.scores.map((score, ri) => (
+                    <div key={ri} className="flex items-center gap-1.5">
+                      <div className="w-4 h-4 rounded-full bg-white/[0.06] flex items-center justify-center text-[9px] font-semibold text-white/40">
+                        {REVIEWERS[ri][0]}
                       </div>
-                    ))}
-                  </div>
+                      <span className="text-[11px] text-white/40 tabular-nums">{score}</span>
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
+        </div>
 
-          {/* Action buttons */}
-          <div className="grid grid-cols-3 gap-3 mt-6 pt-5 border-t border-white/[0.06]">
-            <button className="py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[13px] font-semibold hover:bg-emerald-500/20 transition-colors">
-              Accept
-            </button>
-            <button className="py-2.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/60 text-[13px] font-semibold hover:bg-white/10 transition-colors">
-              Move Forward
-            </button>
-            <button className="py-2.5 rounded-xl bg-red-500/10 border border-red-500/25 text-red-400 text-[13px] font-semibold hover:bg-red-500/20 transition-colors">
-              Reject
-            </button>
-          </div>
+        <div className="grid grid-cols-3 gap-3 mt-8 pt-6 border-t border-white/[0.06]">
+          <button className="py-2.5 rounded-xl bg-emerald-500/[0.08] border border-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/[0.15] transition-colors">
+            Accept
+          </button>
+          <button className="py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.07] text-white/50 text-sm font-medium hover:bg-white/[0.08] transition-colors">
+            Advance
+          </button>
+          <button className="py-2.5 rounded-xl bg-red-500/[0.08] border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/[0.15] transition-colors">
+            Reject
+          </button>
         </div>
       </div>
     </motion.div>
   );
 }
 
+// ─── Applicant View Tab ────────────────────────────────────────────────────────
+
 function ApplicantViewTab() {
-  const currentStage = 1; // 0-indexed, so "Screening"
+  const currentStage = 1;
 
   return (
     <motion.div
       key="applicant"
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.35 }}
-      className="max-w-md mx-auto"
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="max-w-lg mx-auto"
     >
-      <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6">
-        {/* Applicant header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-[#C9A84C]/20 border border-[#C9A84C]/30 flex items-center justify-center text-sm font-bold text-[#C9A84C]">
+      <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-7">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="w-10 h-10 rounded-full bg-[#C9A84C]/15 border border-[#C9A84C]/25 flex items-center justify-center text-sm font-bold text-[#C9A84C]">
             PP
           </div>
           <div>
-            <div className="text-white font-bold">Priya Patel</div>
-            <div className="text-white/50 text-sm">Applied to Triton Software Engineering</div>
+            <div className="text-base font-bold text-white">Priya Patel</div>
+            <div className="text-sm text-white/40">Applied to Triton Software Engineering</div>
           </div>
         </div>
 
         {/* Stage tracker */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[13px] font-semibold text-white">Application Status</span>
-            <span className="text-[11px] text-[#C9A84C] bg-[#C9A84C]/10 px-2.5 py-1 rounded-full font-medium">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-5">
+            <span className="text-sm font-medium text-white">Application Status</span>
+            <span className="text-[11px] text-[#C9A84C] bg-[#C9A84C]/[0.08] px-2.5 py-1 rounded-full font-medium">
               Under Review
             </span>
           </div>
-
           <div className="relative">
-            {/* Track line */}
-            <div className="absolute top-4 left-4 right-4 h-[2px] bg-white/[0.08]" />
+            <div className="absolute top-4 left-4 right-4 h-px bg-white/[0.07]" />
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${(currentStage / (APPLICANT_STAGES.length - 1)) * calc}%` }}
-              style={{ left: '1rem', top: '0.9375rem', position: 'absolute', height: '2px', backgroundColor: '#C9A84C' }}
-              className="rounded-full"
+              animate={{ width: `${(currentStage / (APPLICANT_STAGES.length - 1)) * 100}%` }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+              style={{ left: '1rem', top: '0.9375rem', position: 'absolute', height: '1px', backgroundColor: '#C9A84C' }}
             />
             <div className="relative flex justify-between">
               {APPLICANT_STAGES.map((stage, i) => {
@@ -367,16 +331,14 @@ function ApplicantViewTab() {
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex flex-col items-center gap-2"
+                    className="flex flex-col items-center gap-2.5"
                   >
                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-all ${
-                      done
-                        ? 'border-[#C9A84C] bg-[#C9A84C] text-black'
-                        : 'border-white/20 bg-[#0F0F0F] text-white/30'
+                      done ? 'border-[#C9A84C] bg-[#C9A84C] text-black' : 'border-white/15 bg-[#0A0A0A] text-white/25'
                     }`}>
                       {done ? <CheckCircle className="w-4 h-4" /> : <Clock className="w-3.5 h-3.5" />}
                     </div>
-                    <span className={`text-[11px] font-medium ${done ? 'text-white' : 'text-white/30'}`}>
+                    <span className={`text-[11px] font-medium ${done ? 'text-white' : 'text-white/25'}`}>
                       {stage}
                     </span>
                   </motion.div>
@@ -386,32 +348,36 @@ function ApplicantViewTab() {
           </div>
         </div>
 
-        {/* Timeline estimate */}
-        <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] mb-5">
+        {/* Next date */}
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-6">
           <Calendar className="w-4 h-4 text-[#C9A84C]" />
-          <span className="text-[13px] text-white/70">Interview slots open <span className="text-white font-medium">March 14–16</span></span>
+          <span className="text-sm text-white/60">
+            Interview slots open <span className="text-white font-medium">March 14–16</span>
+          </span>
         </div>
 
         {/* Activity feed */}
+        <p className="text-[11px] font-semibold text-white/25 uppercase tracking-[0.15em] mb-3">Updates</p>
         <div className="space-y-2">
-          <div className="text-[11px] font-semibold text-white/30 uppercase tracking-widest mb-3">Updates</div>
           {[
-            { icon: CheckCircle, color: 'text-emerald-400', label: 'Application received',         time: '2 days ago',         done: true },
-            { icon: FileText,    color: 'text-blue-400',    label: 'Resume reviewed by the team',  time: '1 day ago',          done: true },
-            { icon: Users,       color: 'text-[#C9A84C]',   label: 'Moved to Screening round',     time: '18 hours ago',       done: true },
-            { icon: Calendar,    color: 'text-white/30',    label: 'Interview scheduling opens soon', time: 'Expected Mar 14', done: false },
+            { icon: CheckCircle, color: 'text-emerald-400', label: 'Application received',         time: '2 days ago',      done: true },
+            { icon: FileText,    color: 'text-blue-400',    label: 'Resume reviewed by the team',  time: '1 day ago',       done: true },
+            { icon: Users,       color: 'text-[#C9A84C]',   label: 'Moved to Screening round',     time: '18 hours ago',    done: true },
+            { icon: Calendar,    color: 'text-white/25',    label: 'Interview scheduling opens soon', time: 'Expected Mar 14', done: false },
           ].map((item, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, x: -8 }}
+              initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.08 }}
-              className={`flex items-start gap-3 p-3 rounded-xl ${item.done ? 'bg-white/[0.04]' : 'bg-white/[0.02] border border-dashed border-white/[0.06]'}`}
+              transition={{ delay: i * 0.07 }}
+              className={`flex items-start gap-3 p-3 rounded-xl ${
+                item.done ? 'bg-white/[0.03]' : 'border border-dashed border-white/[0.05]'
+              }`}
             >
               <item.icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${item.color}`} />
-              <div className="flex-1 min-w-0">
-                <div className={`text-[13px] ${item.done ? 'text-white' : 'text-white/35'}`}>{item.label}</div>
-                <div className="text-[11px] text-white/30 mt-0.5">{item.time}</div>
+              <div>
+                <div className={`text-sm ${item.done ? 'text-white/80' : 'text-white/25'}`}>{item.label}</div>
+                <div className="text-[11px] text-white/25 mt-0.5">{item.time}</div>
               </div>
             </motion.div>
           ))}
@@ -421,17 +387,14 @@ function ApplicantViewTab() {
   );
 }
 
-// Hack to make the animated width work in JSX
-const calc = 100;
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main Page ─────────────────────────────────────────────────────────────────
 
 type Tab = 'pipeline' | 'evaluate' | 'applicant';
 
-const TABS: { id: Tab; label: string; icon: React.ElementType; description: string }[] = [
-  { id: 'pipeline',  label: 'Recruitment Pipeline',  icon: Users,    description: 'Drag applicants through every stage of your process' },
-  { id: 'evaluate',  label: 'Evaluation Engine',     icon: Star,     description: 'Weighted scoring with reviewer variance detection' },
-  { id: 'applicant', label: 'Applicant View',        icon: Eye,      description: 'Real-time transparency for every candidate' },
+const TABS: { id: Tab; label: string; sub: string }[] = [
+  { id: 'pipeline',  label: 'Recruitment Pipeline',  sub: 'Move applicants through every stage' },
+  { id: 'evaluate',  label: 'Evaluation Engine',     sub: 'Weighted scoring, reviewer consensus' },
+  { id: 'applicant', label: 'Applicant View',        sub: 'Real-time status for every candidate' },
 ];
 
 export default function Demo() {
@@ -445,94 +408,90 @@ export default function Demo() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
-
-      {/* Minimal nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06] bg-[#0A0A0A]/90 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/">
-            <img src={logoImage} alt="UniCircle" className="h-8" />
-          </Link>
-          <Link
-            to="/"
-            className="bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-black font-semibold text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
-          >
-            Join Waitlist
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </nav>
+      <Header />
 
       {/* Hero */}
-      <div className="pt-32 pb-10 text-center px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="inline-flex items-center gap-2 bg-[#C9A84C]/10 border border-[#C9A84C]/20 rounded-full px-4 py-1.5 mb-5"
-        >
-          <Zap className="w-3.5 h-3.5 text-[#C9A84C]" />
-          <span className="text-[#C9A84C] text-sm font-medium">Coming Soon — Limited Beta</span>
-        </motion.div>
+      <section className="pt-36 pb-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-8"
+          >
+            Interactive Demo
+          </motion.p>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-          className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold text-white mb-4 leading-tight"
-        >
-          Recruitment Infrastructure<br />
-          <span className="text-[#C9A84C]">Built for Campus.</span>
-        </motion.h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.06 }}
+            className="font-display text-6xl sm:text-7xl lg:text-[88px] font-bold text-white leading-[0.95] tracking-tight mb-8"
+          >
+            Recruitment<br />
+            <span className="text-[#C9A84C]">built for</span><br />
+            campus.
+          </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.14 }}
-          className="text-white/50 text-lg max-w-lg mx-auto leading-relaxed"
-        >
-          Replace Google Forms, spreadsheets, and Instagram DMs with one platform your entire club will actually use.
-        </motion.p>
-      </div>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            className="text-white/45 text-lg max-w-md leading-relaxed"
+          >
+            Replace spreadsheets, Google Forms, and Instagram DMs with one platform clubs actually use.
+          </motion.p>
+        </div>
+      </section>
 
-      {/* Tab bar */}
-      <div className="max-w-7xl mx-auto px-4 mb-6">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="flex flex-wrap gap-2 justify-center"
-        >
+      {/* Numbers bar */}
+      <section className="border-y border-white/[0.06]">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
+            {[
+              { value: '10+',   label: 'Pipeline stages' },
+              { value: '4×',    label: 'Faster decisions' },
+              { value: '100%',  label: 'Transparent to applicants' },
+            ].map((s) => (
+              <div key={s.label} className="py-10 px-8 first:pl-0 last:pr-0">
+                <div className="text-4xl font-bold text-white mb-1">{s.value}</div>
+                <div className="text-sm text-white/35">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Demo area */}
+      <section className="max-w-5xl mx-auto px-6 pt-20 pb-32">
+
+        {/* Tab nav */}
+        <div className="flex flex-col sm:flex-row gap-0 border-b border-white/[0.08] mb-14">
           {TABS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                activeTab === tab.id
-                  ? 'bg-[#C9A84C] text-black shadow-lg shadow-[#C9A84C]/20'
-                  : 'bg-white/[0.05] text-white/50 hover:text-white hover:bg-white/[0.09] border border-white/[0.06]'
+              className={`relative pb-4 pr-10 text-left transition-all group ${
+                activeTab === tab.id ? '' : 'opacity-40 hover:opacity-70'
               }`}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <div className={`text-sm font-semibold tracking-wide mb-0.5 ${
+                activeTab === tab.id ? 'text-white' : 'text-white'
+              }`}>
+                {tab.label}
+              </div>
+              <div className="text-xs text-white/35">{tab.sub}</div>
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="tab-underline"
+                  className="absolute bottom-0 left-0 right-10 h-px bg-[#C9A84C]"
+                  transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+                />
+              )}
             </button>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Tab description */}
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={activeTab}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-center text-white/35 text-sm mt-3"
-          >
-            {TABS.find(t => t.id === activeTab)?.description}
-          </motion.p>
-        </AnimatePresence>
-      </div>
-
-      {/* Demo content */}
-      <div className="max-w-7xl mx-auto px-4 pb-36">
+        {/* Tab content */}
         <AnimatePresence mode="wait">
           {activeTab === 'pipeline' && (
             <PipelineTab key="pipeline" onSelectApplicant={handleSelectApplicant} />
@@ -544,24 +503,27 @@ export default function Demo() {
             <ApplicantViewTab key="applicant" />
           )}
         </AnimatePresence>
-      </div>
+      </section>
 
-      {/* Sticky CTA bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0A0A0A]/95 backdrop-blur-lg border-t border-white/[0.08]">
-        <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+      {/* Bottom CTA */}
+      <section className="border-t border-white/[0.06] py-28 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-end justify-between gap-10">
           <div>
-            <div className="text-white font-semibold text-sm">This is what's coming to UniCircle.</div>
-            <div className="text-white/40 text-xs mt-0.5">Be a founding club — get early access and shape the product.</div>
+            <p className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-5">Early Access</p>
+            <h2 className="font-display text-4xl sm:text-5xl font-bold text-white leading-tight">
+              Be a founding club.<br />
+              <span className="text-white/35">Shape the product.</span>
+            </h2>
           </div>
           <Link
-            to="/"
-            className="bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-black font-bold px-6 py-2.5 rounded-xl text-sm flex items-center gap-2 whitespace-nowrap transition-colors shadow-lg shadow-[#C9A84C]/25"
+            to="/signup"
+            className="flex items-center gap-2.5 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-black font-bold px-7 py-4 rounded-xl text-sm transition-colors whitespace-nowrap"
           >
-            Join Waitlist
+            Get early access
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

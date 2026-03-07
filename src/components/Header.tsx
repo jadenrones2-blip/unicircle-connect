@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles, Users, Calendar, LogIn, User, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, X, Sparkles, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
@@ -41,6 +41,7 @@ const Header = () => {
     { href: "/", label: "Home", icon: Sparkles },
     { href: "/clubs", label: "Clubs", icon: Users },
     { href: "/events", label: "Events", icon: Calendar },
+    { href: "/demo", label: "Demo", icon: Play },
   ];
 
   const getUserInitials = () => {

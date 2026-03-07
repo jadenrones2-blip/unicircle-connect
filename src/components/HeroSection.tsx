@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronDown, UserPlus, Play } from "lucide-react";
+import { ArrowRight, ChevronDown, UserPlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import AnimatedWords from "./AnimatedWords";
@@ -73,21 +73,6 @@ const HeroSection = () => {
                   <Link to="/clubs">
                     Claim your club
                     <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-              </MagneticButton>
-              <MagneticButton>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="group w-full sm:w-auto border-gold/40 text-gold hover:bg-gold/10"
-                  asChild
-                  onMouseEnter={playHover}
-                  onClick={playClick}
-                >
-                  <Link to="/demo">
-                    See live demo
-                    <Play className="w-4 h-4 ml-1 group-hover:scale-110 transition-transform" />
                   </Link>
                 </Button>
               </MagneticButton>

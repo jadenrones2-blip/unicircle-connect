@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import AnimatedWords from "./AnimatedWords";
 import MagneticButton from "./MagneticButton";
@@ -61,21 +61,6 @@ const CTASection = () => {
               >
                 <Link to="/signup">
                   Create account
-                </Link>
-              </Button>
-            </MagneticButton>
-            <MagneticButton>
-              <Button
-                variant="outline"
-                size="lg"
-                className="group border-gold/40 text-gold hover:bg-gold/10"
-                asChild
-                onMouseEnter={playHover}
-                onClick={playClick}
-              >
-                <Link to="/demo">
-                  See demo first
-                  <Play className="w-4 h-4 ml-1 group-hover:scale-110 transition-transform" />
                 </Link>
               </Button>
             </MagneticButton>
