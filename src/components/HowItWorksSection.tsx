@@ -24,7 +24,7 @@ const HowItWorksSection = () => {
           <AnimatedWords
             text="Three steps. That's it."
             as="h2"
-            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight text-white"
+            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight text-white/70"
             goldWords={["it."]}
           />
         </div>
@@ -42,10 +42,10 @@ const HowItWorksSection = () => {
               <div className="font-display text-[4.5rem] sm:text-[5.5rem] font-bold leading-none text-foreground/[0.07] mb-6 select-none">
                 {step.number}
               </div>
-              <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+              <h3 className="font-display text-xl font-semibold text-white/70 mb-2">
                 {step.title}
               </h3>
-              <p className="text-sm text-foreground/40 leading-relaxed">{step.desc}</p>
+              <p className="text-sm text-white leading-relaxed">{step.desc}</p>
             </motion.div>
           ))}
         </div>

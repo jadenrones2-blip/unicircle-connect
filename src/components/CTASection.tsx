@@ -25,7 +25,7 @@ const CTASection = () => {
             <AnimatedWords
               text="Fix it today."
               as="h2"
-              className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tight text-white"
+              className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tight text-white/70"
               goldWords={["today."]}
             />
           </div>
@@ -38,13 +38,13 @@ const CTASection = () => {
             transition={{ delay: 0.2 }}
             className="flex flex-col gap-6 lg:items-end"
           >
-            <p className="text-white/40 text-base leading-relaxed max-w-xs lg:text-right">
+            <p className="text-white text-base leading-relaxed max-w-xs lg:text-right">
               Full pipeline. Applicant tracking. Automated updates. Built for clubs — free.
             </p>
             <div className="flex items-center gap-8">
               <Link
                 to="/clubs"
-                className="group flex items-center gap-2 text-sm font-semibold text-white hover:text-gold transition-colors duration-200"
+                className="group flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-gold transition-colors duration-200"
                 onClick={playClick}
                 onMouseEnter={playHover}
               >
@@ -53,7 +53,7 @@ const CTASection = () => {
               </Link>
               <Link
                 to="/signup"
-                className="text-sm font-medium text-white/30 hover:text-white/60 transition-colors duration-200"
+                className="text-sm font-medium text-white/60 hover:text-white transition-colors duration-200"
                 onClick={playClick}
                 onMouseEnter={playHover}
               >

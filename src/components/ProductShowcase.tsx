@@ -339,10 +339,10 @@ const ProductShowcase = () => {
             <AnimatedWords
               text="See it in action."
               as="h2"
-              className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight text-white"
+              className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight text-white/70"
               goldWords={["action."]}
             />
-            <p className="text-white/40 text-base max-w-xs leading-relaxed">
+            <p className="text-white text-base max-w-xs leading-relaxed">
               Built for clubs that take recruitment seriously.
             </p>
           </div>
@@ -355,7 +355,7 @@ const ProductShowcase = () => {
               key={tab.id}
               onClick={() => { setActiveTab(tab.id); playClick(); }}
               className={`relative pb-3 pr-8 text-left transition-all ${
-                activeTab === tab.id ? 'text-white' : 'text-white/30 hover:text-white/60'
+                activeTab === tab.id ? 'text-white/70' : 'text-white/60 hover:text-white/80'
               }`}
             >
               <span className="text-sm font-semibold tracking-wide">{tab.label}</span>
@@ -375,7 +375,7 @@ const ProductShowcase = () => {
           key={activeTab}
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-sm text-white/40 mb-10 max-w-md"
+          className="text-sm text-white mb-10 max-w-md"
         >
           {tabs.find(t => t.id === activeTab)?.description}
         </motion.p>

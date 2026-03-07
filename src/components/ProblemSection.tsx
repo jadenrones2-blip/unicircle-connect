@@ -27,7 +27,7 @@ const ProblemSection = () => {
             <AnimatedWords
               text="Recruitment doesn't scale."
               as="h2"
-              className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight mb-6"
+              className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight mb-6 text-white/70"
               goldWords={["scale."]}
             />
             <motion.p
@@ -35,7 +35,7 @@ const ProblemSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
-              className="text-foreground/40 text-base leading-relaxed max-w-xs"
+              className="text-white text-base leading-relaxed max-w-xs"
             >
               Every serious club hits the same wall. The tools aren't built for this.
             </motion.p>
@@ -52,12 +52,12 @@ const ProblemSection = () => {
                 transition={{ delay: i * 0.07, duration: 0.4 }}
                 className="flex items-start gap-6 py-4"
               >
-                <span className="text-[11px] font-semibold text-foreground/20 tracking-widest mt-0.5 flex-shrink-0 w-6">
+                <span className="text-[11px] font-semibold text-white/40 tracking-widest mt-0.5 flex-shrink-0 w-6">
                   {c.number}
                 </span>
                 <div>
-                  <div className="text-sm font-semibold text-foreground mb-1">{c.title}</div>
-                  <div className="text-sm text-foreground/40">{c.detail}</div>
+                  <div className="text-sm font-semibold text-white/70 mb-1">{c.title}</div>
+                  <div className="text-sm text-white">{c.detail}</div>
                 </div>
               </motion.div>
             ))}
