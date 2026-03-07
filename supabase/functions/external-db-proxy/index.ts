@@ -40,8 +40,9 @@ interface AuditLogEntry {
   ip_address: string;
 }
 
+// deno-lint-ignore no-explicit-any
 async function logAuditEvent(
-  supabase: ReturnType<typeof createClient>, 
+  supabase: any, 
   entry: AuditLogEntry
 ): Promise<void> {
   try {
@@ -98,8 +99,9 @@ interface ClubOwnerInfo {
   } | null;
 }
 
+// deno-lint-ignore no-explicit-any
 async function getClubOwnership(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   userId: string,
   clubId: string
 ): Promise<ClubOwnerInfo | null> {
