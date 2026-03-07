@@ -248,8 +248,11 @@ Deno.serve(async (req) => {
     const internalUrl = Deno.env.get('SUPABASE_URL')!;
     const internalServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    // ── DB (use internal service role — always available in edge functions) ───
-    const db = createClient(internalUrl, internalServiceKey);
+    // ── External DB (clubs + events live here) ───────────────────────────────
+    const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
+    const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
+    if (!externalUrl || !externalKey) throw new Error('EXTERNAL_SUPABASE_URL / EXTERNAL_SUPABASE_SERVICE_ROLE_KEY not configured');
+    const db = createClient(externalUrl, externalKey);
 
     // ── Request config ───────────────────────────────────────────────────────
     const body = await req.json().catch(() => ({}));

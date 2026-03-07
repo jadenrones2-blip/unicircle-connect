@@ -102,17 +102,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const apifyKey = Deno.env.get('APIFY_API_KEY');
     const lovableKey = Deno.env.get('LOVABLE_API_KEY');
+    const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
+    const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!apifyKey) {
-      throw new Error('APIFY_API_KEY not configured. Sign up free at apify.com → Settings → Integrations → API tokens');
-    }
+    if (!apifyKey) throw new Error('APIFY_API_KEY not configured. Sign up free at apify.com → Settings → Integrations → API tokens');
     if (!lovableKey) throw new Error('LOVABLE_API_KEY not configured');
+    if (!externalUrl || !externalKey) throw new Error('EXTERNAL_SUPABASE_URL / EXTERNAL_SUPABASE_SERVICE_ROLE_KEY not configured');
 
-    const db = createClient(supabaseUrl, serviceKey);
+    const db = createClient(externalUrl, externalKey);
 
     const body = await req.json().catch(() => ({}));
     const offset: number = body.offset ?? 0;
