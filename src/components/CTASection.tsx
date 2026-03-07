@@ -1,71 +1,68 @@
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import AnimatedWords from "./AnimatedWords";
-import MagneticButton from "./MagneticButton";
-import GoldMeshBackground from "./GoldMeshBackground";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const CTASection = () => {
   const { playClick, playHover } = useSoundEffects();
 
   return (
-    <section id="cta" className="scroll-mt-24 py-20 md:py-32 bg-primary text-primary-foreground relative overflow-hidden">
-      <GoldMeshBackground />
+    <section id="cta" className="py-24 md:py-36 border-t border-border/20 bg-primary text-primary-foreground">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-12">
 
-      <div className="container mx-auto px-5 sm:px-6 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="max-w-2xl mx-auto text-center"
-        >
-          <AnimatedWords
-            text="Ready to start?"
-            as="h2"
-            className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold mb-8 sm:mb-10 text-primary-foreground"
-            goldWords={["start?"]}
-          />
+          {/* Left: headline */}
+          <div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
+            >
+              Early Access
+            </motion.p>
+            <AnimatedWords
+              text="Ready to start?"
+              as="h2"
+              className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tight text-primary-foreground"
+              goldWords={["start?"]}
+            />
+          </div>
 
+          {/* Right: description + CTAs */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="glass-card inline-flex flex-col sm:flex-row gap-3 justify-center p-6 rounded-2xl"
+            transition={{ delay: 0.2 }}
+            className="flex flex-col gap-6 lg:items-end"
           >
-            <MagneticButton>
-              <Button
-                variant="gold"
-                size="lg"
-                className="group"
-                asChild
-                onMouseEnter={playHover}
+            <p className="text-primary-foreground/40 text-base leading-relaxed max-w-xs lg:text-right">
+              Claim your club today. Free, fast, and built for the way your org actually recruits.
+            </p>
+            <div className="flex items-center gap-8">
+              <Link
+                to="/clubs"
+                className="group flex items-center gap-2 text-sm font-semibold text-primary-foreground hover:text-gold transition-colors duration-200"
                 onClick={playClick}
-              >
-                <Link to="/clubs">
-                  Claim your club
-                  <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-            </MagneticButton>
-            <MagneticButton>
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
-                asChild
                 onMouseEnter={playHover}
-                onClick={playClick}
               >
-                <Link to="/signup">
-                  Create account
-                </Link>
-              </Button>
-            </MagneticButton>
+                Claim your club
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+              </Link>
+              <Link
+                to="/signup"
+                className="text-sm font-medium text-primary-foreground/30 hover:text-primary-foreground/60 transition-colors duration-200"
+                onClick={playClick}
+                onMouseEnter={playHover}
+              >
+                Create account
+              </Link>
+            </div>
           </motion.div>
-        </motion.div>
+
+        </div>
       </div>
     </section>
   );

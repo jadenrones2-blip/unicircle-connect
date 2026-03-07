@@ -45,53 +45,53 @@ const FAQSection = () => {
   const { playClick } = useSoundEffects();
 
   return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-12"
-          >
-            <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
+    <section className="py-24 md:py-36 border-t border-border/20">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-28">
+
+          <div className="lg:sticky lg:top-32 lg:self-start">
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
+            >
               FAQ
-            </span>
+            </motion.p>
             <AnimatedWords
               text="Common questions"
               as="h2"
-              className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-4 tracking-tight"
+              className="font-display text-4xl md:text-5xl font-bold leading-tight tracking-tight text-foreground"
             />
-          </motion.div>
+          </div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1, duration: 0.5 }}
-            className="glass-card rounded-xl p-2"
           >
-            <Accordion type="single" collapsible className="w-full">
+            <Accordion type="single" collapsible className="w-full divide-y divide-border/20">
               {faqs.map((faq, index) => (
                 <AccordionItem
                   key={index}
                   value={`item-${index}`}
-                  className="border-b border-border/50 last:border-0"
+                  className="border-0"
                 >
                   <AccordionTrigger
-                    className="text-left font-display text-lg font-medium hover:text-gold transition-colors py-5 px-4"
+                    className="text-left text-base font-semibold hover:text-gold transition-colors py-5 [&>svg]:text-foreground/30"
                     onClick={playClick}
                   >
                     {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed pb-5 px-4">
+                  <AccordionContent className="text-foreground/40 text-sm leading-relaxed pb-5">
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
           </motion.div>
+
         </div>
       </div>
     </section>

@@ -1,61 +1,53 @@
 import { motion } from "framer-motion";
-import { Eye, Bell, Compass } from "lucide-react";
 import AnimatedWords from "./AnimatedWords";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const benefits = [
-  { icon: Eye, title: "Track status", desc: "See where you stand in real time." },
-  { icon: Bell, title: "Get updates", desc: "Notified when you advance or get a decision." },
-  { icon: Compass, title: "Discover clubs", desc: "Find orgs that match your interests." },
+  { number: "01", title: "Track status",   desc: "See exactly where you stand in the process, in real time." },
+  { number: "02", title: "Get updates",    desc: "Notified the moment you advance or receive a decision." },
+  { number: "03", title: "Discover clubs", desc: "Find every org on campus that matches your interests." },
 ];
 
 const BenefitsSection = () => {
-  const { playHover } = useSoundEffects();
-
   return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12"
-          >
-            <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
-              For applicants
-            </span>
-            <AnimatedWords
-              text="Full transparency. Always."
-              as="h2"
-              className="font-display text-3xl md:text-5xl font-semibold"
-              goldWords={["transparency."]}
-            />
-          </motion.div>
+    <section className="py-24 md:py-36 border-t border-border/20">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
 
-          <div className="grid md:grid-cols-3 gap-5">
-            {benefits.map((benefit, index) => (
-              <motion.div
-                key={benefit.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
-                className="flex flex-col items-center gap-3 p-8 rounded-xl glass-card glass-card-hover transition-all duration-300 text-center cursor-default"
-                onMouseEnter={playHover}
-              >
-                <div className="w-14 h-14 rounded-2xl bg-gold/10 flex items-center justify-center">
-                  <benefit.icon className="w-7 h-7 text-gold" />
-                </div>
-                <h3 className="font-display font-semibold text-foreground">
-                  {benefit.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">{benefit.desc}</p>
-              </motion.div>
-            ))}
-          </div>
+        <div className="mb-16 md:mb-20">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
+          >
+            For applicants
+          </motion.p>
+          <AnimatedWords
+            text="Full transparency. Always."
+            as="h2"
+            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight"
+            goldWords={["transparency."]}
+          />
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-border/20 border border-border/20 rounded-2xl overflow-hidden">
+          {benefits.map((b, i) => (
+            <motion.div
+              key={b.number}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.5 }}
+              className="bg-background px-8 py-10 sm:py-14"
+            >
+              <div className="font-display text-[4.5rem] sm:text-[5.5rem] font-bold leading-none text-foreground/[0.07] mb-6 select-none">
+                {b.number}
+              </div>
+              <h3 className="font-display text-xl font-semibold text-foreground mb-2">{b.title}</h3>
+              <p className="text-sm text-foreground/40 leading-relaxed">{b.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+
       </div>
     </section>
   );

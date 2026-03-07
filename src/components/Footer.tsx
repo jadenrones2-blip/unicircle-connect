@@ -5,33 +5,39 @@ import { useSoundEffects } from "@/hooks/useSoundEffects";
 const Footer = () => {
   const { playHover } = useSoundEffects();
 
-  const mainLinks = [
-    { label: "Home", href: "/" },
-    { label: "Clubs", href: "/clubs" },
+  const navLinks = [
+    { label: "Home",   href: "/" },
+    { label: "Clubs",  href: "/clubs" },
     { label: "Events", href: "/events" },
+    { label: "Demo",   href: "/demo" },
   ];
 
   const legalLinks = [
     { label: "Terms of Service", href: "/terms" },
-    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Privacy Policy",   href: "/privacy" },
   ];
 
   return (
-    <footer className="py-8 sm:py-12 border-t border-border/50 bg-background">
-      <div className="container mx-auto px-5 sm:px-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
+    <footer className="border-t border-border/20 bg-background">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14 py-12 sm:py-16">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <Link to="/" className="font-display text-2xl font-bold tracking-tight text-primary hover:text-gold transition-colors">
+            <Link
+              to="/"
+              className="font-display text-2xl font-bold tracking-tight text-foreground hover:text-gold transition-colors"
+            >
               UniCircle
             </Link>
+            <p className="text-xs text-muted-foreground/50 mt-1">Currently at UC San Diego.</p>
           </motion.div>
 
-          <nav className="flex items-center gap-6 sm:gap-8">
-            {mainLinks.map((link) => (
+          <nav className="flex items-center gap-8">
+            {navLinks.map((link) => (
               <Link
                 key={link.label}
                 to={link.href}
@@ -39,37 +45,34 @@ const Footer = () => {
                 onMouseEnter={playHover}
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-px bg-gold transition-all duration-300 group-hover:w-full" />
+                <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-gold transition-all duration-300 group-hover:w-full" />
               </Link>
             ))}
           </nav>
 
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground/50">
             Made with <span className="text-gold">precision</span>
           </p>
+
         </div>
 
-        {/* Legal links */}
-        <div className="mt-6 flex items-center justify-center gap-4 sm:gap-6">
-          {legalLinks.map((link) => (
-            <Link
-              key={link.label}
-              to={link.href}
-              className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors"
-              onMouseEnter={playHover}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border/50 text-center space-y-2">
-          <p className="text-xs text-muted-foreground/60">
-            © 2025 UniCircle. All rights reserved.
-          </p>
-          <p className="text-xs text-muted-foreground/50">
-            UniCircle is not affiliated with, endorsed by, or sponsored by UC San Diego.
-          </p>
+        <div className="mt-10 pt-8 border-t border-border/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            {legalLinks.map((link) => (
+              <Link
+                key={link.label}
+                to={link.href}
+                className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                onMouseEnter={playHover}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+          <div className="text-xs text-muted-foreground/40 text-center sm:text-right">
+            <p>© 2025 UniCircle. All rights reserved.</p>
+            <p className="mt-0.5">Not affiliated with UC San Diego.</p>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,65 +1,70 @@
 import { motion } from "framer-motion";
-import { Users, ClipboardList, BarChart3, Unlink, EyeOff, Clock } from "lucide-react";
 import AnimatedWords from "./AnimatedWords";
-import ScrollHeadline from "./ScrollHeadline";
-import TiltCard from "./TiltCard";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const challenges = [
-  { icon: Users, title: "Volume overload", detail: "Hundreds of applicants, no system to handle them." },
-  { icon: ClipboardList, title: "Reviewer bottlenecks", detail: "Multiple reviewers, zero coordination." },
-  { icon: BarChart3, title: "Manual scoring", detail: "Spreadsheets can't scale. Period." },
-  { icon: Unlink, title: "Disconnected tools", detail: "Forms, sheets, emails — all fragmented." },
-  { icon: EyeOff, title: "Zero transparency", detail: "Applicants never know where they stand." },
-  { icon: Clock, title: "Wasted hours", detail: "Status updates and follow-ups eat your week." },
+  { number: "01", title: "Volume overload",       detail: "Hundreds of applicants, no system to handle them." },
+  { number: "02", title: "Reviewer bottlenecks",  detail: "Multiple reviewers, zero coordination." },
+  { number: "03", title: "Manual scoring",         detail: "Spreadsheets can't scale. Period." },
+  { number: "04", title: "Disconnected tools",     detail: "Forms, sheets, emails — all fragmented." },
+  { number: "05", title: "Zero transparency",      detail: "Applicants never know where they stand." },
+  { number: "06", title: "Wasted hours",           detail: "Status updates and follow-ups eat your week." },
 ];
 
 const ProblemSection = () => {
-  const { playHover } = useSoundEffects();
-
   return (
-    <section id="problem" className="py-16 md:py-24">
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="mb-12 text-center"
-          >
-            <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
-              The problem
-            </span>
-            <ScrollHeadline
-              text="Recruitment doesn't scale."
-              className="font-display text-3xl md:text-5xl font-semibold justify-center"
-            />
-          </motion.div>
+    <section id="problem" className="py-24 md:py-36 border-t border-border/20">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-28">
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {challenges.map((challenge, index) => (
+          {/* Left: editorial headline */}
+          <div className="lg:sticky lg:top-32 lg:self-start">
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
+            >
+              The problem
+            </motion.p>
+            <AnimatedWords
+              text="Recruitment doesn't scale."
+              as="h2"
+              className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight mb-6"
+              goldWords={["scale."]}
+            />
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="text-foreground/40 text-base leading-relaxed max-w-xs"
+            >
+              Every serious club hits the same wall. The tools aren't built for this.
+            </motion.p>
+          </div>
+
+          {/* Right: numbered list */}
+          <div className="divide-y divide-border/20">
+            {challenges.map((c, i) => (
               <motion.div
-                key={challenge.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                key={c.number}
+                initial={{ opacity: 0, x: 12 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.06, duration: 0.4 }}
+                transition={{ delay: i * 0.07, duration: 0.4 }}
+                className="flex items-start gap-6 py-6"
               >
-                <TiltCard className="group flex items-start gap-4 p-5 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default h-full" >
-                  <div className="flex items-start gap-4 w-full" onMouseEnter={playHover}>
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center group-hover:bg-gold/10 transition-colors duration-300">
-                      <challenge.icon className="w-5 h-5 text-muted-foreground group-hover:text-gold transition-colors duration-300" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-foreground mb-0.5">{challenge.title}</h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{challenge.detail}</p>
-                    </div>
-                  </div>
-                </TiltCard>
+                <span className="text-[11px] font-semibold text-foreground/20 tracking-widest mt-0.5 flex-shrink-0 w-6">
+                  {c.number}
+                </span>
+                <div>
+                  <div className="text-sm font-semibold text-foreground mb-1">{c.title}</div>
+                  <div className="text-sm text-foreground/40">{c.detail}</div>
+                </div>
               </motion.div>
             ))}
           </div>
+
         </div>
       </div>
     </section>

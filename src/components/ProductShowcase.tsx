@@ -323,72 +323,75 @@ const ProductShowcase = () => {
   const { playClick } = useSoundEffects();
 
   return (
-    <section className="py-16 md:py-24 bg-primary text-primary-foreground relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-32 bg-gradient-to-b from-transparent via-gold/20 to-transparent" />
+    <section className="py-24 md:py-36 bg-primary text-primary-foreground border-t border-primary-foreground/[0.06]">
 
-      <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
+        <div className="mb-12 md:mb-16">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12"
+            className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
           >
-            <span className="text-gold text-sm font-medium tracking-wide uppercase mb-4 block">
-              Product
-            </span>
+            Product
+          </motion.p>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
             <AnimatedWords
               text="See it in action."
               as="h2"
-              className="font-display text-3xl md:text-5xl font-semibold text-primary-foreground mb-4"
+              className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight text-primary-foreground"
               goldWords={["action."]}
             />
-            <p className="text-primary-foreground/50 text-base max-w-lg mx-auto">
+            <p className="text-primary-foreground/40 text-base max-w-xs leading-relaxed">
               Built for clubs that take recruitment seriously.
             </p>
-          </motion.div>
-
-          {/* Tab switcher */}
-          <div className="flex justify-center mb-8 gap-1 p-1 rounded-xl bg-primary-foreground/5 border border-border/20 max-w-fit mx-auto overflow-x-auto scrollbar-hide">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => { setActiveTab(tab.id); playClick(); }}
-                className={`px-3 md:px-4 py-2 rounded-lg text-[10px] md:text-xs font-semibold tracking-wide transition-all duration-200 whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "bg-gold text-primary shadow-md"
-                    : "text-primary-foreground/50 hover:text-primary-foreground/80"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
           </div>
-
-          {/* Description */}
-          <motion.p
-            key={activeTab}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center text-sm text-primary-foreground/50 mb-8 max-w-md mx-auto"
-          >
-            {tabs.find(t => t.id === activeTab)?.description}
-          </motion.p>
-
-          {/* Mockup */}
-          <motion.div
-            key={`mockup-${activeTab}`}
-            initial={{ opacity: 0, y: 20, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="max-w-4xl mx-auto"
-          >
-            {activeTab === "pipeline" && <KanbanMockup />}
-            {activeTab === "analytics" && <AnalyticsMockup />}
-            {activeTab === "applicant" && <ApplicantViewMockup />}
-          </motion.div>
         </div>
+
+        {/* Tab switcher */}
+        <div className="flex flex-wrap gap-1 mb-8 border-b border-primary-foreground/[0.08]">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); playClick(); }}
+              className={`relative pb-3 pr-8 text-left transition-all ${
+                activeTab === tab.id ? 'text-primary-foreground' : 'text-primary-foreground/30 hover:text-primary-foreground/60'
+              }`}
+            >
+              <span className="text-sm font-semibold tracking-wide">{tab.label}</span>
+              {activeTab === tab.id && (
+                <motion.div
+                  layoutId="product-tab-underline"
+                  className="absolute bottom-0 left-0 right-8 h-px bg-gold"
+                  transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Description */}
+        <motion.p
+          key={activeTab}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-sm text-primary-foreground/40 mb-10 max-w-md"
+        >
+          {tabs.find(t => t.id === activeTab)?.description}
+        </motion.p>
+
+        {/* Mockup */}
+        <motion.div
+          key={`mockup-${activeTab}`}
+          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {activeTab === "pipeline" && <KanbanMockup />}
+          {activeTab === "analytics" && <AnalyticsMockup />}
+          {activeTab === "applicant" && <ApplicantViewMockup />}
+        </motion.div>
+
       </div>
     </section>
   );
