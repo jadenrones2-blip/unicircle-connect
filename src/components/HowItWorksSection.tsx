@@ -24,7 +24,7 @@ const HowItWorksSection = () => {
           <AnimatedWords
             text="Three steps. That's it."
             as="h2"
-            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight"
+            className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight text-white"
             goldWords={["it."]}
           />
         </div>
