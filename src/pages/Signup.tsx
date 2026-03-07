@@ -39,6 +39,11 @@ export default function Signup() {
       return;
     }
 
+    if (mode === 'student' && !email.toLowerCase().endsWith('@ucsd.edu')) {
+      toast.error('Students must use a UCSD email address (@ucsd.edu)');
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await signUp(email, password);

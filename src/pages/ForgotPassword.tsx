@@ -27,10 +27,8 @@ export default function ForgotPassword() {
     setEmail(emailToSend);
     setLoading(true);
     try {
-      // Always use the published URL for password reset redirects
-      // Preview URLs aren't whitelisted and cause "invalid link" errors
       const { error } = await supabase.auth.resetPasswordForEmail(emailToSend, {
-        redirectTo: 'https://unicircle-connect.lovable.app/reset-password',
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) throw error;
