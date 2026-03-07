@@ -38,8 +38,8 @@ export default function CustomCursor() {
         dotRef.current.style.transform = `translate(${pos.current.x - 4}px, ${pos.current.y - 4}px)`;
       }
       // ring lags behind with lerp
-      ring.current.x += (pos.current.x - ring.current.x) * 0.12;
-      ring.current.y += (pos.current.y - ring.current.y) * 0.12;
+      ring.current.x += (pos.current.x - ring.current.x) * 0.22;
+      ring.current.y += (pos.current.y - ring.current.y) * 0.22;
       if (ringRef.current) {
         ringRef.current.style.transform = `translate(${ring.current.x - 20}px, ${ring.current.y - 20}px)`;
       }
@@ -66,7 +66,7 @@ export default function CustomCursor() {
           width: 40,
           height: 40,
           borderRadius: '50%',
-          border: `1.5px solid ${hovering ? 'hsl(43 74% 56%)' : 'rgba(255,255,255,0.5)'}`,
+          border: `1.5px solid ${hovering ? 'hsl(43 74% 56%)' : 'rgba(201,168,76,0.6)'}`,
           transition: 'width 0.3s, height 0.3s, border-color 0.3s, opacity 0.3s',
           opacity: clicking ? 0.4 : 1,
           transform: hovering ? 'scale(1.6)' : 'scale(1)',
@@ -81,7 +81,7 @@ export default function CustomCursor() {
           width: 8,
           height: 8,
           borderRadius: '50%',
-          background: hovering ? 'hsl(43 74% 56%)' : 'white',
+          background: 'hsl(43 74% 56%)',
           transition: 'background 0.2s, transform 0.15s',
           transform: clicking ? 'scale(0.6)' : 'scale(1)',
         }}
