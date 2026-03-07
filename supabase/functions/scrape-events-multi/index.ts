@@ -127,7 +127,10 @@ Deno.serve(async (req) => {
     if (!lovableKey) throw new Error('LOVABLE_API_KEY not configured');
     if (!externalUrl || !externalKey) throw new Error('EXTERNAL_SUPABASE_URL / EXTERNAL_SUPABASE_SERVICE_ROLE_KEY not configured');
 
-    const db = createClient(externalUrl, externalKey);
+    const cleanUrl = externalUrl.trim()
+      .replace(/\/(auth|rest|functions)\/v1.*$/i, '')
+      .replace(/\/+$/, '');
+    const db = createClient(cleanUrl, externalKey);
     const today = new Date();
     const month = today.toLocaleString('default', { month: 'long' });
     const year = today.getFullYear();

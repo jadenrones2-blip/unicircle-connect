@@ -249,10 +249,13 @@ Deno.serve(async (req) => {
     const internalServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
     // ── External DB (clubs + events live here) ───────────────────────────────
-    const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
+    const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
     const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY');
-    if (!externalUrl || !externalKey) throw new Error('EXTERNAL_SUPABASE_URL / EXTERNAL_SUPABASE_SERVICE_ROLE_KEY not configured');
-    const db = createClient(externalUrl, externalKey);
+    if (!rawExternalUrl || !externalKey) throw new Error('EXTERNAL_SUPABASE_URL / EXTERNAL_SUPABASE_SERVICE_ROLE_KEY not configured');
+    const cleanExternalUrl = rawExternalUrl.trim()
+      .replace(/\/(auth|rest|functions)\/v1.*$/i, '')
+      .replace(/\/+$/, '');
+    const db = createClient(cleanExternalUrl, externalKey);
 
     // ── Request config ───────────────────────────────────────────────────────
     const body = await req.json().catch(() => ({}));
