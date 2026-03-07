@@ -31,6 +31,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TestResumeUpload from "./pages/TestResumeUpload";
 import SocialAssets from "./pages/SocialAssets";
 import AuthCallback from "./pages/AuthCallback";
+import Demo from "./pages/Demo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/test-resume" element={<TestResumeUpload />} />
           <Route path="/social-assets" element={<SocialAssets />} />
+          <Route path="/demo" element={<Demo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
