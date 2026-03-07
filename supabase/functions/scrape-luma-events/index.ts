@@ -248,20 +248,8 @@ Deno.serve(async (req) => {
     const internalUrl = Deno.env.get('SUPABASE_URL')!;
     const internalServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    // ── External DB ──────────────────────────────────────────────────────────
-    const rawExternalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL') || '';
-    const externalServiceKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY') || '';
-
-    if (!rawExternalUrl || !externalServiceKey) {
-      throw new Error('External Supabase credentials not configured');
-    }
-
-    let externalUrl = rawExternalUrl.trim()
-      .replace(/\/(auth|rest|functions)\/v1.*$/i, '')
-      .replace(/\/+$/, '');
-    if (!externalUrl.startsWith('http')) externalUrl = `https://${externalUrl}`;
-
-    const db = createClient(externalUrl, externalServiceKey);
+    // ── DB (use internal service role — always available in edge functions) ───
+    const db = createClient(internalUrl, internalServiceKey);
 
     // ── Request config ───────────────────────────────────────────────────────
     const body = await req.json().catch(() => ({}));
@@ -283,10 +271,23 @@ Deno.serve(async (req) => {
     }
 
     // Scan clubs table for lu.ma URLs stored in website / instagram fields
-    const { data: clubs } = await db
+    // Try with luma_handle first; fall back if the column doesn't exist yet
+    let clubs: Array<{ id: string; name: string; website?: string | null; instagram?: string | null; luma_handle?: string | null }> | null = null;
+    const { data: clubsWithHandle, error: clubsErr } = await db
       .from('clubs')
       .select('id, name, website, instagram, luma_handle')
       .not('name', 'is', null);
+
+    if (clubsErr?.message?.includes('luma_handle')) {
+      // Column doesn't exist yet — retry without it
+      const { data: clubsFallback } = await db
+        .from('clubs')
+        .select('id, name, website, instagram')
+        .not('name', 'is', null);
+      clubs = clubsFallback;
+    } else {
+      clubs = clubsWithHandle;
+    }
 
     for (const club of clubs || []) {
       // Check luma_handle column (if it exists)
