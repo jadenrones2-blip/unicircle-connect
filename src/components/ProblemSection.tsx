@@ -10,7 +10,7 @@ const challenges = [
 
 const ProblemSection = () => {
   return (
-    <section id="problem" className="py-16 md:py-24 border-t border-border/20">
+    <section id="problem" className="py-16 md:py-24 border-t border-white/[0.07]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-28">
 

@@ -15,7 +15,7 @@ const TextMarquee = ({
 
   return (
     <div
-      className="relative overflow-hidden py-6 bg-primary border-y border-border/20"
+      className="relative overflow-hidden py-6 border-y border-white/[0.07]"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >

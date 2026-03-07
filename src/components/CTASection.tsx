@@ -8,7 +8,7 @@ const CTASection = () => {
   const { playClick, playHover } = useSoundEffects();
 
   return (
-    <section id="cta" className="py-16 md:py-24 border-t border-border/20 bg-primary text-primary-foreground">
+    <section id="cta" className="py-16 md:py-24 border-t border-white/[0.07]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-12">
 
@@ -20,13 +20,13 @@ const CTASection = () => {
               viewport={{ once: true }}
               className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
             >
-              Early Access
+              The Solution
             </motion.p>
             <AnimatedWords
-              text="Ready to start?"
+              text="Fix it today."
               as="h2"
-              className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tight text-primary-foreground"
-              goldWords={["start?"]}
+              className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tight text-white"
+              goldWords={["today."]}
             />
           </div>
 
@@ -38,13 +38,13 @@ const CTASection = () => {
             transition={{ delay: 0.2 }}
             className="flex flex-col gap-6 lg:items-end"
           >
-            <p className="text-primary-foreground/40 text-base leading-relaxed max-w-xs lg:text-right">
-              Claim your club today. Free, fast, and built for the way your org actually recruits.
+            <p className="text-white/40 text-base leading-relaxed max-w-xs lg:text-right">
+              Full pipeline. Applicant tracking. Automated updates. Built for clubs — free.
             </p>
             <div className="flex items-center gap-8">
               <Link
                 to="/clubs"
-                className="group flex items-center gap-2 text-sm font-semibold text-primary-foreground hover:text-gold transition-colors duration-200"
+                className="group flex items-center gap-2 text-sm font-semibold text-white hover:text-gold transition-colors duration-200"
                 onClick={playClick}
                 onMouseEnter={playHover}
               >
@@ -53,7 +53,7 @@ const CTASection = () => {
               </Link>
               <Link
                 to="/signup"
-                className="text-sm font-medium text-primary-foreground/30 hover:text-primary-foreground/60 transition-colors duration-200"
+                className="text-sm font-medium text-white/30 hover:text-white/60 transition-colors duration-200"
                 onClick={playClick}
                 onMouseEnter={playHover}
               >
