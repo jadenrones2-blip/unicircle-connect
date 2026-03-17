@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { dataClient } from "@/integrations/supabase/dataClient";
 
 export interface ExternalEvent {
   id: string;
@@ -39,23 +40,15 @@ export function useExternalEvents(): UseExternalEventsResult {
       setLoading(true);
       setError(null);
 
-      // Use edge function instead of direct client access
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&orderBy=start_time&orderAsc=true&limit=500`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
+      const { data, error: dbError } = await dataClient
+        .from('events')
+        .select('*')
+        .order('start_time', { ascending: true })
+        .limit(500);
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch events: ${response.status}`);
-      }
+      if (dbError) throw new Error(dbError.message);
 
-      const result = await response.json();
-      setEvents(result.data || []);
+      setEvents((data || []) as ExternalEvent[]);
     } catch (err) {
       console.error('Error fetching events:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch events');
@@ -67,14 +60,8 @@ export function useExternalEvents(): UseExternalEventsResult {
 
   useEffect(() => {
     fetchEvents();
-
-    // Poll for updates every 30 seconds instead of realtime
-    // (realtime requires direct client which exposes credentials)
     const pollInterval = setInterval(fetchEvents, 30000);
-
-    return () => {
-      clearInterval(pollInterval);
-    };
+    return () => clearInterval(pollInterval);
   }, [fetchEvents]);
 
   return { events, loading, error, refetch: fetchEvents };

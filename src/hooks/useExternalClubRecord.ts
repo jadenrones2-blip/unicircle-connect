@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { dataClient } from "@/integrations/supabase/dataClient";
 
 export type RecruitmentCycle = "fall" | "winter" | "spring" | "rolling" | "none";
 export type RecruitmentStatus = "open" | "upcoming" | "closed";
@@ -40,37 +41,19 @@ export function useExternalClubRecord(clubId?: string): UseExternalClubRecordRes
     setError(null);
 
     try {
-      const url = new URL(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy`
-      );
+      const { data, error: dbError } = await dataClient
+        .from('clubs')
+        .select('*')
+        .eq('id', clubId)
+        .maybeSingle();
 
-      url.searchParams.set("table", "clubs");
-      url.searchParams.set("select", "*");
-      url.searchParams.set("limit", "1");
-      // Use 'id' to match the external club record
-      url.searchParams.set("filters", JSON.stringify({ id: clubId }));
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-      });
-
-      if (!response.ok) {
-        // Gracefully handle cases where club doesn't exist in external DB
-        if (response.status === 500) {
-          console.warn("Club not found in external DB:", clubId);
-          setClub(null);
-          return;
-        }
-        const text = await response.text().catch(() => "");
-        throw new Error(text || `Failed to fetch club (${response.status})`);
+      if (dbError) {
+        console.warn("Club not found:", clubId);
+        setClub(null);
+        return;
       }
 
-      const result = await response.json();
-      const record = (result?.data?.[0] ?? null) as ExternalClubRecord | null;
-      setClub(record);
+      setClub(data as ExternalClubRecord | null);
     } catch (err) {
       console.error("Error fetching club by id:", err);
       setClub(null);
@@ -84,10 +67,5 @@ export function useExternalClubRecord(clubId?: string): UseExternalClubRecordRes
     fetchClub();
   }, [fetchClub]);
 
-  return {
-    club,
-    loading,
-    error,
-    refetch: fetchClub,
-  };
+  return { club, loading, error, refetch: fetchClub };
 }
