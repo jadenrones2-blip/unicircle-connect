@@ -8,6 +8,7 @@ import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
 import { Loader2, Calendar, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
+import { dataClient } from '@/integrations/supabase/dataClient';
 import {
   Table,
   TableBody,
@@ -42,23 +43,16 @@ export default function ClubsCalendar() {
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
-    
-    try {
-      // Use edge function instead of direct client
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&orderBy=start_time&orderAsc=true&limit=500&filters=${encodeURIComponent(JSON.stringify({ verified: true }))}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
 
-      if (!response.ok) return;
-      
-      const result = await response.json();
-      const data = result.data || [];
+    try {
+      const { data, error: dbError } = await dataClient
+        .from('events')
+        .select('*')
+        .eq('verified', true)
+        .order('start_time', { ascending: true })
+        .limit(500);
+
+      if (dbError) return;
 
       // Apply coalesce logic for corrected fields
       const processedEvents = (data as ExternalEvent[]).map(event => ({

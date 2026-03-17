@@ -22,7 +22,7 @@ import { ClubAdminSidebar } from "@/components/club-admin/ClubAdminSidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { dataClient } from "@/integrations/supabase/dataClient";
 import { ClubImageUpload } from "@/components/club-admin/ClubImageUpload";
 import { useExternalClubRecord } from "@/hooks/useExternalClubRecord";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -103,24 +103,20 @@ export default function ClubAdminEdit() {
 
     setIsSaving(true);
     try {
-      const { data: response, error } = await supabase.functions.invoke("external-db-proxy", {
-        body: {
-          table: "clubs",
-          action: "update",
-          id: clubId,
-          record: {
-            description: data.description || null,
-            email: data.email || null,
-            instagram: data.instagram || null,
-            linkedin: data.linkedin || null,
-            website: data.website || null,
-            cover_image: coverImageUrl || null,
-          },
-        },
-      });
+      const { error: dbError } = await dataClient
+        .from('clubs')
+        .update({
+          description: data.description || null,
+          email: data.email || null,
+          instagram: data.instagram || null,
+          linkedin: data.linkedin || null,
+          website: data.website || null,
+          cover_image: coverImageUrl || null,
+        })
+        .eq('id', clubId);
 
-      if (error || response?.error) {
-        throw new Error(response?.error || error?.message || "Failed to update club");
+      if (dbError) {
+        throw new Error(dbError.message || "Failed to update club");
       }
 
       toast.success("Club profile updated successfully!");

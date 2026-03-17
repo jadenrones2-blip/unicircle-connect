@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Plus, Calendar, ExternalLink, Edit, Trash2 } from 'lucide-react';
 import { format, parseISO, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { dataClient } from '@/integrations/supabase/dataClient';
 import {
   Table,
   TableBody,
@@ -67,21 +67,14 @@ export default function ClubAdminEvents() {
     
     setLoading(true);
     try {
-      // Use edge function instead of direct client
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&limit=50&filters=${encodeURIComponent(JSON.stringify({ club_handle: club.clubId }))}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
+      const { data, error: dbError } = await dataClient
+        .from('events')
+        .select('*')
+        .eq('club_handle', club.clubId)
+        .limit(50);
 
-      if (!response.ok) throw new Error('Failed to fetch');
-      
-      const result = await response.json();
-      setEvents(result.data || []);
+      if (dbError) throw new Error(dbError.message);
+      setEvents((data || []) as ExternalEvent[]);
     } catch (err) {
       console.error('Error fetching club events:', err);
       toast.error('Failed to load events');
@@ -123,21 +116,13 @@ export default function ClubAdminEvents() {
     
     setDeleting(true);
     try {
-      // Use edge function for delete
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=delete&filters=${encodeURIComponent(JSON.stringify({ id: deleteEventId }))}`,
-        {
-          method: 'DELETE',
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          },
-        }
-      );
+      const { error: dbError } = await dataClient
+        .from('events')
+        .delete()
+        .eq('id', deleteEventId);
 
-      if (!response.ok) throw new Error('Failed to delete');
-      
+      if (dbError) throw new Error(dbError.message);
+
       setEvents((prev) => prev.filter((e) => e.id !== deleteEventId));
       toast.success('Event deleted');
     } catch (err) {

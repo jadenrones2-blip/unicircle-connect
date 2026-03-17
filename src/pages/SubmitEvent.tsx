@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { dataClient } from '@/integrations/supabase/dataClient';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -155,20 +156,12 @@ export default function SubmitEvent() {
         source_url: data.instagram_url?.trim() || null, // Use source_url which exists in schema
       };
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=insert`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ record: eventRecord }),
-        }
-      );
+      const { error: dbError } = await dataClient
+        .from('events')
+        .insert(eventRecord);
 
-      if (!response.ok) {
-        throw new Error('Failed to submit event');
+      if (dbError) {
+        throw new Error(dbError.message || 'Failed to submit event');
       }
 
       // Success - show toast and redirect to club admin events page
