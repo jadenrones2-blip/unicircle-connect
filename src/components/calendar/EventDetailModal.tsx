@@ -1,5 +1,5 @@
 import { format, parseISO } from 'date-fns';
-import { Calendar, MapPin, ExternalLink, Building2, AtSign, FileText } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink, Building2, AtSign, FileText, CalendarPlus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -38,6 +38,20 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
 
   // Only show caption if it's not error data
   const displayCaption = isErrorData(event.caption) ? null : event.caption;
+
+  const buildGoogleCalendarUrl = () => {
+    const toGCal = (iso: string) => {
+      // Format: 20231231T120000Z
+      return iso.replace(/[-:]/g, '').replace(/\.\d{3}/, '').replace(/\+\d{4}/, 'Z');
+    };
+    const title = encodeURIComponent(displayTitle);
+    const start = toGCal(event.start_time);
+    const end = event.end_time ? toGCal(event.end_time) : toGCal(event.start_time);
+    const dates = `${start}/${end}`;
+    const details = encodeURIComponent(displayCaption || '');
+    const location = encodeURIComponent(event.location || '');
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
+  };
 
   const openExternal = (url: string) => {
     // Instagram often blocks being loaded inside iframes. In the Lovable preview,
@@ -145,7 +159,16 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
           )}
         </div>
 
-        <div className="flex justify-end mt-4">
+        <div className="flex gap-2 justify-end mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openExternal(buildGoogleCalendarUrl())}
+            className="gap-2"
+          >
+            <CalendarPlus className="w-4 h-4" />
+            Add to Google Calendar
+          </Button>
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>

@@ -1,6 +1,6 @@
 import { useEffect, useDeferredValue, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Search, X, AlertCircle, Sparkles, Plus } from "lucide-react";
+import { Loader2, Search, X, AlertCircle, Sparkles, Plus, Users } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
@@ -41,6 +41,7 @@ const normalizeText = (value: string) =>
 const ClubsDirectory = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [recruitingOnly, setRecruitingOnly] = useState(false);
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
   const { user } = useAuth();
@@ -92,7 +93,7 @@ const ClubsDirectory = () => {
     const isGreekLifeFilter = selectedCategory === "Greek Life";
 
     return indexedClubs
-      .filter(({ categoryBucketKey, categoryKey, searchKey }) => {
+      .filter(({ club, categoryBucketKey, categoryKey, searchKey }) => {
         // Special handling for Greek Life - match any Greek-related terms
         let matchesCategory: boolean;
         if (selectedCategory === "All") {
@@ -111,17 +112,21 @@ const ClubsDirectory = () => {
         // Search filter: name OR description contains query
         const matchesSearch = !query || searchKey.includes(query);
 
-        return matchesCategory && matchesSearch;
+        // Recruiting filter
+        const matchesRecruiting = !recruitingOnly || club.recruitingStatus === 'open';
+
+        return matchesCategory && matchesSearch && matchesRecruiting;
       })
       .map(({ club }) => club);
-  }, [deferredSearchText, indexedClubs, selectedCategory]);
+  }, [deferredSearchText, indexedClubs, selectedCategory, recruitingOnly]);
 
   const clearFilters = () => {
     setSearchText("");
     setSelectedCategory("All");
+    setRecruitingOnly(false);
   };
 
-  const hasActiveFilters = searchText || selectedCategory !== "All";
+  const hasActiveFilters = searchText || selectedCategory !== "All" || recruitingOnly;
 
   return (
     <main className="min-h-screen bg-[#0A0A0A] dark">
@@ -210,6 +215,21 @@ const ClubsDirectory = () => {
                 </button>
               );
             })}
+          </div>
+
+          {/* Recruiting filter toggle */}
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => setRecruitingOnly((v) => !v)}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-150 border ${
+                recruitingOnly
+                  ? 'bg-green-500/20 text-green-400 border-green-500/40'
+                  : 'bg-transparent text-zinc-500 border-white/10 hover:text-white'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${recruitingOnly ? 'bg-green-400' : 'bg-zinc-600'}`} />
+              Recruiting Now
+            </button>
           </div>
         </div>
       </section>

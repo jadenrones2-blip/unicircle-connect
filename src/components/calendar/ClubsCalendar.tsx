@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -6,9 +6,10 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
-import { Loader2, Calendar, MapPin } from 'lucide-react';
+import { Loader2, Calendar, MapPin, Search, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { dataClient } from '@/integrations/supabase/dataClient';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -40,6 +41,7 @@ export default function ClubsCalendar() {
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState<ExternalEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -150,6 +152,29 @@ export default function ClubsCalendar() {
     setIsModalOpen(true);
   };
 
+  const normalizeQ = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+
+  const filteredEvents = useMemo(() => {
+    if (!searchText.trim()) return rawEvents;
+    const q = normalizeQ(searchText);
+    return rawEvents.filter((e) => {
+      const title = (e.corrected_title || e.title || '').toLowerCase();
+      const handle = (e.club_handle || '').toLowerCase();
+      const location = (e.corrected_location || e.location || '').toLowerCase();
+      return title.includes(q) || handle.includes(q) || location.includes(q);
+    });
+  }, [rawEvents, searchText]);
+
+  const filteredCalendarEvents = useMemo(() => {
+    if (!searchText.trim()) return events;
+    const q = normalizeQ(searchText);
+    return events.filter((e) => {
+      const title = (e.title || '').toLowerCase();
+      const handle = (e.extendedProps.clubHandle || '').toLowerCase();
+      return title.includes(q) || handle.includes(q);
+    });
+  }, [events, searchText]);
+
   if (loading && events.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -190,6 +215,26 @@ export default function ClubsCalendar() {
 
   return (
     <div className="clubs-calendar space-y-8">
+      {/* Search Bar */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+        <Input
+          type="text"
+          placeholder="Search events, clubs..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="pl-9 pr-9 h-10 bg-white/5 border-white/10 text-foreground placeholder:text-muted-foreground focus:border-gold/50 rounded-xl"
+        />
+        {searchText && (
+          <button
+            onClick={() => setSearchText('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -198,7 +243,7 @@ export default function ClubsCalendar() {
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
-        events={events}
+        events={filteredCalendarEvents}
         eventClick={handleEventClick}
         height="auto"
         eventDisplay="block"
@@ -211,15 +256,17 @@ export default function ClubsCalendar() {
       <div className="p-4 md:p-6 rounded-lg border border-white/10 bg-white/5">
         <h3 className="text-lg md:text-xl font-display font-semibold text-foreground mb-4 flex items-center gap-2">
           <Calendar className="w-5 h-5 text-gold" />
-          All Events
+          {searchText ? `Results (${filteredEvents.length})` : 'All Events'}
         </h3>
-        
+
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 text-gold animate-spin" />
           </div>
-        ) : rawEvents.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">No events found</p>
+        ) : filteredEvents.length === 0 ? (
+          <p className="text-muted-foreground text-center py-8">
+            {searchText ? `No events match "${searchText}"` : 'No events found'}
+          </p>
         ) : (
           <>
             {/* Desktop Table View */}
@@ -234,7 +281,7 @@ export default function ClubsCalendar() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rawEvents.map((event) => (
+                  {filteredEvents.map((event) => (
                     <TableRow
                       key={event.id}
                       className="cursor-pointer border-white/10 hover:bg-white/5"
@@ -261,7 +308,7 @@ export default function ClubsCalendar() {
 
             {/* Mobile Card View */}
             <div className="flex flex-col gap-3 md:hidden">
-              {rawEvents.map((event) => (
+              {filteredEvents.map((event) => (
                 <div
                   key={event.id}
                   className="p-4 bg-white/5 border border-gold/20 rounded-lg active:scale-[0.98] transition-all hover:border-gold/50 hover:bg-white/10"

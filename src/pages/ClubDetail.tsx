@@ -1,12 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  ArrowLeft, 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  Share2, 
+import {
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Clock,
+  Share2,
   ExternalLink,
   Loader2,
   Shield,
@@ -23,28 +23,101 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useClubs, useEvents } from "@/hooks/useExternalDB";
+import { useClubs } from "@/hooks/useExternalDB";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
+import { dataClient } from "@/integrations/supabase/dataClient";
+import { ExternalEvent } from "@/hooks/useExternalEvents";
+import { EventDetailModal } from "@/components/calendar/EventDetailModal";
+import { format, parseISO } from "date-fns";
 
 const ClubDetail = () => {
   const { id } = useParams();
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<ExternalEvent | null>(null);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const { user } = useAuth();
   const { savedClubs, fetchSavedClubs, saveClub, unsaveClub, isSaved } = useSavedClubs();
 
   const { data: clubs, loading: clubsLoading } = useClubs();
-  const { data: events, loading: eventsLoading } = useEvents(clubs);
   const { isOwnerOf, loading: ownershipLoading } = useClubOwnership();
+
+  const [clubEvents, setClubEvents] = useState<ExternalEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
 
   useEffect(() => {
     if (user) fetchSavedClubs(user.id);
   }, [user, fetchSavedClubs]);
 
   const club = useMemo(() => clubs.find(c => c.id === id), [clubs, id]);
-  const clubEvents = useMemo(() => events.filter(e => e.clubId === id), [events, id]);
   const isOwner = id ? isOwnerOf(id) : false;
+
+  // Extract bare instagram handle (strip URL prefix and @)
+  const instagramHandle = useMemo(() => {
+    if (!club?.instagram) return null;
+    const ig = club.instagram;
+    const match = ig.match(/(?:instagram\.com\/)?@?([A-Za-z0-9_.]+)\/?$/);
+    return match ? match[1].toLowerCase() : null;
+  }, [club]);
+
+  const fetchClubEvents = useCallback(async () => {
+    if (!id) return;
+    setEventsLoading(true);
+    try {
+      const now = new Date().toISOString();
+      // Try club_id match first
+      let query = dataClient
+        .from('events')
+        .select('*')
+        .eq('verified', true)
+        .gte('start_time', now)
+        .order('start_time', { ascending: true })
+        .limit(20);
+
+      // Fetch by club_id
+      const { data: byId } = await dataClient
+        .from('events')
+        .select('*')
+        .eq('verified', true)
+        .eq('club_id', id)
+        .gte('start_time', now)
+        .order('start_time', { ascending: true })
+        .limit(20);
+
+      let results: ExternalEvent[] = (byId || []) as ExternalEvent[];
+
+      // Also fetch by instagram handle if we have one
+      if (instagramHandle) {
+        const { data: byHandle } = await dataClient
+          .from('events')
+          .select('*')
+          .eq('verified', true)
+          .ilike('club_handle', instagramHandle)
+          .gte('start_time', now)
+          .order('start_time', { ascending: true })
+          .limit(20);
+
+        const handleResults = (byHandle || []) as ExternalEvent[];
+        // Merge, dedup by id
+        const seen = new Set(results.map((e) => e.id));
+        for (const e of handleResults) {
+          if (!seen.has(e.id)) results.push(e);
+        }
+        results.sort((a, b) => a.start_time.localeCompare(b.start_time));
+      }
+
+      setClubEvents(results);
+    } catch (err) {
+      console.error('Error fetching club events:', err);
+    } finally {
+      setEventsLoading(false);
+    }
+  }, [id, instagramHandle]);
+
+  useEffect(() => {
+    if (club !== undefined) fetchClubEvents();
+  }, [club, fetchClubEvents]);
 
   // Check if club has real contact info
   const hasContactInfo = club?.email || club?.instagram || club?.website;
@@ -319,41 +392,46 @@ const ClubDetail = () => {
                 </div>
               ) : clubEvents.length > 0 ? (
                 <div className="grid gap-4">
-                  {clubEvents.map((event, index) => (
-                    <motion.div
-                      key={event.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="premium-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
-                    >
-                      <div>
-                        <h4 className="font-display font-semibold text-foreground">{event.title}</h4>
-                        <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {new Date(event.date).toLocaleDateString('en-US', { 
-                              month: 'long', 
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {event.time}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4" />
-                            {event.location}
-                          </span>
+                  {clubEvents.map((event, index) => {
+                    const title = event.corrected_title || event.title;
+                    const startTime = event.corrected_start_time || event.start_time;
+                    const location = event.corrected_location || event.location;
+                    const startDate = parseISO(startTime);
+                    return (
+                      <motion.div
+                        key={event.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="premium-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:border-gold/30 transition-colors"
+                        onClick={() => { setSelectedEvent(event); setIsEventModalOpen(true); }}
+                      >
+                        <div>
+                          <h4 className="font-display font-semibold text-foreground">{title}</h4>
+                          <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {format(startDate, 'MMMM d, yyyy')}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {format(startDate, 'h:mm a')}
+                            </span>
+                            {location && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" />
+                                {location}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Details
-                      </Button>
-                    </motion.div>
-                  ))}
+                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); setIsEventModalOpen(true); }}>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Details
+                        </Button>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-12">
@@ -375,6 +453,13 @@ const ClubDetail = () => {
         onClose={() => setIsClaimModalOpen(false)}
         clubName={club.name}
         clubId={club.id}
+      />
+
+      {/* Event Detail Modal */}
+      <EventDetailModal
+        event={selectedEvent}
+        isOpen={isEventModalOpen}
+        onClose={() => { setIsEventModalOpen(false); setSelectedEvent(null); }}
       />
     </main>
   );

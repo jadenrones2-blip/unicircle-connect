@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -12,6 +12,8 @@ import {
   FileText,
   UserCircle,
   Heart,
+  MapPin,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,6 +31,10 @@ import RecommendedClubCard from '@/components/dashboard/RecommendedClubCard';
 import RecruitmentTrackerSection from '@/components/dashboard/RecruitmentTrackerSection';
 import { getRecommendationsFromSaved, extractClubKeywords } from '@/lib/clubRecommendations';
 import type { Club } from '@/data/mockData';
+import { dataClient } from '@/integrations/supabase/dataClient';
+import { ExternalEvent } from '@/hooks/useExternalEvents';
+import { EventDetailModal } from '@/components/calendar/EventDetailModal';
+import { format, parseISO } from 'date-fns';
 
 // Mapping from quiz answers to club categories/tags
 const interestToClubMapping: Record<string, string[]> = {
@@ -143,6 +149,10 @@ export default function Dashboard() {
   const [interests, setInterests] = useState<{ category: string; value: string }[]>([]);
   const [interestsLoading, setInterestsLoading] = useState(true);
   const [applyingClubId, setApplyingClubId] = useState<string | null>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<ExternalEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<ExternalEvent | null>(null);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -166,6 +176,31 @@ export default function Dashboard() {
       });
     }
   }, [user, fetchInterests, fetchMemberships, fetchApplications, fetchSavedClubs]);
+
+  useEffect(() => {
+    if (!savedClubs.length) { setUpcomingEvents([]); return; }
+    const fetchUpcoming = async () => {
+      setEventsLoading(true);
+      try {
+        const savedIds = savedClubs.map((s) => s.club_id);
+        const now = new Date().toISOString();
+        const { data } = await dataClient
+          .from('events')
+          .select('*')
+          .eq('verified', true)
+          .in('club_id', savedIds)
+          .gte('start_time', now)
+          .order('start_time', { ascending: true })
+          .limit(10);
+        setUpcomingEvents((data || []) as ExternalEvent[]);
+      } catch {
+        // silent
+      } finally {
+        setEventsLoading(false);
+      }
+    };
+    fetchUpcoming();
+  }, [savedClubs]);
 
   const recommendedClubs = useMemo(() => {
     if (!clubs.length || !interests.length) return [];
@@ -344,6 +379,62 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
 
+        {/* Upcoming Events from Saved Clubs */}
+        {(upcomingEvents.length > 0 || eventsLoading) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-8 sm:mb-10"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <Calendar className="h-5 w-5 text-gold" />
+              <h2 className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                Upcoming from Your Clubs
+              </h2>
+            </div>
+            {eventsLoading ? (
+              <div className="flex items-center gap-2 py-4 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Loading events...</span>
+              </div>
+            ) : (
+              <div className="grid gap-3">
+                {upcomingEvents.map((event) => {
+                  const title = event.corrected_title || event.title;
+                  const startTime = event.corrected_start_time || event.start_time;
+                  const location = event.corrected_location || event.location;
+                  const startDate = parseISO(startTime);
+                  return (
+                    <div
+                      key={event.id}
+                      className="flex items-start justify-between gap-4 p-4 rounded-xl border border-border bg-card hover:border-gold/30 transition-colors cursor-pointer"
+                      onClick={() => { setSelectedEvent(event); setIsEventModalOpen(true); }}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground truncate">{title}</p>
+                        <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {format(startDate, 'MMM d, h:mm a')}
+                          </span>
+                          {location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate max-w-[160px]">{location}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Calendar className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {/* Recommendations section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -419,6 +510,12 @@ export default function Dashboard() {
           </Link>
         </motion.div>
       </main>
+
+      <EventDetailModal
+        event={selectedEvent}
+        isOpen={isEventModalOpen}
+        onClose={() => { setIsEventModalOpen(false); setSelectedEvent(null); }}
+      />
     </div>
   );
 }
