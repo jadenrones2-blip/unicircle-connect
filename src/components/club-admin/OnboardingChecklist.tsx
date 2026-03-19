@@ -4,6 +4,7 @@ import { Check, Image, FileText, Link2, Calendar, ArrowRight } from 'lucide-reac
 import { motion } from 'framer-motion';
 import { ClubOwnership } from '@/hooks/useClubOwnership';
 import { useExternalClubRecord } from '@/hooks/useExternalClubRecord';
+import { dataClient } from '@/integrations/supabase/dataClient';
 
 interface ChecklistItem {
   id: string;
@@ -28,18 +29,16 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
     const checkEvents = async () => {
       if (!club.clubId) return;
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=id&limit=1&filters=${encodeURIComponent(JSON.stringify({ club_handle: club.clubName }))}`,
-          { headers: { 'Content-Type': 'application/json', apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY } }
-        );
-        if (response.ok) {
-          const result = await response.json();
-          if (result.data?.length > 0) setHasEvents(true);
-        }
+        const { data } = await dataClient
+          .from('events')
+          .select('id')
+          .eq('club_handle', club.clubId)
+          .limit(1);
+        if (data && data.length > 0) setHasEvents(true);
       } catch { /* silent */ } finally { setLoadingEvents(false); }
     };
     checkEvents();
-  }, [club.clubId, club.clubName]);
+  }, [club.clubId]);
 
   const isLoading = loadingClub || loadingEvents;
 

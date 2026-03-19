@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Calendar, MapPin, ExternalLink, Building2, AtSign, FileText } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink, Building2, AtSign, FileText, CalendarPlus, Users, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
+import { dataClient as supabase } from '@/integrations/supabase/dataClient';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface EventDetailModalProps {
   event: ExternalEvent | null;
@@ -17,6 +21,50 @@ interface EventDetailModalProps {
 }
 
 export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalProps) {
+  const { user } = useAuth();
+  const [isRsvped, setIsRsvped] = useState(false);
+  const [rsvpCount, setRsvpCount] = useState<number | null>(null);
+  const [rsvpLoading, setRsvpLoading] = useState(false);
+
+  useEffect(() => {
+    if (!event || !isOpen) return;
+
+    const fetchRsvpData = async () => {
+      try {
+        const { count, error: countError } = await supabase
+          .from('event_rsvps')
+          .select('*', { count: 'exact', head: true })
+          .eq('event_id', event.id);
+
+        if (!countError) setRsvpCount(count ?? 0);
+
+        if (user) {
+          const { data, error: rsvpError } = await supabase
+            .from('event_rsvps')
+            .select('id')
+            .eq('event_id', event.id)
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          if (!rsvpError) setIsRsvped(!!data);
+        } else {
+          setIsRsvped(false);
+        }
+      } catch {
+        // Table may not exist yet
+      }
+    };
+
+    fetchRsvpData();
+  }, [event, isOpen, user]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsRsvped(false);
+      setRsvpCount(null);
+    }
+  }, [isOpen]);
+
   if (!event) return null;
 
   const startDate = parseISO(event.start_time);
@@ -25,45 +73,85 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
   const formatTime = (date: Date) => format(date, 'h:mm a');
   const formatDate = (date: Date) => format(date, 'EEEE, MMMM d, yyyy');
 
-  // Check if a string looks like JSON error data
   const isErrorData = (text: string | null): boolean => {
     if (!text) return false;
     return text.startsWith('{"') || text.startsWith('{\"') || text.includes('"error"');
   };
 
-  // Get a clean display title - fall back to club_handle if title is error data
-  const displayTitle = isErrorData(event.title) 
+  const displayTitle = isErrorData(event.title)
     ? (event.club_handle ? `@${event.club_handle}` : 'Event')
     : event.title;
 
-  // Only show caption if it's not error data
   const displayCaption = isErrorData(event.caption) ? null : event.caption;
 
+  const buildGoogleCalendarUrl = () => {
+    const toGCal = (iso: string) => {
+      try {
+        return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+      } catch {
+        return '';
+      }
+    };
+    const title = encodeURIComponent(displayTitle);
+    const start = toGCal(event.start_time);
+    const end = event.end_time ? toGCal(event.end_time) : toGCal(event.start_time);
+    const dates = `${start}/${end}`;
+    const details = encodeURIComponent(displayCaption || '');
+    const location = encodeURIComponent(event.location || '');
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
+  };
+
   const openExternal = (url: string) => {
-    // Instagram often blocks being loaded inside iframes. In the Lovable preview,
-    // opening a link can still be treated as an iframe navigation, so we:
-    // 1) Try a new tab on the current window
-    // 2) Try a new tab from the top window (escape the iframe)
-    // 3) Fall back to navigating the top window
     try {
       const w = window.open(url, '_blank', 'noopener,noreferrer');
       if (w) return;
-    } catch {
-      // ignore
-    }
-
+    } catch { /* ignore */ }
     try {
       const topWindow = window.top;
       const w = topWindow?.open?.(url, '_blank', 'noopener,noreferrer');
       if (w) return;
-    } catch {
-      // ignore
-    }
-
+    } catch { /* ignore */ }
     try {
       if (window.top) window.top.location.href = url;
-    } catch {
-      // ignore
+    } catch { /* ignore */ }
+  };
+
+  const handleRsvp = async () => {
+    if (!user) {
+      toast.error('Please log in to RSVP');
+      return;
+    }
+
+    setRsvpLoading(true);
+    try {
+      if (isRsvped) {
+        const { error } = await supabase
+          .from('event_rsvps')
+          .delete()
+          .eq('event_id', event.id)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        setIsRsvped(false);
+        setRsvpCount((prev) => (prev !== null ? Math.max(0, prev - 1) : prev));
+        toast.success('RSVP removed');
+      } else {
+        const { error } = await supabase
+          .from('event_rsvps')
+          .insert({ event_id: event.id, user_id: user.id, status: 'going' });
+
+        if (error) throw error;
+
+        setIsRsvped(true);
+        setRsvpCount((prev) => (prev !== null ? prev + 1 : 1));
+        toast.success("You're going!");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      toast.error(message);
+    } finally {
+      setRsvpLoading(false);
     }
   };
 
@@ -145,7 +233,41 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
           )}
         </div>
 
-        <div className="flex justify-end mt-4">
+        <div className="flex flex-wrap gap-2 justify-end mt-4 items-center">
+          {/* RSVP count */}
+          {rsvpCount !== null && rsvpCount > 0 && (
+            <span className="flex items-center gap-1 text-sm text-muted-foreground mr-auto">
+              <Users className="w-4 h-4" />
+              {rsvpCount} {rsvpCount === 1 ? 'person' : 'people'} going
+            </span>
+          )}
+
+          {/* RSVP Button */}
+          <Button
+            variant={isRsvped ? 'gold' : 'outline'}
+            size="sm"
+            onClick={handleRsvp}
+            disabled={rsvpLoading}
+            className="gap-2"
+          >
+            {rsvpLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isRsvped ? (
+              'Going ✓'
+            ) : (
+              'RSVP'
+            )}
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openExternal(buildGoogleCalendarUrl())}
+            className="gap-2"
+          >
+            <CalendarPlus className="w-4 h-4" />
+            Add to Google Calendar
+          </Button>
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>

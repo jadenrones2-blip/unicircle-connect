@@ -1,15 +1,19 @@
 import { useEffect, useDeferredValue, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Search, X, AlertCircle, Sparkles, Plus } from "lucide-react";
+import { Loader2, Search, X, AlertCircle, Sparkles, Plus, Users } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
 import RequestNewClubModal from "@/components/RequestNewClubModal";
+import CompareBar from "@/components/CompareBar";
+import RecommendationChat from "@/components/RecommendationChat";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClubs } from "@/hooks/useExternalDB";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
+import { useUserInterests } from "@/hooks/useUserInterests";
+import { calculateMatchScore } from "@/lib/clubRecommendations";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -38,17 +42,51 @@ const normalizeText = (value: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
+const LS_KEY = 'clubs_filters';
+
+function loadFilters() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as { search: string; category: string; recruiting: boolean };
+  } catch { return null; }
+}
+
 const ClubsDirectory = () => {
-  const [searchText, setSearchText] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const saved = loadFilters();
+  const [searchText, setSearchText] = useState(saved?.search ?? "");
+  const [selectedCategory, setSelectedCategory] = useState(saved?.category ?? "All");
+  const [recruitingOnly, setRecruitingOnly] = useState(saved?.recruiting ?? false);
+
+  // Persist filters to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        search: searchText,
+        category: selectedCategory,
+        recruiting: recruitingOnly,
+      }));
+    } catch { /* storage full or unavailable */ }
+  }, [searchText, selectedCategory, recruitingOnly]);
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
   const { user } = useAuth();
   const { savedClubs, fetchSavedClubs, saveClub, unsaveClub, isSaved } = useSavedClubs();
+  const { fetchInterests } = useUserInterests();
+  const [interestValues, setInterestValues] = useState<string[]>([]);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) fetchSavedClubs(user.id);
   }, [user, fetchSavedClubs]);
+
+  useEffect(() => {
+    if (user) {
+      fetchInterests(user.id).then((data) => {
+        if (data) setInterestValues(data.map((i) => i.interest_value));
+      });
+    }
+  }, [user, fetchInterests]);
 
   const handleToggleSave = async (clubId: string) => {
     if (!user) {
@@ -92,7 +130,7 @@ const ClubsDirectory = () => {
     const isGreekLifeFilter = selectedCategory === "Greek Life";
 
     return indexedClubs
-      .filter(({ categoryBucketKey, categoryKey, searchKey }) => {
+      .filter(({ club, categoryBucketKey, categoryKey, searchKey }) => {
         // Special handling for Greek Life - match any Greek-related terms
         let matchesCategory: boolean;
         if (selectedCategory === "All") {
@@ -111,17 +149,53 @@ const ClubsDirectory = () => {
         // Search filter: name OR description contains query
         const matchesSearch = !query || searchKey.includes(query);
 
-        return matchesCategory && matchesSearch;
+        // Recruiting filter
+        const matchesRecruiting = !recruitingOnly || club.recruitingStatus === 'open';
+
+        return matchesCategory && matchesSearch && matchesRecruiting;
       })
       .map(({ club }) => club);
-  }, [deferredSearchText, indexedClubs, selectedCategory]);
+  }, [deferredSearchText, indexedClubs, selectedCategory, recruitingOnly]);
 
   const clearFilters = () => {
     setSearchText("");
     setSelectedCategory("All");
+    setRecruitingOnly(false);
   };
 
-  const hasActiveFilters = searchText || selectedCategory !== "All";
+  const hasActiveFilters = searchText || selectedCategory !== "All" || recruitingOnly;
+
+  // Match scores per club (only computed when user has interests)
+  const matchScores = useMemo(() => {
+    if (!interestValues.length) return {} as Record<string, number>;
+    const scores: Record<string, number> = {};
+    for (const club of filteredClubs) {
+      const score = calculateMatchScore(club, interestValues);
+      if (score > 0) scores[club.id] = score;
+    }
+    return scores;
+  }, [filteredClubs, interestValues]);
+
+  // Club names map for CompareBar
+  const compareClubNames = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const id of compareIds) {
+      const club = clubs.find((c) => c.id === id);
+      if (club) map[id] = club.name;
+    }
+    return map;
+  }, [compareIds, clubs]);
+
+  const handleToggleCompare = (clubId: string) => {
+    setCompareIds((prev) => {
+      if (prev.includes(clubId)) return prev.filter((id) => id !== clubId);
+      if (prev.length >= 4) {
+        toast.error('You can compare up to 4 clubs at a time');
+        return prev;
+      }
+      return [...prev, clubId];
+    });
+  };
 
   return (
     <main className="min-h-screen bg-[#0A0A0A] dark">
@@ -211,6 +285,21 @@ const ClubsDirectory = () => {
               );
             })}
           </div>
+
+          {/* Recruiting filter toggle */}
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => setRecruitingOnly((v) => !v)}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-150 border ${
+                recruitingOnly
+                  ? 'bg-green-500/20 text-green-400 border-green-500/40'
+                  : 'bg-transparent text-zinc-500 border-white/10 hover:text-white'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${recruitingOnly ? 'bg-green-400' : 'bg-zinc-600'}`} />
+              Recruiting Now
+            </button>
+          </div>
         </div>
       </section>
 
@@ -264,6 +353,9 @@ const ClubsDirectory = () => {
                           club={club}
                           isSaved={isSaved(club.id)}
                           onToggleSave={handleToggleSave}
+                          matchScore={matchScores[club.id]}
+                          compareSelected={compareIds.includes(club.id)}
+                          onToggleCompare={handleToggleCompare}
                         />
                       </motion.div>
                     ))}
@@ -301,6 +393,15 @@ const ClubsDirectory = () => {
       </section>
 
       <Footer />
+
+      <CompareBar
+        selectedIds={compareIds}
+        clubNames={compareClubNames}
+        onRemove={handleToggleCompare}
+        onClear={() => setCompareIds([])}
+      />
+
+      <RecommendationChat clubs={clubs} />
     </main>
   );
 };

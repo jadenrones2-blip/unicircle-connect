@@ -147,6 +147,58 @@ export function calculateClubSimilarity(
   return { score, matchedClusters };
 }
 
+// Interest value → relevant search terms (used for match % scoring)
+export const INTEREST_TERM_MAP: Record<string, string[]> = {
+  network: ['professional', 'networking', 'career', 'industry'],
+  skills: ['workshop', 'training', 'academic', 'bootcamp'],
+  squad: ['social', 'community', 'recreation'],
+  confidence: ['leadership', 'executive', 'board'],
+  purpose: ['service', 'volunteer', 'philanthropy', 'social impact'],
+  fun: ['social', 'recreation', 'events'],
+  tech_career: ['tech', 'stem', 'engineering', 'computer', 'software'],
+  finance_career: ['finance', 'business', 'investment', 'banking'],
+  startup_career: ['entrepreneurship', 'startup', 'innovation'],
+  consulting_career: ['consulting', 'strategy', 'business'],
+  healthcare_career: ['pre-med', 'health', 'healthcare', 'biology'],
+  research_career: ['research', 'science', 'academic'],
+  creative_career: ['arts', 'design', 'creative', 'media'],
+  nonprofit_career: ['nonprofit', 'social impact', 'service'],
+  tech: ['tech', 'stem', 'engineering', 'computer', 'coding', 'technology'],
+  business: ['business', 'consulting', 'entrepreneurship', 'finance'],
+  arts: ['arts', 'design', 'creative', 'music', 'dance', 'theater'],
+  science: ['science', 'research', 'pre-med', 'biology'],
+  culture: ['cultural', 'identity', 'international', 'heritage'],
+  fitness: ['health', 'wellness', 'fitness', 'sports', 'recreation'],
+  social_impact: ['social impact', 'advocacy', 'service', 'sustainability'],
+  gaming: ['gaming', 'esports', 'recreation'],
+  professional: ['professional', 'industry', 'career', 'corporate'],
+  chill: ['casual', 'social', 'community'],
+  competitive: ['competition', 'competitive', 'tournament'],
+  creative_vibe: ['creative', 'arts', 'experimental'],
+};
+
+/** Score a club against a list of user interest values (0–100) */
+export function calculateMatchScore(
+  club: Club,
+  interestValues: string[]
+): number {
+  if (!interestValues.length) return 0;
+  const clubText = [club.name, club.category, club.categoryBucket, club.description, ...(club.tags || [])]
+    .filter(Boolean).join(' ').toLowerCase();
+
+  let hits = 0;
+  let total = 0;
+  for (const val of interestValues) {
+    const terms = INTEREST_TERM_MAP[val] || [val];
+    total += terms.length;
+    for (const term of terms) {
+      if (clubText.includes(term.toLowerCase())) hits++;
+    }
+  }
+  if (total === 0) return 0;
+  return Math.min(100, Math.round((hits / total) * 100 * 2.5)); // scale up so useful clubs show 50-90%
+}
+
 /** Get recommended clubs based on a set of saved clubs + user interests */
 export function getRecommendationsFromSaved(
   allClubs: Club[],

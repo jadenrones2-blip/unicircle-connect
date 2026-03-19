@@ -219,47 +219,56 @@ export function useRecruitment(clubId: string | undefined) {
     }
 
     const firstStageId = stages[0].id;
+    const failedEmails: string[] = [];
+
+    // Insert individually so we can report per-row errors
+    const CONCURRENCY = 10;
     let successCount = 0;
-    let failedCount = 0;
 
-    // Insert in batches of 50
-    const batchSize = 50;
-    for (let i = 0; i < applicantsList.length; i += batchSize) {
-      const batch = applicantsList.slice(i, i + batchSize).map(applicant => ({
-        club_id: clubId,
-        stage_id: firstStageId,
-        first_name: applicant.first_name,
-        last_name: applicant.last_name,
-        email: applicant.email,
-        major: applicant.major || null,
-        year: applicant.year || null,
-        gpa: applicant.gpa || null,
-        metadata: applicant.metadata || {},
-      }));
+    for (let i = 0; i < applicantsList.length; i += CONCURRENCY) {
+      const chunk = applicantsList.slice(i, i + CONCURRENCY);
+      const results = await Promise.allSettled(
+        chunk.map((applicant) =>
+          supabase.from('applicants').insert({
+            club_id: clubId,
+            stage_id: firstStageId,
+            first_name: applicant.first_name,
+            last_name: applicant.last_name,
+            email: applicant.email,
+            major: applicant.major || null,
+            year: applicant.year || null,
+            gpa: applicant.gpa || null,
+            metadata: applicant.metadata || {},
+          })
+        )
+      );
 
-      const { data, error } = await supabase
-        .from('applicants')
-        .insert(batch)
-        .select();
-
-      if (error) {
-        console.error('Error in batch insert:', error);
-        failedCount += batch.length;
-      } else {
-        successCount += data?.length || 0;
-      }
+      results.forEach((result, idx) => {
+        if (result.status === 'fulfilled' && !result.value.error) {
+          successCount++;
+        } else {
+          const email = chunk[idx].email;
+          const errMsg = result.status === 'rejected'
+            ? result.reason?.message
+            : result.value.error?.message;
+          console.error(`Failed to import ${email}:`, errMsg);
+          failedEmails.push(email);
+        }
+      });
     }
 
     await fetchApplicants();
-    
+
     if (successCount > 0) {
       toast.success(`Imported ${successCount} applicant${successCount !== 1 ? 's' : ''}`);
     }
-    if (failedCount > 0) {
-      toast.error(`${failedCount} applicant${failedCount !== 1 ? 's' : ''} failed to import`);
+    if (failedEmails.length > 0) {
+      const preview = failedEmails.slice(0, 3).join(', ');
+      const extra = failedEmails.length > 3 ? ` +${failedEmails.length - 3} more` : '';
+      toast.error(`${failedEmails.length} failed: ${preview}${extra}`);
     }
 
-    return { success: successCount, failed: failedCount };
+    return { success: successCount, failed: failedEmails.length };
   };
 
   const updateApplicantStage = async (applicantId: string, newStageId: string, clubName?: string) => {

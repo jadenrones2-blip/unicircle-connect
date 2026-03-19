@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play } from "lucide-react";
+import { Menu, X, Sparkles, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
+import { useNotifications } from "@/hooks/useNotifications";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,13 +13,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import logoImage from "@/assets/unicircle-logo-new.png";
+
+function formatRelativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
 
 const Header = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
   const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
+  const { notifications, unreadCount, fetchNotifications, markAllRead } = useNotifications();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -31,6 +48,10 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (user?.id) fetchNotifications(user.id);
+  }, [user?.id, fetchNotifications]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -96,20 +117,85 @@ const Header = () => {
         </nav>
 
         {/* Auth Section */}
-        <div className="hidden md:block">
+        <div className="hidden md:flex items-center gap-2">
           {authLoading || ownershipLoading ? (
             <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
           ) : user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-                  <Avatar className="h-10 w-10 border-2 border-gold/30">
-                    <AvatarFallback className="bg-gold/10 text-gold font-bold text-sm">
-                      {getUserInitials()}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
+            <>
+              {/* Notification Bell */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
+                    aria-label="Notifications"
+                  >
+                    <Bell className="w-4 h-4" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  sideOffset={8}
+                  className="w-80 p-0 border border-white/10 rounded-2xl overflow-hidden"
+                  style={{ background: '#111' }}
+                >
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                    <span className="text-sm font-semibold text-foreground">Notifications</span>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={() => user?.id && markAllRead(user.id)}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground">
+                        <Bell className="w-6 h-6 opacity-30" />
+                        <p className="text-sm">No notifications yet</p>
+                      </div>
+                    ) : (
+                      notifications.slice(0, 10).map((n) => (
+                        <div
+                          key={n.id}
+                          className={`px-4 py-3 border-b border-white/5 last:border-b-0 ${n.read ? 'opacity-60' : 'bg-white/[0.03]'}`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className={`text-sm font-medium leading-snug ${n.read ? 'text-muted-foreground' : 'text-foreground'}`}>
+                              {n.title}
+                            </p>
+                            <span className="text-[11px] text-muted-foreground whitespace-nowrap flex-shrink-0 mt-0.5">
+                              {formatRelativeTime(n.created_at)}
+                            </span>
+                          </div>
+                          {n.body && (
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                    <Avatar className="h-10 w-10 border-2 border-gold/30">
+                      <AvatarFallback className="bg-gold/10 text-gold font-bold text-sm">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
@@ -140,6 +226,7 @@ const Header = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           ) : (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}

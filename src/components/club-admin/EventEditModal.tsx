@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { dataClient } from "@/integrations/supabase/dataClient";
 import { ExternalEvent } from "@/hooks/useExternalEvents";
 
 const eventEditSchema = z.object({
@@ -143,22 +143,18 @@ export function EventEditModal({ event, isOpen, onClose, onSaved }: EventEditMod
         endDateTime.setHours(parseInt(data.endHour), parseInt(data.endMinute || "0"), 0, 0);
       }
 
-      const { data: response, error } = await supabase.functions.invoke("external-db-proxy", {
-        body: {
-          table: "events",
-          action: "update",
-          id: event.id,
-          record: {
-            corrected_title: data.title,
-            corrected_start_time: startDateTime.toISOString(),
-            corrected_end_time: endDateTime ? endDateTime.toISOString() : null,
-            corrected_location: data.location || null,
-          },
-        },
-      });
+      const { error: dbError } = await dataClient
+        .from('events')
+        .update({
+          corrected_title: data.title,
+          corrected_start_time: startDateTime.toISOString(),
+          corrected_end_time: endDateTime ? endDateTime.toISOString() : null,
+          corrected_location: data.location || null,
+        })
+        .eq('id', event.id);
 
-      if (error || response?.error) {
-        throw new Error(response?.error || error?.message || "Failed to update event");
+      if (dbError) {
+        throw new Error(dbError.message || "Failed to update event");
       }
 
       toast.success("Event updated successfully!");

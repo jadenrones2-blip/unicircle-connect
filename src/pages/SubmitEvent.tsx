@@ -3,13 +3,15 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { dataClient } from '@/integrations/supabase/dataClient';
+import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Send, Calendar, MapPin, Shield, AlertTriangle, Instagram, Image as ImageIcon, FileText } from 'lucide-react';
+import { Loader2, Send, Calendar, MapPin, Shield, AlertTriangle, Instagram, Image as ImageIcon, FileText, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
@@ -49,6 +51,7 @@ const eventSubmissionSchema = z.object({
       'Please enter a valid Instagram URL'
     ),
   image_url: z.string().nullable().optional(),
+  co_hosts: z.string().optional().or(z.literal('')),
 });
 
 type EventSubmission = z.infer<typeof eventSubmissionSchema>;
@@ -73,6 +76,7 @@ export default function SubmitEvent() {
       description: '',
       instagram_url: '',
       image_url: null,
+      co_hosts: '',
     },
   });
 
@@ -155,20 +159,26 @@ export default function SubmitEvent() {
         source_url: data.instagram_url?.trim() || null, // Use source_url which exists in schema
       };
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=insert`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ record: eventRecord }),
-        }
-      );
+      const { error: dbError } = await dataClient
+        .from('events')
+        .insert(eventRecord);
 
-      if (!response.ok) {
-        throw new Error('Failed to submit event');
+      if (dbError) {
+        throw new Error(dbError.message || 'Failed to submit event');
+      }
+
+      // Save co-hosts if any (best-effort, don't block on failure)
+      if (data.co_hosts?.trim() && !dbError) {
+        const coHostNames = data.co_hosts.split(',').map((s) => s.trim()).filter(Boolean);
+        // We use a placeholder event_id since dataClient doesn't return the inserted id easily
+        // Store using club_handle + start_time as a composite key
+        const eventKey = `${eventRecord.club_handle}_${eventRecord.start_time}`;
+        const coHostRecords = coHostNames.map((name) => ({
+          event_id: eventKey,
+          club_id: name.toLowerCase().replace(/\s+/g, '-'),
+          club_name: name,
+        }));
+        supabase.from('event_cohosts').insert(coHostRecords).then(() => {});
       }
 
       // Success - show toast and redirect to club admin events page
@@ -492,8 +502,35 @@ export default function SubmitEvent() {
                       />
                     </div>
 
+                    {/* Co-hosts */}
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        <Users className="w-5 h-5 text-gold" />
+                        Co-hosts
+                      </h2>
+                      <FormField
+                        control={form.control}
+                        name="co_hosts"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Co-hosting Clubs</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="e.g. ACM UCSD, TESC, Design Co"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Comma-separated list of other clubs co-hosting this event (optional)
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     {/* Submit Button */}
-                    <Button 
+                    <Button
                       type="submit" 
                       variant={isProvisional ? 'outline' : 'gold'}
                       className={`w-full ${isProvisional ? 'border-yellow-500/50 text-yellow-600 hover:bg-yellow-500/10' : ''}`}

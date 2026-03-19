@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { supabase } from '@/integrations/supabase/client';
+import { dataClient } from '@/integrations/supabase/dataClient';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -272,20 +273,12 @@ export default function AdminEvents() {
 
     setBulkRejecting(true);
 
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=admin-bulk-delete`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ids: Array.from(selectedIds), reason: 'bulk_rejected' }),
-      }
-    );
+    const { error: dbError } = await dataClient
+      .from('events')
+      .delete()
+      .in('id', Array.from(selectedIds));
 
-    if (!response.ok) {
+    if (dbError) {
       toast.error('Failed to reject events');
     } else {
       toast.success(`Rejected ${selectedIds.size} events`);
@@ -298,24 +291,16 @@ export default function AdminEvents() {
 
   const fetchUnverifiedEvents = useCallback(async () => {
     setLoading(true);
-    
+
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&select=*&limit=100&filters=${encodeURIComponent(JSON.stringify({ verified: false }))}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
+      const { data, error: dbError } = await dataClient
+        .from('events')
+        .select('*')
+        .eq('verified', false)
+        .limit(100);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch');
-      }
-
-      const result = await response.json();
-      const allEvents: ExternalEvent[] = result.data || [];
+      if (dbError) throw new Error(dbError.message);
+      const allEvents: ExternalEvent[] = (data || []) as ExternalEvent[];
 
       // Filter out past events
       const now = new Date();
@@ -403,25 +388,13 @@ export default function AdminEvents() {
       updates.corrected_location = editingEvent.corrected_location.trim();
     }
 
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=admin-review`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          id: editingEvent.id,
-          record: updates,
-        }),
-      }
-    );
+    const { error: dbError } = await dataClient
+      .from('events')
+      .update(updates)
+      .eq('id', editingEvent.id);
 
-    if (!response.ok) {
-      const result = await response.json().catch(() => ({}));
-      console.error('Error approving event:', result);
+    if (dbError) {
+      console.error('Error approving event:', dbError);
       toast.error('Failed to approve event');
     } else {
       toast.success('Event approved and will now appear on calendar!');
@@ -464,21 +437,13 @@ export default function AdminEvents() {
     
     setRejecting(true);
     
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=events&action=admin-delete`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id: editingEvent.id, reason: 'rejected' }),
-      }
-    );
+    const { error: dbError } = await dataClient
+      .from('events')
+      .delete()
+      .eq('id', editingEvent.id);
 
-    if (!response.ok) {
-      console.error('Error rejecting event:', await response.json().catch(() => ({})));
+    if (dbError) {
+      console.error('Error rejecting event:', dbError);
       toast.error('Failed to reject event');
     } else {
       toast.success('Event rejected and removed');
