@@ -5,7 +5,7 @@ import { useClubOwnership } from '@/hooks/useClubOwnership';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { AdminBreadcrumb } from '@/components/club-admin/AdminBreadcrumb';
-import { LockedRecruitmentCard } from '@/components/club-admin/LockedRecruitmentCard';
+import ATSBoard from '@/components/club-admin/ATSBoard';
 import { Loader2 } from 'lucide-react';
 
 export default function ClubAdminRecruitment() {
@@ -47,12 +47,8 @@ export default function ClubAdminRecruitment() {
               { label: 'Recruitment' }
             ]} />
           </header>
-          <div className="flex-1 p-5 sm:p-7 max-w-4xl">
-            <div className="mb-6">
-              <h1 className="text-2xl font-display font-bold text-white tracking-tight">Recruitment</h1>
-              <p className="text-sm text-zinc-500 mt-1">Manage your club's applicant pipeline.</p>
-            </div>
-            <LockedRecruitmentCard clubId={clubId} />
+          <div className="flex-1 p-5 sm:p-7">
+            <ATSBoard />
           </div>
         </main>
       </div>

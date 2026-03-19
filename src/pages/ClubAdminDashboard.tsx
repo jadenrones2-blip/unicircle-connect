@@ -7,7 +7,6 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { Loader2, Plus, Calendar, Settings, CheckCircle2, AlertTriangle, XCircle, Shield } from 'lucide-react';
 import { OnboardingChecklist } from '@/components/club-admin/OnboardingChecklist';
-import { LockedRecruitmentCard } from '@/components/club-admin/LockedRecruitmentCard';
 import { motion } from 'framer-motion';
 
 function VerificationPip({ state }: { state: VerificationState }) {
@@ -169,13 +168,6 @@ export default function ClubAdminDashboard() {
               </div>
             </section>
 
-            {/* Recruitment — locked / waitlist */}
-            <section className="mb-8">
-              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-3">
-                Recruitment Infrastructure
-              </p>
-              <LockedRecruitmentCard clubId={ownedClubs[0]?.clubId ?? ''} />
-            </section>
           </div>
         </main>
       </div>

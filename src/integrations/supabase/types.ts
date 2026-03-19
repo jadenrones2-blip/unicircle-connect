@@ -1,3 +1,4 @@
+Connecting to db 5432
 export type Json =
   | string
   | number
@@ -7,10 +8,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -221,10 +242,6 @@ export type Database = {
           name: string
           proof_link: string | null
           status: string
-          token_expires_at: string | null
-          user_id: string | null
-          verification_token: string | null
-          verified_at: string | null
         }
         Insert: {
           club_id: string
@@ -235,10 +252,6 @@ export type Database = {
           name: string
           proof_link?: string | null
           status?: string
-          token_expires_at?: string | null
-          user_id?: string | null
-          verification_token?: string | null
-          verified_at?: string | null
         }
         Update: {
           club_id?: string
@@ -249,10 +262,6 @@ export type Database = {
           name?: string
           proof_link?: string | null
           status?: string
-          token_expires_at?: string | null
-          user_id?: string | null
-          verification_token?: string | null
-          verified_at?: string | null
         }
         Relationships: []
       }
@@ -340,6 +349,54 @@ export type Database = {
             | null
           verified_at?: string
           verified_domain?: string | null
+        }
+        Relationships: []
+      }
+      clubs: {
+        Row: {
+          category: string | null
+          category_bucket: string | null
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          image_url: string | null
+          instagram: string | null
+          meeting_schedule: string | null
+          name: string
+          recruiting_status: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          category?: string | null
+          category_bucket?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          instagram?: string | null
+          meeting_schedule?: string | null
+          name: string
+          recruiting_status?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          category?: string | null
+          category_bucket?: string | null
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          instagram?: string | null
+          meeting_schedule?: string | null
+          name?: string
+          recruiting_status?: string | null
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -879,6 +936,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
@@ -894,3 +954,6 @@ export const Constants = {
     },
   },
 } as const
+
+A new version of Supabase CLI is available: v2.78.1 (currently installed v2.75.0)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

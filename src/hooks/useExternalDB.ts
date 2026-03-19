@@ -108,27 +108,15 @@ export function useClubs(): UseExternalDBResult<Club> {
     setError(null);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/external-db-proxy?table=clubs&select=*&orderBy=name&orderAsc=true&limit=500`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-        }
-      );
+      const { data: rows, error: queryError } = await supabase
+        .from("clubs")
+        .select("*")
+        .order("name", { ascending: true })
+        .limit(500);
 
-      if (!response.ok) {
-        const text = await response.text().catch(() => "");
-        throw new Error(
-          text
-            ? `Failed to fetch clubs: ${response.status}`
-            : `Failed to fetch clubs: ${response.status}`
-        );
-      }
+      if (queryError) throw queryError;
 
-      const result = await response.json();
-      const clubs = (result.data || []).map(transformClub);
+      const clubs = (rows || []).map((record: Record<string, unknown>) => transformClub(record));
       setData(clubs);
     } catch (err) {
       console.error("Error fetching clubs:", err);
