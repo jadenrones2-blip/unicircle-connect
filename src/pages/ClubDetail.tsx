@@ -29,7 +29,7 @@ import { useClubOwnership } from "@/hooks/useClubOwnership";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
 import { dataClient } from "@/integrations/supabase/dataClient";
-import { supabase } from "@/integrations/supabase/client";
+import { dataClient as supabase } from "@/integrations/supabase/dataClient";
 import { ExternalEvent } from "@/hooks/useExternalEvents";
 import { EventDetailModal } from "@/components/calendar/EventDetailModal";
 import { formatEventDate, formatEventTime } from "@/lib/formatters";

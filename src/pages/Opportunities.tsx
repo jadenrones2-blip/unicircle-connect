@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, ExternalLink, Clock, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { supabase } from "@/integrations/supabase/client";
+import { dataClient as supabase } from "@/integrations/supabase/dataClient";
 
 interface Opportunity {
   id: string;

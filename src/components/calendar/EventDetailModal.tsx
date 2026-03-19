@@ -10,7 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
-import { supabase } from '@/integrations/supabase/client';
+import { dataClient as supabase } from '@/integrations/supabase/dataClient';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
