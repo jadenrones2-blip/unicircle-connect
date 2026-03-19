@@ -8,6 +8,9 @@ interface ClubCardProps {
   club: Club;
   isSaved?: boolean;
   onToggleSave?: (clubId: string) => void;
+  matchScore?: number;
+  compareSelected?: boolean;
+  onToggleCompare?: (clubId: string) => void;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -31,7 +34,7 @@ function getCategoryColor(category: string): string {
   return CATEGORY_COLORS[key] ?? 'hsl(43 74% 56%)'; // default gold
 }
 
-const ClubCardComponent = ({ club, isSaved, onToggleSave }: ClubCardProps) => {
+const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, compareSelected, onToggleCompare }: ClubCardProps) => {
   const categoryColor = getCategoryColor(club.categoryBucket || club.category || '');
 
   return (
@@ -58,6 +61,11 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave }: ClubCardProps) => {
               {club.categoryBucket || club.category || 'Club'}
             </span>
             <div className="flex items-center gap-2">
+              {matchScore !== undefined && matchScore > 0 && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20">
+                  {matchScore}% match
+                </span>
+              )}
               {club.recruitingStatus === 'open' && (
                 <span className="text-[10px] font-medium text-green-500 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
@@ -79,6 +87,15 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave }: ClubCardProps) => {
                   <Heart
                     className={`w-3.5 h-3.5 ${isSaved ? 'fill-red-500 text-red-500' : 'text-zinc-600 hover:text-zinc-300'}`}
                   />
+                </button>
+              )}
+              {onToggleCompare && (
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleCompare(club.id); }}
+                  className={`text-[10px] font-medium px-1.5 py-0.5 rounded border transition-colors ${compareSelected ? 'bg-white/10 text-white border-white/30' : 'text-zinc-600 border-zinc-700 hover:text-zinc-300 hover:border-zinc-500'}`}
+                  aria-label={compareSelected ? "Remove from compare" : "Add to compare"}
+                >
+                  {compareSelected ? '✓ Compare' : '+ Compare'}
                 </button>
               )}
             </div>

@@ -5,11 +5,15 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
 import RequestNewClubModal from "@/components/RequestNewClubModal";
+import CompareBar from "@/components/CompareBar";
+import RecommendationChat from "@/components/RecommendationChat";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClubs } from "@/hooks/useExternalDB";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
+import { useUserInterests } from "@/hooks/useUserInterests";
+import { calculateMatchScore } from "@/lib/clubRecommendations";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -68,10 +72,21 @@ const ClubsDirectory = () => {
   const { data: clubs, loading, error } = useClubs();
   const { user } = useAuth();
   const { savedClubs, fetchSavedClubs, saveClub, unsaveClub, isSaved } = useSavedClubs();
+  const { fetchInterests } = useUserInterests();
+  const [interestValues, setInterestValues] = useState<string[]>([]);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) fetchSavedClubs(user.id);
   }, [user, fetchSavedClubs]);
+
+  useEffect(() => {
+    if (user) {
+      fetchInterests(user.id).then((data) => {
+        if (data) setInterestValues(data.map((i) => i.interest_value));
+      });
+    }
+  }, [user, fetchInterests]);
 
   const handleToggleSave = async (clubId: string) => {
     if (!user) {
@@ -149,6 +164,38 @@ const ClubsDirectory = () => {
   };
 
   const hasActiveFilters = searchText || selectedCategory !== "All" || recruitingOnly;
+
+  // Match scores per club (only computed when user has interests)
+  const matchScores = useMemo(() => {
+    if (!interestValues.length) return {} as Record<string, number>;
+    const scores: Record<string, number> = {};
+    for (const club of filteredClubs) {
+      const score = calculateMatchScore(club, interestValues);
+      if (score > 0) scores[club.id] = score;
+    }
+    return scores;
+  }, [filteredClubs, interestValues]);
+
+  // Club names map for CompareBar
+  const compareClubNames = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const id of compareIds) {
+      const club = clubs.find((c) => c.id === id);
+      if (club) map[id] = club.name;
+    }
+    return map;
+  }, [compareIds, clubs]);
+
+  const handleToggleCompare = (clubId: string) => {
+    setCompareIds((prev) => {
+      if (prev.includes(clubId)) return prev.filter((id) => id !== clubId);
+      if (prev.length >= 4) {
+        toast.error('You can compare up to 4 clubs at a time');
+        return prev;
+      }
+      return [...prev, clubId];
+    });
+  };
 
   return (
     <main className="min-h-screen bg-[#0A0A0A] dark">
@@ -306,6 +353,9 @@ const ClubsDirectory = () => {
                           club={club}
                           isSaved={isSaved(club.id)}
                           onToggleSave={handleToggleSave}
+                          matchScore={matchScores[club.id]}
+                          compareSelected={compareIds.includes(club.id)}
+                          onToggleCompare={handleToggleCompare}
                         />
                       </motion.div>
                     ))}
@@ -343,6 +393,15 @@ const ClubsDirectory = () => {
       </section>
 
       <Footer />
+
+      <CompareBar
+        selectedIds={compareIds}
+        clubNames={compareClubNames}
+        onRemove={handleToggleCompare}
+        onClear={() => setCompareIds([])}
+      />
+
+      <RecommendationChat clubs={clubs} />
     </main>
   );
 };

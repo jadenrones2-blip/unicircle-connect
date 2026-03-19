@@ -13,7 +13,8 @@ import {
   Mail,
   Instagram,
   Globe,
-  Settings
+  Settings,
+  Star,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -28,9 +29,47 @@ import { useClubOwnership } from "@/hooks/useClubOwnership";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
 import { dataClient } from "@/integrations/supabase/dataClient";
+import { supabase } from "@/integrations/supabase/client";
 import { ExternalEvent } from "@/hooks/useExternalEvents";
 import { EventDetailModal } from "@/components/calendar/EventDetailModal";
 import { formatEventDate, formatEventTime } from "@/lib/formatters";
+
+interface ClubReview {
+  id: string;
+  club_id: string;
+  user_id: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
+}
+
+const StarRating = ({
+  rating,
+  onRate,
+  readOnly = false,
+}: {
+  rating: number;
+  onRate?: (r: number) => void;
+  readOnly?: boolean;
+}) => (
+  <div className="flex gap-0.5">
+    {[1, 2, 3, 4, 5].map((star) => (
+      <button
+        key={star}
+        type="button"
+        disabled={readOnly}
+        onClick={() => onRate?.(star)}
+        className={`${readOnly ? 'cursor-default' : 'cursor-pointer hover:scale-110 transition-transform'}`}
+        aria-label={`${star} star${star !== 1 ? 's' : ''}`}
+      >
+        <Star
+          className={`w-5 h-5 ${star <= rating ? 'text-gold' : 'text-zinc-600'}`}
+          fill={star <= rating ? 'currentColor' : 'none'}
+        />
+      </button>
+    ))}
+  </div>
+);
 
 const ClubDetail = () => {
   const { id } = useParams();
@@ -45,6 +84,14 @@ const ClubDetail = () => {
 
   const [clubEvents, setClubEvents] = useState<ExternalEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
+
+  // Reviews state
+  const [reviews, setReviews] = useState<ClubReview[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewBody, setReviewBody] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [userReview, setUserReview] = useState<ClubReview | null>(null);
 
   useEffect(() => {
     if (user) fetchSavedClubs(user.id);
@@ -110,6 +157,65 @@ const ClubDetail = () => {
   useEffect(() => {
     if (club !== undefined) fetchClubEvents();
   }, [club, fetchClubEvents]);
+
+  const fetchReviews = useCallback(async () => {
+    if (!id) return;
+    setReviewsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('club_reviews')
+        .select('*')
+        .eq('club_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) { setReviews([]); return; }
+
+      const fetched = (data || []) as ClubReview[];
+      setReviews(fetched);
+
+      if (user) {
+        const mine = fetched.find((r) => r.user_id === user.id) || null;
+        setUserReview(mine);
+        if (mine) { setReviewRating(mine.rating); setReviewBody(mine.body || ''); }
+      }
+    } catch {
+      setReviews([]);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [id, user]);
+
+  useEffect(() => {
+    if (club !== undefined) fetchReviews();
+  }, [club, fetchReviews]);
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) { toast.error('Please log in to write a review'); return; }
+    if (reviewRating === 0) { toast.error('Please select a star rating'); return; }
+    if (!id) return;
+    setReviewSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('club_reviews')
+        .upsert(
+          { club_id: id, user_id: user.id, rating: reviewRating, body: reviewBody.trim() || null },
+          { onConflict: 'club_id,user_id' }
+        );
+      if (error) throw error;
+      toast.success(userReview ? 'Review updated!' : 'Review submitted!');
+      await fetchReviews();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to submit review';
+      toast.error(message);
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const averageRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
 
   // Refetch events when user returns to this tab
   useEffect(() => {
@@ -340,6 +446,9 @@ const ClubDetail = () => {
               <TabsTrigger value="events">
                 Events ({eventsLoading ? "..." : clubEvents.length})
               </TabsTrigger>
+              <TabsTrigger value="reviews">
+                Reviews{reviews.length > 0 ? ` (${reviews.length})` : ''}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="about">
@@ -442,6 +551,93 @@ const ClubDetail = () => {
                   <p className="text-muted-foreground">Check back soon for new events!</p>
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="reviews">
+              <div className="max-w-2xl mx-auto space-y-6">
+                {/* Average rating */}
+                {averageRating && (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-zinc-900 border border-white/10">
+                    <span className="text-4xl font-display font-bold text-gold">{averageRating}</span>
+                    <div>
+                      <StarRating rating={Math.round(Number(averageRating))} readOnly />
+                      <p className="text-sm text-zinc-400 mt-1">
+                        {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Review list */}
+                {reviewsLoading ? (
+                  <div className="flex flex-col items-center py-8">
+                    <Loader2 className="w-6 h-6 text-gold animate-spin mb-3" />
+                    <p className="text-zinc-400 text-sm">Loading reviews...</p>
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <div className="text-center py-8 border border-white/10 rounded-xl bg-zinc-900">
+                    <Star className="w-10 h-10 text-zinc-600 mx-auto mb-3" />
+                    <p className="text-zinc-300 font-medium">No reviews yet</p>
+                    <p className="text-zinc-500 text-sm mt-1">Be the first to review this club</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="p-4 rounded-xl bg-zinc-900 border border-white/10">
+                        <div className="flex items-center justify-between mb-2">
+                          <StarRating rating={review.rating} readOnly />
+                          <span className="text-xs text-zinc-500">
+                            {new Date(review.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
+                        <p className="text-sm text-zinc-400 font-medium mb-1">Anonymous</p>
+                        {review.body && (
+                          <p className="text-sm text-zinc-300 leading-relaxed">{review.body}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Write / Edit review form */}
+                <div className="p-5 rounded-xl bg-zinc-900 border border-white/10">
+                  <h3 className="font-display font-semibold text-zinc-100 mb-4">
+                    {userReview ? 'Edit your review' : 'Write a Review'}
+                  </h3>
+                  {!user ? (
+                    <p className="text-zinc-400 text-sm">
+                      <Link to="/login" className="text-gold hover:underline">Log in</Link> to write a review.
+                    </p>
+                  ) : (
+                    <form onSubmit={handleSubmitReview} className="space-y-4">
+                      <div>
+                        <label className="block text-sm text-zinc-400 mb-2">Rating</label>
+                        <StarRating rating={reviewRating} onRate={setReviewRating} />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-zinc-400 mb-2">Review (optional)</label>
+                        <textarea
+                          value={reviewBody}
+                          onChange={(e) => setReviewBody(e.target.value)}
+                          rows={3}
+                          placeholder="Share your experience with this club..."
+                          className="w-full rounded-lg bg-zinc-800 border border-white/10 text-zinc-100 placeholder-zinc-500 px-3 py-2 text-sm focus:outline-none focus:border-gold/50 resize-none"
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        variant="gold"
+                        size="sm"
+                        disabled={reviewSubmitting || reviewRating === 0}
+                        className="gap-2"
+                      >
+                        {reviewSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                        {userReview ? 'Update Review' : 'Submit Review'}
+                      </Button>
+                    </form>
+                  )}
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

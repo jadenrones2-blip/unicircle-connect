@@ -24,6 +24,9 @@ import ClubAdminDashboard from "./pages/ClubAdminDashboard";
 import ClubAdminEvents from "./pages/ClubAdminEvents";
 import ClubAdminEdit from "./pages/ClubAdminEdit";
 import ClubAdminRecruitment from "./pages/ClubAdminRecruitment";
+import ClubAdminAnalytics from "./pages/ClubAdminAnalytics";
+import ClubCompare from "./pages/ClubCompare";
+import Opportunities from "./pages/Opportunities";
 import AdminOnboarding from "./pages/AdminOnboarding";
 import AdminProfileSettings from "./pages/AdminProfileSettings";
 import TermsOfService from "./pages/TermsOfService";
@@ -54,6 +57,8 @@ const App = () => (
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/clubs" element={<ClubsDirectory />} />
+          <Route path="/clubs/compare" element={<ClubCompare />} />
+          <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/clubs/:id" element={<ClubDetail />} />
           <Route path="/events" element={<CalendarApp />} />
           <Route path="/calendar" element={<CalendarApp />} />
@@ -65,6 +70,7 @@ const App = () => (
           <Route path="/club-admin/clubs/:clubId/events" element={<ClubAdminEvents />} />
           <Route path="/club-admin/clubs/:clubId/edit" element={<ClubAdminEdit />} />
           <Route path="/club-admin/clubs/:clubId/recruitment" element={<ClubAdminRecruitment />} />
+          <Route path="/club-admin/clubs/:clubId/analytics" element={<ClubAdminAnalytics />} />
           <Route path="/club-admin/profile" element={<AdminProfileSettings />} />
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
           <Route path="/auth/callback" element={<AuthCallback />} />

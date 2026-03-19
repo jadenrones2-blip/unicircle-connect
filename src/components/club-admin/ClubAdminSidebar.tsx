@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, User, Users } from 'lucide-react';
+import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, User, Users, BarChart2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
@@ -157,6 +157,22 @@ export function ClubAdminSidebar() {
                         >
                           <Calendar className="w-4 h-4" />
                           {!collapsed && <span>Events</span>}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link
+                          to={`/club-admin/clubs/${club.clubId}/analytics`}
+                          className={cn(
+                            'flex items-center gap-2 px-3 py-2 rounded-md transition-colors',
+                            location.pathname === `/club-admin/clubs/${club.clubId}/analytics`
+                              ? 'bg-gold/10 text-gold'
+                              : 'hover:bg-muted'
+                          )}
+                        >
+                          <BarChart2 className="w-4 h-4" />
+                          {!collapsed && <span>Analytics</span>}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
