@@ -35,6 +35,20 @@ interface CalendarEvent {
   };
 }
 
+// Check if a string looks like JSON error data
+function isErrorData(text: string | null): boolean {
+  if (!text) return false;
+  return text.startsWith('{"') || text.startsWith('{\"') || text.includes('"error"');
+}
+
+// Get a clean display title — fall back to club_handle if title is error data
+function getDisplayTitle(event: ExternalEvent): string {
+  if (isErrorData(event.title)) {
+    return event.club_handle ? `@${event.club_handle}` : 'Event';
+  }
+  return event.title;
+}
+
 export default function ClubsCalendar() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [rawEvents, setRawEvents] = useState<ExternalEvent[]>([]);
@@ -64,22 +78,6 @@ export default function ClubsCalendar() {
         end_time: event.corrected_end_time || event.end_time,
         location: event.corrected_location || event.location,
       }));
-      
-      // setRawEvents moved to after dedup below
-      
-      // Helper to check if text is JSON error data
-      const isErrorData = (text: string | null): boolean => {
-        if (!text) return false;
-        return text.startsWith('{"') || text.startsWith('{\"') || text.includes('"error"');
-      };
-
-      // Get clean display title - fall back to club_handle if title is error data
-      const getDisplayTitle = (event: ExternalEvent): string => {
-        if (isErrorData(event.title)) {
-          return event.club_handle ? `@${event.club_handle}` : 'Event';
-        }
-        return event.title;
-      };
       
       // Deduplicate by normalized title
       const seen = new Set<string>();
@@ -199,20 +197,6 @@ export default function ClubsCalendar() {
     }
   };
 
-  // Helper to check if text is JSON error data (for list view)
-  const isErrorData = (text: string | null): boolean => {
-    if (!text) return false;
-    return text.startsWith('{"') || text.startsWith('{\"') || text.includes('"error"');
-  };
-
-  // Get clean display title for list view
-  const getListDisplayTitle = (event: ExternalEvent): string => {
-    if (isErrorData(event.title)) {
-      return event.club_handle ? `@${event.club_handle}` : 'Event';
-    }
-    return event.title;
-  };
-
   return (
     <div className="clubs-calendar space-y-8">
       {/* Search Bar */}
@@ -290,7 +274,7 @@ export default function ClubsCalendar() {
                         setIsModalOpen(true);
                       }}
                     >
-                      <TableCell className="font-medium text-white">{getListDisplayTitle(event)}</TableCell>
+                      <TableCell className="font-medium text-white">{getDisplayTitle(event)}</TableCell>
                       <TableCell>
                         {event.club_handle ? (
                           <span className="text-gold">@{event.club_handle}</span>
@@ -318,7 +302,7 @@ export default function ClubsCalendar() {
                   }}
                 >
                   <div className="flex justify-between items-start gap-2 mb-2">
-                    <h4 className="font-semibold text-foreground line-clamp-1">{getListDisplayTitle(event)}</h4>
+                    <h4 className="font-semibold text-foreground line-clamp-1">{getDisplayTitle(event)}</h4>
                     <span className="text-xs font-medium text-gold whitespace-nowrap">
                       {formatEventTime(event.start_time)}
                     </span>

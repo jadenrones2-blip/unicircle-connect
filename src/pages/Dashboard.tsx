@@ -173,6 +173,9 @@ export default function Dashboard() {
           interestsData.map((i) => ({ category: i.interest_category, value: i.interest_value }))
         );
         setInterestsLoading(false);
+      }).catch((err) => {
+        console.error('Failed to load dashboard data:', err);
+        setInterestsLoading(false);
       });
     }
   }, [user, fetchInterests, fetchMemberships, fetchApplications, fetchSavedClubs]);
@@ -193,8 +196,8 @@ export default function Dashboard() {
           .order('start_time', { ascending: true })
           .limit(10);
         setUpcomingEvents((data || []) as ExternalEvent[]);
-      } catch {
-        // silent
+      } catch (err) {
+        console.error('Failed to load upcoming events:', err);
       } finally {
         setEventsLoading(false);
       }
