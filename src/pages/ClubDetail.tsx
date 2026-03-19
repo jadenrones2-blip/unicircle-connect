@@ -66,14 +66,6 @@ const ClubDetail = () => {
     setEventsLoading(true);
     try {
       const now = new Date().toISOString();
-      // Try club_id match first
-      let query = dataClient
-        .from('events')
-        .select('*')
-        .eq('verified', true)
-        .gte('start_time', now)
-        .order('start_time', { ascending: true })
-        .limit(20);
 
       // Fetch by club_id
       const { data: byId } = await dataClient

@@ -41,8 +41,12 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
 
   const buildGoogleCalendarUrl = () => {
     const toGCal = (iso: string) => {
-      // Format: 20231231T120000Z
-      return iso.replace(/[-:]/g, '').replace(/\.\d{3}/, '').replace(/\+\d{4}/, 'Z');
+      // Convert to UTC then format as 20231231T120000Z
+      try {
+        return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+      } catch {
+        return '';
+      }
     };
     const title = encodeURIComponent(displayTitle);
     const start = toGCal(event.start_time);
