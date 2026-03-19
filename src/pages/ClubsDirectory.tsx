@@ -38,10 +38,32 @@ const normalizeText = (value: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
+const LS_KEY = 'clubs_filters';
+
+function loadFilters() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as { search: string; category: string; recruiting: boolean };
+  } catch { return null; }
+}
+
 const ClubsDirectory = () => {
-  const [searchText, setSearchText] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [recruitingOnly, setRecruitingOnly] = useState(false);
+  const saved = loadFilters();
+  const [searchText, setSearchText] = useState(saved?.search ?? "");
+  const [selectedCategory, setSelectedCategory] = useState(saved?.category ?? "All");
+  const [recruitingOnly, setRecruitingOnly] = useState(saved?.recruiting ?? false);
+
+  // Persist filters to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        search: searchText,
+        category: selectedCategory,
+        recruiting: recruitingOnly,
+      }));
+    } catch { /* storage full or unavailable */ }
+  }, [searchText, selectedCategory, recruitingOnly]);
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
   const { user } = useAuth();

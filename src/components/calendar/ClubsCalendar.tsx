@@ -7,8 +7,9 @@ import { EventClickArg } from '@fullcalendar/core';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
 import { Loader2, Calendar, MapPin, Search, X } from 'lucide-react';
-import { format } from 'date-fns';
 import { dataClient } from '@/integrations/supabase/dataClient';
+import { formatEventDate, formatEventTime } from '@/lib/formatters';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -68,7 +69,10 @@ export default function ClubsCalendar() {
         .order('start_time', { ascending: true })
         .limit(500);
 
-      if (dbError) return;
+      if (dbError) {
+        toast.error('Failed to load events. Please refresh the page.');
+        return;
+      }
 
       // Apply coalesce logic for corrected fields
       const processedEvents = (data as ExternalEvent[]).map(event => ({
@@ -180,22 +184,6 @@ export default function ClubsCalendar() {
       </div>
     );
   }
-
-  const formatEventDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'EEE, MMM d');
-    } catch {
-      return dateString;
-    }
-  };
-
-  const formatEventTime = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'h:mm a');
-    } catch {
-      return dateString;
-    }
-  };
 
   return (
     <div className="clubs-calendar space-y-8">

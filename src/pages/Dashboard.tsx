@@ -34,7 +34,7 @@ import type { Club } from '@/data/mockData';
 import { dataClient } from '@/integrations/supabase/dataClient';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from '@/components/calendar/EventDetailModal';
-import { format, parseISO } from 'date-fns';
+import { formatEventDateTimeShort } from '@/lib/formatters';
 
 // Mapping from quiz answers to club categories/tags
 const interestToClubMapping: Record<string, string[]> = {
@@ -407,7 +407,6 @@ export default function Dashboard() {
                   const title = event.corrected_title || event.title;
                   const startTime = event.corrected_start_time || event.start_time;
                   const location = event.corrected_location || event.location;
-                  const startDate = parseISO(startTime);
                   return (
                     <div
                       key={event.id}
@@ -419,7 +418,7 @@ export default function Dashboard() {
                         <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {format(startDate, 'MMM d, h:mm a')}
+                            {formatEventDateTimeShort(startTime)}
                           </span>
                           {location && (
                             <span className="flex items-center gap-1">

@@ -89,7 +89,7 @@ export function useClubs(): UseExternalDBResult<Club> {
         .from('clubs')
         .select('*')
         .order('name', { ascending: true })
-        .limit(500);
+        .limit(1000);
 
       if (dbError) throw new Error(dbError.message);
 

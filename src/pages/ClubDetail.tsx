@@ -30,7 +30,7 @@ import { useSavedClubs } from "@/hooks/useSavedClubs";
 import { dataClient } from "@/integrations/supabase/dataClient";
 import { ExternalEvent } from "@/hooks/useExternalEvents";
 import { EventDetailModal } from "@/components/calendar/EventDetailModal";
-import { format, parseISO } from "date-fns";
+import { formatEventDate, formatEventTime } from "@/lib/formatters";
 
 const ClubDetail = () => {
   const { id } = useParams();
@@ -110,6 +110,17 @@ const ClubDetail = () => {
   useEffect(() => {
     if (club !== undefined) fetchClubEvents();
   }, [club, fetchClubEvents]);
+
+  // Refetch events when user returns to this tab
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && club !== undefined) {
+        fetchClubEvents();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [fetchClubEvents, club]);
 
   // Check if club has real contact info
   const hasContactInfo = club?.email || club?.instagram || club?.website;
@@ -388,7 +399,6 @@ const ClubDetail = () => {
                     const title = event.corrected_title || event.title;
                     const startTime = event.corrected_start_time || event.start_time;
                     const location = event.corrected_location || event.location;
-                    const startDate = parseISO(startTime);
                     return (
                       <motion.div
                         key={event.id}
@@ -403,11 +413,11 @@ const ClubDetail = () => {
                           <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
-                              {format(startDate, 'MMMM d, yyyy')}
+                              {formatEventDate(startTime)}
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
-                              {format(startDate, 'h:mm a')}
+                              {formatEventTime(startTime)}
                             </span>
                             {location && (
                               <span className="flex items-center gap-1">
