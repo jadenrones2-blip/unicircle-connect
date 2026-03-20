@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Upload, X, Loader2, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { dataClient } from "@/integrations/supabase/dataClient";
 import { toast } from "sonner";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
@@ -39,15 +39,15 @@ export function ClubImageUpload({ clubId, currentImageUrl, onImageUploaded }: Cl
       const fileExt = file.name.split(".").pop();
       const fileName = `${clubId}/cover.${fileExt}`;
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      // Upload to external DB storage
+      const { error: uploadError } = await dataClient.storage
         .from("club-images")
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = dataClient.storage
         .from("club-images")
         .getPublicUrl(fileName);
 
