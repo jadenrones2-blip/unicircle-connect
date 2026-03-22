@@ -178,7 +178,7 @@ export default function SubmitEvent() {
           club_id: name.toLowerCase().replace(/\s+/g, '-'),
           club_name: name,
         }));
-        supabase.from('event_cohosts').insert(coHostRecords).then(() => {});
+        (supabase as any).from('event_cohosts').insert(coHostRecords).then(() => {});
       }
 
       // Success - show toast and redirect to club admin events page

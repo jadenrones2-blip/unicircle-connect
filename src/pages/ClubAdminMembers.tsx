@@ -73,14 +73,24 @@ const STATUS_COLORS: Record<string, string> = {
 
 const YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Other'] as const;
 
-const defaultForm = {
+const defaultForm: {
+  name: string;
+  email: string;
+  pid: string;
+  major: string;
+  year: string;
+  status: 'active' | 'inactive' | 'alumni';
+  role: 'member' | 'officer';
+  joined_at: string;
+  notes: string;
+} = {
   name: '',
   email: '',
   pid: '',
   major: '',
   year: '',
-  status: 'active' as const,
-  role: 'member' as const,
+  status: 'active',
+  role: 'member',
   joined_at: '',
   notes: '',
 };
