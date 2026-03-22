@@ -204,43 +204,26 @@ export function RecruitmentKanban({
               <AddApplicantDialog onAdd={onAddApplicant} />
             </>
           )}
-          <div className="flex border rounded-md">
-            <Button
-              variant={activeView === 'kanban' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="rounded-r-none"
-              onClick={() => setActiveView('kanban')}
-              title="Kanban Board"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={activeView === 'table' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="rounded-none border-x"
-              onClick={() => setActiveView('table')}
-              title="Table View"
-            >
-              <Table className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={activeView === 'form' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="rounded-none border-r"
-              onClick={() => setActiveView('form')}
-              title="Application Form"
-            >
-              <FileText className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={activeView === 'settings' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="rounded-l-none"
-              onClick={() => setActiveView('settings')}
-              title="Screening Settings"
-            >
-              <Settings2 className="w-4 h-4" />
-            </Button>
+          <div className="flex border border-white/15 rounded-md">
+            {([
+              { view: 'kanban', icon: <LayoutGrid className="w-4 h-4" />, title: 'Kanban Board' },
+              { view: 'table',  icon: <Table className="w-4 h-4" />,      title: 'Table View' },
+              { view: 'form',   icon: <FileText className="w-4 h-4" />,   title: 'Application Form' },
+              { view: 'settings', icon: <Settings2 className="w-4 h-4" />, title: 'Screening Settings' },
+            ] as const).map(({ view, icon, title }, i, arr) => (
+              <button
+                key={view}
+                title={title}
+                onClick={() => setActiveView(view)}
+                className={`px-3 py-1.5 transition-colors ${
+                  activeView === view
+                    ? 'bg-white/10 text-white'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                } ${i === 0 ? 'rounded-l-md' : ''} ${i === arr.length - 1 ? 'rounded-r-md' : 'border-r border-white/15'}`}
+              >
+                {icon}
+              </button>
+            ))}
           </div>
         </div>
       </div>

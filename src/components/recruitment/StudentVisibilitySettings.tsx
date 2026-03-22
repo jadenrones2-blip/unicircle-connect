@@ -61,7 +61,7 @@ export function StudentVisibilitySettings({ clubId, settings, onUpdate }: Studen
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2 border-white/15 text-zinc-300 hover:text-white hover:bg-white/5">
           <Eye className="h-4 w-4" />
           Student Visibility
         </Button>

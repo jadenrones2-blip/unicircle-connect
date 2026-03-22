@@ -379,7 +379,7 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="border-white/15 text-zinc-300 hover:text-white hover:bg-white/5">
           <Upload className="w-4 h-4 mr-2" />
           Smart Import
         </Button>
