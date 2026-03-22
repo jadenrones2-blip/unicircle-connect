@@ -112,9 +112,10 @@ export function useRecruitment(clubId: string | undefined) {
     }
     
     // Cast metadata to our expected type
-    const typedApplicants: Applicant[] = (data || []).map((row) => ({
+    const typedApplicants: Applicant[] = (data || []).map((row: any) => ({
       ...row,
       metadata: (row.metadata as Record<string, string>) || null,
+      final_decision: row.final_decision ?? null,
     }));
     
     setApplicants(typedApplicants);
