@@ -7,9 +7,10 @@ interface StageColumnProps {
   stage: RecruitmentStage;
   applicants: Applicant[];
   onDeleteApplicant: (id: string) => void;
+  onOpenDrawer?: (applicant: Applicant) => void;
 }
 
-export function StageColumn({ stage, applicants, onDeleteApplicant }: StageColumnProps) {
+export function StageColumn({ stage, applicants, onDeleteApplicant, onOpenDrawer }: StageColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
@@ -41,6 +42,7 @@ export function StageColumn({ stage, applicants, onDeleteApplicant }: StageColum
                 key={applicant.id}
                 applicant={applicant}
                 onDelete={onDeleteApplicant}
+                onOpen={onOpenDrawer}
               />
             ))}
             {applicants.length === 0 && (

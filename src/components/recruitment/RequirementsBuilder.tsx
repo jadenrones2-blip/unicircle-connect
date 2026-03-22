@@ -64,6 +64,7 @@ export function RequirementsBuilder({ clubId }: RequirementsBuilderProps) {
 
   // AI criteria form state
   const [aiCriterion, setAiCriterion] = useState('');
+  const [aiWeight, setAiWeight] = useState(3);
 
   const handleAddStrictFilter = async () => {
     setSaving(true);
@@ -89,10 +90,11 @@ export function RequirementsBuilder({ clubId }: RequirementsBuilderProps) {
     if (!aiCriterion.trim()) return;
     setSaving(true);
 
-    const success = await addRequirement('ai', 'look_for', { description: aiCriterion });
+    const success = await addRequirement('ai', 'look_for', { description: aiCriterion, weight: aiWeight });
     if (success) {
       setAddAIOpen(false);
       setAiCriterion('');
+      setAiWeight(3);
     }
     setSaving(false);
   };
@@ -360,6 +362,11 @@ export function RequirementsBuilder({ clubId }: RequirementsBuilderProps) {
                       <p className="text-sm">
                         {(criteria.value as { description: string }).description}
                       </p>
+                      {(criteria.value as { weight?: number }).weight && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Weight: {(criteria.value as { weight: number }).weight}/5
+                        </p>
+                      )}
                     </div>
                     <Button
                       variant="ghost"
@@ -401,6 +408,22 @@ export function RequirementsBuilder({ clubId }: RequirementsBuilderProps) {
                     <p className="text-xs text-muted-foreground">
                       Be specific! The more detailed your criteria, the better the AI screening.
                     </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Weight <span className="text-muted-foreground font-normal">({aiWeight}/5)</span></Label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={5}
+                      step={1}
+                      value={aiWeight}
+                      onChange={(e) => setAiWeight(Number(e.target.value))}
+                      className="w-full accent-yellow-500"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Low priority</span>
+                      <span>High priority</span>
+                    </div>
                   </div>
                 </div>
 

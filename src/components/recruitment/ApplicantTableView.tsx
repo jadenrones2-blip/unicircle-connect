@@ -55,6 +55,7 @@ interface ApplicantTableViewProps {
   onMoveApplicant: (applicantId: string, newStageId: string, clubName?: string) => Promise<boolean>;
   onDeleteApplicant: (id: string) => Promise<boolean>;
   onRefresh: () => Promise<void>;
+  onOpenDrawer?: (applicant: Applicant) => void;
 }
 
 type SortField = 'name' | 'fit_score' | 'created_at';
@@ -68,6 +69,7 @@ export function ApplicantTableView({
   onMoveApplicant,
   onDeleteApplicant,
   onRefresh,
+  onOpenDrawer,
 }: ApplicantTableViewProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [screening, setScreening] = useState(false);
@@ -442,7 +444,13 @@ export function ApplicantTableView({
                 return (
                   <TableRow
                     key={applicant.id}
-                    className={selectedIds.has(applicant.id) ? 'bg-primary/5' : ''}
+                    className={`${selectedIds.has(applicant.id) ? 'bg-primary/5' : ''} ${onOpenDrawer ? 'cursor-pointer hover:bg-muted/30' : ''}`}
+                    onClick={(e) => {
+                      // Don't open drawer if clicking checkbox or buttons
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button, input, [role="menuitem"], [data-radix-collection-item]')) return;
+                      onOpenDrawer?.(applicant);
+                    }}
                   >
                     <TableCell>
                       <Checkbox

@@ -21,9 +21,10 @@ import type { Applicant } from '@/hooks/useRecruitment';
 interface ApplicantCardProps {
   applicant: Applicant;
   onDelete: (id: string) => void;
+  onOpen?: (applicant: Applicant) => void;
 }
 
-export function ApplicantCard({ applicant, onDelete }: ApplicantCardProps) {
+export function ApplicantCard({ applicant, onDelete, onOpen }: ApplicantCardProps) {
   const {
     attributes,
     listeners,
@@ -68,9 +69,10 @@ export function ApplicantCard({ applicant, onDelete }: ApplicantCardProps) {
     <Card
       ref={setNodeRef}
       style={style}
+      onClick={() => !isDragging && onOpen?.(applicant)}
       className={`p-3 bg-card border-border/50 transition-shadow ${
         isDragging ? 'shadow-lg opacity-90 z-50' : 'hover:shadow-sm'
-      }`}
+      } ${onOpen ? 'cursor-pointer' : ''}`}
     >
       <div className="flex items-start gap-2">
         <button

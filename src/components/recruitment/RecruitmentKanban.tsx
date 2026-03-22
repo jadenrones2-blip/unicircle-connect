@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   DndContext,
   DragEndEvent,
@@ -11,7 +13,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Settings2, LayoutGrid, Table } from 'lucide-react';
+import { Settings2, LayoutGrid, Table, FileText } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,7 +24,9 @@ import { CSVDataMapper } from './CSVDataMapper';
 import { ApplicantTableView } from './ApplicantTableView';
 import { RequirementsBuilder } from './RequirementsBuilder';
 import { StudentVisibilitySettings } from './StudentVisibilitySettings';
-import type { RecruitmentStage, Applicant, RecruitmentSettings } from '@/hooks/useRecruitment';
+import { FormBuilder } from './FormBuilder';
+import { ApplicantDetailDrawer } from './ApplicantDetailDrawer';
+import type { RecruitmentStage, Applicant, RecruitmentSettings, FormQuestion } from '@/hooks/useRecruitment';
 
 interface RecruitmentKanbanProps {
   clubId: string;
@@ -49,6 +53,10 @@ interface RecruitmentKanbanProps {
   }[]) => Promise<{ success: number; failed: number }>;
   onDeleteApplicant: (id: string) => Promise<boolean>;
   onRefresh: () => Promise<void>;
+  fetchForm: () => Promise<FormQuestion[]>;
+  saveForm: (questions: FormQuestion[]) => Promise<boolean>;
+  onUpdateFinalDecision: (id: string, decision: string) => Promise<boolean>;
+  onUpdateNotes: (id: string, notes: string) => Promise<boolean>;
 }
 
 export function RecruitmentKanban({
@@ -62,8 +70,57 @@ export function RecruitmentKanban({
   onBulkAddApplicants,
   onDeleteApplicant,
   onRefresh,
+  fetchForm,
+  saveForm,
+  onUpdateFinalDecision,
+  onUpdateNotes,
 }: RecruitmentKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Applicant detail drawer
+  const [drawerApplicant, setDrawerApplicant] = useState<Applicant | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [formQuestions, setFormQuestions] = useState<FormQuestion[]>([]);
+
+  // Load form questions once (for drawer to display responses with labels)
+  useEffect(() => {
+    fetchForm().then(setFormQuestions).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clubId]);
+
+  const openDrawer = (applicant: Applicant) => {
+    setDrawerApplicant(applicant);
+    setDrawerOpen(true);
+  };
+
+  const handleRunAISingleApplicant = async (applicantId: string) => {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session) { toast.error('Please log in'); return; }
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-screen-applicants`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.session.access_token}`,
+          },
+          body: JSON.stringify({ club_id: clubId, applicant_ids: [applicantId] }),
+        }
+      );
+      if (!response.ok) throw new Error('Screening failed');
+      const result = await response.json();
+      toast.success(`AI screening complete`);
+      await onRefresh();
+      // Update drawer applicant with fresh data
+      const updated = applicants.find(a => a.id === applicantId);
+      if (updated && result.results?.[0]) {
+        setDrawerApplicant({ ...updated, ...result.results[0], id: updated.id });
+      }
+    } catch {
+      toast.error('AI screening failed');
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -119,7 +176,7 @@ export function RecruitmentKanban({
     return applicants.filter(a => a.stage_id === stageId);
   };
 
-  const [activeView, setActiveView] = useState<'kanban' | 'table' | 'settings'>('kanban');
+  const [activeView, setActiveView] = useState<'kanban' | 'table' | 'settings' | 'form'>('kanban');
 
   return (
     <div className="h-full flex flex-col">
@@ -132,15 +189,16 @@ export function RecruitmentKanban({
             {activeView === 'kanban' && 'Drag and drop applicants between stages'}
             {activeView === 'table' && 'View and manage all applicants'}
             {activeView === 'settings' && 'Configure screening requirements'}
+            {activeView === 'form' && 'Build the application form students fill out'}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {activeView !== 'settings' && (
+          {(activeView === 'kanban' || activeView === 'table') && (
             <>
-              <StudentVisibilitySettings 
-                clubId={clubId} 
-                settings={settings} 
-                onUpdate={onRefresh} 
+              <StudentVisibilitySettings
+                clubId={clubId}
+                settings={settings}
+                onUpdate={onRefresh}
               />
               <CSVDataMapper onImport={onBulkAddApplicants} />
               <AddApplicantDialog onAdd={onAddApplicant} />
@@ -152,6 +210,7 @@ export function RecruitmentKanban({
               size="sm"
               className="rounded-r-none"
               onClick={() => setActiveView('kanban')}
+              title="Kanban Board"
             >
               <LayoutGrid className="w-4 h-4" />
             </Button>
@@ -160,14 +219,25 @@ export function RecruitmentKanban({
               size="sm"
               className="rounded-none border-x"
               onClick={() => setActiveView('table')}
+              title="Table View"
             >
               <Table className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={activeView === 'form' ? 'secondary' : 'ghost'}
+              size="sm"
+              className="rounded-none border-r"
+              onClick={() => setActiveView('form')}
+              title="Application Form"
+            >
+              <FileText className="w-4 h-4" />
             </Button>
             <Button
               variant={activeView === 'settings' ? 'secondary' : 'ghost'}
               size="sm"
               className="rounded-l-none"
               onClick={() => setActiveView('settings')}
+              title="Screening Settings"
             >
               <Settings2 className="w-4 h-4" />
             </Button>
@@ -191,6 +261,7 @@ export function RecruitmentKanban({
                   stage={stage}
                   applicants={getApplicantsForStage(stage.id)}
                   onDeleteApplicant={onDeleteApplicant}
+                  onOpenDrawer={openDrawer}
                 />
               ))}
             </div>
@@ -219,7 +290,14 @@ export function RecruitmentKanban({
           onMoveApplicant={onMoveApplicant}
           onDeleteApplicant={onDeleteApplicant}
           onRefresh={onRefresh}
+          onOpenDrawer={openDrawer}
         />
+      )}
+
+      {activeView === 'form' && (
+        <div className="max-w-2xl">
+          <FormBuilder clubId={clubId} fetchForm={fetchForm} saveForm={saveForm} />
+        </div>
       )}
 
       {activeView === 'settings' && (
@@ -227,6 +305,18 @@ export function RecruitmentKanban({
           <RequirementsBuilder clubId={clubId} />
         </div>
       )}
+
+      {/* Applicant detail drawer */}
+      <ApplicantDetailDrawer
+        applicant={drawerApplicant}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        clubId={clubId}
+        formQuestions={formQuestions}
+        onUpdateFinalDecision={onUpdateFinalDecision}
+        onUpdateNotes={onUpdateNotes}
+        onRunAIScreen={handleRunAISingleApplicant}
+      />
     </div>
   );
 }

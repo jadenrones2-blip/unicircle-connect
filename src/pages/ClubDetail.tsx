@@ -376,9 +376,17 @@ const ClubDetail = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 min-w-[200px]">
-                <Button 
-                  variant="gold" 
-                  size="lg" 
+                {/* Apply Now — only when actively recruiting */}
+                {club.recruitingStatus === 'open' && (
+                  <Button variant="gold" size="lg" className="w-full" asChild>
+                    <Link to={`/clubs/${id}/apply`}>
+                      Apply Now
+                    </Link>
+                  </Button>
+                )}
+                <Button
+                  variant={club.recruitingStatus === 'open' ? 'outline' : 'gold'}
+                  size="lg"
                   className="w-full"
                   onClick={() => {
                     if (club.email) {

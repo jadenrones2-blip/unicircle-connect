@@ -27,12 +27,21 @@ export interface Applicant {
   fit_score: number | null;
   ai_summary: string | null;
   passes_strict_filters: boolean | null;
+  final_decision: string | null;
   created_at: string;
   updated_at: string;
 }
 
 // Type to cast database response to Applicant
 type ApplicantRow = Omit<Applicant, 'metadata'> & { metadata: unknown };
+
+export interface FormQuestion {
+  id: string;
+  type: 'short' | 'long' | 'multiple_choice';
+  label: string;
+  required: boolean;
+  options: string[];
+}
 
 export interface RecruitmentSettings {
   id: string;
@@ -318,6 +327,62 @@ export function useRecruitment(clubId: string | undefined) {
     return true;
   };
 
+  const fetchForm = async (): Promise<FormQuestion[]> => {
+    if (!clubId) return [];
+    try {
+      const { data, error } = await supabase
+        .from('application_forms')
+        .select('questions')
+        .eq('club_id', clubId)
+        .maybeSingle();
+      if (error) return [];
+      return (data?.questions as FormQuestion[]) || [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveForm = async (questions: FormQuestion[]): Promise<boolean> => {
+    if (!clubId || !user) return false;
+    const { error } = await supabase
+      .from('application_forms')
+      .upsert({ club_id: clubId, questions, updated_at: new Date().toISOString() }, { onConflict: 'club_id' });
+    if (error) {
+      toast.error('Failed to save form');
+      return false;
+    }
+    toast.success('Application form saved!');
+    return true;
+  };
+
+  const updateFinalDecision = async (applicantId: string, decision: string): Promise<boolean> => {
+    if (!user) return false;
+    const { error } = await supabase
+      .from('applicants')
+      .update({ final_decision: decision })
+      .eq('id', applicantId);
+    if (error) {
+      toast.error('Failed to update decision');
+      return false;
+    }
+    setApplicants(prev => prev.map(a => a.id === applicantId ? { ...a, final_decision: decision } : a));
+    return true;
+  };
+
+  const updateNotes = async (applicantId: string, notes: string): Promise<boolean> => {
+    if (!user) return false;
+    const { error } = await supabase
+      .from('applicants')
+      .update({ notes })
+      .eq('id', applicantId);
+    if (error) {
+      toast.error('Failed to save notes');
+      return false;
+    }
+    setApplicants(prev => prev.map(a => a.id === applicantId ? { ...a, notes } : a));
+    return true;
+  };
+
   const deleteApplicant = async (applicantId: string) => {
     if (!user) return false;
 
@@ -350,6 +415,10 @@ export function useRecruitment(clubId: string | undefined) {
     bulkAddApplicants,
     updateApplicantStage,
     deleteApplicant,
+    fetchForm,
+    saveForm,
+    updateFinalDecision,
+    updateNotes,
     refetch: async () => {
       await Promise.all([fetchSettings(), fetchStages(), fetchApplicants()]);
     }
