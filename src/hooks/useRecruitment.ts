@@ -112,9 +112,10 @@ export function useRecruitment(clubId: string | undefined) {
     }
     
     // Cast metadata to our expected type
-    const typedApplicants: Applicant[] = (data || []).map((row) => ({
+    const typedApplicants: Applicant[] = (data || []).map((row: any) => ({
       ...row,
       metadata: (row.metadata as Record<string, string>) || null,
+      final_decision: row.final_decision ?? null,
     }));
     
     setApplicants(typedApplicants);
@@ -330,7 +331,7 @@ export function useRecruitment(clubId: string | undefined) {
   const fetchForm = async (): Promise<FormQuestion[]> => {
     if (!clubId) return [];
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('application_forms')
         .select('questions')
         .eq('club_id', clubId)
@@ -344,7 +345,7 @@ export function useRecruitment(clubId: string | undefined) {
 
   const saveForm = async (questions: FormQuestion[]): Promise<boolean> => {
     if (!clubId || !user) return false;
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('application_forms')
       .upsert({ club_id: clubId, questions, updated_at: new Date().toISOString() }, { onConflict: 'club_id' });
     if (error) {
@@ -357,7 +358,7 @@ export function useRecruitment(clubId: string | undefined) {
 
   const updateFinalDecision = async (applicantId: string, decision: string): Promise<boolean> => {
     if (!user) return false;
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('applicants')
       .update({ final_decision: decision })
       .eq('id', applicantId);

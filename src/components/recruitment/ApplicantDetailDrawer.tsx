@@ -136,7 +136,7 @@ export function ApplicantDetailDrawer({
   const fetchVotes = useCallback(async () => {
     if (!applicant?.id || !user) return;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('deliberation_votes')
         .select('voter_id, vote, comment')
         .eq('applicant_id', applicant.id);
@@ -172,7 +172,7 @@ export function ApplicantDetailDrawer({
     if (!applicant?.id || !user) return;
     setVoteSaving(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('deliberation_votes')
         .upsert(
           { applicant_id: applicant.id, voter_id: user.id, vote, comment: comment || null },
@@ -195,7 +195,7 @@ export function ApplicantDetailDrawer({
     }
     setVoteSaving(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('deliberation_votes')
         .upsert(
           { applicant_id: applicant.id, voter_id: user.id, vote: myVote, comment: comment || null },
