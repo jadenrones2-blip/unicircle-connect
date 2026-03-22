@@ -331,7 +331,7 @@ export function useRecruitment(clubId: string | undefined) {
   const fetchForm = async (): Promise<FormQuestion[]> => {
     if (!clubId) return [];
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('application_forms')
         .select('questions')
         .eq('club_id', clubId)
