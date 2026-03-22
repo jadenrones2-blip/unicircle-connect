@@ -118,12 +118,12 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
         const updatePromises: Promise<unknown>[] = [];
         if (acceptIds.length > 0) {
           updatePromises.push(
-            supabase.from('applicants').update({ final_decision: 'accepted' }).in('id', acceptIds)
+            (supabase.from('applicants') as any).update({ final_decision: 'accepted' }).in('id', acceptIds)
           );
         }
         if (rejectIds.length > 0) {
           updatePromises.push(
-            supabase.from('applicants').update({ final_decision: 'rejected' }).in('id', rejectIds)
+            (supabase.from('applicants') as any).update({ final_decision: 'rejected' }).in('id', rejectIds)
           );
         }
 
