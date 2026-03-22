@@ -25,6 +25,14 @@ export function StageColumn({ stage, applicants, nextStageId, nextStageLabel, on
   const acceptedApplicants = applicants.filter(a => a.final_decision === 'accepted');
   const canAdvance = !!nextStageId && acceptedApplicants.length > 0 && !!onAdvanceRound;
 
+  // Sort: screened applicants by score desc, unscreened at the bottom
+  const sortedApplicants = [...applicants].sort((a, b) => {
+    if (a.fit_score !== null && b.fit_score !== null) return b.fit_score - a.fit_score;
+    if (a.fit_score !== null) return -1;
+    if (b.fit_score !== null) return 1;
+    return 0;
+  });
+
   const handleAdvance = async () => {
     if (!canAdvance || !nextStageId) return;
     setAdvancing(true);
@@ -72,12 +80,12 @@ export function StageColumn({ stage, applicants, nextStageId, nextStageLabel, on
             : 'border-white/15 bg-white/5'
         }`}
       >
-        <SortableContext 
-          items={applicants.map(a => a.id)} 
+        <SortableContext
+          items={sortedApplicants.map(a => a.id)}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2">
-            {applicants.map((applicant) => (
+            {sortedApplicants.map((applicant) => (
               <ApplicantCard
                 key={applicant.id}
                 applicant={applicant}

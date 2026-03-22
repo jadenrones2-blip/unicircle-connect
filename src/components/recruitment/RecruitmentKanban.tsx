@@ -24,6 +24,7 @@ import { CSVDataMapper } from './CSVDataMapper';
 import { ApplicantTableView } from './ApplicantTableView';
 import { RequirementsBuilder } from './RequirementsBuilder';
 import { StudentVisibilitySettings } from './StudentVisibilitySettings';
+import { BulkAIScreen } from './BulkAIScreen';
 import { FormBuilder } from './FormBuilder';
 import { ApplicantDetailDrawer } from './ApplicantDetailDrawer';
 import type { RecruitmentStage, Applicant, RecruitmentSettings, FormQuestion } from '@/hooks/useRecruitment';
@@ -204,6 +205,12 @@ export function RecruitmentKanban({
                 clubId={clubId}
                 settings={settings}
                 onUpdate={onRefresh}
+              />
+              <BulkAIScreen
+                clubId={clubId}
+                stages={stages}
+                applicants={applicants}
+                onComplete={onRefresh}
               />
               <CSVDataMapper onImport={onBulkAddApplicants} />
               <AddApplicantDialog onAdd={onAddApplicant} />
