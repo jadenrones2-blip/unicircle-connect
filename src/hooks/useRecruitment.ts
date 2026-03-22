@@ -358,7 +358,7 @@ export function useRecruitment(clubId: string | undefined) {
 
   const updateFinalDecision = async (applicantId: string, decision: string): Promise<boolean> => {
     if (!user) return false;
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('applicants')
       .update({ final_decision: decision })
       .eq('id', applicantId);

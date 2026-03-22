@@ -57,7 +57,7 @@ export default function ClubApply() {
         // Fetch club name from external DB (clubs are in the external dataClient)
         // We use the lovable supabase client here to fetch form + stages
         const [formRes, stagesRes] = await Promise.all([
-          supabase.from('application_forms').select('questions').eq('club_id', clubId).maybeSingle(),
+          (supabase as any).from('application_forms').select('questions').eq('club_id', clubId).maybeSingle(),
           supabase.from('recruitment_stages').select('id, order_index').eq('club_id', clubId).order('order_index', { ascending: true }).limit(1),
         ]);
 
