@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ThumbsUp, ThumbsDown, Minus, Sparkles, Loader2, Check } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Minus, Sparkles, Loader2, Check, Star } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -236,6 +236,7 @@ export function ApplicantDetailDrawer({
   if (!applicant) return null;
 
   const metadata = applicant.metadata as Record<string, string> | null;
+  const isStandout = applicant.is_standout ?? ((applicant.fit_score ?? 0) >= 85 && applicant.passes_strict_filters !== false);
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -243,6 +244,12 @@ export function ApplicantDetailDrawer({
         side="right"
         className="w-full sm:max-w-lg bg-zinc-950 border-white/10 text-white overflow-y-auto"
       >
+        {isStandout && (
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-gold/10 border-b border-gold/20 -mx-6 -mt-6 mb-4">
+            <Star className="w-4 h-4 text-gold fill-gold shrink-0" />
+            <p className="text-sm font-medium text-gold">AI Standout — worth keeping a close eye on</p>
+          </div>
+        )}
         <SheetHeader className="pb-4 border-b border-white/10">
           <SheetTitle className="text-left text-white font-display text-xl">
             {applicant.first_name} {applicant.last_name}

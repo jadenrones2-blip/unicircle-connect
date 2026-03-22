@@ -211,6 +211,7 @@ export function RecruitmentKanban({
                 stages={stages}
                 applicants={applicants}
                 onComplete={onRefresh}
+                onConfigureRubric={() => setActiveView('settings')}
               />
               <CSVDataMapper onImport={onBulkAddApplicants} />
               <AddApplicantDialog onAdd={onAddApplicant} />

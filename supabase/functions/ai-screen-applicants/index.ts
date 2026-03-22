@@ -38,12 +38,14 @@ interface ScreeningResult {
   fit_score: number;
   ai_summary: string;
   passes_strict_filters: boolean;
+  is_standout: boolean;
 }
 
 interface ClaudeResponse {
   fit_score: number;
   summary: string;
   recommendation?: string;
+  is_standout?: boolean;
 }
 
 serve(async (req) => {
@@ -152,6 +154,7 @@ serve(async (req) => {
       // ── AI screening ───────────────────────────────────────────────────────
       let fitScore = passesStrict ? 50 : 20;
       let aiSummary = "";
+      let isStandout = false;
 
       const hasResponses = applicant.metadata && Object.keys(applicant.metadata).length > 0;
 
@@ -196,8 +199,11 @@ Respond ONLY with valid JSON in exactly this format:
 {
   "fit_score": <integer 1-100>,
   "summary": "<2-3 sentence factual summary>",
-  "recommendation": "<Accept | Waitlist | Reject>"
+  "recommendation": "<Accept | Waitlist | Reject>",
+  "is_standout": <true | false>
 }
+
+Set is_standout to true ONLY for candidates who demonstrate something genuinely exceptional — a rare combination of qualities, unusually strong and specific responses, noteworthy experience, or clear passion that stands out well above a typical applicant for this type of club. Expect roughly 10-15% of candidates to be standouts. Be selective — if most people are standouts, none of them are.
 
 Scoring guide:
 80-100: Strong alignment with most criteria
@@ -230,6 +236,7 @@ Scoring guide:
               aiSummary = parsed.recommendation
                 ? `[${parsed.recommendation}] ${parsed.summary}`
                 : parsed.summary || "";
+              isStandout = parsed.is_standout === true;
             }
           } else {
             const errText = await aiRes.text();
@@ -255,17 +262,21 @@ Scoring guide:
         aiSummary = `[Does not meet strict requirements] ${aiSummary}`;
       }
 
+      // Standouts must also pass strict filters
+      if (!passesStrict) isStandout = false;
+
       results.push({
         applicant_id: applicant.id,
         fit_score: fitScore,
         ai_summary: aiSummary,
         passes_strict_filters: passesStrict,
+        is_standout: isStandout,
       });
 
       // Persist to DB
       await supabase
         .from("applicants")
-        .update({ fit_score: fitScore, ai_summary: aiSummary, passes_strict_filters: passesStrict })
+        .update({ fit_score: fitScore, ai_summary: aiSummary, passes_strict_filters: passesStrict, is_standout: isStandout })
         .eq("id", applicant.id);
     }
 

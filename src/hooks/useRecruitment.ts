@@ -27,6 +27,7 @@ export interface Applicant {
   fit_score: number | null;
   ai_summary: string | null;
   passes_strict_filters: boolean | null;
+  is_standout: boolean | null;
   final_decision: string | null;
   created_at: string;
   updated_at: string;
@@ -116,6 +117,7 @@ export function useRecruitment(clubId: string | undefined) {
       ...row,
       metadata: (row.metadata as Record<string, string>) || null,
       final_decision: row.final_decision ?? null,
+      is_standout: row.is_standout ?? null,
     }));
     
     setApplicants(typedApplicants);

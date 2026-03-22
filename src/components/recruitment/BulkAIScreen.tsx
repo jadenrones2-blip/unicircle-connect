@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, Brain, Settings2, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useRecruitmentRequirements } from '@/hooks/useRecruitmentRequirements';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 
 const BATCH_SIZE = 15;
@@ -21,9 +22,11 @@ interface BulkAIScreenProps {
   stages: RecruitmentStage[];
   applicants: Applicant[];
   onComplete: () => Promise<void>;
+  onConfigureRubric: () => void;
 }
 
-export function BulkAIScreen({ clubId, stages, applicants, onComplete }: BulkAIScreenProps) {
+export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigureRubric }: BulkAIScreenProps) {
+  const { aiCriteria, strictFilters } = useRecruitmentRequirements(clubId);
   const [open, setOpen] = useState(false);
   const [targetStageId, setTargetStageId] = useState<string>('all');
   const [acceptAbove, setAcceptAbove] = useState(75);
@@ -182,6 +185,67 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete }: BulkAIS
             <p className="text-xs text-zinc-500">
               Already-screened applicants will be re-evaluated with the latest rubric.
             </p>
+          </div>
+
+          {/* Rubric summary */}
+          <div className="rounded-lg bg-white/5 border border-white/10 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Rubric</p>
+              <button
+                onClick={() => { setOpen(false); onConfigureRubric(); }}
+                className="flex items-center gap-1 text-xs text-zinc-500 hover:text-gold transition-colors"
+              >
+                <Settings2 className="w-3 h-3" />
+                Configure
+              </button>
+            </div>
+            {aiCriteria.length === 0 && strictFilters.length === 0 ? (
+              <p className="text-xs text-zinc-500">
+                No rubric set up yet.{' '}
+                <button
+                  onClick={() => { setOpen(false); onConfigureRubric(); }}
+                  className="text-gold underline underline-offset-2 hover:no-underline"
+                >
+                  Configure the rubric
+                </button>{' '}
+                before screening for best results.
+              </p>
+            ) : (
+              <div className="space-y-1">
+                {strictFilters.length > 0 && (
+                  <p className="text-xs text-zinc-400">
+                    <span className="font-medium text-zinc-300">{strictFilters.length} strict filter{strictFilters.length !== 1 ? 's' : ''}</span>
+                    {' '}— auto-fail candidates who don&apos;t qualify
+                  </p>
+                )}
+                {aiCriteria.length > 0 && (
+                  <>
+                    <p className="text-xs text-zinc-400 mb-1.5">
+                      <span className="font-medium text-zinc-300">{aiCriteria.length} AI criteria</span>
+                      {' '}— Claude will evaluate each applicant against:
+                    </p>
+                    <div className="space-y-1 pl-1">
+                      {aiCriteria.slice(0, 3).map((c) => {
+                        const val = c.value as { description: string; weight?: number };
+                        return (
+                          <div key={c.id} className="flex items-start gap-1.5">
+                            <Brain className="w-3 h-3 text-gold mt-0.5 shrink-0" />
+                            <p className="text-xs text-zinc-500 line-clamp-1">{val.description}</p>
+                          </div>
+                        );
+                      })}
+                      {aiCriteria.length > 3 && (
+                        <p className="text-xs text-zinc-600 pl-4.5">+{aiCriteria.length - 3} more</p>
+                      )}
+                    </div>
+                  </>
+                )}
+                <div className="flex items-center gap-1.5 pt-1.5 border-t border-white/5 mt-1.5">
+                  <Star className="w-3 h-3 text-gold fill-gold" />
+                  <p className="text-xs text-zinc-500">Claude will flag ~10–15% of candidates as Standouts</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Auto-threshold toggle */}
