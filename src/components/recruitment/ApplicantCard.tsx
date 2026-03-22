@@ -70,8 +70,8 @@ export function ApplicantCard({ applicant, onDelete, onOpen }: ApplicantCardProp
       ref={setNodeRef}
       style={style}
       onClick={() => !isDragging && onOpen?.(applicant)}
-      className={`p-3 bg-card border-border/50 transition-shadow ${
-        isDragging ? 'shadow-lg opacity-90 z-50' : 'hover:shadow-sm'
+      className={`p-3 bg-zinc-900 border-white/10 transition-shadow ${
+        isDragging ? 'shadow-lg opacity-90 z-50' : 'hover:bg-zinc-800'
       } ${onOpen ? 'cursor-pointer' : ''}`}
     >
       <div className="flex items-start gap-2">
@@ -86,10 +86,10 @@ export function ApplicantCard({ applicant, onDelete, onOpen }: ApplicantCardProp
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="font-medium text-sm text-foreground truncate">
+              <p className="font-medium text-sm text-zinc-100 truncate">
                 {applicant.first_name} {applicant.last_name}
               </p>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+              <div className="flex items-center gap-1 text-xs text-zinc-500 mt-0.5">
                 <Mail className="w-3 h-3" />
                 <span className="truncate">{applicant.email}</span>
               </div>
@@ -115,12 +115,12 @@ export function ApplicantCard({ applicant, onDelete, onOpen }: ApplicantCardProp
 
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {applicant.major && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-zinc-400">
                 {applicant.major}
               </span>
             )}
             {applicant.year && (
-              <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-zinc-400">
                 {applicant.year}
               </span>
             )}

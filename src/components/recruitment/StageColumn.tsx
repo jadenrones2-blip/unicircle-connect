@@ -18,8 +18,8 @@ export function StageColumn({ stage, applicants, onDeleteApplicant, onOpenDrawer
   return (
     <div className="flex flex-col w-72 shrink-0">
       <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className="font-medium text-sm text-foreground">{stage.label}</h3>
-        <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+        <h3 className="font-medium text-sm text-zinc-200">{stage.label}</h3>
+        <span className="text-xs text-zinc-400 bg-white/10 px-2 py-0.5 rounded-full">
           {applicants.length}
         </span>
       </div>
@@ -27,9 +27,9 @@ export function StageColumn({ stage, applicants, onDeleteApplicant, onOpenDrawer
       <div
         ref={setNodeRef}
         className={`flex-1 min-h-[200px] p-2 rounded-lg border-2 border-dashed transition-colors ${
-          isOver 
-            ? 'border-gold/50 bg-gold/5' 
-            : 'border-border/50 bg-muted/30'
+          isOver
+            ? 'border-gold/50 bg-gold/5'
+            : 'border-white/15 bg-white/5'
         }`}
       >
         <SortableContext 
@@ -46,7 +46,7 @@ export function StageColumn({ stage, applicants, onDeleteApplicant, onOpenDrawer
               />
             ))}
             {applicants.length === 0 && (
-              <div className="text-center py-8 text-sm text-muted-foreground">
+              <div className="text-center py-8 text-sm text-zinc-600">
                 Drop applicants here
               </div>
             )}

@@ -87,7 +87,7 @@ export default function ClubAdminRecruitment() {
             ]} />
           </header>
 
-          <div className="flex-1 flex flex-col p-5 sm:p-7 overflow-hidden">
+          <div className="flex-1 flex flex-col p-5 sm:p-7 min-h-0">
             {!isEnabled ? (
               <RecruitmentIntro onEnable={handleEnable} loading={enabling} />
             ) : !hasStages ? (

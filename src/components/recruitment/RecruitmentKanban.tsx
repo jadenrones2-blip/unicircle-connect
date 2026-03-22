@@ -182,10 +182,10 @@ export function RecruitmentKanban({
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-display font-semibold text-foreground">
+          <h2 className="text-xl font-display font-semibold text-white">
             Applicant Pipeline
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-zinc-500">
             {activeView === 'kanban' && 'Drag and drop applicants between stages'}
             {activeView === 'table' && 'View and manage all applicants'}
             {activeView === 'settings' && 'Configure screening requirements'}
