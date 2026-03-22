@@ -172,7 +172,7 @@ export function ApplicantDetailDrawer({
     if (!applicant?.id || !user) return;
     setVoteSaving(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('deliberation_votes')
         .upsert(
           { applicant_id: applicant.id, voter_id: user.id, vote, comment: comment || null },
