@@ -136,7 +136,7 @@ export function ApplicantDetailDrawer({
   const fetchVotes = useCallback(async () => {
     if (!applicant?.id || !user) return;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('deliberation_votes')
         .select('voter_id, vote, comment')
         .eq('applicant_id', applicant.id);
