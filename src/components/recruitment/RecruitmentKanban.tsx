@@ -176,6 +176,11 @@ export function RecruitmentKanban({
     return applicants.filter(a => a.stage_id === stageId);
   };
 
+  const handleAdvanceRound = async (applicantIds: string[], nextStageId: string) => {
+    await Promise.all(applicantIds.map(id => onMoveApplicant(id, nextStageId, clubName)));
+    await onRefresh();
+  };
+
   const [activeView, setActiveView] = useState<'kanban' | 'table' | 'settings' | 'form'>('kanban');
 
   return (
@@ -238,15 +243,21 @@ export function RecruitmentKanban({
             onDragOver={handleDragOver}
           >
             <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
-              {stages.map((stage) => (
-                <StageColumn
-                  key={stage.id}
-                  stage={stage}
-                  applicants={getApplicantsForStage(stage.id)}
-                  onDeleteApplicant={onDeleteApplicant}
-                  onOpenDrawer={openDrawer}
-                />
-              ))}
+              {stages.map((stage, i) => {
+                const nextStage = stages[i + 1];
+                return (
+                  <StageColumn
+                    key={stage.id}
+                    stage={stage}
+                    applicants={getApplicantsForStage(stage.id)}
+                    nextStageId={nextStage?.id}
+                    nextStageLabel={nextStage?.label}
+                    onDeleteApplicant={onDeleteApplicant}
+                    onOpenDrawer={openDrawer}
+                    onAdvanceRound={handleAdvanceRound}
+                  />
+                );
+              })}
             </div>
 
             <DragOverlay>
