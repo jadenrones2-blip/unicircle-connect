@@ -345,7 +345,7 @@ export function useRecruitment(clubId: string | undefined) {
 
   const saveForm = async (questions: FormQuestion[]): Promise<boolean> => {
     if (!clubId || !user) return false;
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('application_forms')
       .upsert({ club_id: clubId, questions, updated_at: new Date().toISOString() }, { onConflict: 'club_id' });
     if (error) {
