@@ -43,7 +43,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Plus, Trash2, Upload, Download, Users, Search } from 'lucide-react';
+import { Loader2, Plus, Trash2, Upload, Download, Users, Search, DollarSign, Calendar, Trophy, Check, X, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { dataClient } from '@/integrations/supabase/dataClient';
 
@@ -59,10 +59,39 @@ interface ClubMember {
   role: 'member' | 'officer';
   joined_at: string | null;
   notes: string | null;
+  dues_paid: boolean | null;
+  dues_amount: number | null;
+  dues_due_date: string | null;
+  points: number | null;
   created_at: string;
   updated_at: string;
 }
 
+interface AttendanceSession {
+  id: string;
+  club_id: string;
+  name: string;
+  date: string;
+  created_at: string;
+}
+
+interface AttendanceRecord {
+  id: string;
+  session_id: string;
+  member_id: string;
+  present: boolean;
+}
+
+interface PointTransaction {
+  id: string;
+  club_id: string;
+  member_id: string;
+  points: number;
+  reason: string | null;
+  created_at: string;
+}
+
+type ActiveTab = 'roster' | 'dues' | 'attendance' | 'points';
 type StatusFilter = 'all' | 'active' | 'inactive' | 'alumni';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -74,26 +103,10 @@ const STATUS_COLORS: Record<string, string> = {
 const YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Other'] as const;
 
 const defaultForm: {
-  name: string;
-  email: string;
-  pid: string;
-  major: string;
-  year: string;
-  status: 'active' | 'inactive' | 'alumni';
-  role: 'member' | 'officer';
-  joined_at: string;
-  notes: string;
-} = {
-  name: '',
-  email: '',
-  pid: '',
-  major: '',
-  year: '',
-  status: 'active',
-  role: 'member',
-  joined_at: '',
-  notes: '',
-};
+  name: string; email: string; pid: string; major: string; year: string;
+  status: 'active' | 'inactive' | 'alumni'; role: 'member' | 'officer';
+  joined_at: string; notes: string;
+} = { name: '', email: '', pid: '', major: '', year: '', status: 'active', role: 'member', joined_at: '', notes: '' };
 
 export default function ClubAdminMembers() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -102,6 +115,7 @@ export default function ClubAdminMembers() {
   const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
   const csvInputRef = useRef<HTMLInputElement>(null);
 
+  const [activeTab, setActiveTab] = useState<ActiveTab>('roster');
   const [members, setMembers] = useState<ClubMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -112,6 +126,28 @@ export default function ClubAdminMembers() {
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [importing, setImporting] = useState(false);
+
+  // Dues state
+  const [editingDues, setEditingDues] = useState<string | null>(null);
+  const [duesAmount, setDuesAmount] = useState('');
+  const [duesDueDate, setDuesDueDate] = useState('');
+
+  // Attendance state
+  const [sessions, setSessions] = useState<AttendanceSession[]>([]);
+  const [selectedSession, setSelectedSession] = useState<AttendanceSession | null>(null);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [showNewSession, setShowNewSession] = useState(false);
+  const [newSessionName, setNewSessionName] = useState('');
+  const [newSessionDate, setNewSessionDate] = useState('');
+  const [creatingSession, setCreatingSession] = useState(false);
+  const [loadingAttendance, setLoadingAttendance] = useState(false);
+
+  // Points state
+  const [pointTransactions, setPointTransactions] = useState<PointTransaction[]>([]);
+  const [showAddPoints, setShowAddPoints] = useState<ClubMember | null>(null);
+  const [pointAmount, setPointAmount] = useState('');
+  const [pointReason, setPointReason] = useState('');
+  const [addingPoints, setAddingPoints] = useState(false);
 
   const normalizeId = (id?: string) => (id ?? '').trim().toLowerCase();
   const club = ownedClubs.find((c) => normalizeId(c.clubId) === normalizeId(clubId));
@@ -141,17 +177,58 @@ export default function ClubAdminMembers() {
     }
   }, [clubId]);
 
-  // Auth guard
+  const fetchSessions = useCallback(async () => {
+    if (!clubId) return;
+    try {
+      const { data } = await dataClient
+        .from('attendance_sessions')
+        .select('*')
+        .eq('club_id', clubId)
+        .order('date', { ascending: false });
+      setSessions((data ?? []) as AttendanceSession[]);
+    } catch (err) {
+      console.warn('Attendance sessions not available (run migration):', err);
+    }
+  }, [clubId]);
+
+  const fetchAttendanceRecords = useCallback(async (sessionId: string) => {
+    setLoadingAttendance(true);
+    try {
+      const { data } = await dataClient
+        .from('attendance_records')
+        .select('*')
+        .eq('session_id', sessionId);
+      setAttendanceRecords((data ?? []) as AttendanceRecord[]);
+    } catch (err) {
+      console.warn('Attendance records not available:', err);
+    } finally {
+      setLoadingAttendance(false);
+    }
+  }, []);
+
+  const fetchPointTransactions = useCallback(async () => {
+    if (!clubId) return;
+    try {
+      const { data } = await dataClient
+        .from('point_transactions')
+        .select('*')
+        .eq('club_id', clubId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      setPointTransactions((data ?? []) as PointTransaction[]);
+    } catch (err) {
+      console.warn('Point transactions not available (run migration):', err);
+    }
+  }, [clubId]);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      const redirect = `/club-admin/clubs/${clubId}/members`;
       toast.error('Please log in to access club admin');
-      navigate(`/login?redirect=${encodeURIComponent(redirect)}`);
+      navigate(`/login?redirect=${encodeURIComponent(`/club-admin/clubs/${clubId}/members`)}`);
     }
   }, [authLoading, user, clubId, navigate]);
 
-  // Ownership guard
   useEffect(() => {
     if (authLoading || !user || ownershipLoading) return;
     if (clubId && !isOwner) {
@@ -160,14 +237,21 @@ export default function ClubAdminMembers() {
     }
   }, [authLoading, user, ownershipLoading, clubId, isOwner, navigate]);
 
-  // Fetch when ready
   useEffect(() => {
     if (club && !authLoading && user && !ownershipLoading && isOwner) {
       fetchMembers();
     }
   }, [authLoading, user, ownershipLoading, club, isOwner, fetchMembers]);
 
-  // Stats
+  useEffect(() => {
+    if (activeTab === 'attendance' && club) fetchSessions();
+    if (activeTab === 'points' && club) fetchPointTransactions();
+  }, [activeTab, club, fetchSessions, fetchPointTransactions]);
+
+  useEffect(() => {
+    if (selectedSession) fetchAttendanceRecords(selectedSession.id);
+  }, [selectedSession, fetchAttendanceRecords]);
+
   const stats = useMemo(() => ({
     total: members.length,
     active: members.filter((m) => m.status === 'active').length,
@@ -175,149 +259,86 @@ export default function ClubAdminMembers() {
     alumni: members.filter((m) => m.status === 'alumni').length,
   }), [members]);
 
-  // Filtered list
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return members.filter((m) => {
       if (statusFilter !== 'all' && m.status !== statusFilter) return false;
-      if (q) {
-        return (
-          m.name.toLowerCase().includes(q) ||
-          (m.email ?? '').toLowerCase().includes(q) ||
-          (m.pid ?? '').toLowerCase().includes(q)
-        );
-      }
+      if (q) return m.name.toLowerCase().includes(q) || (m.email ?? '').toLowerCase().includes(q) || (m.pid ?? '').toLowerCase().includes(q);
       return true;
     });
   }, [members, search, statusFilter]);
+
+  // ── Roster handlers ────────────────────────────────────────────────────────
 
   const handleAddMember = async () => {
     if (!form.name.trim() || !clubId) return;
     setSaving(true);
     try {
       const { error } = await dataClient.from('club_members').insert({
-        club_id: clubId,
-        name: form.name.trim(),
-        email: form.email.trim() || null,
-        pid: form.pid.trim() || null,
-        major: form.major.trim() || null,
-        year: form.year || null,
-        status: form.status,
-        role: form.role,
-        joined_at: form.joined_at || null,
-        notes: form.notes.trim() || null,
+        club_id: clubId, name: form.name.trim(), email: form.email.trim() || null,
+        pid: form.pid.trim() || null, major: form.major.trim() || null,
+        year: form.year || null, status: form.status, role: form.role,
+        joined_at: form.joined_at || null, notes: form.notes.trim() || null,
       });
       if (error) throw new Error(error.message);
       toast.success('Member added');
       setShowAddModal(false);
       setForm(defaultForm);
       fetchMembers();
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to add member');
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { console.error(err); toast.error('Failed to add member'); }
+    finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
     if (!deleteMemberId) return;
     setDeleting(true);
     try {
-      const { error } = await dataClient
-        .from('club_members')
-        .delete()
-        .eq('id', deleteMemberId);
+      const { error } = await dataClient.from('club_members').delete().eq('id', deleteMemberId);
       if (error) throw new Error(error.message);
       setMembers((prev) => prev.filter((m) => m.id !== deleteMemberId));
       toast.success('Member removed');
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to remove member');
-    } finally {
-      setDeleting(false);
-      setDeleteMemberId(null);
-    }
+    } catch (err) { console.error(err); toast.error('Failed to remove member'); }
+    finally { setDeleting(false); setDeleteMemberId(null); }
   };
 
   const cycleStatus = async (member: ClubMember) => {
-    const next: Record<string, ClubMember['status']> = {
-      active: 'inactive',
-      inactive: 'alumni',
-      alumni: 'active',
-    };
+    const next: Record<string, ClubMember['status']> = { active: 'inactive', inactive: 'alumni', alumni: 'active' };
     const newStatus = next[member.status];
     try {
-      const { error } = await dataClient
-        .from('club_members')
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq('id', member.id);
+      const { error } = await dataClient.from('club_members').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', member.id);
       if (error) throw new Error(error.message);
-      setMembers((prev) =>
-        prev.map((m) => (m.id === member.id ? { ...m, status: newStatus } : m))
-      );
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to update status');
-    }
+      setMembers((prev) => prev.map((m) => m.id === member.id ? { ...m, status: newStatus } : m));
+    } catch (err) { console.error(err); toast.error('Failed to update status'); }
   };
 
   const handleCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !clubId) return;
     setImporting(true);
-
     try {
       const text = await file.text();
       const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
-      if (lines.length < 2) {
-        toast.error('CSV must have a header row and at least one data row');
-        return;
-      }
-
+      if (lines.length < 2) { toast.error('CSV must have a header row and at least one data row'); return; }
       const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
       const nameIdx = headers.indexOf('name');
-      if (nameIdx === -1) {
-        toast.error('CSV must have a "name" column');
-        return;
-      }
+      if (nameIdx === -1) { toast.error('CSV must have a "name" column'); return; }
       const emailIdx = headers.indexOf('email');
       const pidIdx = headers.indexOf('pid');
       const majorIdx = headers.indexOf('major');
       const yearIdx = headers.indexOf('year');
-
       const rows = lines.slice(1).map((line) => {
         const cols = line.split(',').map((c) => c.trim());
         const year = yearIdx >= 0 ? cols[yearIdx] : '';
         const validYear = YEARS.includes(year as typeof YEARS[number]) ? year : null;
-        return {
-          club_id: clubId,
-          name: cols[nameIdx] ?? '',
-          email: emailIdx >= 0 ? cols[emailIdx] || null : null,
-          pid: pidIdx >= 0 ? cols[pidIdx] || null : null,
-          major: majorIdx >= 0 ? cols[majorIdx] || null : null,
-          year: validYear,
-          status: 'active' as const,
-          role: 'member' as const,
-        };
+        return { club_id: clubId, name: cols[nameIdx] ?? '', email: emailIdx >= 0 ? cols[emailIdx] || null : null, pid: pidIdx >= 0 ? cols[pidIdx] || null : null, major: majorIdx >= 0 ? cols[majorIdx] || null : null, year: validYear, status: 'active' as const, role: 'member' as const };
       }).filter((r) => r.name);
-
-      if (rows.length === 0) {
-        toast.error('No valid rows found in CSV');
-        return;
-      }
-
+      if (rows.length === 0) { toast.error('No valid rows found in CSV'); return; }
       const { error } = await dataClient.from('club_members').insert(rows);
       if (error) throw new Error(error.message);
       toast.success(`Imported ${rows.length} member${rows.length !== 1 ? 's' : ''}`);
       fetchMembers();
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to import CSV');
-    } finally {
-      setImporting(false);
-      if (csvInputRef.current) csvInputRef.current.value = '';
-    }
+    } catch (err) { console.error(err); toast.error('Failed to import CSV'); }
+    finally { setImporting(false); if (csvInputRef.current) csvInputRef.current.value = ''; }
   };
 
   const handleCsvExport = () => {
@@ -332,23 +353,113 @@ export default function ClubAdminMembers() {
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `${club?.clubName ?? 'members'}_roster.csv`;
-    a.click();
+    a.href = url; a.download = `${club?.clubName ?? 'members'}_roster.csv`; a.click();
     URL.revokeObjectURL(url);
   };
 
-  // Loading states
+  // ── Dues handlers ──────────────────────────────────────────────────────────
+
+  const toggleDuesPaid = async (member: ClubMember) => {
+    const newPaid = !member.dues_paid;
+    try {
+      const { error } = await dataClient.from('club_members').update({ dues_paid: newPaid, updated_at: new Date().toISOString() }).eq('id', member.id);
+      if (error) throw new Error(error.message);
+      setMembers((prev) => prev.map((m) => m.id === member.id ? { ...m, dues_paid: newPaid } : m));
+    } catch (err) { console.error(err); toast.error('Failed to update dues'); }
+  };
+
+  const saveDuesEdit = async (member: ClubMember) => {
+    try {
+      const { error } = await dataClient.from('club_members').update({
+        dues_amount: duesAmount ? parseFloat(duesAmount) : null,
+        dues_due_date: duesDueDate || null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', member.id);
+      if (error) throw new Error(error.message);
+      setMembers((prev) => prev.map((m) => m.id === member.id ? { ...m, dues_amount: duesAmount ? parseFloat(duesAmount) : null, dues_due_date: duesDueDate || null } : m));
+      setEditingDues(null);
+      toast.success('Dues updated');
+    } catch (err) { console.error(err); toast.error('Failed to update dues'); }
+  };
+
+  const markAllPaid = async () => {
+    const unpaid = members.filter((m) => !m.dues_paid);
+    if (unpaid.length === 0) { toast.error('All members are already marked as paid'); return; }
+    try {
+      await Promise.all(unpaid.map((m) => dataClient.from('club_members').update({ dues_paid: true, updated_at: new Date().toISOString() }).eq('id', m.id)));
+      setMembers((prev) => prev.map((m) => ({ ...m, dues_paid: true })));
+      toast.success(`Marked ${unpaid.length} members as paid`);
+    } catch (err) { console.error(err); toast.error('Failed to mark all paid'); }
+  };
+
+  // ── Attendance handlers ────────────────────────────────────────────────────
+
+  const createSession = async () => {
+    if (!newSessionName.trim() || !newSessionDate || !clubId) return;
+    setCreatingSession(true);
+    try {
+      const { data, error } = await dataClient.from('attendance_sessions').insert({
+        club_id: clubId, name: newSessionName.trim(), date: newSessionDate,
+      }).select().single();
+      if (error) throw new Error(error.message);
+      const newSession = data as AttendanceSession;
+      setSessions((prev) => [newSession, ...prev]);
+      setSelectedSession(newSession);
+      setShowNewSession(false);
+      setNewSessionName('');
+      setNewSessionDate('');
+      toast.success('Session created');
+    } catch (err) { console.error(err); toast.error('Failed to create session'); }
+    finally { setCreatingSession(false); }
+  };
+
+  const toggleAttendance = async (memberId: string) => {
+    if (!selectedSession) return;
+    const existing = attendanceRecords.find((r) => r.member_id === memberId);
+    const newPresent = existing ? !existing.present : true;
+    try {
+      await dataClient.from('attendance_records').upsert({
+        session_id: selectedSession.id, member_id: memberId, present: newPresent,
+      }, { onConflict: 'session_id,member_id' });
+      setAttendanceRecords((prev) => {
+        const idx = prev.findIndex((r) => r.member_id === memberId);
+        if (idx >= 0) { const next = [...prev]; next[idx] = { ...next[idx], present: newPresent }; return next; }
+        return [...prev, { id: '', session_id: selectedSession.id, member_id: memberId, present: newPresent }];
+      });
+    } catch (err) { console.error(err); toast.error('Failed to update attendance'); }
+  };
+
+  // ── Points handlers ────────────────────────────────────────────────────────
+
+  const handleAddPoints = async () => {
+    if (!showAddPoints || !pointAmount || !clubId) return;
+    const pts = parseInt(pointAmount, 10);
+    if (isNaN(pts) || pts === 0) { toast.error('Enter a valid non-zero point amount'); return; }
+    setAddingPoints(true);
+    try {
+      const { error: txError } = await dataClient.from('point_transactions').insert({
+        club_id: clubId, member_id: showAddPoints.id, points: pts, reason: pointReason.trim() || null,
+      });
+      if (txError) throw new Error(txError.message);
+      const newPoints = (showAddPoints.points ?? 0) + pts;
+      const { error: updateError } = await dataClient.from('club_members').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', showAddPoints.id);
+      if (updateError) throw new Error(updateError.message);
+      setMembers((prev) => prev.map((m) => m.id === showAddPoints.id ? { ...m, points: newPoints } : m));
+      fetchPointTransactions();
+      setShowAddPoints(null);
+      setPointAmount('');
+      setPointReason('');
+      toast.success(`${pts > 0 ? '+' : ''}${pts} points for ${showAddPoints.name}`);
+    } catch (err) { console.error(err); toast.error('Failed to add points'); }
+    finally { setAddingPoints(false); }
+  };
+
+  // ── Loading/guard states ───────────────────────────────────────────────────
+
   if (authLoading || ownershipLoading || (!club && ownedClubs.length === 0)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 text-gold animate-spin" />
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="w-8 h-8 text-gold animate-spin" /></div>;
   }
-
   if (!user) return null;
-
   if (!club) {
     return (
       <SidebarProvider>
@@ -357,18 +468,25 @@ export default function ClubAdminMembers() {
           <main className="flex-1 p-8">
             <div className="text-center py-12">
               <h2 className="text-xl font-semibold mb-2">Club not found</h2>
-              <p className="text-muted-foreground mb-4">
-                You may not have access to this club or it doesn't exist.
-              </p>
-              <Button variant="outline" asChild>
-                <Link to="/club-admin">Back to Dashboard</Link>
-              </Button>
+              <p className="text-muted-foreground mb-4">You may not have access to this club or it doesn't exist.</p>
+              <Button variant="outline" asChild><Link to="/club-admin">Back to Dashboard</Link></Button>
             </div>
           </main>
         </div>
       </SidebarProvider>
     );
   }
+
+  const TABS: { key: ActiveTab; label: string; icon: React.ReactNode }[] = [
+    { key: 'roster', label: 'Roster', icon: <Users className="w-3.5 h-3.5" /> },
+    { key: 'dues', label: 'Dues', icon: <DollarSign className="w-3.5 h-3.5" /> },
+    { key: 'attendance', label: 'Attendance', icon: <Calendar className="w-3.5 h-3.5" /> },
+    { key: 'points', label: 'Points', icon: <Trophy className="w-3.5 h-3.5" /> },
+  ];
+
+  const today = new Date().toISOString().split('T')[0];
+  const activeMembers = members.filter((m) => m.status === 'active');
+  const sortedByPoints = [...activeMembers].sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
 
   return (
     <SidebarProvider>
@@ -381,246 +499,350 @@ export default function ClubAdminMembers() {
             <div className="flex items-center gap-4">
               <SidebarTrigger />
               <div>
-                <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
-                  {club.clubName}
-                </h1>
-                <p className="text-xs text-muted-foreground tracking-wide uppercase font-medium">
-                  Member Roster
-                </p>
+                <h1 className="text-xl font-display font-bold text-foreground tracking-tight">{club.clubName}</h1>
+                <p className="text-xs text-muted-foreground tracking-wide uppercase font-medium">Members</p>
               </div>
             </div>
-            <Button variant="gold" onClick={() => setShowAddModal(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Member
-            </Button>
+            {activeTab === 'roster' && (
+              <Button variant="gold" onClick={() => setShowAddModal(true)}>
+                <Plus className="w-4 h-4 mr-2" />Add Member
+              </Button>
+            )}
+            {activeTab === 'attendance' && (
+              <Button variant="gold" onClick={() => setShowNewSession(true)}>
+                <Plus className="w-4 h-4 mr-2" />New Session
+              </Button>
+            )}
           </header>
 
-          <div className="p-6 space-y-6">
-            <AdminBreadcrumb
-              items={[
-                { label: club.clubName, href: `/clubs/${clubId}` },
-                { label: 'Members' },
-              ]}
-            />
+          <div className="p-6 space-y-5">
+            <AdminBreadcrumb items={[{ label: club.clubName, href: `/clubs/${clubId}` }, { label: 'Members' }]} />
 
             {/* Stats strip */}
             <div className="grid grid-cols-4 gap-3">
-              {[
-                { label: 'Total', value: stats.total },
-                { label: 'Active', value: stats.active },
-                { label: 'Officers', value: stats.officers },
-                { label: 'Alumni', value: stats.alumni },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="rounded-xl border border-border bg-card p-4 text-center"
-                >
+              {[{ label: 'Total', value: stats.total }, { label: 'Active', value: stats.active }, { label: 'Officers', value: stats.officers }, { label: 'Alumni', value: stats.alumni }].map((s) => (
+                <div key={s.label} className="rounded-xl border border-border bg-card p-4 text-center">
                   <p className="text-2xl font-bold font-display text-foreground">{s.value}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
                 </div>
               ))}
             </div>
 
-            {/* Toolbar */}
-            <div className="flex flex-wrap gap-3 items-center">
-              {/* Search */}
-              <div className="relative flex-1 min-w-[200px] max-w-xs">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search name, email, PID…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-
-              {/* Status filter pills */}
-              <div className="flex gap-1.5">
-                {(['all', 'active', 'inactive', 'alumni'] as StatusFilter[]).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setStatusFilter(s)}
-                    className="shrink-0 px-3 py-1 rounded-full text-xs font-medium capitalize transition-all"
-                    style={
-                      statusFilter === s
-                        ? {
-                            background: s === 'all' ? 'hsl(43 74% 56%)' : STATUS_COLORS[s],
-                            color: '#000',
-                            border: `1px solid transparent`,
-                          }
-                        : { background: 'transparent', color: '#71717a', border: '1px solid rgba(255,255,255,0.1)' }
-                    }
-                  >
-                    {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
-                  </button>
-                ))}
-              </div>
-
-              <div className="ml-auto flex gap-2">
-                {/* CSV import */}
-                <input
-                  ref={csvInputRef}
-                  type="file"
-                  accept=".csv"
-                  className="hidden"
-                  onChange={handleCsvImport}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => csvInputRef.current?.click()}
-                  disabled={importing}
-                  title="CSV columns: name, email, pid, major, year"
+            {/* Tab pills */}
+            <div className="flex gap-2">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                  style={activeTab === tab.key
+                    ? { background: 'hsl(43 74% 56%)', color: '#000' }
+                    : { background: 'transparent', color: '#71717a', border: '1px solid rgba(255,255,255,0.1)' }}
                 >
-                  {importing ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Upload className="w-4 h-4 mr-2" />
-                  )}
-                  Import CSV
-                </Button>
-
-                {/* CSV export */}
-                <Button variant="outline" size="sm" onClick={handleCsvExport}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-              </div>
+                  {tab.icon}{tab.label}
+                </button>
+              ))}
             </div>
 
-            {/* Table */}
-            {loading ? (
-              <div className="premium-card overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {['Name', 'Email', 'PID', 'Major', 'Year', 'Status', 'Role', 'Joined', ''].map((h) => (
-                        <TableHead key={h}>{h}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[...Array(5)].map((_, i) => (
-                      <TableRow key={i}>
-                        {[...Array(9)].map((__, j) => (
-                          <TableCell key={j}>
-                            <Skeleton className="h-4 w-full" />
-                          </TableCell>
+            {/* ── ROSTER TAB ─────────────────────────────────────────────── */}
+            {activeTab === 'roster' && (
+              <>
+                <div className="flex flex-wrap gap-3 items-center">
+                  <div className="relative flex-1 min-w-[200px] max-w-xs">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input placeholder="Search name, email, PID…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+                  </div>
+                  <div className="flex gap-1.5">
+                    {(['all', 'active', 'inactive', 'alumni'] as StatusFilter[]).map((s) => (
+                      <button key={s} onClick={() => setStatusFilter(s)} className="shrink-0 px-3 py-1 rounded-full text-xs font-medium capitalize transition-all"
+                        style={statusFilter === s ? { background: s === 'all' ? 'hsl(43 74% 56%)' : STATUS_COLORS[s], color: '#000', border: '1px solid transparent' } : { background: 'transparent', color: '#71717a', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="ml-auto flex gap-2">
+                    <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={handleCsvImport} />
+                    <Button variant="outline" size="sm" onClick={() => csvInputRef.current?.click()} disabled={importing}>
+                      {importing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}Import CSV
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleCsvExport}>
+                      <Download className="w-4 h-4 mr-2" />Export
+                    </Button>
+                  </div>
+                </div>
+
+                {loading ? (
+                  <div className="premium-card overflow-hidden">
+                    <Table>
+                      <TableHeader><TableRow>{['Name','Email','PID','Major','Year','Status','Role','Joined',''].map((h) => <TableHead key={h}>{h}</TableHead>)}</TableRow></TableHeader>
+                      <TableBody>{[...Array(5)].map((_, i) => <TableRow key={i}>{[...Array(9)].map((__, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}</TableRow>)}</TableBody>
+                    </Table>
+                  </div>
+                ) : members.length === 0 ? (
+                  <div className="text-center py-20">
+                    <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-foreground mb-2">No members yet</h2>
+                    <p className="text-muted-foreground mb-6">Add members manually or import from a CSV file.</p>
+                    <div className="flex justify-center gap-3">
+                      <Button variant="gold" onClick={() => setShowAddModal(true)}><Plus className="w-4 h-4 mr-2" />Add Member</Button>
+                      <Button variant="outline" onClick={() => csvInputRef.current?.click()}><Upload className="w-4 h-4 mr-2" />Import CSV</Button>
+                    </div>
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <div className="text-center py-16">
+                    <p className="text-muted-foreground">No members match your search or filter.</p>
+                    <Button variant="ghost" className="mt-3" onClick={() => { setSearch(''); setStatusFilter('all'); }}>Clear filters</Button>
+                  </div>
+                ) : (
+                  <div className="premium-card overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>PID</TableHead>
+                          <TableHead>Major</TableHead><TableHead>Year</TableHead><TableHead>Status</TableHead>
+                          <TableHead>Role</TableHead><TableHead>Joined</TableHead><TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filtered.map((member) => (
+                          <TableRow key={member.id}>
+                            <TableCell className="font-medium">{member.name}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{member.email ?? '—'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground font-mono">{member.pid ?? '—'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{member.major ?? '—'}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{member.year ?? '—'}</TableCell>
+                            <TableCell>
+                              <button onClick={() => cycleStatus(member)} title="Click to cycle status" className="cursor-pointer">
+                                <Badge style={{ background: STATUS_COLORS[member.status] + '22', color: STATUS_COLORS[member.status], border: `1px solid ${STATUS_COLORS[member.status]}44` }} className="capitalize text-xs font-medium">{member.status}</Badge>
+                              </button>
+                            </TableCell>
+                            <TableCell><span className="text-xs text-muted-foreground capitalize">{member.role}</span></TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {member.joined_at ? new Date(member.joined_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeleteMemberId(member.id)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
                         ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : members.length === 0 ? (
-              <div className="text-center py-20">
-                <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h2 className="text-xl font-semibold text-foreground mb-2">No members yet</h2>
-                <p className="text-muted-foreground mb-6">
-                  Add members manually or import from a CSV file.
-                </p>
-                <div className="flex justify-center gap-3">
-                  <Button variant="gold" onClick={() => setShowAddModal(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Member
-                  </Button>
-                  <Button variant="outline" onClick={() => csvInputRef.current?.click()}>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Import CSV
+                      </TableBody>
+                    </Table>
+                    <div className="px-4 py-2 border-t border-border text-xs text-muted-foreground">
+                      {filtered.length} of {members.length} member{members.length !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ── DUES TAB ───────────────────────────────────────────────── */}
+            {activeTab === 'dues' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-zinc-500">
+                    <span className="text-green-400 font-medium">{members.filter((m) => m.dues_paid).length}</span> paid ·{' '}
+                    <span className="text-red-400 font-medium">{members.filter((m) => !m.dues_paid).length}</span> unpaid
+                  </div>
+                  <Button variant="outline" size="sm" onClick={markAllPaid} className="text-green-400 border-green-500/30 hover:bg-green-500/10 hover:text-green-400">
+                    <Check className="w-3.5 h-3.5 mr-1.5" />Mark All Paid
                   </Button>
                 </div>
+
+                <div className="premium-card overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead><TableHead>Email</TableHead>
+                        <TableHead>Amount</TableHead><TableHead>Due Date</TableHead>
+                        <TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {members.map((member) => {
+                        const isOverdue = member.dues_due_date && member.dues_due_date < today && !member.dues_paid;
+                        const isEditing = editingDues === member.id;
+                        return (
+                          <TableRow key={member.id}>
+                            <TableCell className="font-medium">{member.name}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{member.email ?? '—'}</TableCell>
+                            <TableCell>
+                              {isEditing ? (
+                                <Input type="number" step="0.01" min="0" value={duesAmount} onChange={(e) => setDuesAmount(e.target.value)} placeholder="0.00" className="w-24 h-7 text-sm bg-zinc-900 border-white/10 text-white" />
+                              ) : (
+                                <span className="text-sm text-muted-foreground">{member.dues_amount != null ? `$${member.dues_amount.toFixed(2)}` : '—'}</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {isEditing ? (
+                                <Input type="date" value={duesDueDate} onChange={(e) => setDuesDueDate(e.target.value)} className="w-36 h-7 text-sm bg-zinc-900 border-white/10 text-white" />
+                              ) : (
+                                <span className={`text-sm ${isOverdue ? 'text-red-400' : 'text-muted-foreground'}`}>
+                                  {member.dues_due_date ? new Date(member.dues_due_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}
+                                  {isOverdue && <span className="ml-1.5 text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded-full">Overdue</span>}
+                                </span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <button onClick={() => toggleDuesPaid(member)} className="cursor-pointer">
+                                <Badge style={member.dues_paid
+                                  ? { background: '#34d39922', color: '#34d399', border: '1px solid #34d39944' }
+                                  : { background: '#ef444422', color: '#ef4444', border: '1px solid #ef444444' }}
+                                  className="text-xs font-medium">
+                                  {member.dues_paid ? 'Paid' : 'Unpaid'}
+                                </Badge>
+                              </button>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {isEditing ? (
+                                <div className="flex gap-1 justify-end">
+                                  <Button size="sm" variant="ghost" className="h-7 px-2 text-green-400 hover:text-green-400" onClick={() => saveDuesEdit(member)}><Check className="w-3.5 h-3.5" /></Button>
+                                  <Button size="sm" variant="ghost" className="h-7 px-2 text-zinc-500 hover:text-zinc-400" onClick={() => setEditingDues(null)}><X className="w-3.5 h-3.5" /></Button>
+                                </div>
+                              ) : (
+                                <Button size="sm" variant="ghost" className="h-7 px-2 text-zinc-500 hover:text-zinc-300" onClick={() => { setEditingDues(member.id); setDuesAmount(member.dues_amount?.toString() ?? ''); setDuesDueDate(member.dues_due_date ?? ''); }}>Edit</Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                  {members.length === 0 && <div className="p-8 text-center text-zinc-500 text-sm">No members yet. Add members in the Roster tab first.</div>}
+                </div>
               </div>
-            ) : filtered.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-muted-foreground">No members match your search or filter.</p>
-                <Button
-                  variant="ghost"
-                  className="mt-3"
-                  onClick={() => { setSearch(''); setStatusFilter('all'); }}
-                >
-                  Clear filters
-                </Button>
+            )}
+
+            {/* ── ATTENDANCE TAB ─────────────────────────────────────────── */}
+            {activeTab === 'attendance' && (
+              <div className="flex gap-4 min-h-[400px]">
+                {/* Sessions list */}
+                <div className="w-64 shrink-0 space-y-2">
+                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">Sessions</p>
+                  {sessions.length === 0 ? (
+                    <div className="text-sm text-zinc-600 py-4 text-center">No sessions yet.<br/>Create one to start tracking.</div>
+                  ) : (
+                    sessions.map((session) => (
+                      <button
+                        key={session.id}
+                        onClick={() => setSelectedSession(session)}
+                        className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all ${selectedSession?.id === session.id ? 'bg-gold/10 border border-gold/30 text-white' : 'bg-zinc-900/40 border border-white/8 text-zinc-400 hover:text-white hover:border-white/15'}`}
+                      >
+                        <p className="font-medium truncate">{session.name}</p>
+                        <p className="text-xs text-zinc-600 mt-0.5">
+                          {new Date(session.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </button>
+                    ))
+                  )}
+                </div>
+
+                {/* Attendance grid */}
+                <div className="flex-1">
+                  {!selectedSession ? (
+                    <div className="flex flex-col items-center justify-center h-full text-zinc-600 text-sm">
+                      <Calendar className="w-10 h-10 mb-3 opacity-30" />
+                      {sessions.length > 0 ? 'Select a session to view attendance' : 'Create a session to get started'}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-white font-semibold">{selectedSession.name}</h3>
+                          <p className="text-xs text-zinc-500">
+                            {new Date(selectedSession.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <span className="text-sm text-zinc-400">
+                          <span className="text-green-400 font-medium">{attendanceRecords.filter((r) => r.present).length}</span>
+                          {' / '}{activeMembers.length} attended
+                        </span>
+                      </div>
+
+                      {loadingAttendance ? (
+                        <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 text-gold animate-spin" /></div>
+                      ) : activeMembers.length === 0 ? (
+                        <p className="text-zinc-600 text-sm">No active members to track.</p>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {activeMembers.map((member) => {
+                            const record = attendanceRecords.find((r) => r.member_id === member.id);
+                            const present = record?.present ?? false;
+                            return (
+                              <button
+                                key={member.id}
+                                onClick={() => toggleAttendance(member.id)}
+                                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-all text-sm ${present ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-zinc-900/40 border-white/8 text-zinc-500 hover:border-white/15 hover:text-zinc-400'}`}
+                              >
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${present ? 'bg-green-500/20' : 'bg-zinc-800'}`}>
+                                  {present ? <Check className="w-3 h-3" /> : <X className="w-3 h-3 opacity-40" />}
+                                </div>
+                                <span className="truncate font-medium">{member.name.split(' ')[0]}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            ) : (
-              <div className="premium-card overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>PID</TableHead>
-                      <TableHead>Major</TableHead>
-                      <TableHead>Year</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Joined</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filtered.map((member) => (
-                      <TableRow key={member.id}>
-                        <TableCell className="font-medium">{member.name}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {member.email ?? '—'}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground font-mono">
-                          {member.pid ?? '—'}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {member.major ?? '—'}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {member.year ?? '—'}
-                        </TableCell>
-                        <TableCell>
-                          <button
-                            onClick={() => cycleStatus(member)}
-                            title="Click to cycle status"
-                            className="cursor-pointer"
-                          >
-                            <Badge
-                              style={{
-                                background: STATUS_COLORS[member.status] + '22',
-                                color: STATUS_COLORS[member.status],
-                                border: `1px solid ${STATUS_COLORS[member.status]}44`,
-                              }}
-                              className="capitalize text-xs font-medium"
-                            >
-                              {member.status}
-                            </Badge>
-                          </button>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs text-muted-foreground capitalize">
-                            {member.role}
+            )}
+
+            {/* ── POINTS TAB ─────────────────────────────────────────────── */}
+            {activeTab === 'points' && (
+              <div className="space-y-5">
+                <div>
+                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">Leaderboard</p>
+                  {sortedByPoints.length === 0 ? (
+                    <div className="text-sm text-zinc-600 text-center py-8">No active members yet.</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {sortedByPoints.map((member, idx) => (
+                        <div key={member.id} className="flex items-center gap-3 rounded-lg border border-white/8 bg-zinc-900/40 px-4 py-3">
+                          <span className={`text-sm font-bold w-6 shrink-0 ${idx === 0 ? 'text-gold' : idx === 1 ? 'text-zinc-300' : idx === 2 ? 'text-amber-600' : 'text-zinc-600'}`}>
+                            #{idx + 1}
                           </span>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {member.joined_at
-                            ? new Date(member.joined_at).toLocaleDateString('en-US', {
-                                month: 'short',
-                                year: 'numeric',
-                              })
-                            : '—'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => setDeleteMemberId(member.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <div className="px-4 py-2 border-t border-border text-xs text-muted-foreground">
-                  {filtered.length} of {members.length} member{members.length !== 1 ? 's' : ''}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white text-sm font-medium truncate">{member.name}</p>
+                            <p className="text-xs text-zinc-600 truncate">{member.email ?? member.year ?? ''}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-gold font-bold font-display text-lg">{member.points ?? 0}</span>
+                            <Button size="sm" variant="outline" className="h-7 px-2 text-xs text-zinc-400 border-white/10 hover:border-white/20 hover:text-white"
+                              onClick={() => { setShowAddPoints(member); setPointAmount(''); setPointReason(''); }}>
+                              <Plus className="w-3 h-3 mr-1" />Points
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
+                {pointTransactions.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">Recent Transactions</p>
+                    <div className="space-y-1.5">
+                      {pointTransactions.slice(0, 20).map((tx) => {
+                        const m = members.find((mb) => mb.id === tx.member_id);
+                        return (
+                          <div key={tx.id} className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-zinc-900/30 border border-white/6 text-sm">
+                            <span className={`font-bold w-14 shrink-0 ${tx.points > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {tx.points > 0 ? '+' : ''}{tx.points}
+                            </span>
+                            <span className="text-zinc-300 font-medium">{m?.name ?? 'Unknown'}</span>
+                            {tx.reason && <span className="text-zinc-500 truncate">{tx.reason}</span>}
+                            <span className="ml-auto text-zinc-700 text-xs shrink-0">
+                              {new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -630,124 +852,39 @@ export default function ClubAdminMembers() {
       {/* Add Member Modal */}
       <Dialog open={showAddModal} onOpenChange={(o) => { setShowAddModal(o); if (!o) setForm(defaultForm); }}>
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-display">Add Member</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle className="font-display">Add Member</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="Full name"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="student@ucsd.edu"
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="pid">PID</Label>
-                <Input
-                  id="pid"
-                  placeholder="A12345678"
-                  value={form.pid}
-                  onChange={(e) => setForm((f) => ({ ...f, pid: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="major">Major</Label>
-                <Input
-                  id="major"
-                  placeholder="Computer Science"
-                  value={form.major}
-                  onChange={(e) => setForm((f) => ({ ...f, major: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="year">Year</Label>
+              <div className="col-span-2"><Label htmlFor="name">Name *</Label><Input id="name" placeholder="Full name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="mt-1" /></div>
+              <div><Label htmlFor="email">Email</Label><Input id="email" type="email" placeholder="student@ucsd.edu" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className="mt-1" /></div>
+              <div><Label htmlFor="pid">PID</Label><Input id="pid" placeholder="A12345678" value={form.pid} onChange={(e) => setForm((f) => ({ ...f, pid: e.target.value }))} className="mt-1" /></div>
+              <div><Label htmlFor="major">Major</Label><Input id="major" placeholder="Computer Science" value={form.major} onChange={(e) => setForm((f) => ({ ...f, major: e.target.value }))} className="mt-1" /></div>
+              <div><Label htmlFor="year">Year</Label>
                 <Select value={form.year} onValueChange={(v) => setForm((f) => ({ ...f, year: v }))}>
-                  <SelectTrigger id="year" className="mt-1">
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {YEARS.map((y) => (
-                      <SelectItem key={y} value={y}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
+                  <SelectTrigger id="year" className="mt-1"><SelectValue placeholder="Select year" /></SelectTrigger>
+                  <SelectContent>{YEARS.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="status">Status</Label>
+              <div><Label htmlFor="status">Status</Label>
                 <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v as ClubMember['status'] }))}>
-                  <SelectTrigger id="status" className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="alumni">Alumni</SelectItem>
-                  </SelectContent>
+                  <SelectTrigger id="status" className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="inactive">Inactive</SelectItem><SelectItem value="alumni">Alumni</SelectItem></SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="role">Role</Label>
+              <div><Label htmlFor="role">Role</Label>
                 <Select value={form.role} onValueChange={(v) => setForm((f) => ({ ...f, role: v as ClubMember['role'] }))}>
-                  <SelectTrigger id="role" className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="member">Member</SelectItem>
-                    <SelectItem value="officer">Officer</SelectItem>
-                  </SelectContent>
+                  <SelectTrigger id="role" className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="member">Member</SelectItem><SelectItem value="officer">Officer</SelectItem></SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label htmlFor="joined_at">Joined</Label>
-                <Input
-                  id="joined_at"
-                  type="date"
-                  value={form.joined_at}
-                  onChange={(e) => setForm((f) => ({ ...f, joined_at: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div className="col-span-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Optional notes…"
-                  value={form.notes}
-                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                  className="mt-1 resize-none"
-                  rows={2}
-                />
-              </div>
+              <div><Label htmlFor="joined_at">Joined</Label><Input id="joined_at" type="date" value={form.joined_at} onChange={(e) => setForm((f) => ({ ...f, joined_at: e.target.value }))} className="mt-1" /></div>
+              <div className="col-span-2"><Label htmlFor="notes">Notes</Label><Textarea id="notes" placeholder="Optional notes…" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} className="mt-1 resize-none" rows={2} /></div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowAddModal(false); setForm(defaultForm); }}>
-              Cancel
-            </Button>
-            <Button
-              variant="gold"
-              onClick={handleAddMember}
-              disabled={saving || !form.name.trim()}
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-              Add Member
+            <Button variant="outline" onClick={() => { setShowAddModal(false); setForm(defaultForm); }}>Cancel</Button>
+            <Button variant="gold" onClick={handleAddMember} disabled={saving || !form.name.trim()}>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}Add Member
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -758,22 +895,65 @@ export default function ClubAdminMembers() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Member</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove this member from the roster? This action cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Are you sure you want to remove this member from the roster? This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Remove'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* New Session Modal */}
+      <Dialog open={showNewSession} onOpenChange={setShowNewSession}>
+        <DialogContent className="sm:max-w-md bg-zinc-950 border-white/10">
+          <DialogHeader><DialogTitle className="text-white font-display">New Attendance Session</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-zinc-300">Session Name</Label>
+              <Input value={newSessionName} onChange={(e) => setNewSessionName(e.target.value)} placeholder="e.g. Weekly Meeting, Spring Kickoff" className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-zinc-300">Date</Label>
+              <Input type="date" value={newSessionDate} onChange={(e) => setNewSessionDate(e.target.value)} className="bg-zinc-900 border-white/10 text-white" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewSession(false)}>Cancel</Button>
+            <Button variant="gold" onClick={createSession} disabled={creatingSession || !newSessionName.trim() || !newSessionDate}>
+              {creatingSession ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}Create Session
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Points Modal */}
+      <Dialog open={!!showAddPoints} onOpenChange={(o) => { if (!o) setShowAddPoints(null); }}>
+        <DialogContent className="sm:max-w-sm bg-zinc-950 border-white/10">
+          <DialogHeader><DialogTitle className="text-white font-display">Points for {showAddPoints?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-zinc-300">Points <span className="text-zinc-500">(use negative to deduct)</span></Label>
+              <Input type="number" value={pointAmount} onChange={(e) => setPointAmount(e.target.value)} placeholder="e.g. 10 or -5" className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-zinc-300">Reason <span className="text-zinc-600">(optional)</span></Label>
+              <Input value={pointReason} onChange={(e) => setPointReason(e.target.value)} placeholder="e.g. Helped at event, Attended meeting" className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600" />
+            </div>
+            {showAddPoints && (
+              <p className="text-xs text-zinc-600">Current balance: <span className="text-zinc-400 font-medium">{showAddPoints.points ?? 0} pts</span></p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddPoints(null)}>Cancel</Button>
+            <Button variant="gold" onClick={handleAddPoints} disabled={addingPoints || !pointAmount}>
+              {addingPoints ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Trophy className="w-4 h-4 mr-2" />}Add Points
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

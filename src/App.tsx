@@ -37,6 +37,8 @@ import TestResumeUpload from "./pages/TestResumeUpload";
 import SocialAssets from "./pages/SocialAssets";
 import AuthCallback from "./pages/AuthCallback";
 import Demo from "./pages/Demo";
+import ClubOnboardingRequest from "./pages/ClubOnboardingRequest";
+import AdminRequestsPanel from "./pages/AdminRequestsPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,6 +70,7 @@ const App = () => (
           <Route path="/express-interest" element={<ExpressInterest />} />
           <Route path="/submit-event" element={<SubmitEvent />} />
           <Route path="/admin/events" element={<AdminEvents />} />
+          <Route path="/admin/requests" element={<AdminRequestsPanel />} />
           <Route path="/verify-claim" element={<VerifyClaim />} />
           <Route path="/club-admin" element={<ClubAdminDashboard />} />
           <Route path="/club-admin/clubs/:clubId/events" element={<ClubAdminEvents />} />
@@ -76,6 +79,7 @@ const App = () => (
           <Route path="/club-admin/clubs/:clubId/analytics" element={<ClubAdminAnalytics />} />
           <Route path="/club-admin/clubs/:clubId/members" element={<ClubAdminMembers />} />
           <Route path="/club-admin/profile" element={<AdminProfileSettings />} />
+          <Route path="/club-admin/request" element={<ClubOnboardingRequest />} />
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/terms" element={<TermsOfService />} />

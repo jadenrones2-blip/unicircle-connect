@@ -10,11 +10,12 @@ CREATE TABLE IF NOT EXISTS public.application_forms (
 ALTER TABLE public.application_forms ENABLE ROW LEVEL SECURITY;
 
 -- Anyone can read a club's form (needed for student apply page)
-CREATE POLICY IF NOT EXISTS "application_forms_read" ON public.application_forms
+DROP POLICY IF EXISTS "application_forms_read" ON public.application_forms;
+CREATE POLICY "application_forms_read" ON public.application_forms
   FOR SELECT USING (true);
 
--- Only authenticated users who own the club can write
-CREATE POLICY IF NOT EXISTS "application_forms_write" ON public.application_forms
+DROP POLICY IF EXISTS "application_forms_write" ON public.application_forms;
+CREATE POLICY "application_forms_write" ON public.application_forms
   FOR ALL USING (auth.uid() IS NOT NULL);
 
 -- Deliberation votes: per-officer vote on each applicant
@@ -30,10 +31,12 @@ CREATE TABLE IF NOT EXISTS public.deliberation_votes (
 
 ALTER TABLE public.deliberation_votes ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "deliberation_votes_read" ON public.deliberation_votes
+DROP POLICY IF EXISTS "deliberation_votes_read" ON public.deliberation_votes;
+CREATE POLICY "deliberation_votes_read" ON public.deliberation_votes
   FOR SELECT USING (auth.uid() IS NOT NULL);
 
-CREATE POLICY IF NOT EXISTS "deliberation_votes_write" ON public.deliberation_votes
+DROP POLICY IF EXISTS "deliberation_votes_write" ON public.deliberation_votes;
+CREATE POLICY "deliberation_votes_write" ON public.deliberation_votes
   FOR ALL USING (auth.uid() IS NOT NULL);
 
 -- Add final decision field to applicants if not already there

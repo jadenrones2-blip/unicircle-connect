@@ -11,26 +11,19 @@ const corsHeaders = {
 };
 
 interface NotifyApplicantRequest {
-  applicantId: string;
+  notificationType: 'stage_advance' | 'application_received' | 'final_decision';
+  applicantId?: string;
   applicantEmail: string;
   applicantName: string;
-  stageName: string;
+  stageName?: string;
   clubName: string;
-  clubId: string;
+  clubId?: string;
+  finalDecision?: string;
 }
 
-// Stages that trigger email notifications
-const NOTIFICATION_STAGES = ['interview', 'accepted', 'offer', 'final round', 'second round'];
-
-function shouldNotify(stageName: string): boolean {
-  return NOTIFICATION_STAGES.some(stage => 
-    stageName.toLowerCase().includes(stage)
-  );
-}
-
-function getEmailContent(stageName: string, applicantName: string, clubName: string): { subject: string; html: string } {
+function getStageAdvanceEmail(stageName: string, applicantName: string, clubName: string): { subject: string; html: string } {
   const lowerStage = stageName.toLowerCase();
-  
+
   if (lowerStage.includes('accepted') || lowerStage.includes('offer')) {
     return {
       subject: `🎉 Congratulations! You've been accepted to ${clubName}`,
@@ -52,30 +45,25 @@ function getEmailContent(stageName: string, applicantName: string, clubName: str
         </head>
         <body>
           <div class="container">
-            <div class="header">
-              <div class="logo">✨ Unicircle</div>
-            </div>
+            <div class="header"><div class="logo">✨ Unicircle</div></div>
             <div class="card">
               <h1>Congratulations, ${applicantName}!</h1>
               <p>We're thrilled to inform you that you've been <strong>accepted</strong> to join <strong>${clubName}</strong>!</p>
               <div class="highlight">
-                <p style="margin: 0;">🎊 This is a significant achievement. The club will reach out to you with next steps regarding onboarding and membership.</p>
+                <p style="margin: 0;">🎊 The club will reach out to you with next steps regarding onboarding and membership.</p>
               </div>
               <p>We're excited to have you as part of our community!</p>
             </div>
-            <div class="footer">
-              <p>This notification was sent via Unicircle on behalf of ${clubName}.</p>
-            </div>
+            <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
           </div>
         </body>
         </html>
       `,
     };
   }
-  
-  // Default: Interview/other stage notification
+
   return {
-    subject: `📅 ${clubName} - You've advanced to ${stageName}!`,
+    subject: `📅 ${clubName} — You've advanced to ${stageName}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -95,9 +83,7 @@ function getEmailContent(stageName: string, applicantName: string, clubName: str
       </head>
       <body>
         <div class="container">
-          <div class="header">
-            <div class="logo">✨ Unicircle</div>
-          </div>
+          <div class="header"><div class="logo">✨ Unicircle</div></div>
           <div class="card">
             <h1>Great news, ${applicantName}!</h1>
             <p>You've advanced in the recruitment process at <strong>${clubName}</strong>.</p>
@@ -107,9 +93,157 @@ function getEmailContent(stageName: string, applicantName: string, clubName: str
             </div>
             <p>Best of luck! 🍀</p>
           </div>
-          <div class="footer">
-            <p>This notification was sent via Unicircle on behalf of ${clubName}.</p>
+          <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+}
+
+function getApplicationReceivedEmail(applicantName: string, clubName: string): { subject: string; html: string } {
+  return {
+    subject: `✅ Application received — ${clubName}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; }
+          .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+          .header { text-align: center; margin-bottom: 32px; }
+          .logo { font-size: 28px; font-weight: bold; color: #b8860b; }
+          .card { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 16px; padding: 32px; color: #fff; }
+          .card h1 { color: #ffd700; margin: 0 0 8px 0; font-size: 24px; }
+          .card p { margin: 0 0 16px 0; opacity: 0.9; }
+          .check-box { background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 8px; padding: 16px; margin-bottom: 24px; color: #34d399; font-size: 15px; }
+          .footer { text-align: center; margin-top: 32px; color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><div class="logo">✨ Unicircle</div></div>
+          <div class="card">
+            <h1>We got your application!</h1>
+            <p>Hey ${applicantName},</p>
+            <p>Your application to <strong>${clubName}</strong> has been successfully submitted.</p>
+            <div class="check-box">✓ Application received and under review</div>
+            <p>The officers will review applications and be in touch soon. Good luck! 🤞</p>
           </div>
+          <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+}
+
+function getFinalDecisionEmail(applicantName: string, clubName: string, decision: string): { subject: string; html: string } {
+  const isAccepted = decision === 'accepted';
+  const isRejected = decision === 'rejected';
+
+  if (isAccepted) {
+    return {
+      subject: `🎉 You're in! Welcome to ${clubName}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; }
+            .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+            .header { text-align: center; margin-bottom: 32px; }
+            .logo { font-size: 28px; font-weight: bold; color: #b8860b; }
+            .card { background: linear-gradient(135deg, #1a5f1a 0%, #2d8f2d 100%); border-radius: 16px; padding: 32px; color: #fff; }
+            .card h1 { color: #90EE90; margin: 0 0 8px 0; font-size: 24px; }
+            .card p { margin: 0 0 16px 0; opacity: 0.95; }
+            .highlight { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+            .footer { text-align: center; margin-top: 32px; color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header"><div class="logo">✨ Unicircle</div></div>
+            <div class="card">
+              <h1>Welcome, ${applicantName}! 🎊</h1>
+              <p>We're thrilled to officially welcome you to <strong>${clubName}</strong>!</p>
+              <div class="highlight">
+                <p style="margin: 0;">The club will be reaching out soon with details on next steps, meetings, and how to get involved.</p>
+              </div>
+              <p>Can't wait to have you with us!</p>
+            </div>
+            <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+  }
+
+  if (isRejected) {
+    return {
+      subject: `${clubName} — Application Update`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; }
+            .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+            .header { text-align: center; margin-bottom: 32px; }
+            .logo { font-size: 28px; font-weight: bold; color: #b8860b; }
+            .card { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 16px; padding: 32px; color: #fff; }
+            .card h1 { color: #ffd700; margin: 0 0 8px 0; font-size: 24px; }
+            .card p { margin: 0 0 16px 0; opacity: 0.9; }
+            .note { background: rgba(255,255,255,0.07); border-radius: 8px; padding: 16px; margin-bottom: 24px; font-style: italic; color: #a1a1aa; }
+            .footer { text-align: center; margin-top: 32px; color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header"><div class="logo">✨ Unicircle</div></div>
+            <div class="card">
+              <h1>Hi ${applicantName},</h1>
+              <p>Thank you so much for your interest in <strong>${clubName}</strong> and for taking the time to apply.</p>
+              <p>After careful consideration, we won't be moving forward with your application at this time. This was a difficult decision — we had many talented applicants and limited spots.</p>
+              <div class="note">We encourage you to keep exploring clubs on Unicircle and apply again in a future cycle. Your next opportunity is just around the corner. 💪</div>
+              <p>We wish you all the best in your campus journey!</p>
+            </div>
+            <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+  }
+
+  // Waitlisted or other decision
+  return {
+    subject: `${clubName} — Application Status Update`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; }
+          .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+          .logo { font-size: 28px; font-weight: bold; color: #b8860b; text-align: center; margin-bottom: 32px; }
+          .card { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 16px; padding: 32px; color: #fff; }
+          .card h1 { color: #ffd700; margin: 0 0 8px 0; font-size: 24px; }
+          .card p { margin: 0 0 16px 0; opacity: 0.9; }
+          .footer { text-align: center; margin-top: 32px; color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="logo">✨ Unicircle</div>
+          <div class="card">
+            <h1>Hi ${applicantName},</h1>
+            <p>There's an update on your application to <strong>${clubName}</strong>.</p>
+            <p>Your application status is now: <strong>${decision}</strong>.</p>
+            <p>The club will be in touch with further details.</p>
+          </div>
+          <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
         </div>
       </body>
       </html>
@@ -123,78 +257,78 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // ============ AUTH + CLUB OWNERSHIP CHECK ============
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const authSupabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: { user }, error: userError } = await authSupabase.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    }
-
-    const { 
-      applicantId, 
-      applicantEmail, 
-      applicantName, 
-      stageName, 
-      clubName,
-      clubId 
-    }: NotifyApplicantRequest = await req.json();
+    const body: NotifyApplicantRequest = await req.json();
+    const { notificationType, applicantEmail, applicantName, stageName, clubName, clubId, finalDecision } = body;
 
     // Validate required fields
-    if (!applicantEmail || !applicantName || !stageName || !clubName) {
+    if (!applicantEmail || !applicantName || !clubName) {
       throw new Error("Missing required fields");
     }
 
-    // Verify club ownership
-    if (clubId) {
-      const { data: ownership } = await authSupabase
-        .from("club_owners")
-        .select("id")
-        .eq("club_id", clubId)
-        .eq("user_id", user.id)
-        .maybeSingle();
+    // Auth check for officer-initiated notifications
+    if (notificationType !== 'application_received') {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
 
-      if (!ownership) {
-        return new Response(
-          JSON.stringify({ error: "Not authorized for this club" }),
-          { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const authSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user }, error: userError } = await authSupabase.auth.getUser();
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      // Verify club ownership if clubId provided
+      if (clubId) {
+        const { data: ownership } = await authSupabase
+          .from("club_owners")
+          .select("id")
+          .eq("club_id", clubId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (!ownership) {
+          return new Response(
+            JSON.stringify({ error: "Not authorized for this club" }),
+            { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
       }
     }
 
-    // Check if this stage should trigger a notification
-    if (!shouldNotify(stageName)) {
-      console.log(`Stage "${stageName}" does not trigger notifications`);
+    let emailContent: { subject: string; html: string };
+
+    if (notificationType === 'application_received') {
+      emailContent = getApplicationReceivedEmail(applicantName, clubName);
+    } else if (notificationType === 'final_decision' && finalDecision) {
+      emailContent = getFinalDecisionEmail(applicantName, clubName, finalDecision);
+    } else if (notificationType === 'stage_advance' && stageName) {
+      emailContent = getStageAdvanceEmail(stageName, applicantName, clubName);
+    } else {
       return new Response(
-        JSON.stringify({ success: true, message: "No notification needed for this stage" }),
+        JSON.stringify({ success: true, message: "No email action needed" }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    const { subject, html } = getEmailContent(stageName, applicantName, clubName);
-
     const emailResponse = await resend.emails.send({
       from: "Unicircle <noreply@unicircle.app>",
       to: [applicantEmail],
-      subject,
-      html,
+      subject: emailContent.subject,
+      html: emailContent.html,
     });
 
-    console.log("Applicant stage notification sent:", emailResponse);
+    console.log("Applicant notification sent:", notificationType, emailResponse);
 
     return new Response(
       JSON.stringify({ success: true, emailResponse }),

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -261,10 +262,31 @@ const ClubDetail = () => {
     );
   }
 
+  const description = (club as any).description?.slice(0, 160) || `Learn more about ${club.name} on UniCircle.`;
+  const ogImage = (club as any).logo_url || (club as any).cover_image || 'https://unicircle.app/og-image.png';
+
   return (
     <main className="min-h-screen bg-background">
+      <Helmet>
+        <title>{club.name} | UniCircle</title>
+        <meta name="description" content={description} />
+        <meta property="og:title" content={`${club.name} | UniCircle`} />
+        <meta property="og:description" content={(club as any).description || description} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:url" content={`https://unicircle.app/clubs/${(club as any).id}`} />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": club.name,
+          "description": (club as any).description,
+          "url": `https://unicircle.app/clubs/${(club as any).id}`,
+          "logo": (club as any).logo_url,
+        })}</script>
+      </Helmet>
       <Header />
-      
+
       {/* Hero */}
       <section className="pt-24 md:pt-28">
         {/* Cover Image */}

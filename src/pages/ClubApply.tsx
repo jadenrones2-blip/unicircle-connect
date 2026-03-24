@@ -153,6 +153,21 @@ export default function ClubApply() {
         }
       }
 
+      // Send "application received" email notification (best-effort)
+      try {
+        await supabase.functions.invoke('notify-applicant-stage', {
+          body: {
+            notificationType: 'application_received',
+            applicantEmail: email.trim().toLowerCase(),
+            applicantName: `${firstName.trim()} ${lastName.trim()}`,
+            clubName: clubName || 'the club',
+            clubId,
+          },
+        });
+      } catch (notifyErr) {
+        console.warn('Application received notification failed (non-fatal):', notifyErr);
+      }
+
       setSubmitted(true);
     } catch (err) {
       console.error('Submission error:', err);

@@ -301,11 +301,12 @@ export function useRecruitment(clubId: string | undefined) {
     const applicant = applicants.find(a => a.id === applicantId);
     const newStage = stages.find(s => s.id === newStageId);
 
-    // Send notification for interview/accepted stages
+    // Send stage advance notification for all stages
     if (applicant && newStage && clubName) {
       try {
-        const response = await supabase.functions.invoke('notify-applicant-stage', {
+        await supabase.functions.invoke('notify-applicant-stage', {
           body: {
+            notificationType: 'stage_advance',
             applicantId: applicant.id,
             applicantEmail: applicant.email,
             applicantName: `${applicant.first_name} ${applicant.last_name}`,
@@ -314,13 +315,8 @@ export function useRecruitment(clubId: string | undefined) {
             clubId: clubId,
           },
         });
-        
-        if (response.data?.success && response.data?.emailResponse) {
-          toast.success(`Notification sent to ${applicant.first_name}`);
-        }
       } catch (notifyError) {
         console.error('Failed to send stage notification:', notifyError);
-        // Don't fail the stage update if notification fails
       }
     }
 
@@ -358,7 +354,7 @@ export function useRecruitment(clubId: string | undefined) {
     return true;
   };
 
-  const updateFinalDecision = async (applicantId: string, decision: string): Promise<boolean> => {
+  const updateFinalDecision = async (applicantId: string, decision: string, clubName?: string): Promise<boolean> => {
     if (!user) return false;
     const { error } = await (supabase as any)
       .from('applicants')
@@ -369,6 +365,29 @@ export function useRecruitment(clubId: string | undefined) {
       return false;
     }
     setApplicants(prev => prev.map(a => a.id === applicantId ? { ...a, final_decision: decision } : a));
+
+    // Send final decision notification (accepted or rejected)
+    if (clubName && (decision === 'accepted' || decision === 'rejected')) {
+      const applicant = applicants.find(a => a.id === applicantId);
+      if (applicant) {
+        try {
+          await supabase.functions.invoke('notify-applicant-stage', {
+            body: {
+              notificationType: 'final_decision',
+              applicantId,
+              applicantEmail: applicant.email,
+              applicantName: `${applicant.first_name} ${applicant.last_name}`,
+              clubName,
+              clubId,
+              finalDecision: decision,
+            },
+          });
+        } catch (notifyErr) {
+          console.warn('Final decision notification failed (non-fatal):', notifyErr);
+        }
+      }
+    }
+
     return true;
   };
 

@@ -1,4 +1,5 @@
 import { useEffect, useDeferredValue, useMemo, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, Search, X, AlertCircle, Sparkles, Plus, Users } from "lucide-react";
 import Header from "@/components/Header";
@@ -199,6 +200,14 @@ const ClubsDirectory = () => {
 
   return (
     <main className="min-h-screen bg-[#0A0A0A] dark">
+      <Helmet>
+        <title>Discover University Clubs | UniCircle</title>
+        <meta name="description" content="Explore hundreds of student clubs and organizations. Find the perfect club for your interests at UniCircle." />
+        <meta property="og:title" content="Discover University Clubs | UniCircle" />
+        <meta property="og:description" content="Explore hundreds of student clubs and organizations. Find your community on UniCircle." />
+        <meta property="og:url" content="https://unicircle.app/clubs" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <Header />
 
       {/* Hero */}
