@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -23,6 +24,31 @@ interface NotifyClubRequestBody {
   rejectionReason?: string;
 }
 
+// Escape user-controlled strings before inserting into HTML
+function esc(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+// Only allow https:// URLs pointing to public hosts
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:') return false;
+    const host = parsed.hostname.toLowerCase();
+    const blocked = ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254'];
+    if (blocked.includes(host)) return false;
+    if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(host)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -36,12 +62,53 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Missing required fields: type, clubName, contactEmail");
     }
 
+    // approved / rejected are admin-only actions — require auth + admin role
+    if (type === 'approved' || type === 'rejected') {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const authSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      const { data: { user }, error: userError } = await authSupabase.auth.getUser();
+      if (userError || !user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      const { data: roleData } = await authSupabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (!roleData) {
+        return new Response(JSON.stringify({ error: "Admin access required" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+    }
+
+    // Validate proofLink if provided
+    const safeProofLink = proofLink && isSafeUrl(proofLink) ? proofLink : null;
+
     if (type === 'new_request') {
-      // Notify admin that a new request came in
       await resend.emails.send({
         from: "Unicircle <noreply@unicircle.app>",
         to: [ADMIN_EMAIL],
-        subject: `🆕 New club request: ${clubName}`,
+        subject: `🆕 New club request: ${esc(clubName)}`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -63,12 +130,12 @@ const handler = async (req: Request): Promise<Response> => {
               <div class="logo">✨ Unicircle Admin</div>
               <p>A new club request has been submitted. Review and approve or reject it in the admin panel.</p>
               <div class="card">
-                <div class="field"><div class="label">Club Name</div><div class="value">${clubName}</div></div>
-                ${university ? `<div class="field"><div class="label">University</div><div class="value">${university}</div></div>` : ''}
-                ${category ? `<div class="field"><div class="label">Category</div><div class="value">${category}</div></div>` : ''}
-                <div class="field"><div class="label">Contact Email</div><div class="value">${contactEmail}</div></div>
-                ${proofLink ? `<div class="field"><div class="label">Proof Link</div><div class="value"><a href="${proofLink}" class="link">${proofLink}</a></div></div>` : ''}
-                ${description ? `<div class="field"><div class="label">Description</div><div class="value">${description}</div></div>` : ''}
+                <div class="field"><div class="label">Club Name</div><div class="value">${esc(clubName)}</div></div>
+                ${university ? `<div class="field"><div class="label">University</div><div class="value">${esc(university)}</div></div>` : ''}
+                ${category ? `<div class="field"><div class="label">Category</div><div class="value">${esc(category)}</div></div>` : ''}
+                <div class="field"><div class="label">Contact Email</div><div class="value">${esc(contactEmail)}</div></div>
+                ${safeProofLink ? `<div class="field"><div class="label">Proof Link</div><div class="value"><a href="${esc(safeProofLink)}" class="link">${esc(safeProofLink)}</a></div></div>` : ''}
+                ${description ? `<div class="field"><div class="label">Description</div><div class="value">${esc(description)}</div></div>` : ''}
               </div>
               <a href="https://unicircle.app/admin/requests" class="cta">Review Request →</a>
             </div>
@@ -77,11 +144,10 @@ const handler = async (req: Request): Promise<Response> => {
         `,
       });
     } else if (type === 'approved') {
-      // Notify the club officer they've been approved
       await resend.emails.send({
         from: "Unicircle <noreply@unicircle.app>",
         to: [contactEmail],
-        subject: `🎉 ${clubName} has been approved on Unicircle!`,
+        subject: `🎉 ${esc(clubName)} has been approved on Unicircle!`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -106,7 +172,7 @@ const handler = async (req: Request): Promise<Response> => {
               <div class="logo">✨ Unicircle</div>
               <div class="card">
                 <h1>Welcome to Unicircle! 🎊</h1>
-                <p><strong>${clubName}</strong> has been approved and is now live on the platform.</p>
+                <p><strong>${esc(clubName)}</strong> has been approved and is now live on the platform.</p>
                 <div class="steps">
                   <strong>Here's how to get started:</strong>
                   <ol>
@@ -116,7 +182,7 @@ const handler = async (req: Request): Promise<Response> => {
                     <li>Set up recruitment if you're accepting new members</li>
                   </ol>
                 </div>
-                ${reviewerNotes ? `<p><em>Note from reviewer: ${reviewerNotes}</em></p>` : ''}
+                ${reviewerNotes ? `<p><em>Note from reviewer: ${esc(reviewerNotes)}</em></p>` : ''}
                 <a href="https://unicircle.app/club-admin" class="cta">Go to Club Admin →</a>
                 <p class="note">If you run into any issues, reply to this email and we'll help you get set up.</p>
               </div>
@@ -127,11 +193,10 @@ const handler = async (req: Request): Promise<Response> => {
         `,
       });
     } else if (type === 'rejected') {
-      // Notify the club officer their request was not approved
       await resend.emails.send({
         from: "Unicircle <noreply@unicircle.app>",
         to: [contactEmail],
-        subject: `${clubName} — Club Request Update`,
+        subject: `${esc(clubName)} — Club Request Update`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -152,9 +217,9 @@ const handler = async (req: Request): Promise<Response> => {
               <div class="logo">✨ Unicircle</div>
               <div class="card">
                 <h1>Application Update</h1>
-                <p>Thank you for your interest in bringing <strong>${clubName}</strong> to Unicircle.</p>
+                <p>Thank you for your interest in bringing <strong>${esc(clubName)}</strong> to Unicircle.</p>
                 <p>After reviewing your request, we're unable to approve it at this time.</p>
-                ${rejectionReason ? `<div class="reason">${rejectionReason}</div>` : ''}
+                ${rejectionReason ? `<div class="reason">${esc(rejectionReason)}</div>` : ''}
                 <p>If you believe this was an error or have additional information to share, you're welcome to reply to this email and we'll take another look.</p>
                 <p>We appreciate your interest in Unicircle!</p>
               </div>

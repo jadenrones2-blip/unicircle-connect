@@ -4,6 +4,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+// Escape user-controlled strings before inserting into HTML
+function esc(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -47,14 +57,14 @@ function getStageAdvanceEmail(stageName: string, applicantName: string, clubName
           <div class="container">
             <div class="header"><div class="logo">✨ Unicircle</div></div>
             <div class="card">
-              <h1>Congratulations, ${applicantName}!</h1>
-              <p>We're thrilled to inform you that you've been <strong>accepted</strong> to join <strong>${clubName}</strong>!</p>
+              <h1>Congratulations, ${esc(applicantName)}!</h1>
+              <p>We're thrilled to inform you that you've been <strong>accepted</strong> to join <strong>${esc(clubName)}</strong>!</p>
               <div class="highlight">
                 <p style="margin: 0;">🎊 The club will reach out to you with next steps regarding onboarding and membership.</p>
               </div>
               <p>We're excited to have you as part of our community!</p>
             </div>
-            <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+            <div class="footer"><p>This notification was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
           </div>
         </body>
         </html>
@@ -63,7 +73,7 @@ function getStageAdvanceEmail(stageName: string, applicantName: string, clubName
   }
 
   return {
-    subject: `📅 ${clubName} — You've advanced to ${stageName}`,
+    subject: `📅 ${esc(clubName)} — You've advanced to ${esc(stageName)}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -85,15 +95,15 @@ function getStageAdvanceEmail(stageName: string, applicantName: string, clubName
         <div class="container">
           <div class="header"><div class="logo">✨ Unicircle</div></div>
           <div class="card">
-            <h1>Great news, ${applicantName}!</h1>
-            <p>You've advanced in the recruitment process at <strong>${clubName}</strong>.</p>
+            <h1>Great news, ${esc(applicantName)}!</h1>
+            <p>You've advanced in the recruitment process at <strong>${esc(clubName)}</strong>.</p>
             <div class="highlight">
-              <span class="stage-badge">${stageName}</span>
+              <span class="stage-badge">${esc(stageName)}</span>
               <p style="margin: 12px 0 0 0;">The club will contact you with more details about next steps. Keep an eye on your email!</p>
             </div>
             <p>Best of luck! 🍀</p>
           </div>
-          <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+          <div class="footer"><p>This notification was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
         </div>
       </body>
       </html>
@@ -103,7 +113,7 @@ function getStageAdvanceEmail(stageName: string, applicantName: string, clubName
 
 function getApplicationReceivedEmail(applicantName: string, clubName: string): { subject: string; html: string } {
   return {
-    subject: `✅ Application received — ${clubName}`,
+    subject: `✅ Application received — ${esc(clubName)}`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -125,12 +135,12 @@ function getApplicationReceivedEmail(applicantName: string, clubName: string): {
           <div class="header"><div class="logo">✨ Unicircle</div></div>
           <div class="card">
             <h1>We got your application!</h1>
-            <p>Hey ${applicantName},</p>
-            <p>Your application to <strong>${clubName}</strong> has been successfully submitted.</p>
+            <p>Hey ${esc(applicantName)},</p>
+            <p>Your application to <strong>${esc(clubName)}</strong> has been successfully submitted.</p>
             <div class="check-box">✓ Application received and under review</div>
             <p>The officers will review applications and be in touch soon. Good luck! 🤞</p>
           </div>
-          <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+          <div class="footer"><p>This notification was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
         </div>
       </body>
       </html>
@@ -144,7 +154,7 @@ function getFinalDecisionEmail(applicantName: string, clubName: string, decision
 
   if (isAccepted) {
     return {
-      subject: `🎉 You're in! Welcome to ${clubName}`,
+      subject: `🎉 You're in! Welcome to ${esc(clubName)}`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -165,14 +175,14 @@ function getFinalDecisionEmail(applicantName: string, clubName: string, decision
           <div class="container">
             <div class="header"><div class="logo">✨ Unicircle</div></div>
             <div class="card">
-              <h1>Welcome, ${applicantName}! 🎊</h1>
-              <p>We're thrilled to officially welcome you to <strong>${clubName}</strong>!</p>
+              <h1>Welcome, ${esc(applicantName)}! 🎊</h1>
+              <p>We're thrilled to officially welcome you to <strong>${esc(clubName)}</strong>!</p>
               <div class="highlight">
                 <p style="margin: 0;">The club will be reaching out soon with details on next steps, meetings, and how to get involved.</p>
               </div>
               <p>Can't wait to have you with us!</p>
             </div>
-            <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+            <div class="footer"><p>This notification was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
           </div>
         </body>
         </html>
@@ -182,7 +192,7 @@ function getFinalDecisionEmail(applicantName: string, clubName: string, decision
 
   if (isRejected) {
     return {
-      subject: `${clubName} — Application Update`,
+      subject: `${esc(clubName)} — Application Update`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -203,13 +213,13 @@ function getFinalDecisionEmail(applicantName: string, clubName: string, decision
           <div class="container">
             <div class="header"><div class="logo">✨ Unicircle</div></div>
             <div class="card">
-              <h1>Hi ${applicantName},</h1>
-              <p>Thank you so much for your interest in <strong>${clubName}</strong> and for taking the time to apply.</p>
+              <h1>Hi ${esc(applicantName)},</h1>
+              <p>Thank you so much for your interest in <strong>${esc(clubName)}</strong> and for taking the time to apply.</p>
               <p>After careful consideration, we won't be moving forward with your application at this time. This was a difficult decision — we had many talented applicants and limited spots.</p>
               <div class="note">We encourage you to keep exploring clubs on Unicircle and apply again in a future cycle. Your next opportunity is just around the corner. 💪</div>
               <p>We wish you all the best in your campus journey!</p>
             </div>
-            <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+            <div class="footer"><p>This notification was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
           </div>
         </body>
         </html>
@@ -219,7 +229,7 @@ function getFinalDecisionEmail(applicantName: string, clubName: string, decision
 
   // Waitlisted or other decision
   return {
-    subject: `${clubName} — Application Status Update`,
+    subject: `${esc(clubName)} — Application Status Update`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -238,12 +248,12 @@ function getFinalDecisionEmail(applicantName: string, clubName: string, decision
         <div class="container">
           <div class="logo">✨ Unicircle</div>
           <div class="card">
-            <h1>Hi ${applicantName},</h1>
-            <p>There's an update on your application to <strong>${clubName}</strong>.</p>
-            <p>Your application status is now: <strong>${decision}</strong>.</p>
+            <h1>Hi ${esc(applicantName)},</h1>
+            <p>There's an update on your application to <strong>${esc(clubName)}</strong>.</p>
+            <p>Your application status is now: <strong>${esc(decision)}</strong>.</p>
             <p>The club will be in touch with further details.</p>
           </div>
-          <div class="footer"><p>This notification was sent via Unicircle on behalf of ${clubName}.</p></div>
+          <div class="footer"><p>This notification was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
         </div>
       </body>
       </html>
