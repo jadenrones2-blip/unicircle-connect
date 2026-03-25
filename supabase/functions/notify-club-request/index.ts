@@ -177,13 +177,13 @@ const handler = async (req: Request): Promise<Response> => {
                   <strong>Here's how to get started:</strong>
                   <ol>
                     <li>Log in at <strong>unicircle.app</strong> with this email</li>
-                    <li>Claim your club from the Club Admin dashboard</li>
+                    <li>Find your club in the directory and click 'Claim Club'</li>
+                    <li>Verify with your club email to get instant access</li>
                     <li>Complete your club profile (logo, description, social links)</li>
-                    <li>Set up recruitment if you're accepting new members</li>
                   </ol>
                 </div>
                 ${reviewerNotes ? `<p><em>Note from reviewer: ${esc(reviewerNotes)}</em></p>` : ''}
-                <a href="https://unicircle.app/club-admin" class="cta">Go to Club Admin →</a>
+                <a href="https://unicircle.app/clubs?search=${encodeURIComponent(clubName)}" class="cta">Find &amp; Claim Your Club →</a>
                 <p class="note">If you run into any issues, reply to this email and we'll help you get set up.</p>
               </div>
               <div class="footer"><p>Unicircle — The platform for UCSD student clubs</p></div>

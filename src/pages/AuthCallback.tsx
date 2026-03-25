@@ -24,6 +24,15 @@ export default function AuthCallback() {
 
       const userId = data.session.user.id;
 
+      // Block non-UCSD Google sign-ins
+      const provider = data.session.user.app_metadata?.provider;
+      const email = data.session.user.email || '';
+      if (provider === 'google' && !email.toLowerCase().endsWith('@ucsd.edu')) {
+        await supabase.auth.signOut();
+        navigate('/login?error=ucsd_only');
+        return;
+      }
+
       // Check platform admin role first
       const { data: isAdmin } = await supabase.rpc('has_role', {
         _user_id: userId,
