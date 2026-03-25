@@ -2,9 +2,9 @@ import { motion } from "framer-motion";
 import AnimatedWords from "./AnimatedWords";
 
 const steps = [
-  { number: "01", title: "Claim",       desc: "Verify your org and configure your recruitment stages." },
-  { number: "02", title: "Manage",      desc: "Import applicants. Score, advance, and coordinate reviewers." },
-  { number: "03", title: "Communicate", desc: "Automated updates. Clear decisions. Happy applicants." },
+  { number: "01", title: "Set up",  desc: "Connect your club, build your application form, and configure your pipeline stages in minutes." },
+  { number: "02", title: "Review",  desc: "Every submission lands in your board. Score applicants, coordinate with your team, and advance with one click." },
+  { number: "03", title: "Decide",  desc: "Accept, reject, or request an interview. Applicants are notified automatically — no manual emails." },
 ];
 
 const HowItWorksSection = () => {

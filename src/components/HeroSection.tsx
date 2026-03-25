@@ -32,11 +32,20 @@ const HeroSection = () => {
           </motion.div>
 
           <AnimatedWords
-            text="Recruit with precision."
+            text="Recruitment for student orgs is broken."
             as="h1"
-            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] mb-8 sm:mb-10 text-white/70"
-            goldWords={["precision."]}
+            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] mb-6 text-white/70"
+            goldWords={["broken."]}
           />
+
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="text-base sm:text-lg text-white/50 leading-relaxed mb-8 sm:mb-10 max-w-xl mx-auto"
+          >
+            Clubs juggle applications, spreadsheets, and DMs just to manage members. UniCircle replaces that entire workflow with one system.
+          </motion.p>
 
           {/* CTA buttons */}
           <motion.div

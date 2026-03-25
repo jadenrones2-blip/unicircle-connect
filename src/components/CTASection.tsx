@@ -39,7 +39,7 @@ const CTASection = () => {
             className="flex flex-col gap-6 lg:items-end"
           >
             <p className="text-white text-base leading-relaxed max-w-xs lg:text-right">
-              Full pipeline. Applicant tracking. Automated updates. Built for clubs — free.
+              Replace Google Forms, spreadsheets, and DMs with one system. Built for UCSD clubs — free.
             </p>
             <div className="flex items-center gap-8">
               <Link

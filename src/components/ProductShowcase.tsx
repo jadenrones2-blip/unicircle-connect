@@ -313,9 +313,9 @@ const ApplicantViewMockup = () => {
 };
 
 const tabs = [
-  { id: "pipeline", label: "Recruitment Pipeline", description: "Drag-and-drop applicants through custom stages. Score, review, and decide — all in one view." },
-  { id: "analytics", label: "Analytics Dashboard", description: "Track applications, acceptance rates, and scoring trends across recruitment cycles." },
-  { id: "applicant", label: "Applicant View", description: "Students see real-time status, progress bars, and timeline updates for every application." },
+  { id: "pipeline", label: "Recruitment Pipeline", description: "All applicants in one place — no spreadsheet needed. Score, review, and move candidates through stages as a team." },
+  { id: "analytics", label: "Analytics Dashboard", description: "Track acceptance rate, average score, and daily volume across every stage of your cycle. No manual tallying." },
+  { id: "applicant", label: "Applicant View", description: "Students see real-time status on every application. No more 'where do I stand?' emails landing in your inbox." },
 ];
 
 const ProductShowcase = () => {
@@ -343,7 +343,7 @@ const ProductShowcase = () => {
               goldWords={["action."]}
             />
             <p className="text-white text-base max-w-xs leading-relaxed">
-              Built for clubs that take recruitment seriously.
+              UniCircle replaces the entire recruitment pipeline — from application intake to final decisions — in one place.
             </p>
           </div>
         </div>

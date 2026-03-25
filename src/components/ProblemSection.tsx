@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import AnimatedWords from "./AnimatedWords";
 
 const challenges = [
-  { number: "01", title: "Volume overload",      detail: "Hundreds of applicants, no system to handle them." },
-  { number: "02", title: "Reviewer chaos",       detail: "Multiple reviewers, zero coordination." },
-  { number: "03", title: "Zero transparency",    detail: "Applicants never know where they stand." },
-  { number: "04", title: "Wasted hours",         detail: "Status updates and follow-ups eat your week." },
+  { number: "01", title: "Three tools, one job",       detail: "Google Forms for intake. A spreadsheet for tracking. Instagram DMs for updates. None of them talk to each other." },
+  { number: "02", title: "Reviewer chaos",              detail: "Multiple officers editing different spreadsheet versions with no coordination or shared view." },
+  { number: "03", title: "Applicants left guessing",    detail: "Students email asking for status because there's no system. Answering them is now your job." },
+  { number: "04", title: "It breaks at scale",          detail: "50 applicants is manageable. 150 is chaos. The workflow doesn't scale and you feel it every cycle." },
 ];
 
 const ProblemSection = () => {
@@ -37,7 +37,7 @@ const ProblemSection = () => {
               transition={{ delay: 0.2 }}
               className="text-white text-base leading-relaxed max-w-xs"
             >
-              Every serious club hits the same wall. The tools aren't built for this.
+              Clubs run recruitment on Google Forms, spreadsheets, and Instagram DMs. It's fragmented, manual, and breaks under pressure.
             </motion.p>
           </div>
 
