@@ -581,6 +581,266 @@ function ApplicantPanel({
   );
 }
 
+// ─── Members Data ──────────────────────────────────────────────────────────────
+
+const FLARE_FEATURES = [
+  { label: 'Points based on',        value: 'Attendance check-ins only' },
+  { label: 'Member profile',         value: 'Name, photo, birthday' },
+  { label: 'Recruitment pipeline',   value: 'None' },
+  { label: 'Knows member before join', value: 'No' },
+  { label: 'Applicant data carry-over', value: 'No' },
+  { label: 'At-risk member alerts',  value: 'No' },
+];
+
+const UNICIRCLE_FEATURES = [
+  { label: 'Points based on',        value: 'Content, events, deals, milestones' },
+  { label: 'Member profile',         value: 'Application, AI score, responses, availability' },
+  { label: 'Recruitment pipeline',   value: 'Full AI-powered pipeline' },
+  { label: 'Knows member before join', value: 'Yes — from day one of applying' },
+  { label: 'Applicant data carry-over', value: 'Automatic on accept' },
+  { label: 'At-risk member alerts',  value: 'AI flags low engagement' },
+];
+
+type PointBreakdown = { content: number; events: number; deals: number; onboarding: number };
+
+const MEMBER_POINTS: Record<number, PointBreakdown> = {
+  28: { content: 145, events: 120, deals: 160, onboarding: 50 }, // Hannah  — 475
+  29: { content: 210, events:  90, deals: 170, onboarding: 50 }, // Michael — 520
+  30: { content: 115, events: 120, deals: 285, onboarding: 50 }, // Aisha   — 570
+};
+
+const POINT_CATEGORIES: { key: keyof PointBreakdown; label: string; desc: string; color: string }[] = [
+  { key: 'content',    label: 'Content',    desc: 'Posts, reels, TikToks created', color: '#818cf8' },
+  { key: 'events',     label: 'Events',     desc: 'Meetings & briefings attended',  color: '#34d399' },
+  { key: 'deals',      label: 'Deals',      desc: 'Brand partnerships contributed', color: REACH_YELLOW },
+  { key: 'onboarding', label: 'Onboarding', desc: 'Member onboarding completed',    color: '#f472b6' },
+];
+
+const MEMBER_META: Record<number, { attendance: string; since: string; trend: 'up' | 'steady' }> = {
+  28: { attendance: '4/4', since: 'Oct 2025', trend: 'up' },
+  29: { attendance: '3/4', since: 'Oct 2025', trend: 'up' },
+  30: { attendance: '4/4', since: 'Oct 2025', trend: 'up' },
+};
+
+const ACCEPTED_MEMBERS = APPLICANTS.filter(a => a.stage === 'accepted');
+
+// ─── Members View ───────────────────────────────────────────────────────────────
+
+function MembersView() {
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  return (
+    <div className="flex-1 overflow-y-auto px-6 pb-8">
+
+      {/* Comparison banner */}
+      <div className="mb-8 mt-2">
+        <p className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.2em] mb-3">
+          UniCircle vs Flare
+        </p>
+        <div className="grid grid-cols-2 gap-3 rounded-2xl overflow-hidden border border-white/[0.07]">
+          {/* Flare */}
+          <div className="bg-white/[0.03] p-5">
+            <div className="text-xs font-bold text-white/40 mb-4 uppercase tracking-widest">Flare</div>
+            <div className="space-y-3">
+              {FLARE_FEATURES.map(f => (
+                <div key={f.label}>
+                  <div className="text-[10px] text-white/25 mb-0.5">{f.label}</div>
+                  <div className={`text-xs font-medium ${f.value === 'None' || f.value === 'No' || f.value === 'Attendance check-ins only' ? 'text-red-400/70' : 'text-white/60'}`}>
+                    {f.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* UniCircle */}
+          <div className="p-5" style={{ backgroundColor: `${REACH_YELLOW}0A` }}>
+            <div className="text-xs font-bold mb-4 uppercase tracking-widest" style={{ color: REACH_YELLOW }}>UniCircle</div>
+            <div className="space-y-3">
+              {UNICIRCLE_FEATURES.map(f => (
+                <div key={f.label}>
+                  <div className="text-[10px] text-white/25 mb-0.5">{f.label}</div>
+                  <div className="text-xs font-medium text-white/80">{f.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <p className="text-[11px] text-white/30 mt-3 text-center">
+          Flare starts cold. UniCircle already knows your members — from the moment they applied.
+        </p>
+      </div>
+
+      {/* Member section header */}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.2em] mb-0.5">Active Members</p>
+          <p className="text-xs text-white/40">Accepted applicants · profile data carried over automatically</p>
+        </div>
+        <div
+          className="text-[10px] font-semibold px-2.5 py-1 rounded-full border"
+          style={{ color: REACH_YELLOW, borderColor: `${REACH_YELLOW}40`, backgroundColor: `${REACH_YELLOW}10` }}
+        >
+          {ACCEPTED_MEMBERS.length} members
+        </div>
+      </div>
+
+      {/* Member cards */}
+      <div className="space-y-3">
+        {ACCEPTED_MEMBERS.map((member, i) => {
+          const pts  = MEMBER_POINTS[member.id];
+          const meta = MEMBER_META[member.id];
+          const total = Object.values(pts).reduce((a, b) => a + b, 0);
+          const maxTotal = 600;
+          const isExpanded = expanded === member.id;
+
+          return (
+            <motion.div
+              key={member.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+              className="rounded-2xl border overflow-hidden"
+              style={{ backgroundColor: '#152236', borderColor: 'rgba(255,255,255,0.07)' }}
+            >
+              {/* Card header */}
+              <button
+                className="w-full text-left px-5 py-4 flex items-center gap-4"
+                onClick={() => setExpanded(isExpanded ? null : member.id)}
+              >
+                {/* Avatar */}
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                  style={{ backgroundColor: member.color + '22', border: `1.5px solid ${member.color}40`, color: member.color }}
+                >
+                  {member.initials}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-sm font-bold text-white">{member.name}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold">Active</span>
+                  </div>
+                  <div className="text-[11px] text-white/40">{member.year} · {member.major} · Member since {meta.since}</div>
+                </div>
+
+                {/* Score ring */}
+                <div className="text-right shrink-0">
+                  <div className="text-lg font-bold text-white tabular-nums">{total}</div>
+                  <div className="text-[10px] text-white/30">eng. score</div>
+                </div>
+
+                <ChevronRight
+                  className="w-4 h-4 text-white/20 flex-shrink-0 transition-transform"
+                  style={{ transform: isExpanded ? 'rotate(90deg)' : 'none' }}
+                />
+              </button>
+
+              {/* Engagement score bar */}
+              <div className="px-5 pb-3">
+                <div className="flex rounded-full overflow-hidden h-1.5 gap-0.5">
+                  {POINT_CATEGORIES.map(cat => (
+                    <div
+                      key={cat.key}
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${(pts[cat.key] / maxTotal) * 100}%`,
+                        backgroundColor: cat.color,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Expanded: full breakdown + applicant data */}
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22 }}
+                    className="overflow-hidden border-t border-white/[0.06]"
+                  >
+                    <div className="px-5 py-4 grid grid-cols-2 gap-6">
+
+                      {/* Point breakdown */}
+                      <div>
+                        <div className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em] mb-3">Point Breakdown</div>
+                        <div className="space-y-3">
+                          {POINT_CATEGORIES.map(cat => (
+                            <div key={cat.key}>
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="flex items-center gap-1.5">
+                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                                  <span className="text-xs text-white/70">{cat.label}</span>
+                                </div>
+                                <span className="text-xs font-bold text-white">{pts[cat.key]}</span>
+                              </div>
+                              <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{ width: `${(pts[cat.key] / 300) * 100}%`, backgroundColor: cat.color }}
+                                />
+                              </div>
+                              <div className="text-[9px] text-white/25 mt-0.5">{cat.desc}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between">
+                          <span className="text-xs text-white/40">Events attended</span>
+                          <span className="text-xs font-semibold text-white">{meta.attendance}</span>
+                        </div>
+                      </div>
+
+                      {/* Applicant data carried over */}
+                      <div>
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.15em] mb-3" style={{ color: `${REACH_YELLOW}99` }}>
+                          From Application
+                        </div>
+                        <div className="space-y-2.5">
+                          <div>
+                            <div className="text-[10px] text-white/30 mb-0.5">AI Score at Apply</div>
+                            <div className="flex items-center gap-1.5">
+                              <Sparkles className="w-3 h-3" style={{ color: REACH_YELLOW }} />
+                              <span className="text-sm font-bold text-white">{member.score}</span>
+                              <span className="text-[10px] text-white/30">/ 100</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-white/30 mb-1">Why they joined</div>
+                            <div className="text-[11px] text-white/60 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2.5 py-2 leading-relaxed">
+                              {member.responses?.q1 ?? '—'}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-white/30 mb-0.5">Platform strength</div>
+                            <div className="text-[11px] text-white/60 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2.5 py-2 leading-relaxed">
+                              {member.responses?.q4 ?? '—'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Footer note */}
+      <p className="text-[11px] text-white/20 text-center mt-8">
+        Points update automatically as members post content, attend events, and close brand deals.
+      </p>
+    </div>
+  );
+}
+
 // ─── Pipeline View ─────────────────────────────────────────────────────────────
 
 function PipelineView({ onBack }: { onBack: () => void }) {
@@ -593,6 +853,7 @@ function PipelineView({ onBack }: { onBack: () => void }) {
   const [hintsVisible, setHintsVisible] = useState(true);
   const [rubricOpen, setRubricOpen] = useState(false);
   const [commsOpen, setCommsOpen]   = useState(false);
+  const [activeTab, setActiveTab]   = useState<'pipeline' | 'members'>('pipeline');
 
   useEffect(() => {
     if (!hintsVisible || hintIndex >= HINTS.length) { setHintsVisible(false); return; }
@@ -695,21 +956,41 @@ function PipelineView({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      {/* Guided hint */}
-      <div className="h-10 flex items-center justify-center shrink-0">
+      {/* Tab strip + hint */}
+      <div className="border-b border-white/[0.05] px-6 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-1">
+          {(['pipeline', 'members'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => { setActiveTab(tab); setRubricOpen(false); setCommsOpen(false); }}
+              className="relative px-4 py-2.5 text-xs font-semibold capitalize transition-colors"
+              style={{ color: activeTab === tab ? REACH_YELLOW : 'rgba(255,255,255,0.35)' }}
+            >
+              {tab === 'members' ? 'Members · 3' : 'Pipeline'}
+              {activeTab === tab && (
+                <motion.div
+                  layoutId="tab-indicator"
+                  className="absolute bottom-0 left-0 right-0 h-px"
+                  style={{ backgroundColor: REACH_YELLOW }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+
         <AnimatePresence mode="wait">
-          {hintsVisible && hintIndex < HINTS.length && (
+          {activeTab === 'pipeline' && hintsVisible && hintIndex < HINTS.length && (
             <motion.div
               key={hintIndex}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-full border"
+              className="flex items-center gap-2 px-3 py-1 rounded-full border"
               style={{ backgroundColor: `${REACH_YELLOW}0D`, borderColor: `${REACH_YELLOW}33` }}
             >
               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `${REACH_YELLOW}99` }} />
-              <span className="text-[11px]" style={{ color: `${REACH_YELLOW}CC` }}>{HINTS[hintIndex]}</span>
+              <span className="text-[10px]" style={{ color: `${REACH_YELLOW}CC` }}>{HINTS[hintIndex]}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -718,8 +999,11 @@ function PipelineView({ onBack }: { onBack: () => void }) {
       {/* Main */}
       <div className="flex flex-1 gap-5 px-6 pb-6 overflow-hidden min-h-0">
 
-        {/* Kanban */}
-        <div className="flex-1 overflow-x-auto">
+        {/* Members tab */}
+        {activeTab === 'members' && <MembersView />}
+
+        {/* Kanban — only rendered in pipeline tab */}
+        {activeTab === 'pipeline' && <><div className="flex-1 overflow-x-auto">
           <div className="flex gap-5 min-w-max h-full">
             {STAGES.map(stage => {
               const cards = APPLICANTS.filter(a => a.stage === stage.id);
@@ -837,6 +1121,7 @@ function PipelineView({ onBack }: { onBack: () => void }) {
             />
           )}
         </AnimatePresence>
+        </>
       </div>
     </div>
   );
