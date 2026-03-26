@@ -584,21 +584,21 @@ function ApplicantPanel({
 // ─── Members Data ──────────────────────────────────────────────────────────────
 
 const FLARE_FEATURES = [
-  { label: 'Points based on',        value: 'Attendance check-ins only' },
-  { label: 'Member profile',         value: 'Name, photo, birthday' },
-  { label: 'Recruitment pipeline',   value: 'None' },
-  { label: 'Knows member before join', value: 'No' },
+  { label: 'Points based on',          value: 'Attendance check-ins only' },
+  { label: 'Member profile',           value: 'Name, photo, birthday' },
+  { label: 'Social profiles & stats',  value: 'Not collected' },
+  { label: 'Recruitment pipeline',     value: 'None' },
   { label: 'Applicant data carry-over', value: 'No' },
-  { label: 'At-risk member alerts',  value: 'No' },
+  { label: 'At-risk member alerts',    value: 'No' },
 ];
 
 const UNICIRCLE_FEATURES = [
-  { label: 'Points based on',        value: 'Content, events, deals, milestones' },
-  { label: 'Member profile',         value: 'Application, AI score, responses, availability' },
-  { label: 'Recruitment pipeline',   value: 'Full AI-powered pipeline' },
-  { label: 'Knows member before join', value: 'Yes — from day one of applying' },
+  { label: 'Points based on',          value: 'Content, events, deals, milestones' },
+  { label: 'Member profile',           value: 'Application, AI score, availability, goals' },
+  { label: 'Social profiles & stats',  value: 'Handles + follower counts, centralized' },
+  { label: 'Recruitment pipeline',     value: 'Full AI-powered pipeline' },
   { label: 'Applicant data carry-over', value: 'Automatic on accept' },
-  { label: 'At-risk member alerts',  value: 'AI flags low engagement' },
+  { label: 'At-risk member alerts',    value: 'AI flags low engagement' },
 ];
 
 type PointBreakdown = { content: number; events: number; deals: number; onboarding: number };
@@ -616,10 +616,56 @@ const POINT_CATEGORIES: { key: keyof PointBreakdown; label: string; desc: string
   { key: 'onboarding', label: 'Onboarding', desc: 'Member onboarding completed',    color: '#f472b6' },
 ];
 
-const MEMBER_META: Record<number, { attendance: string; since: string; trend: 'up' | 'steady' }> = {
-  28: { attendance: '4/4', since: 'Oct 2025', trend: 'up' },
-  29: { attendance: '3/4', since: 'Oct 2025', trend: 'up' },
-  30: { attendance: '4/4', since: 'Oct 2025', trend: 'up' },
+type SocialHandle = { platform: string; handle: string; followers: string };
+
+type MemberMeta = {
+  attendance: string;
+  since: string;
+  trend: 'up' | 'steady';
+  specialty: string[];
+  portfolio: string;
+  availability: string;
+  goals: string;
+  socials: SocialHandle[];
+};
+
+const MEMBER_META: Record<number, MemberMeta> = {
+  28: {
+    attendance: '4/4', since: 'Oct 2025', trend: 'up',
+    specialty: ['Brand Strategy', 'Content Direction', 'Partnerships'],
+    portfolio: 'hannahkim.co',
+    availability: '10+ hrs/week · Mon–Fri flexible',
+    goals: 'Lead REACH's brand deal pipeline and mentor new members on partnerships strategy.',
+    socials: [
+      { platform: 'Instagram', handle: '@hannahkim.ucsd', followers: '80.2k' },
+      { platform: 'TikTok',    handle: '@hannahkimcreates', followers: '45.1k' },
+      { platform: 'LinkedIn',  handle: 'in/hannahkim',      followers: '3.4k'  },
+    ],
+  },
+  29: {
+    attendance: '3/4', since: 'Oct 2025', trend: 'up',
+    specialty: ['Short-form Video', 'TikTok Native', 'Growth Strategy'],
+    portfolio: 'michaelsantos.co',
+    availability: '8–10 hrs/week · evenings preferred',
+    goals: 'Grow REACH\'s TikTok to 50k and land two major brand deals this quarter.',
+    socials: [
+      { platform: 'Instagram', handle: '@michael.content', followers: '32.5k' },
+      { platform: 'TikTok',    handle: '@michaelsantos_',  followers: '150.3k' },
+      { platform: 'YouTube',   handle: '@michaelsantos',   followers: '8.7k'   },
+    ],
+  },
+  30: {
+    attendance: '4/4', since: 'Oct 2025', trend: 'up',
+    specialty: ['Campaign Strategy', 'Copywriting', 'Multi-platform'],
+    portfolio: 'aishacreates.io',
+    availability: '10+ hrs/week · no restrictions',
+    goals: 'Bring national-level campaign thinking to REACH and help build repeatable partnership frameworks.',
+    socials: [
+      { platform: 'Instagram', handle: '@aishacreates',   followers: '28.9k' },
+      { platform: 'TikTok',    handle: '@aisha.freeman',  followers: '38.2k' },
+      { platform: 'LinkedIn',  handle: 'in/aishafreeman', followers: '12.1k'  },
+    ],
+  },
 };
 
 const ACCEPTED_MEMBERS = APPLICANTS.filter(a => a.stage === 'accepted');
@@ -670,6 +716,20 @@ function MembersView() {
         <p className="text-[11px] text-white/30 mt-3 text-center">
           Flare starts cold. UniCircle already knows your members — from the moment they applied.
         </p>
+      </div>
+
+      {/* No scattered platforms callout */}
+      <div
+        className="rounded-xl border px-5 py-4 mb-6 flex items-start gap-3"
+        style={{ backgroundColor: `${REACH_YELLOW}08`, borderColor: `${REACH_YELLOW}25` }}
+      >
+        <Megaphone className="w-4 h-4 mt-0.5 shrink-0" style={{ color: REACH_YELLOW }} />
+        <div>
+          <div className="text-xs font-semibold text-white mb-1">One profile. No scattered platforms.</div>
+          <div className="text-[11px] text-white/50 leading-relaxed">
+            Instead of checking Instagram for follower counts, TikTok for content stats, and DMing members for their availability — it's all here. Every member profile includes their socials, portfolio, goals, and engagement data in one place.
+          </div>
+        </div>
       </div>
 
       {/* Member section header */}
@@ -723,7 +783,13 @@ function MembersView() {
                     <span className="text-sm font-bold text-white">{member.name}</span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold">Active</span>
                   </div>
-                  <div className="text-[11px] text-white/40">{member.year} · {member.major} · Member since {meta.since}</div>
+                  <div className="text-[11px] text-white/40 mb-1">{member.year} · {member.major} · Member since {meta.since}</div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {meta.specialty.slice(0, 2).map(s => (
+                      <span key={s} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.07] text-white/40">{s}</span>
+                    ))}
+                    <span className="text-[9px] text-white/20">{meta.socials.map(s => s.followers).join(' · ')}</span>
+                  </div>
                 </div>
 
                 {/* Score ring */}
@@ -795,32 +861,60 @@ function MembersView() {
                         </div>
                       </div>
 
-                      {/* Applicant data carried over */}
+                      {/* Social profiles + full profile */}
                       <div>
                         <div className="text-[10px] font-semibold uppercase tracking-[0.15em] mb-3" style={{ color: `${REACH_YELLOW}99` }}>
-                          From Application
+                          Profile
                         </div>
-                        <div className="space-y-2.5">
+                        <div className="space-y-3">
+
+                          {/* Socials */}
                           <div>
-                            <div className="text-[10px] text-white/30 mb-0.5">AI Score at Apply</div>
-                            <div className="flex items-center gap-1.5">
+                            <div className="text-[10px] text-white/30 mb-1.5">Social Platforms</div>
+                            <div className="space-y-1.5">
+                              {meta.socials.map(s => (
+                                <div key={s.platform} className="flex items-center justify-between text-[11px]">
+                                  <span className="text-white/40">{s.platform} · {s.handle}</span>
+                                  <span className="font-semibold text-white">{s.followers}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Specialty tags */}
+                          <div>
+                            <div className="text-[10px] text-white/30 mb-1.5">Specialty</div>
+                            <div className="flex flex-wrap gap-1">
+                              {meta.specialty.map(s => (
+                                <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-white/60">{s}</span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Availability */}
+                          <div>
+                            <div className="text-[10px] text-white/30 mb-0.5">Availability</div>
+                            <div className="text-[11px] text-white/60">{meta.availability}</div>
+                          </div>
+
+                          {/* Goals */}
+                          <div>
+                            <div className="text-[10px] text-white/30 mb-1">Goals this quarter</div>
+                            <div className="text-[11px] text-white/60 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2.5 py-2 leading-relaxed">
+                              {meta.goals}
+                            </div>
+                          </div>
+
+                          {/* AI score */}
+                          <div className="flex items-center justify-between pt-1 border-t border-white/[0.06]">
+                            <span className="text-[10px] text-white/30">AI Score at apply</span>
+                            <div className="flex items-center gap-1">
                               <Sparkles className="w-3 h-3" style={{ color: REACH_YELLOW }} />
                               <span className="text-sm font-bold text-white">{member.score}</span>
                               <span className="text-[10px] text-white/30">/ 100</span>
                             </div>
                           </div>
-                          <div>
-                            <div className="text-[10px] text-white/30 mb-1">Why they joined</div>
-                            <div className="text-[11px] text-white/60 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2.5 py-2 leading-relaxed">
-                              {member.responses?.q1 ?? '—'}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-[10px] text-white/30 mb-0.5">Platform strength</div>
-                            <div className="text-[11px] text-white/60 bg-white/[0.03] border border-white/[0.05] rounded-lg px-2.5 py-2 leading-relaxed">
-                              {member.responses?.q4 ?? '—'}
-                            </div>
-                          </div>
+
                         </div>
                       </div>
 
