@@ -15,6 +15,7 @@ const STAGES = [
   { id: 'reviewing', label: 'Reviewing', color: '#f59e0b' },
   { id: 'interview', label: 'Interview', color: '#3b82f6' },
   { id: 'accepted',  label: 'Accepted',  color: '#10b981' },
+  { id: 'rejected',  label: 'Rejected',  color: '#ef4444' },
 ];
 
 const RUBRIC_STRICT = [
@@ -39,7 +40,7 @@ const FORM_QUESTIONS = [
 ];
 
 const HINTS = [
-  'AI has scored all 30 REACH applicants against your rubric',
+  'AI has scored all 34 REACH applicants against your rubric',
   'Stars mark AI standouts — candidates worth a closer look',
   'Click any applicant to review their portfolio and vote',
 ];
@@ -196,6 +197,12 @@ const APPLICANTS: DemoApplicant[] = [
       q4: "Every platform at a professional level. My edge is knowing which platform to prioritize for which objective — and executing without guessing.",
     },
   },
+
+  // Rejected × 4
+  { id: 31, name: 'Brandon Lee',    initials: 'BL', major: 'Undeclared',         year: 'Freshman',  score: 52, stage: 'rejected', color: '#ef4444', is_standout: false, final_decision: 'rejected', preset_tally: { yes: 0, no: 2, maybe: 0 }, ai_summary: 'Application was incomplete and responses were one to two sentences each. No demonstrated content creation, platform experience, or campus involvement. Does not meet the bar for this cycle.' },
+  { id: 32, name: 'Tanya Morris',   initials: 'TM', major: 'Economics',           year: 'Sophomore', score: 48, stage: 'rejected', color: '#ef4444', is_standout: false, final_decision: 'rejected', preset_tally: { yes: 0, no: 3, maybe: 0 }, ai_summary: 'Responses did not address the application questions — answers appeared copied from a generic template. No social media presence or brand-adjacent experience provided.' },
+  { id: 33, name: 'Jake Miller',    initials: 'JM', major: 'Computer Science',    year: 'Junior',    score: 55, stage: 'rejected', color: '#ef4444', is_standout: false, final_decision: 'rejected', preset_tally: { yes: 0, no: 2, maybe: 1 }, ai_summary: 'Technical background only — no creative output, no social media presence, and no brand experience. Stated availability of 2 hours per week is below the minimum needed to contribute.' },
+  { id: 34, name: 'Chloe Anderson', initials: 'CA', major: 'Communication',       year: 'Sophomore', score: 58, stage: 'rejected', color: '#ef4444', is_standout: false, final_decision: 'rejected', preset_tally: { yes: 0, no: 2, maybe: 1 }, ai_summary: 'Responses show a surface-level understanding of social media without evidence of execution. No portfolio, no growth metrics, and no brand partnership context. Not ready for this cycle.' },
 ];
 
 // ─── AI Score Badge ────────────────────────────────────────────────────────────
@@ -513,10 +520,11 @@ function PipelineView({ onBack }: { onBack: () => void }) {
           {/* Stats */}
           <div className="hidden sm:flex items-center divide-x divide-white/[0.06]">
             {[
-              { label: 'Applicants', value: '30' },
+              { label: 'Applicants', value: '34' },
               { label: 'Reviewing',  value: '8'  },
               { label: 'Interview',  value: '5'  },
               { label: 'Accepted',   value: '3'  },
+              { label: 'Rejected',   value: '4'  },
             ].map(s => (
               <div key={s.label} className="px-4 text-center">
                 <div className="text-sm font-bold text-white">{s.value}</div>
@@ -726,7 +734,7 @@ function LandingView({ onEnter }: { onEnter: () => void }) {
         </div>
 
         <h1 className="font-display text-4xl sm:text-5xl font-bold text-white leading-[1.05] tracking-tight mb-5">
-          Run REACH's entire recruitment<br className="hidden sm:block" /> process in one place.
+          Run REACH's entire recruitment<br className="hidden sm:block" /> pipeline in one place.
         </h1>
 
         <p className="text-white/45 text-base leading-relaxed mb-12 max-w-sm mx-auto">
