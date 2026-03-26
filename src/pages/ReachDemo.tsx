@@ -1215,7 +1215,7 @@ function PipelineView({ onBack }: { onBack: () => void }) {
             />
           )}
         </AnimatePresence>
-        </>
+        </>}
       </div>
     </div>
   );
