@@ -635,7 +635,7 @@ const MEMBER_META: Record<number, MemberMeta> = {
     specialty: ['Brand Strategy', 'Content Direction', 'Partnerships'],
     portfolio: 'hannahkim.co',
     availability: '10+ hrs/week · Mon–Fri flexible',
-    goals: 'Lead REACH's brand deal pipeline and mentor new members on partnerships strategy.',
+    goals: "Lead REACH's brand deal pipeline and mentor new members on partnerships strategy.",
     socials: [
       { platform: 'Instagram', handle: '@hannahkim.ucsd', followers: '80.2k' },
       { platform: 'TikTok',    handle: '@hannahkimcreates', followers: '45.1k' },
