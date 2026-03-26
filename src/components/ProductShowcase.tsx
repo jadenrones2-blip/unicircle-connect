@@ -313,9 +313,9 @@ const ApplicantViewMockup = () => {
 };
 
 const tabs = [
-  { id: "pipeline", label: "Recruitment Pipeline", description: "All applicants in one place — no spreadsheet needed. Score, review, and move candidates through stages as a team." },
-  { id: "analytics", label: "Analytics Dashboard", description: "Track acceptance rate, average score, and daily volume across every stage of your cycle. No manual tallying." },
-  { id: "applicant", label: "Applicant View", description: "Students see real-time status on every application. No more 'where do I stand?' emails landing in your inbox." },
+  { id: "pipeline", label: "Recruitment Pipeline", description: "All applicants in one board. Score, review, and advance — no spreadsheet." },
+  { id: "analytics", label: "Analytics Dashboard", description: "Track acceptance rate, scores, and daily volume across every stage." },
+  { id: "applicant", label: "Applicant View", description: "Students track their own status. No more 'where do I stand?' emails." },
 ];
 
 const ProductShowcase = () => {
@@ -343,7 +343,7 @@ const ProductShowcase = () => {
               goldWords={["action."]}
             />
             <p className="text-white text-base max-w-xs leading-relaxed">
-              UniCircle replaces the entire recruitment pipeline — from application intake to final decisions — in one place.
+              One system for the entire pipeline — intake, review, and decisions.
             </p>
           </div>
         </div>

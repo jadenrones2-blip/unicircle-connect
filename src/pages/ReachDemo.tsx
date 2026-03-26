@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   Star, ChevronRight, ArrowRight, X, Sparkles,
-  ThumbsUp, ThumbsDown, Minus, BookOpen,
+  ThumbsUp, ThumbsDown, Minus, BookOpen, Megaphone,
 } from 'lucide-react';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
+
+const REACH_YELLOW = '#F5C518';
 
 const STAGES = [
   { id: 'applied',   label: 'Applied',   color: '#6366f1' },
@@ -16,30 +18,30 @@ const STAGES = [
 ];
 
 const RUBRIC_STRICT = [
-  { label: 'Minimum GPA',  value: '2.5+' },
+  { label: 'Minimum GPA',  value: 'None required' },
   { label: 'Year',         value: 'Sophomore – Senior' },
   { label: 'Major',        value: 'All majors welcome' },
 ];
 
 const RUBRIC_AI = [
-  { criterion: 'Empathy and peer support experience',     weight: 5 },
-  { criterion: 'Communication and active listening',      weight: 4 },
-  { criterion: 'Commitment to mental health advocacy',    weight: 4 },
-  { criterion: 'Cultural competency and inclusivity',     weight: 3 },
-  { criterion: 'Availability (5+ hrs/week)',              weight: 3 },
+  { criterion: 'Social media content creation skills',      weight: 5 },
+  { criterion: 'Brand partnerships & outreach experience',  weight: 4 },
+  { criterion: 'Creative vision and aesthetic',             weight: 4 },
+  { criterion: 'Campus community impact',                   weight: 3 },
+  { criterion: 'Availability (5+ hrs/week)',                weight: 3 },
 ];
 
 const FORM_QUESTIONS = [
   { id: 'q1', label: 'Why do you want to join REACH?' },
-  { id: 'q2', label: 'Describe a time you supported someone through a difficult moment.' },
+  { id: 'q2', label: 'Describe a successful piece of content you\'ve created or contributed to.' },
   { id: 'q3', label: 'Hours per week you can commit?' },
-  { id: 'q4', label: 'What does mental health advocacy mean to you personally?' },
+  { id: 'q4', label: 'What platforms are you most experienced with and why?' },
 ];
 
 const HINTS = [
   'AI has scored all 30 REACH applicants against your rubric',
   'Stars mark AI standouts — candidates worth a closer look',
-  'Click any applicant to review their application and vote',
+  'Click any applicant to review their portfolio and vote',
 ];
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -70,128 +72,128 @@ type DemoApplicant = {
 
 const APPLICANTS: DemoApplicant[] = [
   // Applied × 14
-  { id: 1,  name: 'Jasmine Lee',       initials: 'JL', major: 'Psychology',   year: 'Sophomore', score: 74, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Shows genuine interest in peer support with volunteer experience. Communication is solid but direct peer support background is limited. Recommend standard review.' },
-  { id: 2,  name: 'Marcus Torres',     initials: 'MT', major: 'Public Health', year: 'Junior',    score: 68, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 1, maybe: 0 }, ai_summary: 'Advocacy background is relevant but responses lack specificity on peer support skills. Time commitment answer was vague.' },
-  { id: 3,  name: 'Elena Vásquez',     initials: 'EV', major: 'Biology',       year: 'Sophomore', score: 71, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Health education focus aligns with REACH mission. Responses show empathy but limited direct peer support experience at this stage.' },
-  { id: 4,  name: 'David Kim',         initials: 'DK', major: 'Cog Sci',       year: 'Freshman',  score: 65, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Enthusiastic but responses are brief and underdeveloped. Freshman status limits demonstrated experience at this point.' },
-  { id: 5,  name: 'Amara Okafor',      initials: 'AO', major: 'Human Dev',     year: 'Junior',    score: 79, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 0 }, ai_summary: 'Strong community outreach background across multiple UCSD colleges. Responses demonstrate empathy and cultural awareness. Recommend advancing to review.', tag: 'Strong' },
-  { id: 6,  name: 'Ryan Nguyen',       initials: 'RN', major: 'Sociology',     year: 'Sophomore', score: 63, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 1, maybe: 0 }, ai_summary: 'Passion for reducing stigma is clear but responses are surface-level. No direct peer support or advocacy experience demonstrated.' },
-  { id: 7,  name: 'Sofia Reyes',       initials: 'SR', major: 'Pre-Med',       year: 'Junior',    score: 77, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 1 }, ai_summary: 'Student Health volunteer experience is a strong signal. Well-written responses with clear understanding of peer support. Borderline — worth discussing.' },
-  { id: 8,  name: 'Tyler Johnson',     initials: 'TJ', major: 'Psychology',    year: 'Sophomore', score: 61, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 1, maybe: 0 }, ai_summary: 'Interest in crisis intervention is noted but responses lack depth. No demonstrated experience supporting peers in practice.' },
-  { id: 9,  name: 'Neha Sharma',       initials: 'NS', major: 'Biology',       year: 'Junior',    score: 72, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Research background in behavioral health is relevant. Moderate peer support experience. Solid candidate for standard review pipeline.' },
-  { id: 10, name: 'Jason Wu',          initials: 'JW', major: 'Cog Sci',       year: 'Senior',    score: 70, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 1 }, ai_summary: 'Senior motivation to give back is genuine but experience is lighter than expected for a fourth-year applicant.' },
-  { id: 11, name: 'Aaliyah Brown',     initials: 'AB', major: 'Comm',          year: 'Sophomore', score: 66, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Strong communication skills. Responses do not demonstrate direct peer support capability — outreach experience only.' },
-  { id: 12, name: 'Luis Gonzalez',     initials: 'LG', major: 'Public Health', year: 'Junior',    score: 75, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 0 }, ai_summary: 'Bilingual capability is a meaningful asset for REACH outreach. Public health background and responses show solid advocacy awareness.' },
-  { id: 13, name: 'Maya Singh',        initials: 'MS', major: 'Human Dev',     year: 'Sophomore', score: 69, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Equity focus in mental health access aligns well with REACH values. Responses are thoughtful but experience is still developing.' },
-  { id: 14, name: 'Chris Park',        initials: 'CP', major: 'Psychology',    year: 'Junior',    score: 73, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 1 }, ai_summary: 'Mental health awareness event leadership is a good signal. Initiative and communication ability present, though peer support depth could be stronger.' },
+  { id: 1,  name: 'Jasmine Lee',       initials: 'JL', major: 'Communication',     year: 'Sophomore', score: 74, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Instagram creator with 5k followers. Engagement-focused content and a solid aesthetic eye. Lacks brand partnership experience, but creative instincts are strong. Good potential.' },
+  { id: 2,  name: 'Marcus Torres',     initials: 'MT', major: 'Business Economics',year: 'Junior',    score: 68, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 1, maybe: 0 }, ai_summary: 'Has one brand deal (local restaurant). Marketing coursework is relevant but social media skills are underdeveloped in the application. Needs more demonstrated output.' },
+  { id: 3,  name: 'Elena Vásquez',     initials: 'EV', major: 'Visual Arts',        year: 'Sophomore', score: 71, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Graphic designer with a strong portfolio. Content creation skews design-over-social, but visual quality is immediately apparent. Solid for static content roles.' },
+  { id: 4,  name: 'David Kim',         initials: 'DK', major: 'Computer Science',   year: 'Freshman',  score: 65, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Data-curious with interest in social media analytics. No demonstrated content creation yet. Freshman status limits track record — revisit next cycle with a portfolio.' },
+  { id: 5,  name: 'Amara Okafor',      initials: 'AO', major: 'Communication',      year: 'Junior',    score: 79, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 0 }, ai_summary: 'Campus event photographer with a strong visual portfolio and demonstrated campus reach. Platform growth understanding is limited. Recommend advancing to review.', tag: 'Strong' },
+  { id: 6,  name: 'Ryan Nguyen',       initials: 'RN', major: 'Cognitive Science',  year: 'Sophomore', score: 63, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 1, maybe: 0 }, ai_summary: 'UX/interaction design background is interesting but social-media-specific skills are light. No platform growth or brand experience demonstrated in the application.' },
+  { id: 7,  name: 'Sofia Reyes',       initials: 'SR', major: 'MCS',                year: 'Junior',    score: 77, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 1 }, ai_summary: 'Has coordinated influencer outreach for a UCSD org. Understands brand voice and audience targeting. Borderline — the execution track record is thin but the instincts are there.' },
+  { id: 8,  name: 'Tyler Johnson',     initials: 'TJ', major: 'Sociology',          year: 'Sophomore', score: 61, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 1, maybe: 0 }, ai_summary: 'Social media for a local nonprofit. Growth metrics are minimal. Passion for impact-driven content is genuine but platform skills need significant development.' },
+  { id: 9,  name: 'Neha Sharma',       initials: 'NS', major: 'Business Economics', year: 'Junior',    score: 72, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Marketing analytics internship provides a data-driven lens. Creative social media output is limited in the application. Solid pipeline candidate for a strategy-adjacent role.' },
+  { id: 10, name: 'Jason Wu',          initials: 'JW', major: 'Computer Science',   year: 'Senior',    score: 70, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 1 }, ai_summary: 'Built social media analytics tools used by campus orgs. Technical depth is a differentiator but creative output is limited. Senior perspective and tooling skills add unique value.' },
+  { id: 11, name: 'Aaliyah Brown',     initials: 'AB', major: 'Communication',      year: 'Sophomore', score: 66, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'TikTok creator with 12k followers. Organic growth is promising but content strategy appears largely unplanned. Strong raw potential — would benefit from REACH\'s structure.' },
+  { id: 12, name: 'Luis Gonzalez',     initials: 'LG', major: 'Film Studies',       year: 'Junior',    score: 75, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 0 }, ai_summary: 'Video production background and reel quality are strong assets. Social media native skills are less evident — his work reads more cinematic than platform-optimized. Bilingual advantage.' },
+  { id: 13, name: 'Maya Singh',        initials: 'MS', major: 'MCS',                year: 'Sophomore', score: 69, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 0 }, ai_summary: 'Brand voice and copywriting samples are polished for a sophomore. Content strategy understanding is emerging. Thoughtful, well-organized application overall.' },
+  { id: 14, name: 'Chris Park',        initials: 'CP', major: 'Business Economics', year: 'Junior',    score: 73, stage: 'applied',   color: '#6366f1', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 0, no: 0, maybe: 1 }, ai_summary: 'Ran a campus Instagram account from 0 to 3k. Understands growth mechanics. Needs broader platform experience and evidence of brand collaboration to advance further.' },
 
   // Reviewing × 8
-  { id: 15, name: 'Emma Chen',         initials: 'EC', major: 'Psychology',    year: 'Senior',    score: 83, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 2, no: 0, maybe: 1 }, ai_summary: 'Two-year CAPS volunteer experience is exactly what REACH needs. Responses are articulate and demonstrate real active listening skills. Strong recommend.', tag: 'Strong' },
-  { id: 16, name: 'Andre Williams',    initials: 'AW', major: 'Sociology',     year: 'Junior',    score: 78, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 1 }, ai_summary: 'Wellness event organization background is solid. Responses reflect genuine commitment, though advocacy experience is campus-level only.' },
-  { id: 17, name: 'Isabella Martinez', initials: 'IM', major: 'Public Health', year: 'Senior',    score: 87, stage: 'reviewing', color: '#f59e0b', is_standout: true,  final_decision: 'pending',  preset_tally: { yes: 2, no: 0, maybe: 0 }, ai_summary: 'Senior thesis on UCSD mental health resource gaps demonstrates deep subject matter expertise. Responses are among the most substantive in this cohort. Strong advance.', tag: 'Strong' },
-  { id: 18, name: 'Kevin Pham',        initials: 'KP', major: 'Biology',       year: 'Junior',    score: 76, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 1, maybe: 0 }, ai_summary: 'Pre-health community involvement shows care for others\' wellbeing. Responses are adequate but lack the emotional depth expected at this stage.' },
-  { id: 19, name: 'Zara Ahmed',        initials: 'ZA', major: 'Human Dev',     year: 'Senior',    score: 81, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 2, no: 0, maybe: 0 }, ai_summary: 'Clinical internship experience gives Zara a practical edge. Responses show empathy and professional maturity. Recommend advancing.' },
-  { id: 20, name: 'Noah Campbell',     initials: 'NC', major: 'Poli Sci',      year: 'Junior',    score: 74, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 1 }, ai_summary: 'Policy advocacy angle is interesting but peer support skills are not demonstrated. May be better suited for a different REACH role.' },
-  { id: 21, name: 'Destiny Robinson',  initials: 'DR', major: 'Psychology',    year: 'Sophomore', score: 80, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 2, no: 0, maybe: 0 }, ai_summary: 'Personal essay on lived experience with anxiety is authentic and shows self-awareness — a key quality for effective peer supporters.' },
-  { id: 22, name: 'James Liu',         initials: 'JL', major: 'Pre-Med',       year: 'Junior',    score: 77, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 1 }, ai_summary: 'Counseling center shadowing shows direct exposure to the field. Responses are professional but could be more personal. Borderline advance.' },
+  { id: 15, name: 'Emma Chen',         initials: 'EC', major: 'Communication',      year: 'Senior',    score: 83, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 2, no: 0, maybe: 1 }, ai_summary: 'Former marketing intern at a consumer brand. Managed social calendar and brand partnerships. Content quality and strategic thinking are both present. Strong recommend.', tag: 'Strong' },
+  { id: 16, name: 'Andre Williams',    initials: 'AW', major: 'Political Science',  year: 'Junior',    score: 78, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 1 }, ai_summary: 'Runs a campus advocacy account with consistent engagement. Content strategy is strong but brand partnership experience is limited. Advance conditionally.' },
+  { id: 17, name: 'Isabella Martinez', initials: 'IM', major: 'Communication',      year: 'Senior',    score: 87, stage: 'reviewing', color: '#f59e0b', is_standout: true,  final_decision: 'pending',  preset_tally: { yes: 2, no: 0, maybe: 0 }, ai_summary: 'Viral TikTok series on UCSD life (200k+ views). Actively negotiating her third brand deal. Responses demonstrate both creative and commercial fluency. Top candidate in this cohort.', tag: 'Strong' },
+  { id: 18, name: 'Kevin Pham',        initials: 'KP', major: 'Computer Science',   year: 'Junior',    score: 76, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 1, maybe: 0 }, ai_summary: 'Built analytics dashboards for social media teams. Strong data skills but creative portfolio is thin. Mixed signals — technical depth without a matching creative output.' },
+  { id: 19, name: 'Zara Ahmed',        initials: 'ZA', major: 'Cognitive Science',  year: 'Senior',    score: 81, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 2, no: 0, maybe: 0 }, ai_summary: 'UX/product design skills translate well to platform-native content. Work on design-forward social accounts is polished and intentional. Recommend advancing.' },
+  { id: 20, name: 'Noah Campbell',     initials: 'NC', major: 'Business Economics', year: 'Junior',    score: 74, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 1 }, ai_summary: 'Has connected two campus orgs with local brand sponsors. Emerging partnerships track record is promising. Partnerships skills are ahead of content creation skills at this stage.' },
+  { id: 21, name: 'Destiny Robinson',  initials: 'DR', major: 'Film Studies',       year: 'Sophomore', score: 80, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 2, no: 0, maybe: 0 }, ai_summary: 'Documentary-style video content is unique, high quality, and consistent. Posting discipline and format consistency signal a creator who treats this seriously. Advance.' },
+  { id: 22, name: 'James Liu',         initials: 'JL', major: 'MCS',                year: 'Junior',    score: 77, stage: 'reviewing', color: '#f59e0b', is_standout: false, final_decision: 'pending',  preset_tally: { yes: 1, no: 0, maybe: 1 }, ai_summary: 'Managed social media for a campus org — grew from 2.1k to 6.8k followers in one quarter. Platform growth track record is a strong signal. Advance with confidence.' },
 
   // Interview × 5
   {
-    id: 23, name: 'Priya Patel', initials: 'PP', major: 'Psychology', year: 'Senior',
+    id: 23, name: 'Priya Patel', initials: 'PP', major: 'Communication', year: 'Senior',
     score: 91, stage: 'interview', color: '#3b82f6', tag: 'Top Pick', is_standout: true,
     final_decision: 'pending', preset_tally: { yes: 3, no: 0, maybe: 0 },
-    ai_summary: 'Exceptional candidate. CAPS peer counselor with a published article on anxiety in first-gen students. Responses reflect clinical-level empathy and communication. Top pick this cycle.',
+    ai_summary: 'Manages a UCSD lifestyle account with 53k followers. Has executed 5+ paid brand deals. Exceptional strategic and creative output — she understands both the algorithm and the audience. Top pick this cycle.',
     responses: {
-      q1: "REACH changed how I thought about peer support as a freshman. I want to give that back — especially to first-gen students who don't know these resources exist.",
-      q2: 'A close friend came to me during finals week in crisis. I sat with them for three hours, helped them call CAPS, and followed up every day for two weeks.',
-      q3: '8–10 hours per week. I have already blocked my schedule.',
-      q4: "Advocacy means making support feel approachable before someone hits a breaking point. It's about normalizing the conversation, not waiting for the crisis.",
+      q1: "I built my account from zero to 53k by being intentional about UCSD's specific culture and what resonates here. REACH operates at a scale I want to learn how to sustain — and contribute to.",
+      q2: 'A 3-part reel series on underrated UCSD spots hit 180k views in a week. Two brands reached out the next day. I turned one into a paid deal within 48 hours.',
+      q3: '8–10 hours. I block this in my schedule before anything else.',
+      q4: "Instagram for community building and brand activations, TikTok for reach and discovery. I treat each platform as its own language and don't cross-post without adapting the format.",
     },
   },
   {
-    id: 24, name: 'Jordan Hayes', initials: 'JH', major: 'Human Dev', year: 'Junior',
+    id: 24, name: 'Jordan Hayes', initials: 'JH', major: 'Visual Arts', year: 'Junior',
     score: 85, stage: 'interview', color: '#3b82f6', tag: 'Strong', is_standout: true,
     final_decision: 'pending', preset_tally: { yes: 2, no: 0, maybe: 1 },
-    ai_summary: 'Two-year athlete peer support group leader. Strong communicator with group facilitation skills. Culturally competent responses. Advance with confidence.',
+    ai_summary: 'Viral design work — a single post hit 240k views. Deep knowledge of platform algorithms and aesthetic trends. Creative vision is strong and platform-native. Advance with confidence.',
     responses: {
-      q1: "Athletes at UCSD face pressure that's invisible to most people. I started a peer group for my team and saw how much a trained ear can change someone's week.",
-      q2: 'A teammate was struggling with identity after losing their starting position. I made space for weekly check-ins. By week three, they talked to a counselor on their own.',
-      q3: '6–8 hours per week. Committed.',
-      q4: "Advocacy is showing up before someone asks. It means making sure people know they're not alone before the moment they need to know it most.",
+      q1: "I see REACH doing things visually that most campus orgs can't. I want to be part of the team that raises the bar even higher.",
+      q2: 'An infographic on UCSD housing costs went viral — 240k views, 18k shares. It was picked up by a local news account and sparked a campus-wide conversation.',
+      q3: '6–8 hours. Committed.',
+      q4: "Instagram for design-forward content. TikTok for rapid iteration and testing new formats. I use engagement data to inform aesthetics, not the other way around.",
     },
   },
   {
-    id: 25, name: 'Simone Davis', initials: 'SD', major: 'Public Health', year: 'Senior',
+    id: 25, name: 'Simone Davis', initials: 'SD', major: 'MCS', year: 'Senior',
     score: 88, stage: 'interview', color: '#3b82f6', tag: 'Strong', is_standout: true,
     final_decision: 'pending', preset_tally: { yes: 2, no: 0, maybe: 1 },
-    ai_summary: 'Bilingual SHS outreach leader for first-gen students. Demonstrates strong cultural competency and lived understanding of access barriers. Highly relevant profile.',
+    ai_summary: 'Has negotiated brand deals for three UCSD orgs. Bilingual content reaches English and Spanish-speaking audiences. Commercially aware and creatively versatile. Highly relevant profile.',
     responses: {
-      q1: 'I ran SHS outreach for first-gen Latinx students and saw how language and stigma kept people from getting help. REACH is how I want to keep doing that work.',
-      q2: 'A student confided they had been struggling for months but felt therapy was "not for people like them." I connected them to a bilingual counselor and checked in weekly.',
-      q3: '7+ hours. I structure my quarter around this kind of commitment.',
-      q4: "Advocacy is meeting people where they are — linguistically, culturally, emotionally. It's not one-size-fits-all.",
+      q1: "I want REACH's brand partnerships to represent UCSD's full student body — that requires bilingual content and I can deliver it.",
+      q2: 'A bilingual back-to-school campaign I produced reached 40k students across English and Spanish audiences. Both brand sponsors renewed the following quarter.',
+      q3: '7+ hours. I structure my schedule around commitments like this.',
+      q4: 'Instagram for brand activation, TikTok for student reach, LinkedIn for sponsor credibility. Platform selection is a strategic decision, not a preference.',
     },
   },
   {
-    id: 26, name: 'Alex Nguyen', initials: 'AN', major: 'Cog Sci', year: 'Junior',
+    id: 26, name: 'Alex Nguyen', initials: 'AN', major: 'Computer Science', year: 'Junior',
     score: 82, stage: 'interview', color: '#3b82f6', is_standout: false,
     final_decision: 'pending', preset_tally: { yes: 2, no: 0, maybe: 1 },
-    ai_summary: 'Thoughtful interest in mental health technology and peer systems. Responses are strong on communication but lighter on direct peer support experience. Solid mid-tier candidate.',
+    ai_summary: 'Built automation tools for social media scheduling used by 12 UCSD orgs. Strong technical differentiator. Content strategy is solid but creative output is secondary. Solid mid-tier candidate.',
     responses: {
-      q1: "I've been building a mental health resource app and realized technology isn't enough — human connection is the layer that actually works. REACH is that layer.",
-      q2: 'A friend had a panic attack during a study session. I stayed calm, helped them breathe, and talked them through what triggered it afterward.',
+      q1: "I built tools that save social media teams hours a week — now I want to use those tools alongside a team that actually creates great content.",
+      q2: 'A scheduling + analytics tool I built was adopted by 12 UCSD orgs. Orgs using it averaged 34% higher engagement over one quarter.',
       q3: '5–6 hours per week.',
-      q4: 'Making mental health support as easy to access as the dining app. Reducing friction is advocacy.',
+      q4: "My technical background covers all major platforms at the API level. Creatively, I'm strongest on Twitter/X and LinkedIn for text-native content.",
     },
   },
   {
-    id: 27, name: 'Jade Thompson', initials: 'JT', major: 'Sociology', year: 'Senior',
+    id: 27, name: 'Jade Thompson', initials: 'JT', major: 'Communication', year: 'Senior',
     score: 84, stage: 'interview', color: '#3b82f6', is_standout: false,
     final_decision: 'pending', preset_tally: { yes: 2, no: 0, maybe: 1 },
-    ai_summary: 'Intersectionality research background gives Jade a nuanced lens on mental health disparities. Responses are thoughtful and identity-aware. Advance.',
+    ai_summary: 'Led a 4-person content team. Grew a campus org account from 1.2k to 9.4k in two quarters with consistent format and execution. Cross-platform strategy background. Advance.',
     responses: {
-      q1: "My research on mental health outcomes across identities made it clear that representation in peer support isn't optional — it's the point.",
-      q2: "A classmate was navigating a panic disorder while hiding it from their family. I helped them reframe seeking help as an act of strength, not weakness.",
+      q1: "I've led content teams and I know what good execution looks like. REACH has the vision — I can help build the systems to scale it.",
+      q2: 'Managed a 4-person content team that grew a campus org from 1.2k to 9.4k followers in two quarters. Consistent format, consistent posting, consistent results.',
       q3: '6 hours per week.',
-      q4: "Advocacy means centering the voices most often excluded from mental health conversations — and doing the hard work of showing up for them.",
+      q4: "Instagram and TikTok for primary distribution. Pinterest for content planning and moodboarding. I think about platform ecosystems, not individual posts.",
     },
   },
 
   // Accepted × 3
   {
-    id: 28, name: 'Hannah Kim', initials: 'HK', major: 'Psychology', year: 'Senior',
+    id: 28, name: 'Hannah Kim', initials: 'HK', major: 'Communication', year: 'Senior',
     score: 94, stage: 'accepted', color: '#10b981', tag: 'Accepted', is_standout: true,
     final_decision: 'accepted', preset_tally: { yes: 3, no: 0, maybe: 0 },
-    ai_summary: 'Highest-scoring applicant this cycle. Returning board member with proven REACH leadership. Responses reflect institutional knowledge and deep personal investment. Unanimous accept.',
+    ai_summary: 'Brand partnerships director for a national student org with 80k following across platforms. $45k in sponsorships secured. Unanimous accept — highest-scoring applicant this cycle.',
     responses: {
-      q1: 'REACH gave me a community when I needed one most. Coming back as a leader is how I pay that forward.',
-      q2: 'I have had hundreds of these conversations over two years on the board. The one I think about most: a student who almost withdrew. We met weekly. They graduated.',
-      q3: '10+ hours. This is my priority this quarter.',
-      q4: "Advocacy is the difference between someone knowing help exists and actually getting it. That gap is where I work.",
+      q1: 'I have run brand partnerships at a national level. REACH is where I want to apply that experience to something local and deeply meaningful.',
+      q2: 'A brand campaign I led generated $45k in sponsorships for a national student org across 14 universities. It started as a deck I built in a weekend.',
+      q3: '10+ hours. This is my top priority this quarter.',
+      q4: "Instagram, TikTok, LinkedIn, and YouTube. I think about brand presence holistically — not just posts but entire platform identities and content ecosystems.",
     },
   },
   {
-    id: 29, name: 'Michael Santos', initials: 'MS', major: 'Human Dev', year: 'Junior',
+    id: 29, name: 'Michael Santos', initials: 'MS', major: 'MCS', year: 'Junior',
     score: 90, stage: 'accepted', color: '#10b981', tag: 'Accepted', is_standout: true,
     final_decision: 'accepted', preset_tally: { yes: 3, no: 0, maybe: 0 },
-    ai_summary: 'Peer support leadership across three residential colleges demonstrates scale and consistency. Culturally aware and operationally strong. Accepted with confidence.',
+    ai_summary: 'Viral TikTok creator (150k followers). Has secured $15k in brand deals for campus orgs. Platform mastery and commercial instincts are both exceptional. Accepted with confidence.',
     responses: {
-      q1: 'I saw the same mental health deserts in three different colleges at UCSD. REACH is how to address it at a platform level rather than one dorm at a time.',
-      q2: 'I trained 12 peer supporters across Muir, Warren, and Sixth. I know what equips people and what does not.',
+      q1: 'I have 150k followers on TikTok. I have never been part of a team. REACH is how I take what I have built alone and make it mean something at scale.',
+      q2: 'A video on UCSD\'s hidden study spots hit 2.1M views and brought in 8k new followers in 72 hours. Two brands reached out for deals within a week.',
       q3: '8–10 hours.',
-      q4: 'Advocacy is systematic, not reactive. It means building infrastructure so that help is there before anyone has to ask.',
+      q4: "TikTok for organic reach, Instagram for brand activation. I understand the algorithm cycles on both platforms and use that knowledge deliberately, not by accident.",
     },
   },
   {
-    id: 30, name: 'Aisha Freeman', initials: 'AF', major: 'Public Health', year: 'Senior',
+    id: 30, name: 'Aisha Freeman', initials: 'AF', major: 'Communication', year: 'Senior',
     score: 92, stage: 'accepted', color: '#10b981', tag: 'Accepted', is_standout: true,
     final_decision: 'accepted', preset_tally: { yes: 3, no: 0, maybe: 0 },
-    ai_summary: 'National mental health advocate with a UCSD-specific track record. Highest cultural competency score in this cohort. Exceptional fit. Accepted.',
+    ai_summary: 'Contributed strategy to an 8-figure national campaign as a student consultant. Content she scripted reached 12M people. Highest commercial impact score in this cohort. Accepted.',
     responses: {
-      q1: 'I have done this work at a national scale. I want to root it at UCSD because that is where I can have the most impact per hour.',
-      q2: 'I ran a national peer support hotline for two summers. I have learned when to listen, when to guide, and when to escalate.',
-      q3: '10+ hours. Non-negotiable.',
-      q4: 'Mental health advocacy is the act of refusing to accept that suffering is private. It is inherently collective.',
+      q1: 'REACH is the premier social media org at UCSD and I want to be part of building it into something that sets the standard nationally.',
+      q2: 'I contributed strategy to an 8-figure national campaign as a student consultant. The content I scripted was seen by 12 million people.',
+      q3: '10+ hours. I do not commit to things I cannot fully show up for.',
+      q4: "Every platform at a professional level. My edge is knowing which platform to prioritize for which objective — and executing without guessing.",
     },
   },
 ];
@@ -201,10 +203,11 @@ const APPLICANTS: DemoApplicant[] = [
 function ScoreBadge({ score }: { score: number }) {
   const color =
     score >= 80 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-    score >= 60 ? 'bg-[#C9A84C]/10 text-[#C9A84C] border-[#C9A84C]/20' :
+    score >= 60 ? `bg-[${REACH_YELLOW}]/10 border-[${REACH_YELLOW}]/20` :
                   'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+  const textColor = score >= 80 ? '' : score >= 60 ? `text-[${REACH_YELLOW}]` : '';
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${color}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${color} ${textColor}`}>
       <Sparkles className="w-2.5 h-2.5" />
       {score} AI Score
     </span>
@@ -220,7 +223,7 @@ function RubricPopover({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.2 }}
-      className="absolute top-full right-0 mt-2 w-80 bg-[#111111] border border-white/[0.08] rounded-2xl p-5 shadow-2xl z-50"
+      className="absolute top-full right-0 mt-2 w-80 bg-[#152236] border border-white/[0.08] rounded-2xl p-5 shadow-2xl z-50"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="text-xs font-semibold text-white/40 uppercase tracking-[0.15em]">AI Rubric — REACH Fall 2025</div>
@@ -256,7 +259,8 @@ function RubricPopover({ onClose }: { onClose: () => void }) {
                   {Array.from({ length: 5 }).map((_, i) => (
                     <div
                       key={i}
-                      className={`w-2 h-2 rounded-full ${i < c.weight ? 'bg-[#C9A84C]' : 'bg-white/10'}`}
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: i < c.weight ? REACH_YELLOW : 'rgba(255,255,255,0.1)' }}
                     />
                   ))}
                 </div>
@@ -299,14 +303,14 @@ function ApplicantPanel({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.22, ease: 'easeOut' }}
-      className="w-80 shrink-0 bg-[#111111] border border-white/[0.08] rounded-2xl flex flex-col self-start overflow-hidden"
+      className="w-80 shrink-0 bg-[#152236] border border-white/[0.08] rounded-2xl flex flex-col self-start overflow-hidden"
       style={{ maxHeight: 'calc(100vh - 160px)' }}
     >
       {/* Standout banner */}
       {applicant.is_standout && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-[#C9A84C]/10 border-b border-[#C9A84C]/20 shrink-0">
-          <Star className="w-3.5 h-3.5 text-[#C9A84C] fill-[#C9A84C] shrink-0" />
-          <span className="text-xs font-medium text-[#C9A84C]">AI Standout — worth keeping a close eye on</span>
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/[0.08] shrink-0" style={{ backgroundColor: `${REACH_YELLOW}15` }}>
+          <Star className="w-3.5 h-3.5 shrink-0" style={{ color: REACH_YELLOW, fill: REACH_YELLOW }} />
+          <span className="text-xs font-medium" style={{ color: REACH_YELLOW }}>AI Standout — worth keeping a close eye on</span>
         </div>
       )}
 
@@ -340,11 +344,14 @@ function ApplicantPanel({
             {stage?.label}
           </span>
           {applicant.tag && (
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-              applicant.tag === 'Accepted'  ? 'bg-emerald-500/15 text-emerald-400' :
-              applicant.tag === 'Top Pick'  ? 'bg-[#C9A84C]/15 text-[#C9A84C]'    :
-              'bg-blue-500/15 text-blue-400'
-            }`}>
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                applicant.tag === 'Accepted' ? 'bg-emerald-500/15 text-emerald-400' :
+                applicant.tag === 'Top Pick' ? '' :
+                'bg-blue-500/15 text-blue-400'
+              }`}
+              style={applicant.tag === 'Top Pick' ? { backgroundColor: `${REACH_YELLOW}22`, color: REACH_YELLOW } : {}}
+            >
               {applicant.tag}
             </span>
           )}
@@ -373,7 +380,7 @@ function ApplicantPanel({
         {/* AI Summary */}
         <div>
           <div className="flex items-center gap-1.5 mb-2">
-            <Sparkles className="w-3 h-3 text-[#C9A84C]" />
+            <Sparkles className="w-3 h-3" style={{ color: REACH_YELLOW }} />
             <div className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em]">AI Summary</div>
           </div>
           <p className="text-xs text-white/60 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2.5 leading-relaxed">
@@ -420,9 +427,13 @@ function ApplicantPanel({
           <div className="grid grid-cols-3 gap-2">
             {(['accepted', 'waitlisted', 'rejected'] as const).map(d => {
               const isActive = userDecision === d;
-              const activeClass = d === 'accepted'  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' :
-                                  d === 'waitlisted' ? 'bg-[#C9A84C]/20 border-[#C9A84C]/40 text-[#C9A84C]' :
-                                                       'bg-red-500/20 border-red-500/40 text-red-400';
+              const activeStyle = d === 'waitlisted' && isActive
+                ? { backgroundColor: `${REACH_YELLOW}33`, borderColor: `${REACH_YELLOW}66`, color: REACH_YELLOW }
+                : {};
+              const activeClass =
+                d === 'accepted'  ? (isActive ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : '') :
+                d === 'waitlisted' ? (isActive ? '' : '') :
+                                    (isActive ? 'bg-red-500/20 border-red-500/40 text-red-400' : '');
               const label = d === 'accepted' ? 'Accept' : d === 'waitlisted' ? 'Waitlist' : 'Reject';
               return (
                 <button
@@ -431,6 +442,7 @@ function ApplicantPanel({
                   className={`py-2.5 rounded-xl border text-xs font-semibold transition-all ${
                     isActive ? activeClass : 'bg-white/[0.03] border-white/[0.07] text-white/40 hover:text-white/70 hover:border-white/20'
                   }`}
+                  style={activeStyle}
                 >
                   {label}
                 </button>
@@ -469,7 +481,7 @@ function PipelineView({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0D1B2E' }}>
 
       {/* Top bar */}
       <div className="border-b border-white/[0.06] px-6 py-4 flex items-center justify-between shrink-0">
@@ -477,17 +489,23 @@ function PipelineView({ onBack }: { onBack: () => void }) {
           <button onClick={onBack} className="text-xs text-white/30 hover:text-white/60 transition-colors">← Back</button>
           <div className="w-px h-4 bg-white/[0.08]" />
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#C9A84C]/15 border border-[#C9A84C]/30 flex items-center justify-center">
-              <span className="text-[10px] font-bold text-[#C9A84C]">R</span>
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: `${REACH_YELLOW}20`, border: `1.5px solid ${REACH_YELLOW}40` }}
+            >
+              <Megaphone className="w-3.5 h-3.5" style={{ color: REACH_YELLOW }} />
             </div>
             <div>
               <div className="text-sm font-semibold text-white">REACH</div>
               <div className="text-[10px] text-white/35">Fall 2025 Recruitment</div>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#C9A84C]/[0.08] border border-[#C9A84C]/20">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#C9A84C] animate-pulse" />
-            <span className="text-[10px] font-semibold text-[#C9A84C]">Active</span>
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border"
+            style={{ backgroundColor: `${REACH_YELLOW}0D`, borderColor: `${REACH_YELLOW}33` }}
+          >
+            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: REACH_YELLOW }} />
+            <span className="text-[10px] font-semibold" style={{ color: REACH_YELLOW }}>Active</span>
           </div>
         </div>
 
@@ -511,11 +529,13 @@ function PipelineView({ onBack }: { onBack: () => void }) {
           <div className="relative">
             <button
               onClick={() => setRubricOpen(o => !o)}
-              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all ${
-                rubricOpen
-                  ? 'bg-[#C9A84C]/10 border-[#C9A84C]/30 text-[#C9A84C]'
-                  : 'border-white/[0.08] text-white/40 hover:text-white/70 hover:border-white/20'
-              }`}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all"
+              style={rubricOpen
+                ? { backgroundColor: `${REACH_YELLOW}1A`, borderColor: `${REACH_YELLOW}4D`, color: REACH_YELLOW }
+                : { borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }
+              }
+              onMouseEnter={e => { if (!rubricOpen) (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; }}
+              onMouseLeave={e => { if (!rubricOpen) (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.4)'; }}
             >
               <BookOpen className="w-3.5 h-3.5" />
               AI Rubric
@@ -537,10 +557,11 @@ function PipelineView({ onBack }: { onBack: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: 0.25 }}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#C9A84C]/[0.07] border border-[#C9A84C]/20"
+              className="flex items-center gap-2 px-4 py-1.5 rounded-full border"
+              style={{ backgroundColor: `${REACH_YELLOW}0D`, borderColor: `${REACH_YELLOW}33` }}
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-[#C9A84C]/60" />
-              <span className="text-[11px] text-[#C9A84C]/80">{HINTS[hintIndex]}</span>
+              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `${REACH_YELLOW}99` }} />
+              <span className="text-[11px]" style={{ color: `${REACH_YELLOW}CC` }}>{HINTS[hintIndex]}</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -565,70 +586,88 @@ function PipelineView({ onBack }: { onBack: () => void }) {
                   </div>
 
                   <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-hide">
-                    {cards.map((a, i) => (
-                      <motion.div
-                        key={a.id}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.03, duration: 0.3 }}
-                        onClick={() => handleCardClick(a)}
-                        className={`group border rounded-xl p-3 cursor-pointer transition-all ${
-                          a.is_standout ? 'ring-1 ring-[#C9A84C]/20' : ''
-                        } ${
-                          selected?.id === a.id
-                            ? 'bg-[#C9A84C]/[0.05] border-[#C9A84C]/30'
-                            : a.is_standout
-                            ? 'bg-white/[0.03] border-[#C9A84C]/25 hover:border-[#C9A84C]/40'
-                            : 'bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.06] hover:border-white/[0.15]'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div
-                              className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
-                              style={{ backgroundColor: a.color + '22', border: `1.5px solid ${a.color}35`, color: a.color }}
-                            >
-                              {a.initials}
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-1">
-                                {a.is_standout && <Star className="w-3 h-3 text-[#C9A84C] fill-[#C9A84C] shrink-0" />}
-                                <span className="text-[12px] font-semibold text-white truncate">{a.name}</span>
+                    {cards.map((a, i) => {
+                      const isSelected = selected?.id === a.id;
+                      return (
+                        <motion.div
+                          key={a.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.03, duration: 0.3 }}
+                          onClick={() => handleCardClick(a)}
+                          className="group rounded-xl p-3 cursor-pointer transition-all border"
+                          style={{
+                            backgroundColor: isSelected
+                              ? `${REACH_YELLOW}0D`
+                              : a.is_standout
+                              ? 'rgba(255,255,255,0.03)'
+                              : 'rgba(255,255,255,0.03)',
+                            borderColor: isSelected
+                              ? `${REACH_YELLOW}4D`
+                              : a.is_standout
+                              ? `${REACH_YELLOW}3D`
+                              : 'rgba(255,255,255,0.07)',
+                            boxShadow: a.is_standout && !isSelected ? `0 0 0 1px ${REACH_YELLOW}33` : 'none',
+                          }}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                                style={{ backgroundColor: a.color + '22', border: `1.5px solid ${a.color}35`, color: a.color }}
+                              >
+                                {a.initials}
                               </div>
-                              <div className="text-[10px] text-white/35">{a.year} · {a.major}</div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1">
+                                  {a.is_standout && (
+                                    <Star className="w-3 h-3 shrink-0" style={{ color: REACH_YELLOW, fill: REACH_YELLOW }} />
+                                  )}
+                                  <span className="text-[12px] font-semibold text-white truncate">{a.name}</span>
+                                </div>
+                                <div className="text-[10px] text-white/35">{a.year} · {a.major}</div>
+                              </div>
+                            </div>
+                            <ChevronRight className="w-3 h-3 text-white/15 group-hover:text-white/40 mt-0.5 flex-shrink-0 transition-colors" />
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              <Sparkles
+                                className="w-2.5 h-2.5"
+                                style={{ color: a.score >= 80 ? '#34d399' : a.score >= 60 ? REACH_YELLOW : '#71717a' }}
+                              />
+                              <span className="text-[11px] font-bold text-white">{a.score}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {userVotes[a.id] && (
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
+                                  userVotes[a.id] === 'yes'   ? 'bg-emerald-500/15 text-emerald-400' :
+                                  userVotes[a.id] === 'no'    ? 'bg-red-500/15 text-red-400' :
+                                  'bg-zinc-500/15 text-zinc-400'
+                                }`}>
+                                  {userVotes[a.id]}
+                                </span>
+                              )}
+                              {decisions[a.id] !== 'pending' && (
+                                <span
+                                  className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
+                                    decisions[a.id] === 'accepted'  ? 'bg-emerald-500/15 text-emerald-400' :
+                                    decisions[a.id] === 'rejected'  ? 'bg-red-500/15 text-red-400' : ''
+                                  }`}
+                                  style={decisions[a.id] === 'waitlisted'
+                                    ? { backgroundColor: `${REACH_YELLOW}22`, color: REACH_YELLOW }
+                                    : {}
+                                  }
+                                >
+                                  {decisions[a.id]}
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <ChevronRight className="w-3 h-3 text-white/15 group-hover:text-white/40 mt-0.5 flex-shrink-0 transition-colors" />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            <Sparkles className={`w-2.5 h-2.5 ${a.score >= 80 ? 'text-emerald-400' : a.score >= 60 ? 'text-[#C9A84C]' : 'text-zinc-500'}`} />
-                            <span className="text-[11px] font-bold text-white">{a.score}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            {userVotes[a.id] && (
-                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
-                                userVotes[a.id] === 'yes'   ? 'bg-emerald-500/15 text-emerald-400' :
-                                userVotes[a.id] === 'no'    ? 'bg-red-500/15 text-red-400' :
-                                'bg-zinc-500/15 text-zinc-400'
-                              }`}>
-                                {userVotes[a.id]}
-                              </span>
-                            )}
-                            {decisions[a.id] !== 'pending' && (
-                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${
-                                decisions[a.id] === 'accepted'  ? 'bg-emerald-500/15 text-emerald-400' :
-                                decisions[a.id] === 'waitlisted' ? 'bg-[#C9A84C]/15 text-[#C9A84C]' :
-                                'bg-red-500/15 text-red-400'
-                              }`}>
-                                {decisions[a.id]}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -659,16 +698,31 @@ function PipelineView({ onBack }: { onBack: () => void }) {
 
 function LandingView({ onEnter }: { onEnter: () => void }) {
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-6 relative">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative" style={{ backgroundColor: '#0D1B2E' }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
         className="max-w-lg w-full text-center"
       >
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#C9A84C]/20 bg-[#C9A84C]/[0.05] mb-10">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#C9A84C] animate-pulse" />
-          <span className="text-[11px] font-semibold text-[#C9A84C] tracking-[0.15em] uppercase">REACH · UniCircle Demo</span>
+        {/* Logo mark */}
+        <div className="flex justify-center mb-8">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center"
+            style={{ backgroundColor: `${REACH_YELLOW}20`, border: `1.5px solid ${REACH_YELLOW}40` }}
+          >
+            <Megaphone className="w-7 h-7" style={{ color: REACH_YELLOW }} />
+          </div>
+        </div>
+
+        <div
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border mb-10"
+          style={{ borderColor: `${REACH_YELLOW}33`, backgroundColor: `${REACH_YELLOW}0D` }}
+        >
+          <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: REACH_YELLOW }} />
+          <span className="text-[11px] font-semibold tracking-[0.15em] uppercase" style={{ color: REACH_YELLOW }}>
+            REACH @ UCSD · UniCircle Demo
+          </span>
         </div>
 
         <h1 className="font-display text-4xl sm:text-5xl font-bold text-white leading-[1.05] tracking-tight mb-5">
@@ -676,14 +730,15 @@ function LandingView({ onEnter }: { onEnter: () => void }) {
         </h1>
 
         <p className="text-white/45 text-base leading-relaxed mb-12 max-w-sm mx-auto">
-          Stop juggling forms, spreadsheets, and messages. UniCircle organizes everything into one system.
+          Stop juggling Google Forms, spreadsheets, and DMs. UniCircle organizes everything into one system — intake, AI review, and decisions.
         </p>
 
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onEnter}
-          className="inline-flex items-center gap-2.5 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-black font-bold px-8 py-4 rounded-xl text-sm transition-colors"
+          className="inline-flex items-center gap-2.5 font-bold px-8 py-4 rounded-xl text-sm transition-colors"
+          style={{ backgroundColor: REACH_YELLOW, color: '#0D1B2E' }}
         >
           Enter Demo
           <ArrowRight className="w-4 h-4" />
