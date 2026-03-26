@@ -37,6 +37,7 @@ import TestResumeUpload from "./pages/TestResumeUpload";
 import SocialAssets from "./pages/SocialAssets";
 import AuthCallback from "./pages/AuthCallback";
 import Demo from "./pages/Demo";
+import ReachDemo from "./pages/ReachDemo";
 import ClubOnboardingRequest from "./pages/ClubOnboardingRequest";
 import AdminRequestsPanel from "./pages/AdminRequestsPanel";
 import NotFound from "./pages/NotFound";
@@ -87,6 +88,7 @@ const App = () => (
           <Route path="/test-resume" element={<TestResumeUpload />} />
           <Route path="/social-assets" element={<SocialAssets />} />
           <Route path="/demo" element={<Demo />} />
+          <Route path="/reach" element={<ReachDemo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
