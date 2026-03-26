@@ -13,7 +13,7 @@ const REACH_YELLOW = '#F5C518';
 const STAGES = [
   { id: 'applied',   label: 'Applied',   color: '#6366f1' },
   { id: 'reviewing', label: 'Reviewing', color: '#f59e0b' },
-  { id: 'interview', label: 'Interview', color: '#3b82f6' },
+  { id: 'interview', label: 'Social Night', color: '#3b82f6' },
   { id: 'accepted',  label: 'Accepted',  color: '#10b981' },
   { id: 'rejected',  label: 'Rejected',  color: '#ef4444' },
 ];
@@ -60,9 +60,9 @@ const COMMS_FLOW = [
   },
   {
     stage: 'interview',
-    label: 'Interview Invitation',
-    trigger: 'Sent when card is moved to Interview',
-    preview: 'Hi [Name], congrats — you\'ve been selected to interview with REACH! We\'ll follow up with scheduling details.',
+    label: 'Social Night Invitation',
+    trigger: 'Sent when card is moved to Social Night',
+    preview: 'Hi [Name], congrats — you\'ve been selected to come to REACH Social Night! Come meet the team and vibe with us. Details to follow.',
   },
   {
     stage: 'accepted',
@@ -670,6 +670,81 @@ const MEMBER_META: Record<number, MemberMeta> = {
 
 const ACCEPTED_MEMBERS = APPLICANTS.filter(a => a.stage === 'accepted');
 
+const TIERS = [
+  {
+    name: 'Rising',
+    range: '0 – 399 pts',
+    color: '#94a3b8',
+    bg: 'rgba(148,163,184,0.1)',
+    border: 'rgba(148,163,184,0.2)',
+    perks: ['Standard event access', 'Base point earnings', 'REACH community chat'],
+  },
+  {
+    name: 'Active',
+    range: '400 – 499 pts',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.1)',
+    border: 'rgba(96,165,250,0.2)',
+    perks: ['Priority event RSVPs', '1.5× points on brand deals', 'Active member spotlight'],
+  },
+  {
+    name: 'Elite',
+    range: '500+ pts',
+    color: REACH_YELLOW,
+    bg: `${REACH_YELLOW}15`,
+    border: `${REACH_YELLOW}35`,
+    perks: ['Exclusive Brand Deal Workshop', '2× points on all content', 'Leadership opportunities', 'Early access to every event'],
+  },
+];
+
+function getTier(total: number) {
+  if (total >= 500) return TIERS[2];
+  if (total >= 400) return TIERS[1];
+  return TIERS[0];
+}
+
+const EXCLUSIVE_EVENTS = [
+  {
+    title: 'Brand Deal Workshop',
+    tier: 'Elite',
+    tierColor: REACH_YELLOW,
+    date: 'Nov 14',
+    spots: '8 spots',
+    desc: 'Negotiation tactics and pitch decks from REACH\'s top partnership leads.',
+  },
+  {
+    title: 'Content Strategy Masterclass',
+    tier: 'Active',
+    tierColor: '#60a5fa',
+    date: 'Nov 19',
+    spots: '15 spots',
+    desc: 'Platform-by-platform strategy for maximizing reach and engagement.',
+  },
+  {
+    title: 'Leadership Retreat',
+    tier: 'Elite',
+    tierColor: REACH_YELLOW,
+    date: 'Dec 6',
+    spots: '6 spots',
+    desc: 'REACH\'s Winter 2026 campaign roadmap planning with org leadership.',
+  },
+];
+
+const MEMBER_RECS: Record<number, { event: string; reason: string }[]> = {
+  28: [
+    { event: 'Brand Deal Workshop',       reason: 'Matches your Brand Strategy specialty' },
+    { event: 'Leadership Retreat',        reason: 'Based on your partnerships leadership background' },
+  ],
+  29: [
+    { event: 'Content Strategy Masterclass', reason: 'Aligns with your TikTok growth goals' },
+    { event: 'Brand Deal Workshop',          reason: 'Based on brand deals you\'ve closed' },
+  ],
+  30: [
+    { event: 'Brand Deal Workshop',       reason: 'Matches your national campaign experience' },
+    { event: 'Leadership Retreat',        reason: 'Based on your multi-platform strategy background' },
+  ],
+};
+
 // ─── Members View ───────────────────────────────────────────────────────────────
 
 function MembersView() {
@@ -754,6 +829,7 @@ function MembersView() {
           const total = Object.values(pts).reduce((a, b) => a + b, 0);
           const maxTotal = 600;
           const isExpanded = expanded === member.id;
+          const tier = getTier(total);
 
           return (
             <motion.div
@@ -782,6 +858,12 @@ function MembersView() {
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-sm font-bold text-white">{member.name}</span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold">Active</span>
+                    <span
+                      className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                      style={{ backgroundColor: tier.bg, color: tier.color, border: `1px solid ${tier.border}` }}
+                    >
+                      {tier.name}
+                    </span>
                   </div>
                   <div className="text-[11px] text-white/40 mb-1">{member.year} · {member.major} · Member since {meta.since}</div>
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -859,6 +941,28 @@ function MembersView() {
                           <span className="text-xs text-white/40">Events attended</span>
                           <span className="text-xs font-semibold text-white">{meta.attendance}</span>
                         </div>
+
+                        {/* Tier + personalized events */}
+                        <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                          <div className="flex items-center justify-between mb-2.5">
+                            <span className="text-[10px] text-white/30 uppercase tracking-[0.12em] font-semibold">Current Tier</span>
+                            <span
+                              className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                              style={{ backgroundColor: tier.bg, color: tier.color, border: `1px solid ${tier.border}` }}
+                            >
+                              {tier.name} · {total} pts
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-white/30 mb-1.5 uppercase tracking-[0.12em] font-semibold">Events Unlocked For You</div>
+                          <div className="space-y-1.5">
+                            {MEMBER_RECS[member.id]?.map(r => (
+                              <div key={r.event} className="rounded-lg px-2.5 py-2 border border-white/[0.06] bg-white/[0.02]">
+                                <div className="text-[11px] font-semibold text-white/80">{r.event}</div>
+                                <div className="text-[10px] text-white/35 mt-0.5">{r.reason}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
 
                       {/* Social profiles + full profile */}
@@ -927,7 +1031,68 @@ function MembersView() {
         })}
       </div>
 
-      {/* Footer note */}
+      {/* Tiers */}
+      <div className="mt-10">
+        <div className="mb-4">
+          <p className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.2em] mb-0.5">Engagement Tiers</p>
+          <p className="text-xs text-white/40">The more members engage, the more they unlock — automatically.</p>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {TIERS.map(t => (
+            <div
+              key={t.name}
+              className="rounded-xl border p-4"
+              style={{ backgroundColor: t.bg, borderColor: t.border }}
+            >
+              <div className="text-xs font-bold mb-0.5" style={{ color: t.color }}>{t.name}</div>
+              <div className="text-[10px] text-white/30 mb-3">{t.range}</div>
+              <div className="space-y-1.5">
+                {t.perks.map(p => (
+                  <div key={p} className="flex items-start gap-1.5">
+                    <div className="w-1 h-1 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: t.color }} />
+                    <span className="text-[11px] text-white/60">{p}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Exclusive events */}
+      <div className="mt-8">
+        <div className="mb-4">
+          <p className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.2em] mb-0.5">Exclusive Events</p>
+          <p className="text-xs text-white/40">Unlocked based on tier — tailored to each member's specialty and data.</p>
+        </div>
+        <div className="space-y-2">
+          {EXCLUSIVE_EVENTS.map(e => (
+            <div
+              key={e.title}
+              className="rounded-xl border px-4 py-3.5 flex items-center gap-4"
+              style={{ backgroundColor: '#152236', borderColor: 'rgba(255,255,255,0.07)' }}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-sm font-semibold text-white">{e.title}</span>
+                  <span
+                    className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                    style={{ backgroundColor: `${e.tierColor}20`, color: e.tierColor, border: `1px solid ${e.tierColor}40` }}
+                  >
+                    {e.tier}+
+                  </span>
+                </div>
+                <p className="text-[11px] text-white/40">{e.desc}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-xs font-semibold text-white">{e.date}</div>
+                <div className="text-[10px] text-white/30">{e.spots}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <p className="text-[11px] text-white/20 text-center mt-8">
         Points update automatically as members post content, attend events, and close brand deals.
       </p>
