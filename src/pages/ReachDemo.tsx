@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   Star, ChevronRight, ArrowRight, X, Sparkles,
-  ThumbsUp, ThumbsDown, Minus, BookOpen, Megaphone,
+  ThumbsUp, ThumbsDown, Minus, BookOpen, Megaphone, Mail, Check,
 } from 'lucide-react';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -44,6 +44,50 @@ const HINTS = [
   'Stars mark AI standouts — candidates worth a closer look',
   'Click any applicant to review their portfolio and vote',
 ];
+
+const COMMS_FLOW = [
+  {
+    stage: 'applied',
+    label: 'Application Received',
+    trigger: 'Sent automatically on submission',
+    preview: 'Hi [Name], we got your REACH application! Our team will review it and be in touch soon. — REACH @ UCSD',
+  },
+  {
+    stage: 'reviewing',
+    label: 'Under Review',
+    trigger: 'Sent when card is moved to Reviewing',
+    preview: 'Hi [Name], your REACH application is currently under review by our team. We\'ll update you on next steps shortly.',
+  },
+  {
+    stage: 'interview',
+    label: 'Interview Invitation',
+    trigger: 'Sent when card is moved to Interview',
+    preview: 'Hi [Name], congrats — you\'ve been selected to interview with REACH! We\'ll follow up with scheduling details.',
+  },
+  {
+    stage: 'accepted',
+    label: 'Welcome to REACH',
+    trigger: 'Sent when final decision is set to Accepted',
+    preview: 'Hi [Name], we\'re thrilled to welcome you to REACH @ UCSD! Check your email for onboarding details.',
+  },
+  {
+    stage: 'rejected',
+    label: 'Thank You for Applying',
+    trigger: 'Sent when final decision is set to Rejected',
+    preview: 'Hi [Name], thank you for applying to REACH. We had an incredibly competitive pool this cycle and won\'t be moving forward at this time.',
+  },
+];
+
+// Which comms have been sent based on a stage
+function getSentComms(stage: string): string[] {
+  const order = ['applied', 'reviewing', 'interview', 'accepted', 'rejected'];
+  const stageIndex = order.indexOf(stage);
+  if (stageIndex === -1) return ['applied'];
+  // accepted and rejected are terminal — show everything up to and including them
+  if (stage === 'accepted') return ['applied', 'reviewing', 'interview', 'accepted'];
+  if (stage === 'rejected') return ['applied', 'rejected'];
+  return order.slice(0, stageIndex + 1);
+}
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -281,6 +325,57 @@ function RubricPopover({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ─── Comms Popover ─────────────────────────────────────────────────────────────
+
+function CommsPopover({ onClose }: { onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+      className="absolute top-full right-0 mt-2 w-96 bg-[#152236] border border-white/[0.08] rounded-2xl p-5 shadow-2xl z-50"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-xs font-semibold text-white/40 uppercase tracking-[0.15em]">Applicant Communication Flow</div>
+        <button onClick={onClose} className="text-white/30 hover:text-white/60 transition-colors">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <div className="space-y-1">
+        {COMMS_FLOW.map((c, i) => (
+          <div key={c.stage} className="relative">
+            {/* Connector line */}
+            {i < COMMS_FLOW.length - 1 && (
+              <div className="absolute left-[11px] top-8 w-px h-4 bg-white/[0.08]" />
+            )}
+            <div className="flex gap-3">
+              <div
+                className="w-5.5 h-5.5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                style={{ backgroundColor: `${REACH_YELLOW}20`, border: `1px solid ${REACH_YELLOW}40` }}
+              >
+                <Mail className="w-2.5 h-2.5" style={{ color: REACH_YELLOW }} />
+              </div>
+              <div className="pb-4 min-w-0">
+                <div className="text-xs font-semibold text-white mb-0.5">{c.label}</div>
+                <div className="text-[10px] text-white/35 mb-2">{c.trigger}</div>
+                <div className="text-[11px] text-white/50 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 leading-relaxed italic">
+                  "{c.preview}"
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-[10px] text-white/25 mt-1 pt-3 border-t border-white/[0.06]">
+        All emails are sent automatically. No manual outreach needed.
+      </p>
+    </motion.div>
+  );
+}
+
 // ─── Applicant Detail Panel ────────────────────────────────────────────────────
 
 function ApplicantPanel({
@@ -428,6 +523,29 @@ function ApplicantPanel({
           </div>
         </div>
 
+        {/* Communications sent */}
+        <div>
+          <div className="flex items-center gap-1.5 mb-3">
+            <Mail className="w-3 h-3 text-white/30" />
+            <div className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em]">Emails Sent</div>
+          </div>
+          <div className="space-y-1.5">
+            {COMMS_FLOW.map(c => {
+              const sent = getSentComms(applicant.stage).includes(c.stage);
+              return (
+                <div key={c.stage} className={`flex items-center gap-2.5 text-xs transition-opacity ${sent ? 'opacity-100' : 'opacity-30'}`}>
+                  <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${sent ? '' : 'border border-white/10'}`}
+                    style={sent ? { backgroundColor: `${REACH_YELLOW}25`, border: `1px solid ${REACH_YELLOW}50` } : {}}
+                  >
+                    {sent && <Check className="w-2 h-2" style={{ color: REACH_YELLOW }} />}
+                  </div>
+                  <span className={sent ? 'text-white/70' : 'text-white/30'}>{c.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Final Decision */}
         <div>
           <div className="text-[10px] font-semibold text-white/30 uppercase tracking-[0.15em] mb-3">Final Decision</div>
@@ -474,6 +592,7 @@ function PipelineView({ onBack }: { onBack: () => void }) {
   const [hintIndex, setHintIndex]   = useState(0);
   const [hintsVisible, setHintsVisible] = useState(true);
   const [rubricOpen, setRubricOpen] = useState(false);
+  const [commsOpen, setCommsOpen]   = useState(false);
 
   useEffect(() => {
     if (!hintsVisible || hintIndex >= HINTS.length) { setHintsVisible(false); return; }
@@ -485,6 +604,7 @@ function PipelineView({ onBack }: { onBack: () => void }) {
     setSelected(a);
     setHintsVisible(false);
     setRubricOpen(false);
+    setCommsOpen(false);
   };
 
   return (
@@ -533,10 +653,30 @@ function PipelineView({ onBack }: { onBack: () => void }) {
             ))}
           </div>
 
+          {/* Comms button */}
+          <div className="relative">
+            <button
+              onClick={() => { setCommsOpen(o => !o); setRubricOpen(false); }}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all"
+              style={commsOpen
+                ? { backgroundColor: `${REACH_YELLOW}1A`, borderColor: `${REACH_YELLOW}4D`, color: REACH_YELLOW }
+                : { borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }
+              }
+              onMouseEnter={e => { if (!commsOpen) (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; }}
+              onMouseLeave={e => { if (!commsOpen) (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.4)'; }}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              Comms
+            </button>
+            <AnimatePresence>
+              {commsOpen && <CommsPopover onClose={() => setCommsOpen(false)} />}
+            </AnimatePresence>
+          </div>
+
           {/* Rubric button */}
           <div className="relative">
             <button
-              onClick={() => setRubricOpen(o => !o)}
+              onClick={() => { setRubricOpen(o => !o); setCommsOpen(false); }}
               className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all"
               style={rubricOpen
                 ? { backgroundColor: `${REACH_YELLOW}1A`, borderColor: `${REACH_YELLOW}4D`, color: REACH_YELLOW }
