@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable';
+
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
 import { cn } from '@/lib/utils';
@@ -36,26 +36,11 @@ export default function Login() {
   }, [searchParams]);
 
   const handleGoogleSignIn = async () => {
-    const result = await lovable.auth.signInWithOAuth('google');
-    if (result.error) { toast.error('Google sign-in failed'); return; }
-    if (result.redirected) return;
-
-    // Inline session — run routing checks
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) return;
-    const userId = data.session.user.id;
-    const [ownedClubsResult, completedOnboarding] = await Promise.all([
-      supabase.from('club_owners').select('id').eq('user_id', userId).limit(1),
-      hasCompletedOnboarding(userId),
-    ]);
-    const ownedClubs = ownedClubsResult.data;
-    if (ownedClubs && ownedClubs.length > 0) {
-      navigate('/club-admin');
-      toast.success('Welcome to your Club Admin Portal!');
-    } else {
-      navigate(completedOnboarding ? (redirectTo || '/dashboard') : '/onboarding');
-      toast.success('Welcome back!');
-    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) toast.error('Google sign-in failed');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

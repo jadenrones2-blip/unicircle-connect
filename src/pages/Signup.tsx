@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
-import { lovable } from '@/integrations/lovable';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import logoImage from '@/assets/unicircle-logo-new.png';
 import { cn } from '@/lib/utils';
@@ -23,11 +23,11 @@ export default function Signup() {
   const [mode, setMode] = useState<SignupMode>('student');
 
   const handleGoogleSignIn = async () => {
-    const result = await lovable.auth.signInWithOAuth('google');
-    if (result.error) { toast.error('Google sign-in failed'); return; }
-    if (result.redirected) return;
-    navigate('/onboarding');
-    toast.success('Welcome to UniCircle!');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) toast.error('Google sign-in failed');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
