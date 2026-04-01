@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ArrowLeft, Star, Loader2, Trash2, Edit2, Check, X } from 'lucide-react';
+import { ArrowLeft, Star, Loader2, Trash2, Edit2, Check, X, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STAGES = ['member', 'applied', 'under_review', 'interview', 'accepted', 'rejected'] as const;
@@ -97,6 +97,11 @@ export default function OrgPersonProfile() {
   const [myReview, setMyReview] = useState<Review | null>(null);
   const [reviewForm, setReviewForm] = useState({ culture_fit: 0, experience: 0, involvement: 0, notes: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Email
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailForm, setEmailForm] = useState({ subject: '', body: '' });
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // Delete confirm
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -212,6 +217,28 @@ export default function OrgPersonProfile() {
     setSubmittingReview(false);
   };
 
+  const handleSendEmail = async () => {
+    if (!person?.email) return;
+    if (!emailForm.subject.trim() || !emailForm.body.trim()) {
+      toast.error('Subject and message are required');
+      return;
+    }
+    setSendingEmail(true);
+    const { error } = await supabase.functions.invoke('send-person-email', {
+      body: {
+        to: person.email,
+        toName: `${person.first_name} ${person.last_name}`,
+        subject: emailForm.subject.trim(),
+        body: emailForm.body.trim(),
+      },
+    });
+    if (error) { toast.error('Failed to send email'); setSendingEmail(false); return; }
+    toast.success('Email sent');
+    setEmailOpen(false);
+    setEmailForm({ subject: '', body: '' });
+    setSendingEmail(false);
+  };
+
   const handleDelete = async () => {
     if (!personId) return;
     setDeleting(true);
@@ -268,6 +295,16 @@ export default function OrgPersonProfile() {
               {person.email && <p className="text-zinc-500 text-sm mt-0.5">{person.email}</p>}
             </div>
             <div className="flex gap-2">
+              {person.email && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEmailOpen(true)}
+                  className="border-white/10 text-zinc-300 hover:bg-white/5"
+                >
+                  <Mail className="w-3.5 h-3.5 mr-1.5" /> Send Email
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"
@@ -485,6 +522,46 @@ export default function OrgPersonProfile() {
           </div>
         </main>
       </div>
+
+      {/* Send Email Dialog */}
+      <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
+        <DialogContent className="bg-[#111] border-white/10 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Email to {person?.first_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-zinc-400 text-xs">To</Label>
+              <p className="text-zinc-300 text-sm mt-1">{person?.email}</p>
+            </div>
+            <div>
+              <Label className="text-zinc-400 text-xs">Subject</Label>
+              <Input
+                value={emailForm.subject}
+                onChange={e => setEmailForm(f => ({ ...f, subject: e.target.value }))}
+                className="bg-white/5 border-white/10 text-white mt-1"
+                placeholder="e.g. Interview Invitation"
+              />
+            </div>
+            <div>
+              <Label className="text-zinc-400 text-xs">Message</Label>
+              <Textarea
+                value={emailForm.body}
+                onChange={e => setEmailForm(f => ({ ...f, body: e.target.value }))}
+                className="bg-white/5 border-white/10 text-white mt-1 resize-none"
+                rows={6}
+                placeholder="Write your message..."
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-2">
+            <Button variant="ghost" onClick={() => setEmailOpen(false)} className="text-zinc-400">Cancel</Button>
+            <Button onClick={handleSendEmail} disabled={sendingEmail} className="bg-gold text-black font-semibold hover:bg-gold/90">
+              {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Mail className="w-3.5 h-3.5 mr-1.5" />Send Email</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirm */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
