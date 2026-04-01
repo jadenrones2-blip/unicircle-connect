@@ -146,8 +146,8 @@ export default function ClubApply() {
       if (resumeFile && applicant?.id) {
         try {
           const ext = resumeFile.name.split('.').pop() || 'pdf';
-          const path = `resumes/${clubId}/${applicant.id}.${ext}`;
-          await supabase.storage.from('club-images').upload(path, resumeFile, { upsert: true });
+          const path = `${clubId}/${applicant.id}.${ext}`;
+          await supabase.storage.from('resumes').upload(path, resumeFile, { upsert: true });
         } catch (uploadErr) {
           console.warn('Resume upload failed (non-fatal):', uploadErr);
         }

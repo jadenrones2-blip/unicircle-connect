@@ -505,7 +505,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Send verification email if Resend is configured
       if (resendApiKey) {
         const resend = new Resend(resendApiKey);
-        const verifyUrl = `${redirectUrl || "https://unicircle-connect.lovable.app"}/verify-claim?token=${rawToken}`;
+        const verifyUrl = `${redirectUrl || "https://unicircle.app"}/verify-claim?token=${rawToken}`;
 
         console.log(`[CLAIM] Sending verification email to ${userEmail} for club ${clubName}`);
         try {
