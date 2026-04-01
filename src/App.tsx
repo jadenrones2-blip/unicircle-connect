@@ -43,6 +43,7 @@ import AdminRequestsPanel from "./pages/AdminRequestsPanel";
 import OrgPeopleDashboard from "./pages/OrgPeopleDashboard";
 import OrgPersonProfile from "./pages/OrgPersonProfile";
 import OrgPipeline from "./pages/OrgPipeline";
+import OrgScorecard from "./pages/OrgScorecard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,7 @@ const App = () => (
           <Route path="/club-admin/clubs/:clubId/people" element={<OrgPeopleDashboard />} />
           <Route path="/club-admin/clubs/:clubId/people/:personId" element={<OrgPersonProfile />} />
           <Route path="/club-admin/clubs/:clubId/pipeline" element={<OrgPipeline />} />
+          <Route path="/club-admin/clubs/:clubId/scorecard" element={<OrgScorecard />} />
           <Route path="/club-admin/profile" element={<AdminProfileSettings />} />
           <Route path="/club-admin/request" element={<ClubOnboardingRequest />} />
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
