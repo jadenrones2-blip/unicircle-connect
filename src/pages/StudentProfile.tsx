@@ -13,53 +13,46 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Camera, Loader2, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-// ─── All quiz options for the interest editor ──────────────────────────────
 const INTEREST_OPTIONS: { category: string; label: string; value: string; emoji: string }[] = [
-  // Goals / superpower
-  { category: 'superpower', value: 'network',     label: 'Connections that open doors', emoji: '🚪' },
-  { category: 'superpower', value: 'skills',      label: 'Skills that make me dangerous', emoji: '⚡' },
-  { category: 'superpower', value: 'squad',       label: 'A squad that gets me', emoji: '👯' },
-  { category: 'superpower', value: 'confidence',  label: 'Confidence to lead anything', emoji: '🦁' },
-  { category: 'superpower', value: 'purpose',     label: 'A cause worth fighting for', emoji: '🔥' },
-  { category: 'superpower', value: 'fun',         label: 'Honestly? Just vibes', emoji: '✨' },
-  // Career
-  { category: 'career', value: 'tech_career',        label: 'Break into tech', emoji: '💻' },
-  { category: 'career', value: 'finance_career',     label: 'Wall Street / Finance', emoji: '📊' },
-  { category: 'career', value: 'startup_career',     label: 'Start my own thing', emoji: '🚀' },
-  { category: 'career', value: 'consulting_career',  label: 'Consulting / Strategy', emoji: '🎯' },
-  { category: 'career', value: 'healthcare_career',  label: 'Med / Healthcare', emoji: '🩺' },
-  { category: 'career', value: 'research_career',    label: 'Research / Academia', emoji: '🔬' },
-  { category: 'career', value: 'creative_career',    label: 'Creative / Design / Media', emoji: '🎬' },
-  { category: 'career', value: 'nonprofit_career',   label: 'Nonprofit / Public sector', emoji: '🌍' },
-  { category: 'career', value: 'undecided_career',   label: 'Still figuring it out', emoji: '🤷' },
-  // Interests
-  { category: 'interests', value: 'tech',          label: 'Coding & building stuff', emoji: '🛠️' },
-  { category: 'interests', value: 'business',      label: 'Startups & side hustles', emoji: '💡' },
-  { category: 'interests', value: 'arts',          label: 'Art, music, or design', emoji: '🎨' },
-  { category: 'interests', value: 'science',       label: 'Science & discovery', emoji: '🧬' },
-  { category: 'interests', value: 'culture',       label: 'Culture & identity', emoji: '🎭' },
-  { category: 'interests', value: 'fitness',       label: 'Sports & fitness', emoji: '🏋️' },
-  { category: 'interests', value: 'social_impact', label: 'Changing the world', emoji: '✊' },
-  { category: 'interests', value: 'gaming',        label: 'Gaming & esports', emoji: '🎮' },
-  // Vibe
-  { category: 'vibe', value: 'competitive',    label: 'Intense & high-achieving', emoji: '🏆' },
-  { category: 'vibe', value: 'chill',          label: 'Chill & no pressure', emoji: '🧘' },
-  { category: 'vibe', value: 'party',          label: 'Social butterflies unite', emoji: '🦋' },
-  { category: 'vibe', value: 'professional',   label: 'Suit up & network', emoji: '👔' },
-  { category: 'vibe', value: 'creative_vibe',  label: 'Weird & creative', emoji: '🎪' },
-  { category: 'vibe', value: 'inclusive',      label: 'Warm & welcoming', emoji: '🤗' },
-  // Energy
-  { category: 'energy', value: 'explorer',   label: 'Dip my toes in', emoji: '🌊' },
-  { category: 'energy', value: 'committed',  label: 'Show up & contribute', emoji: '💪' },
-  { category: 'energy', value: 'all_in',     label: 'Run the whole thing', emoji: '👑' },
+  { category: 'superpower', value: 'network',     label: 'Networking', emoji: '🚪' },
+  { category: 'superpower', value: 'skills',      label: 'Skill Building', emoji: '⚡' },
+  { category: 'superpower', value: 'squad',       label: 'Finding Community', emoji: '👯' },
+  { category: 'superpower', value: 'confidence',  label: 'Leadership', emoji: '🦁' },
+  { category: 'superpower', value: 'purpose',     label: 'Social Impact', emoji: '🔥' },
+  { category: 'superpower', value: 'fun',         label: 'Just for Fun', emoji: '✨' },
+  { category: 'career', value: 'tech_career',        label: 'Tech', emoji: '💻' },
+  { category: 'career', value: 'finance_career',     label: 'Finance', emoji: '📊' },
+  { category: 'career', value: 'startup_career',     label: 'Startups', emoji: '🚀' },
+  { category: 'career', value: 'consulting_career',  label: 'Consulting', emoji: '🎯' },
+  { category: 'career', value: 'healthcare_career',  label: 'Healthcare', emoji: '🩺' },
+  { category: 'career', value: 'research_career',    label: 'Research', emoji: '🔬' },
+  { category: 'career', value: 'creative_career',    label: 'Creative & Media', emoji: '🎬' },
+  { category: 'career', value: 'nonprofit_career',   label: 'Nonprofit', emoji: '🌍' },
+  { category: 'interests', value: 'tech',          label: 'Coding', emoji: '🛠️' },
+  { category: 'interests', value: 'business',      label: 'Business', emoji: '💡' },
+  { category: 'interests', value: 'arts',          label: 'Art & Music', emoji: '🎨' },
+  { category: 'interests', value: 'science',       label: 'Science', emoji: '🧬' },
+  { category: 'interests', value: 'culture',       label: 'Culture', emoji: '🎭' },
+  { category: 'interests', value: 'fitness',       label: 'Sports & Fitness', emoji: '🏋️' },
+  { category: 'interests', value: 'social_impact', label: 'Activism', emoji: '✊' },
+  { category: 'interests', value: 'gaming',        label: 'Gaming', emoji: '🎮' },
+  { category: 'vibe', value: 'competitive',    label: 'High-achieving', emoji: '🏆' },
+  { category: 'vibe', value: 'chill',          label: 'Low-key', emoji: '🧘' },
+  { category: 'vibe', value: 'party',          label: 'Social', emoji: '🦋' },
+  { category: 'vibe', value: 'professional',   label: 'Professional', emoji: '👔' },
+  { category: 'vibe', value: 'creative_vibe',  label: 'Creative', emoji: '🎪' },
+  { category: 'vibe', value: 'inclusive',      label: 'Welcoming', emoji: '🤗' },
+  { category: 'energy', value: 'explorer',   label: 'Casual', emoji: '🌊' },
+  { category: 'energy', value: 'committed',  label: 'Committed', emoji: '💪' },
+  { category: 'energy', value: 'all_in',     label: 'All In', emoji: '👑' },
 ];
 
 const CATEGORY_LABELS: Record<string, string> = {
   superpower: 'Goals',
-  career: 'Career',
-  interests: 'Interests',
+  career: 'Career Path',
+  interests: 'Topics',
   vibe: 'Club Vibe',
-  energy: 'Commitment Level',
+  energy: 'Commitment',
 };
 
 const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Other'];
@@ -85,8 +78,6 @@ export default function StudentProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-
-  // Interests: set of "category:value" strings
   const [selectedInterests, setSelectedInterests] = useState<Set<string>>(new Set());
   const [savingInterests, setSavingInterests] = useState(false);
   const [interestsDirty, setInterestsDirty] = useState(false);
@@ -94,14 +85,12 @@ export default function StudentProfile() {
   useEffect(() => {
     if (!authLoading && !user) { navigate('/login'); return; }
     if (!user) return;
-
     (async () => {
       setLoading(true);
       const [profileRes, interestsData] = await Promise.all([
         supabase.from('profiles' as any).select('*').eq('user_id', user.id).maybeSingle(),
         fetchInterests(user.id),
       ]);
-
       if (profileRes.data) {
         const p = profileRes.data as any;
         setProfile({
@@ -115,37 +104,27 @@ export default function StudentProfile() {
       } else {
         setProfile(f => ({ ...f, email: user.email || '', display_name: user.email?.split('@')[0] || '' }));
       }
-
-      // Load interests
       const set = new Set<string>();
-      (interestsData || []).forEach((i: any) => {
-        set.add(`${i.interest_category}:${i.interest_value}`);
-      });
+      (interestsData || []).forEach((i: any) => set.add(`${i.interest_category}:${i.interest_value}`));
       setSelectedInterests(set);
       setLoading(false);
     })();
   }, [user, authLoading]);
 
-  const handleAvatarClick = () => avatarInputRef.current?.click();
-
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
     if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
-
     setUploadingAvatar(true);
     const ext = file.name.split('.').pop() || 'jpg';
     const path = `${user.id}.${ext}`;
-
     const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
     if (uploadError) { toast.error('Failed to upload image'); setUploadingAvatar(false); return; }
-
     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
-    const url = `${publicUrl}?t=${Date.now()}`; // cache bust
-
+    const url = `${publicUrl}?t=${Date.now()}`;
     await supabase.from('profiles' as any).upsert({ user_id: user.id, avatar_url: url }, { onConflict: 'user_id' });
     setProfile(p => ({ ...p, avatar_url: url }));
-    toast.success('Profile photo updated');
+    toast.success('Photo updated');
     setUploadingAvatar(false);
     e.target.value = '';
   };
@@ -160,8 +139,7 @@ export default function StudentProfile() {
       year: profile.year || null,
       bio: profile.bio?.trim() || null,
     }, { onConflict: 'user_id' });
-
-    if (error) { toast.error('Failed to save profile'); setSaving(false); return; }
+    if (error) { toast.error('Failed to save'); setSaving(false); return; }
     toast.success('Profile saved');
     setSaving(false);
   };
@@ -183,12 +161,8 @@ export default function StudentProfile() {
       return { category, value };
     });
     const result = await saveInterests(user.id, interests);
-    if (result.success) {
-      toast.success('Interests saved');
-      setInterestsDirty(false);
-    } else {
-      toast.error('Failed to save interests');
-    }
+    if (result.success) { toast.success('Interests saved'); setInterestsDirty(false); }
+    else toast.error('Failed to save interests');
     setSavingInterests(false);
   };
 
@@ -198,179 +172,175 @@ export default function StudentProfile() {
     return acc;
   }, {} as Record<string, typeof INTEREST_OPTIONS>);
 
+  const initials = profile.display_name?.[0]?.toUpperCase() || profile.email?.[0]?.toUpperCase() || '?';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
         <Header />
-        <div className="pt-32 flex items-center justify-center">
+        <div className="flex items-center justify-center pt-40">
           <Loader2 className="w-6 h-6 text-gold animate-spin" />
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div style={{ background: '#0A0A0A', minHeight: '100vh' }}>
       <Header />
 
-      <div className="container mx-auto px-4 pt-28 pb-20 max-w-2xl">
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center text-sm text-zinc-500 hover:text-white transition-colors mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Dashboard
+      <div className="container mx-auto px-4 pt-24 pb-24 max-w-2xl">
+        <Link to="/dashboard" className="inline-flex items-center text-sm text-zinc-500 hover:text-white transition-colors mb-8">
+          <ArrowLeft className="w-4 h-4 mr-1.5" /> Dashboard
         </Link>
 
-        <h1 className="text-3xl font-display font-bold text-white mb-8">My Profile</h1>
-
-        {/* ── Avatar ─────────────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-white/10 bg-zinc-900/40 p-6 mb-4">
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-5">Photo</p>
-          <div className="flex items-center gap-5">
-            <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt="Profile"
-                  className="w-20 h-20 rounded-full object-cover border-2 border-white/10"
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-white/5 border-2 border-white/10 flex items-center justify-center text-2xl font-bold text-zinc-400">
-                  {profile.display_name?.[0]?.toUpperCase() || '?'}
-                </div>
-              )}
-              <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                {uploadingAvatar
-                  ? <Loader2 className="w-5 h-5 text-white animate-spin" />
-                  : <Camera className="w-5 h-5 text-white" />}
+        {/* ── Hero: avatar + name ─────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 mb-3 flex items-center gap-5">
+          <div className="relative flex-shrink-0 cursor-pointer group" onClick={() => avatarInputRef.current?.click()}>
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt="Avatar"
+                className="w-20 h-20 rounded-full object-cover ring-2 ring-white/10" />
+            ) : (
+              <div className="w-20 h-20 rounded-full ring-2 ring-white/10 flex items-center justify-center text-3xl font-bold"
+                style={{ background: 'linear-gradient(135deg, #b8860b44, #b8860b22)', color: '#f59e0b' }}>
+                {initials}
               </div>
-            </div>
-            <div>
-              <button
-                onClick={handleAvatarClick}
-                disabled={uploadingAvatar}
-                className="text-sm text-gold hover:text-gold/80 transition-colors font-medium"
-              >
-                {uploadingAvatar ? 'Uploading...' : 'Change photo'}
-              </button>
-              <p className="text-xs text-zinc-600 mt-1">JPG, PNG or GIF · Max 5MB</p>
+            )}
+            <div className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              {uploadingAvatar
+                ? <Loader2 className="w-5 h-5 text-white animate-spin" />
+                : <Camera className="w-5 h-5 text-white" />}
             </div>
             <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
+
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold text-white truncate">
+              {profile.display_name || 'Your Name'}
+            </h1>
+            <p className="text-sm text-zinc-500 mt-0.5 truncate">{profile.email}</p>
+            {(profile.major || profile.year) && (
+              <p className="text-sm text-zinc-400 mt-1">
+                {[profile.major, profile.year].filter(Boolean).join(' · ')}
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={() => avatarInputRef.current?.click()}
+            className="flex-shrink-0 text-xs text-zinc-500 hover:text-zinc-300 transition-colors border border-white/10 rounded-lg px-3 py-1.5"
+          >
+            {uploadingAvatar ? 'Uploading…' : 'Change photo'}
+          </button>
         </div>
 
-        {/* ── Basic info ──────────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-white/10 bg-zinc-900/40 p-6 mb-4 space-y-4">
-          <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Basic Info</p>
+        {/* ── Basic info ──────────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 mb-3 space-y-4">
+          <h2 className="text-sm font-semibold text-zinc-300">Basic Info</h2>
 
           <div className="space-y-1.5">
-            <Label className="text-zinc-300">Display Name</Label>
+            <Label className="text-xs text-zinc-500">Display Name</Label>
             <Input
               value={profile.display_name}
               onChange={e => setProfile(p => ({ ...p, display_name: e.target.value }))}
-              className="bg-zinc-900 border-white/10 text-white"
+              className="bg-white/5 border-white/8 text-white placeholder:text-zinc-600 focus:border-gold/40 focus:ring-0"
               placeholder="How you want to be known"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-zinc-300">Email</Label>
-            <Input
-              value={profile.email}
-              disabled
-              className="bg-zinc-900 border-white/10 text-zinc-500 cursor-not-allowed"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-zinc-300">Major</Label>
+              <Label className="text-xs text-zinc-500">Major</Label>
               <Input
                 value={profile.major || ''}
                 onChange={e => setProfile(p => ({ ...p, major: e.target.value }))}
-                className="bg-zinc-900 border-white/10 text-white"
+                className="bg-white/5 border-white/8 text-white placeholder:text-zinc-600 focus:border-gold/40 focus:ring-0"
                 placeholder="e.g. Business Economics"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-zinc-300">Year</Label>
+              <Label className="text-xs text-zinc-500">Year</Label>
               <Select value={profile.year || ''} onValueChange={v => setProfile(p => ({ ...p, year: v }))}>
-                <SelectTrigger className="bg-zinc-900 border-white/10 text-white">
+                <SelectTrigger className="bg-white/5 border-white/8 text-white focus:border-gold/40">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-950 border-white/10">
-                  {YEAR_OPTIONS.map(y => (
-                    <SelectItem key={y} value={y}>{y}</SelectItem>
-                  ))}
+                <SelectContent className="bg-[#111] border-white/10">
+                  {YEAR_OPTIONS.map(y => <SelectItem key={y} value={y} className="text-white">{y}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-zinc-300">Bio <span className="text-zinc-600">(optional)</span></Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-xs text-zinc-500">Bio</Label>
+              <span className="text-xs text-zinc-700">{(profile.bio || '').length}/280</span>
+            </div>
             <Textarea
               value={profile.bio || ''}
               onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
-              className="bg-zinc-900 border-white/10 text-white resize-none"
+              className="bg-white/5 border-white/8 text-white placeholder:text-zinc-600 resize-none focus:border-gold/40 focus:ring-0"
               rows={3}
-              placeholder="A short intro about yourself..."
+              placeholder="A short intro about yourself…"
               maxLength={280}
             />
-            <p className="text-xs text-zinc-600 text-right">{(profile.bio || '').length}/280</p>
           </div>
 
           <Button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="w-full bg-gold text-black font-semibold hover:bg-gold/90"
+            className="w-full bg-gold text-black font-semibold hover:bg-gold/90 h-10"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1.5" />Save Profile</>}
           </Button>
         </div>
 
-        {/* ── Interests ───────────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-white/10 bg-zinc-900/40 p-6 space-y-5">
+        {/* ── Interests ───────────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 space-y-5">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Interests & Goals</p>
-            <span className="text-xs text-zinc-600">{selectedInterests.size} selected</span>
+            <h2 className="text-sm font-semibold text-zinc-300">Interests & Goals</h2>
+            <span className="text-xs text-zinc-600 bg-white/5 border border-white/8 rounded-full px-2.5 py-1">
+              {selectedInterests.size} selected
+            </span>
           </div>
-          <p className="text-sm text-zinc-500 -mt-3">
-            These power your club match scores. Toggle anything on or off — more = better recommendations.
-          </p>
+          <p className="text-xs text-zinc-600 -mt-3">These power your club match scores. Toggle anything on or off.</p>
 
-          {Object.entries(groupedOptions).map(([category, options]) => (
-            <div key={category}>
-              <p className="text-xs font-semibold text-zinc-400 mb-2">{CATEGORY_LABELS[category] || category}</p>
-              <div className="flex flex-wrap gap-2">
-                {options.map(opt => {
-                  const key = `${opt.category}:${opt.value}`;
-                  const active = selectedInterests.has(key);
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => toggleInterest(key)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-all ${
-                        active
-                          ? 'bg-gold/10 border-gold/40 text-gold'
-                          : 'bg-white/5 border-white/10 text-zinc-400 hover:border-white/25 hover:text-zinc-200'
-                      }`}
-                    >
-                      <span>{opt.emoji}</span>
-                      <span>{opt.label}</span>
-                      {active && <X className="w-3 h-3 ml-0.5 opacity-60" />}
-                    </button>
-                  );
-                })}
+          <div className="space-y-5">
+            {Object.entries(groupedOptions).map(([category, options]) => (
+              <div key={category}>
+                <p className="text-xs font-medium text-zinc-500 mb-2.5 uppercase tracking-wider">
+                  {CATEGORY_LABELS[category] || category}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {options.map(opt => {
+                    const key = `${opt.category}:${opt.value}`;
+                    const active = selectedInterests.has(key);
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => toggleInterest(key)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          active
+                            ? 'border-gold/50 text-gold'
+                            : 'border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
+                        }`}
+                        style={active ? { background: 'rgba(180,135,11,0.1)' } : { background: 'rgba(255,255,255,0.03)' }}
+                      >
+                        <span>{opt.emoji}</span>
+                        <span>{opt.label}</span>
+                        {active && <X className="w-3 h-3 opacity-50" />}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
           <Button
             onClick={handleSaveInterests}
             disabled={savingInterests || !interestsDirty}
-            className="w-full bg-gold text-black font-semibold hover:bg-gold/90 disabled:opacity-40"
+            className="w-full bg-gold text-black font-semibold hover:bg-gold/90 h-10 disabled:opacity-30"
           >
             {savingInterests
               ? <Loader2 className="w-4 h-4 animate-spin" />
