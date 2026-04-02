@@ -312,6 +312,12 @@ export default function Dashboard() {
                 <span className="hidden sm:inline">Events</span>
               </Button>
             </Link>
+            <Link to="/profile">
+              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3 text-xs tracking-wide uppercase">
+                <UserCircle className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Profile</span>
+              </Button>
+            </Link>
             <Button variant="ghost" size="sm" onClick={handleSignOut} className="px-2 sm:px-3 text-xs tracking-wide uppercase">
               <LogOut className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Sign Out</span>

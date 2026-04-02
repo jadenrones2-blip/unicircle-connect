@@ -44,6 +44,7 @@ import OrgPeopleDashboard from "./pages/OrgPeopleDashboard";
 import OrgPersonProfile from "./pages/OrgPersonProfile";
 import OrgPipeline from "./pages/OrgPipeline";
 import OrgScorecard from "./pages/OrgScorecard";
+import StudentProfile from "./pages/StudentProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<StudentProfile />} />
           <Route path="/clubs" element={<ClubsDirectory />} />
           <Route path="/clubs/compare" element={<ClubCompare />} />
           <Route path="/opportunities" element={<Opportunities />} />
