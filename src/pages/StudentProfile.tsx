@@ -132,14 +132,30 @@ export default function StudentProfile() {
   const handleSaveProfile = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase.from('profiles' as any).upsert({
-      user_id: user.id,
+
+    const payload = {
       display_name: profile.display_name.trim() || null,
       major: profile.major?.trim() || null,
       year: profile.year || null,
       bio: profile.bio?.trim() || null,
-    }, { onConflict: 'user_id' });
-    if (error) { toast.error('Failed to save'); setSaving(false); return; }
+    };
+
+    // Check if profile row exists
+    const { data: existing } = await supabase.from('profiles' as any).select('user_id').eq('user_id', user.id).maybeSingle();
+
+    let error;
+    if (existing) {
+      ({ error } = await supabase.from('profiles' as any).update(payload).eq('user_id', user.id));
+    } else {
+      ({ error } = await supabase.from('profiles' as any).insert({ user_id: user.id, email: user.email, ...payload }));
+    }
+
+    if (error) {
+      console.error('Profile save error:', error);
+      toast.error(`Failed to save: ${error.message}`);
+      setSaving(false);
+      return;
+    }
     toast.success('Profile saved');
     setSaving(false);
   };
