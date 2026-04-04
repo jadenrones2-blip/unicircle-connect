@@ -10,16 +10,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Camera, Loader2, Check, X } from 'lucide-react';
+import { ArrowLeft, Camera, Loader2, Check, X, FileText, Upload, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const INTEREST_OPTIONS: { category: string; label: string; value: string; emoji: string }[] = [
+  // Goals
   { category: 'superpower', value: 'network',     label: 'Networking', emoji: '🚪' },
   { category: 'superpower', value: 'skills',      label: 'Skill Building', emoji: '⚡' },
   { category: 'superpower', value: 'squad',       label: 'Finding Community', emoji: '👯' },
   { category: 'superpower', value: 'confidence',  label: 'Leadership', emoji: '🦁' },
   { category: 'superpower', value: 'purpose',     label: 'Social Impact', emoji: '🔥' },
   { category: 'superpower', value: 'fun',         label: 'Just for Fun', emoji: '✨' },
+  { category: 'superpower', value: 'resume',      label: 'Resume Building', emoji: '📄' },
+  { category: 'superpower', value: 'mentorship',  label: 'Mentorship', emoji: '🤝' },
+  // Career
   { category: 'career', value: 'tech_career',        label: 'Tech', emoji: '💻' },
   { category: 'career', value: 'finance_career',     label: 'Finance', emoji: '📊' },
   { category: 'career', value: 'startup_career',     label: 'Startups', emoji: '🚀' },
@@ -28,20 +32,39 @@ const INTEREST_OPTIONS: { category: string; label: string; value: string; emoji:
   { category: 'career', value: 'research_career',    label: 'Research', emoji: '🔬' },
   { category: 'career', value: 'creative_career',    label: 'Creative & Media', emoji: '🎬' },
   { category: 'career', value: 'nonprofit_career',   label: 'Nonprofit', emoji: '🌍' },
+  { category: 'career', value: 'law_career',         label: 'Law', emoji: '⚖️' },
+  { category: 'career', value: 'realestate_career',  label: 'Real Estate', emoji: '🏠' },
+  { category: 'career', value: 'marketing_career',   label: 'Marketing & PR', emoji: '📣' },
+  { category: 'career', value: 'education_career',   label: 'Education', emoji: '🎓' },
+  { category: 'career', value: 'government_career',  label: 'Government & Policy', emoji: '🏛️' },
+  { category: 'career', value: 'undecided_career',   label: 'Still Figuring It Out', emoji: '🤷' },
+  // Topics / Hobbies
   { category: 'interests', value: 'tech',          label: 'Coding', emoji: '🛠️' },
   { category: 'interests', value: 'business',      label: 'Business', emoji: '💡' },
-  { category: 'interests', value: 'arts',          label: 'Art & Music', emoji: '🎨' },
+  { category: 'interests', value: 'arts',          label: 'Art & Design', emoji: '🎨' },
+  { category: 'interests', value: 'music',         label: 'Music', emoji: '🎵' },
   { category: 'interests', value: 'science',       label: 'Science', emoji: '🧬' },
-  { category: 'interests', value: 'culture',       label: 'Culture', emoji: '🎭' },
+  { category: 'interests', value: 'culture',       label: 'Culture & Identity', emoji: '🎭' },
   { category: 'interests', value: 'fitness',       label: 'Sports & Fitness', emoji: '🏋️' },
   { category: 'interests', value: 'social_impact', label: 'Activism', emoji: '✊' },
   { category: 'interests', value: 'gaming',        label: 'Gaming', emoji: '🎮' },
+  { category: 'interests', value: 'writing',       label: 'Writing & Journalism', emoji: '✍️' },
+  { category: 'interests', value: 'film',          label: 'Film & Photography', emoji: '🎥' },
+  { category: 'interests', value: 'travel',        label: 'Travel & Languages', emoji: '🌐' },
+  { category: 'interests', value: 'food',          label: 'Food & Cooking', emoji: '🍜' },
+  { category: 'interests', value: 'sustainability', label: 'Sustainability', emoji: '🌱' },
+  { category: 'interests', value: 'investing',     label: 'Investing', emoji: '📈' },
+  { category: 'interests', value: 'dance',         label: 'Dance', emoji: '💃' },
+  { category: 'interests', value: 'ai',            label: 'AI & Data Science', emoji: '🤖' },
+  { category: 'interests', value: 'fashion',       label: 'Fashion', emoji: '👗' },
+  // Vibe
   { category: 'vibe', value: 'competitive',    label: 'High-achieving', emoji: '🏆' },
   { category: 'vibe', value: 'chill',          label: 'Low-key', emoji: '🧘' },
   { category: 'vibe', value: 'party',          label: 'Social', emoji: '🦋' },
   { category: 'vibe', value: 'professional',   label: 'Professional', emoji: '👔' },
   { category: 'vibe', value: 'creative_vibe',  label: 'Creative', emoji: '🎪' },
   { category: 'vibe', value: 'inclusive',      label: 'Welcoming', emoji: '🤗' },
+  // Commitment
   { category: 'energy', value: 'explorer',   label: 'Casual', emoji: '🌊' },
   { category: 'energy', value: 'committed',  label: 'Committed', emoji: '💪' },
   { category: 'energy', value: 'all_in',     label: 'All In', emoji: '👑' },
@@ -50,9 +73,9 @@ const INTEREST_OPTIONS: { category: string; label: string; value: string; emoji:
 const CATEGORY_LABELS: Record<string, string> = {
   superpower: 'Goals',
   career: 'Career Path',
-  interests: 'Topics',
+  interests: 'Topics & Hobbies',
   vibe: 'Club Vibe',
-  energy: 'Commitment',
+  energy: 'Commitment Level',
 };
 
 const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Other'];
@@ -64,6 +87,7 @@ interface Profile {
   major: string | null;
   year: string | null;
   bio: string | null;
+  resume_url: string | null;
 }
 
 export default function StudentProfile() {
@@ -73,8 +97,10 @@ export default function StudentProfile() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState<Profile>({
-    display_name: '', email: '', avatar_url: null, major: null, year: null, bio: null,
+    display_name: '', email: '', avatar_url: null, major: null, year: null, bio: null, resume_url: null,
   });
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const resumeInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -100,6 +126,7 @@ export default function StudentProfile() {
           major: p.major || null,
           year: p.year || null,
           bio: p.bio || null,
+          resume_url: p.resume_url || null,
         });
       } else {
         setProfile(f => ({ ...f, email: user.email || '', display_name: user.email?.split('@')[0] || '' }));
@@ -127,6 +154,31 @@ export default function StudentProfile() {
     toast.success('Photo updated');
     setUploadingAvatar(false);
     e.target.value = '';
+  };
+
+  const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 10 * 1024 * 1024) { toast.error('Resume must be under 10MB'); return; }
+    setUploadingResume(true);
+    const path = `profile/${user.id}/resume.pdf`;
+    const { error: uploadError } = await supabase.storage.from('resumes').upload(path, file, { upsert: true });
+    if (uploadError) { toast.error('Failed to upload resume'); setUploadingResume(false); return; }
+    const { data: { publicUrl } } = supabase.storage.from('resumes').getPublicUrl(path);
+    const url = `${publicUrl}?t=${Date.now()}`;
+    await supabase.from('profiles' as any).update({ resume_url: url }).eq('user_id', user.id);
+    setProfile(p => ({ ...p, resume_url: url }));
+    toast.success('Resume uploaded');
+    setUploadingResume(false);
+    e.target.value = '';
+  };
+
+  const handleRemoveResume = async () => {
+    if (!user) return;
+    await supabase.storage.from('resumes').remove([`profile/${user.id}/resume.pdf`]);
+    await supabase.from('profiles' as any).update({ resume_url: null }).eq('user_id', user.id);
+    setProfile(p => ({ ...p, resume_url: null }));
+    toast.success('Resume removed');
   };
 
   const handleSaveProfile = async () => {
@@ -309,6 +361,56 @@ export default function StudentProfile() {
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1.5" />Save Profile</>}
           </Button>
+        </div>
+
+        {/* ── Resume ──────────────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 mb-3 space-y-4">
+          <h2 className="text-sm font-semibold text-zinc-300">Resume</h2>
+
+          {profile.resume_url ? (
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-white/8 bg-white/[0.03]">
+              <div className="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-4 h-4 text-red-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">resume.pdf</p>
+                <p className="text-xs text-zinc-500 mt-0.5">Uploaded</p>
+              </div>
+              <a
+                href={profile.resume_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors"
+              >
+                View
+              </a>
+              <button
+                onClick={() => resumeInputRef.current?.click()}
+                className="text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors"
+              >
+                Replace
+              </button>
+              <button
+                onClick={handleRemoveResume}
+                className="text-zinc-600 hover:text-red-400 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center gap-2 border border-dashed border-white/10 rounded-xl py-8 cursor-pointer hover:border-white/25 transition-colors">
+              {uploadingResume
+                ? <Loader2 className="w-5 h-5 text-zinc-500 animate-spin" />
+                : <Upload className="w-5 h-5 text-zinc-500" />}
+              <span className="text-sm text-zinc-400">{uploadingResume ? 'Uploading…' : 'Upload resume'}</span>
+              <span className="text-xs text-zinc-600">PDF · Max 10MB</span>
+              <input ref={resumeInputRef} type="file" accept=".pdf" className="hidden" onChange={handleResumeChange} />
+            </label>
+          )}
+          {/* Hidden input for replace flow */}
+          {profile.resume_url && (
+            <input ref={resumeInputRef} type="file" accept=".pdf" className="hidden" onChange={handleResumeChange} />
+          )}
         </div>
 
         {/* ── Interests ───────────────────────────────────────────────── */}
