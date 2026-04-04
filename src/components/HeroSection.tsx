@@ -32,10 +32,10 @@ const HeroSection = () => {
           </motion.div>
 
           <AnimatedWords
-            text="Recruitment for student orgs is broken."
+            text="Recruit with precision."
             as="h1"
             className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] mb-8 sm:mb-10 text-white/70"
-            goldWords={["broken."]}
+            goldWords={["precision."]}
           />
 
           {/* CTA buttons */}
