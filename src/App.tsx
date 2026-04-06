@@ -45,6 +45,7 @@ import OrgPersonProfile from "./pages/OrgPersonProfile";
 import OrgPipeline from "./pages/OrgPipeline";
 import OrgScorecard from "./pages/OrgScorecard";
 import StudentProfile from "./pages/StudentProfile";
+import ApplyBySlug from "./pages/ApplyBySlug";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ const App = () => (
           <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/clubs/:id" element={<ClubDetail />} />
           <Route path="/clubs/:id/apply" element={<ClubApply />} />
+          <Route path="/apply/:slug" element={<ApplyBySlug />} />
           <Route path="/events" element={<CalendarApp />} />
           <Route path="/calendar" element={<CalendarApp />} />
           <Route path="/express-interest" element={<ExpressInterest />} />

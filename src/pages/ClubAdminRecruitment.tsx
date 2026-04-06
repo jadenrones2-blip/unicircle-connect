@@ -9,7 +9,8 @@ import { RecruitmentIntro } from '@/components/recruitment/RecruitmentIntro';
 import { RecruitmentSetupWizard } from '@/components/recruitment/RecruitmentSetupWizard';
 import { RecruitmentKanban } from '@/components/recruitment/RecruitmentKanban';
 import { useRecruitment } from '@/hooks/useRecruitment';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Link2, Copy } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ClubAdminRecruitment() {
   const navigate = useNavigate();
@@ -49,6 +50,8 @@ export default function ClubAdminRecruitment() {
   }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, navigate]);
 
   const clubName = ownedClubs.find(c => c.clubId === clubId)?.clubName || 'Club';
+  const applySlug = clubName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const applyUrl = `https://unicircle.app/apply/${applySlug}`;
 
   const handleEnable = async () => {
     setEnabling(true);
@@ -88,6 +91,20 @@ export default function ClubAdminRecruitment() {
           </header>
 
           <div className="flex-1 flex flex-col p-5 sm:p-7 min-h-0">
+            {/* Apply link banner — shown once recruitment is live */}
+            {isEnabled && hasStages && (
+              <div className="mb-4 flex items-center gap-3 px-4 py-2.5 rounded-xl border border-white/8 bg-white/[0.02]">
+                <Link2 className="w-4 h-4 text-gold flex-shrink-0" />
+                <span className="text-sm text-zinc-400 font-mono truncate flex-1">{applyUrl}</span>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(applyUrl); toast.success('Apply link copied!'); }}
+                  className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors flex-shrink-0"
+                >
+                  <Copy className="w-3 h-3" /> Copy
+                </button>
+              </div>
+            )}
+
             {!isEnabled ? (
               <RecruitmentIntro onEnable={handleEnable} loading={enabling} />
             ) : !hasStages ? (
