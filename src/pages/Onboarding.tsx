@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Check, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -104,6 +104,8 @@ const RESUME_STEP_INDEX = quizQuestions.length;
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const { user, loading: authLoading } = useAuth();
   const { saveInterests, loading: savingInterests, hasCompletedOnboarding } = useUserInterests();
   const [currentStep, setCurrentStep] = useState(0);
@@ -179,7 +181,7 @@ export default function Onboarding() {
     const result = await saveInterests(user.id, interests);
     if (result.success) {
       toast.success('Profile complete! Here are your recommendations.');
-      navigate('/dashboard');
+      navigate(redirectTo || '/dashboard');
     } else {
       toast.error('Failed to save preferences. Please try again.');
     }

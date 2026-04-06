@@ -93,7 +93,10 @@ export default function Login() {
             toast.error('No clubs found for this account. Please claim your club first.', { duration: 6000 });
             navigate('/clubs');
           } else {
-            navigate(completedOnboarding ? (redirectTo || '/dashboard') : '/onboarding');
+            const onboardingPath = redirectTo
+              ? `/onboarding?redirect=${encodeURIComponent(redirectTo)}`
+              : '/onboarding';
+            navigate(completedOnboarding ? (redirectTo || '/dashboard') : onboardingPath);
             toast.success('Welcome back!');
           }
         }
@@ -277,7 +280,7 @@ export default function Login() {
             <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
               <Link
-                to="/signup"
+                to={redirectTo ? `/signup?redirect=${encodeURIComponent(redirectTo)}` : '/signup'}
                 className="text-primary font-medium hover:underline"
               >
                 Sign up

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, CheckCircle2, Upload } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,15 @@ const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', '
 
 export default function ClubApply() {
   const { id: clubId } = useParams<{ id: string }>();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect unauthenticated users to login, preserving the apply URL
+  useEffect(() => {
+    if (!authLoading && !user && clubId) {
+      navigate(`/login?redirect=/clubs/${clubId}/apply`);
+    }
+  }, [user, authLoading, clubId, navigate]);
 
   // Club & form data
   const [clubName, setClubName] = useState<string>('');

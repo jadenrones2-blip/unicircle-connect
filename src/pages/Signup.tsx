@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Loader2, ArrowRight, Sparkles, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,8 @@ type SignupMode = 'student' | 'club-owner';
 
 export default function Signup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,7 +64,7 @@ export default function Signup() {
         navigate('/clubs');
       } else {
         toast.success('Account created! Let\'s find your clubs.');
-        navigate('/onboarding');
+        navigate(redirectTo ? `/onboarding?redirect=${encodeURIComponent(redirectTo)}` : '/onboarding');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Signup failed';
