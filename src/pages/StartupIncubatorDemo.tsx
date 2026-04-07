@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
   Star, ChevronRight, ArrowRight, X, Sparkles,
-  ThumbsUp, ThumbsDown, Minus, Rocket, Megaphone, Mail, Check,
+  ThumbsUp, ThumbsDown, Minus, Rocket, Megaphone, Mail, Check, BookOpen,
 } from 'lucide-react';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const SI_BLUE = '#6366f1';
+const SI_COLOR = '#ffffff';
 
 const STAGES = [
   { id: 'applied',    label: 'Applied',      color: '#6366f1' },
@@ -280,15 +280,12 @@ export default function StartupIncubatorDemo() {
   const stageApplicants = (stageId: string) => applicants.filter(a => a.stage === stageId);
 
   return (
-    <div style={{ background: '#0a0a0f', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ background: '#0a0a0a', minHeight: '100vh', fontFamily: 'system-ui, sans-serif' }}>
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: SI_BLUE + '22', border: `1px solid ${SI_BLUE}44` }}>
-            <Rocket className="w-4 h-4" style={{ color: SI_BLUE }} />
-          </div>
+          <img src="https://startupincubatorsd.com/SIClogo.jpg" alt="SIC" className="w-8 h-8 rounded-lg object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           <div>
             <p className="text-sm font-semibold text-white leading-none">Startup Incubator @ UCSD</p>
             <p className="text-xs text-zinc-500 mt-0.5">Spring 2026 Recruitment</p>
@@ -303,16 +300,14 @@ export default function StartupIncubatorDemo() {
       {/* ── Hero ────────────────────────────────────────────────────────────── */}
       <div className="px-6 pt-10 pb-8 max-w-6xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-medium mb-5"
-            style={{ background: SI_BLUE + '15', borderColor: SI_BLUE + '40', color: SI_BLUE }}>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 text-xs font-medium mb-5 text-zinc-400">
             <Sparkles className="w-3 h-3" /> AI-Powered Recruitment Pipeline
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3 leading-tight">
-            Run recruitment like<br />
-            <span style={{ color: SI_BLUE }}>a real company.</span>
+            Turn your Problems<br />into Companies.
           </h1>
           <p className="text-zinc-400 text-lg max-w-xl">
-            Everything your team needs to find the next generation of UCSD founders — in one place.
+            Everything your team needs to find the next generation of UCSD founders — all in one place.
           </p>
         </motion.div>
       </div>
@@ -348,7 +343,7 @@ export default function StartupIncubatorDemo() {
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all"
               style={activeTab === tab.id
-                ? { background: SI_BLUE, color: '#fff' }
+                ? { background: '#ffffff', color: '#000' }
                 : { color: '#71717a' }}
             >
               <tab.icon className="w-3.5 h-3.5" />
@@ -365,7 +360,7 @@ export default function StartupIncubatorDemo() {
               className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-white/8 bg-white/[0.02] mb-5 cursor-pointer select-none"
               onClick={() => setHintIndex(i => (i + 1) % HINTS.length)}
             >
-              <Sparkles className="w-3.5 h-3.5 flex-shrink-0" style={{ color: SI_BLUE }} />
+              <Sparkles className="w-3.5 h-3.5 flex-shrink-0" style={{ color: SI_COLOR }} />
               <p className="text-sm text-zinc-400">{HINTS[hintIndex]}</p>
               <ChevronRight className="w-3.5 h-3.5 text-zinc-600 ml-auto flex-shrink-0" />
             </div>
@@ -450,7 +445,7 @@ export default function StartupIncubatorDemo() {
                       <span className="text-xs text-zinc-500">Weight {r.weight}/5</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${(r.weight / 5) * 100}%`, background: SI_BLUE }} />
+                      <div className="h-full rounded-full transition-all" style={{ width: `${(r.weight / 5) * 100}%`, background: SI_COLOR }} />
                     </div>
                   </div>
                 ))}
@@ -477,7 +472,7 @@ export default function StartupIncubatorDemo() {
               <div className="pt-2">
                 <button
                   className="w-full py-2.5 rounded-xl text-sm font-semibold text-black transition-colors"
-                  style={{ background: SI_BLUE }}
+                  style={{ background: SI_COLOR }}
                 >
                   Submit Application
                 </button>
@@ -515,13 +510,12 @@ export default function StartupIncubatorDemo() {
 
       {/* ── CTA ─────────────────────────────────────────────────────────────── */}
       <div className="px-6 py-12 max-w-6xl mx-auto">
-        <div className="rounded-2xl border border-white/8 p-8 text-center" style={{ background: SI_BLUE + '0a' }}>
+        <div className="rounded-2xl border border-white/8 p-8 text-center bg-white/[0.02]">
           <h2 className="text-2xl font-bold text-white mb-2">Ready to run your recruitment here?</h2>
           <p className="text-zinc-400 mb-6">Set up takes less than 10 minutes. We'll walk you through it.</p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link to="/club-admin/request">
-              <button className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-black transition-colors"
-                style={{ background: SI_BLUE }}>
+              <button className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-black bg-white hover:bg-zinc-100 transition-colors">
                 Get Started <ArrowRight className="w-4 h-4" />
               </button>
             </Link>
@@ -554,7 +548,7 @@ export default function StartupIncubatorDemo() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold"
-                      style={{ background: (STAGES.find(s => s.id === selected.stage)?.color || SI_BLUE) + '22', color: STAGES.find(s => s.id === selected.stage)?.color || SI_BLUE }}>
+                      style={{ background: (STAGES.find(s => s.id === selected.stage)?.color || SI_COLOR) + '22', color: STAGES.find(s => s.id === selected.stage)?.color || SI_COLOR }}>
                       {selected.initials}
                     </div>
                     <div>
