@@ -242,7 +242,7 @@ export default function Dashboard() {
   };
 
   const handleRetakeQuiz = () => {
-    navigate('/onboarding');
+    navigate('/onboarding?retake=true');
   };
 
   const handleApply = async (club: Club) => {

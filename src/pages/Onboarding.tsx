@@ -106,6 +106,7 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirect');
+  const retake = searchParams.get('retake') === 'true';
   const { user, loading: authLoading } = useAuth();
   const { saveInterests, loading: savingInterests, hasCompletedOnboarding } = useUserInterests();
   const [currentStep, setCurrentStep] = useState(0);
@@ -119,7 +120,7 @@ export default function Onboarding() {
       navigate('/login');
       return;
     }
-    if (!authLoading && user) {
+    if (!authLoading && user && !retake) {
       hasCompletedOnboarding(user.id).then((completed) => {
         if (completed) {
           navigate('/dashboard');
