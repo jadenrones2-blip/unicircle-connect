@@ -46,6 +46,7 @@ import OrgPipeline from "./pages/OrgPipeline";
 import OrgScorecard from "./pages/OrgScorecard";
 import StudentProfile from "./pages/StudentProfile";
 import ApplyBySlug from "./pages/ApplyBySlug";
+import StartupIncubatorDemo from "./pages/StartupIncubatorDemo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -101,6 +102,7 @@ const App = () => (
           <Route path="/social-assets" element={<SocialAssets />} />
           <Route path="/demo" element={<Demo />} />
           <Route path="/reach" element={<ReachDemo />} />
+          <Route path="/startup-incubator" element={<StartupIncubatorDemo />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
