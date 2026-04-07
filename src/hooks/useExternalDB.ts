@@ -47,7 +47,9 @@ const transformClub = (record: Record<string, unknown>): Club => {
     email: cleanText(record.email),
     instagram: cleanText(record.instagram),
     website: cleanText(record.website),
-  };
+    cover_image: record.cover_image ? String(record.cover_image) : null,
+    recruitingStatus: (record.recruitingStatus as RecruitingStatus) || recruitingStatus,
+  } as Club & { cover_image: string | null };
 };
 
 // Transform external DB event record to app Event type
