@@ -430,7 +430,15 @@ const ClubDetail = () => {
                     onUnsave={unsaveClub}
                     variant="button"
                   />
-                  <Button variant="outline" size="lg">
+                  <Button variant="outline" size="lg" onClick={() => {
+                    const url = window.location.href;
+                    if (navigator.share) {
+                      navigator.share({ title: club.name, url });
+                    } else {
+                      navigator.clipboard.writeText(url);
+                      toast.success('Link copied to clipboard!');
+                    }
+                  }}>
                     <Share2 className="w-4 h-4" />
                   </Button>
                 </div>
