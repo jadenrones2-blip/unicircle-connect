@@ -397,7 +397,7 @@ const ClubDetail = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col gap-3 min-w-[200px]">
+              <div className="flex flex-col gap-3 w-full md:min-w-[200px] md:w-auto">
                 {/* Apply Now — only when actively recruiting */}
                 {club.recruitingStatus === 'open' && (
                   <Button variant="gold" size="lg" className="w-full" asChild>
@@ -422,15 +422,17 @@ const ClubDetail = () => {
                   Express Interest
                 </Button>
                 <div className="flex gap-2">
-                  <SaveClubButton
-                    clubId={club.id}
-                    clubName={club.name}
-                    isSaved={isSaved(club.id)}
-                    onSave={saveClub}
-                    onUnsave={unsaveClub}
-                    variant="button"
-                  />
-                  <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-gold hover:text-gold" onClick={() => {
+                  <div className="flex-1">
+                    <SaveClubButton
+                      clubId={club.id}
+                      clubName={club.name}
+                      isSaved={isSaved(club.id)}
+                      onSave={saveClub}
+                      onUnsave={unsaveClub}
+                      variant="button"
+                    />
+                  </div>
+                  <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-gold hover:text-gold shrink-0" onClick={() => {
                     const url = window.location.href;
                     if (navigator.share) {
                       navigator.share({ title: club.name, url });

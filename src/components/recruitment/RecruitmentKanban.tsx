@@ -216,7 +216,9 @@ export function RecruitmentKanban({
     await onRefresh();
   };
 
-  const [activeView, setActiveView] = useState<'kanban' | 'table' | 'settings' | 'form'>('kanban');
+  const [activeView, setActiveView] = useState<'kanban' | 'table' | 'settings' | 'form'>(
+    typeof window !== 'undefined' && window.innerWidth < 768 ? 'table' : 'kanban'
+  );
 
   useEffect(() => {
     if (jumpToForm) {
@@ -227,42 +229,21 @@ export function RecruitmentKanban({
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-display font-semibold text-white">
-            Applicant Pipeline
-          </h2>
-          <p className="text-sm text-zinc-500">
-            {activeView === 'kanban' && 'Drag and drop applicants between stages'}
-            {activeView === 'table' && 'View and manage all applicants'}
-            {activeView === 'settings' && 'Configure screening requirements'}
-            {activeView === 'form' && 'Build the application form students fill out'}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {(activeView === 'kanban' || activeView === 'table') && (
-            <>
-              <StudentVisibilitySettings
-                clubId={clubId}
-                settings={settings}
-                onUpdate={onRefresh}
-              />
-              <BulkAIScreen
-                clubId={clubId}
-                stages={stages}
-                applicants={applicants}
-                onComplete={onRefresh}
-                onConfigureRubric={() => setActiveView('settings')}
-              />
-              <CSVDataMapper onImport={onBulkAddApplicants} />
-              <Button size="sm" variant="outline" onClick={exportCSV} className="gap-1.5 border-white/20 text-white hover:bg-white/10">
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
-              <AddApplicantDialog onAdd={onAddApplicant} />
-            </>
-          )}
-          <div className="flex border border-white/15 rounded-md">
+      <div className="flex flex-col gap-3 mb-6">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-xl font-display font-semibold text-white">
+              Applicant Pipeline
+            </h2>
+            <p className="text-sm text-zinc-500 hidden sm:block">
+              {activeView === 'kanban' && 'Drag and drop applicants between stages'}
+              {activeView === 'table' && 'View and manage all applicants'}
+              {activeView === 'settings' && 'Configure screening requirements'}
+              {activeView === 'form' && 'Build the application form students fill out'}
+            </p>
+          </div>
+          {/* View switcher — always visible */}
+          <div className="flex border border-white/15 rounded-md shrink-0">
             {([
               { view: 'kanban', icon: <LayoutGrid className="w-4 h-4" />, title: 'Kanban Board' },
               { view: 'table',  icon: <Table className="w-4 h-4" />,      title: 'Table View' },
@@ -284,6 +265,29 @@ export function RecruitmentKanban({
             ))}
           </div>
         </div>
+        {/* Action buttons — wrap on mobile */}
+        {(activeView === 'kanban' || activeView === 'table') && (
+          <div className="flex flex-wrap items-center gap-2">
+            <StudentVisibilitySettings
+              clubId={clubId}
+              settings={settings}
+              onUpdate={onRefresh}
+            />
+            <BulkAIScreen
+              clubId={clubId}
+              stages={stages}
+              applicants={applicants}
+              onComplete={onRefresh}
+              onConfigureRubric={() => setActiveView('settings')}
+            />
+            <CSVDataMapper onImport={onBulkAddApplicants} />
+            <Button size="sm" variant="outline" onClick={exportCSV} className="gap-1.5 border-white/20 text-white hover:bg-white/10">
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </Button>
+            <AddApplicantDialog onAdd={onAddApplicant} />
+          </div>
+        )}
       </div>
 
       {activeView === 'kanban' && (

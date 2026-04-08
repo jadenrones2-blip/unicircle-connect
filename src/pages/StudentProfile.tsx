@@ -268,7 +268,7 @@ export default function StudentProfile() {
         </Link>
 
         {/* ── Hero: avatar + name ─────────────────────────────────────── */}
-        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 mb-3 flex items-center gap-5">
+        <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 mb-3 flex items-center gap-4 flex-wrap sm:flex-nowrap">
           <div className="relative flex-shrink-0 cursor-pointer group" onClick={() => avatarInputRef.current?.click()}>
             {profile.avatar_url ? (
               <img src={profile.avatar_url} alt="Avatar"
@@ -301,7 +301,7 @@ export default function StudentProfile() {
 
           <button
             onClick={() => avatarInputRef.current?.click()}
-            className="flex-shrink-0 text-xs text-zinc-500 hover:text-zinc-300 transition-colors border border-white/10 rounded-lg px-3 py-1.5"
+            className="hidden sm:block flex-shrink-0 text-xs text-zinc-500 hover:text-zinc-300 transition-colors border border-white/10 rounded-lg px-3 py-1.5"
           >
             {uploadingAvatar ? 'Uploading…' : 'Change photo'}
           </button>

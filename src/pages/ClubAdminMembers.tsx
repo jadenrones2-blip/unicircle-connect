@@ -495,22 +495,24 @@ export default function ClubAdminMembers() {
 
         <main className="flex-1">
           {/* Header */}
-          <header className="h-16 border-b border-border flex items-center justify-between px-4">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger />
-              <div>
-                <h1 className="text-xl font-display font-bold text-foreground tracking-tight">{club.clubName}</h1>
+          <header className="h-16 border-b border-border flex items-center justify-between px-4 gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <SidebarTrigger className="shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-xl font-display font-bold text-foreground tracking-tight truncate">{club.clubName}</h1>
                 <p className="text-xs text-muted-foreground tracking-wide uppercase font-medium">Members</p>
               </div>
             </div>
             {activeTab === 'roster' && (
-              <Button variant="gold" onClick={() => setShowAddModal(true)}>
-                <Plus className="w-4 h-4 mr-2" />Add Member
+              <Button variant="gold" onClick={() => setShowAddModal(true)} className="shrink-0">
+                <Plus className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Add Member</span>
               </Button>
             )}
             {activeTab === 'attendance' && (
-              <Button variant="gold" onClick={() => setShowNewSession(true)}>
-                <Plus className="w-4 h-4 mr-2" />New Session
+              <Button variant="gold" onClick={() => setShowNewSession(true)} className="shrink-0">
+                <Plus className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">New Session</span>
               </Button>
             )}
           </header>
@@ -519,7 +521,7 @@ export default function ClubAdminMembers() {
             <AdminBreadcrumb items={[{ label: club.clubName, href: `/clubs/${clubId}` }, { label: 'Members' }]} />
 
             {/* Stats strip */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[{ label: 'Total', value: stats.total }, { label: 'Active', value: stats.active }, { label: 'Officers', value: stats.officers }, { label: 'Alumni', value: stats.alumni }].map((s) => (
                 <div key={s.label} className="rounded-xl border border-border bg-card p-4 text-center">
                   <p className="text-2xl font-bold font-display text-foreground">{s.value}</p>
@@ -529,7 +531,7 @@ export default function ClubAdminMembers() {
             </div>
 
             {/* Tab pills */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {TABS.map((tab) => (
                 <button
                   key={tab.key}
@@ -548,11 +550,11 @@ export default function ClubAdminMembers() {
             {activeTab === 'roster' && (
               <>
                 <div className="flex flex-wrap gap-3 items-center">
-                  <div className="relative flex-1 min-w-[200px] max-w-xs">
+                  <div className="relative w-full sm:flex-1 sm:min-w-[200px] sm:max-w-xs">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input placeholder="Search name, email, PID…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
                   </div>
-                  <div className="flex gap-1.5">
+                  <div className="flex flex-wrap gap-1.5">
                     {(['all', 'active', 'inactive', 'alumni'] as StatusFilter[]).map((s) => (
                       <button key={s} onClick={() => setStatusFilter(s)} className="shrink-0 px-3 py-1 rounded-full text-xs font-medium capitalize transition-all"
                         style={statusFilter === s ? { background: s === 'all' ? 'hsl(43 74% 56%)' : STATUS_COLORS[s], color: '#000', border: '1px solid transparent' } : { background: 'transparent', color: '#71717a', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -560,13 +562,15 @@ export default function ClubAdminMembers() {
                       </button>
                     ))}
                   </div>
-                  <div className="ml-auto flex gap-2">
+                  <div className="flex gap-2 sm:ml-auto">
                     <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={handleCsvImport} />
                     <Button variant="outline" size="sm" onClick={() => csvInputRef.current?.click()} disabled={importing}>
-                      {importing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}Import CSV
+                      {importing ? <Loader2 className="w-4 h-4 animate-spin sm:mr-2" /> : <Upload className="w-4 h-4 sm:mr-2" />}
+                      <span className="hidden sm:inline">Import CSV</span>
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleCsvExport}>
-                      <Download className="w-4 h-4 mr-2" />Export
+                      <Download className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Export</span>
                     </Button>
                   </div>
                 </div>
@@ -595,6 +599,7 @@ export default function ClubAdminMembers() {
                   </div>
                 ) : (
                   <div className="premium-card overflow-hidden">
+                    <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -629,6 +634,7 @@ export default function ClubAdminMembers() {
                         ))}
                       </TableBody>
                     </Table>
+                    </div>
                     <div className="px-4 py-2 border-t border-border text-xs text-muted-foreground">
                       {filtered.length} of {members.length} member{members.length !== 1 ? 's' : ''}
                     </div>
@@ -651,6 +657,7 @@ export default function ClubAdminMembers() {
                 </div>
 
                 <div className="premium-card overflow-hidden">
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -709,6 +716,7 @@ export default function ClubAdminMembers() {
                       })}
                     </TableBody>
                   </Table>
+                  </div>
                   {members.length === 0 && <div className="p-8 text-center text-zinc-500 text-sm">No members yet. Add members in the Roster tab first.</div>}
                 </div>
               </div>
@@ -716,9 +724,9 @@ export default function ClubAdminMembers() {
 
             {/* ── ATTENDANCE TAB ─────────────────────────────────────────── */}
             {activeTab === 'attendance' && (
-              <div className="flex gap-4 min-h-[400px]">
+              <div className="flex flex-col sm:flex-row gap-4 min-h-[400px]">
                 {/* Sessions list */}
-                <div className="w-64 shrink-0 space-y-2">
+                <div className="w-full sm:w-64 sm:shrink-0 space-y-2">
                   <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">Sessions</p>
                   {sessions.length === 0 ? (
                     <div className="text-sm text-zinc-600 py-4 text-center">No sessions yet.<br/>Create one to start tracking.</div>

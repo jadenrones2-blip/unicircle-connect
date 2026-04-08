@@ -42,7 +42,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
@@ -252,7 +252,7 @@ export function ApplicantTableView({
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-4 mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -313,12 +313,12 @@ export function ApplicantTableView({
 
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 p-3 mb-4 rounded-lg bg-primary/5 border border-primary/20">
+        <div className="flex flex-wrap items-center gap-3 p-3 mb-4 rounded-lg bg-primary/5 border border-primary/20">
           <span className="text-sm font-medium">
             {selectedIds.size} selected
           </span>
 
-          <div className="flex-1 flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="gold"
               size="sm"
@@ -379,7 +379,7 @@ export function ApplicantTableView({
 
       {/* Table */}
       <ScrollArea className="flex-1 border rounded-lg">
-        <Table>
+        <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
@@ -508,6 +508,7 @@ export function ApplicantTableView({
             )}
           </TableBody>
         </Table>
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
   );
