@@ -110,7 +110,14 @@ export default function ClubAdminDashboard() {
 
             {/* Onboarding checklists */}
             {ownedClubs.map((club) => (
-              <OnboardingChecklist key={`checklist-${club.clubId}`} club={club} />
+              <div key={`checklist-${club.clubId}`} className="mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600">Setup</p>
+                  <span className="text-[10px] text-zinc-500">·</span>
+                  <p className="text-[10px] font-semibold tracking-wide uppercase text-gold truncate">{club.clubName}</p>
+                </div>
+                <OnboardingChecklist club={club} />
+              </div>
             ))}
 
             {/* My Clubs */}
@@ -173,16 +180,21 @@ export default function ClubAdminDashboard() {
               <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-3">
                 Recruitment
               </p>
-              <Link
-                to={`/club-admin/clubs/${ownedClubs[0]?.clubId}/recruitment`}
-                className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors group"
-              >
-                <div>
-                  <p className="text-sm font-medium text-white">Applicant Pipeline</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">Manage stages, review applicants, run AI screening</p>
-                </div>
-                <span className="text-zinc-600 group-hover:text-gold transition-colors text-lg">→</span>
-              </Link>
+              <div className="flex flex-col gap-2">
+                {ownedClubs.map((club) => (
+                  <Link
+                    key={club.clubId}
+                    to={`/club-admin/clubs/${club.clubId}/recruitment`}
+                    className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors group"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-white">{club.clubName}</p>
+                      <p className="text-xs text-zinc-500 mt-0.5">Manage stages, review applicants, run AI screening</p>
+                    </div>
+                    <span className="text-zinc-600 group-hover:text-gold transition-colors text-lg">→</span>
+                  </Link>
+                ))}
+              </div>
             </section>
           </div>
         </main>
