@@ -146,7 +146,7 @@ export default function StudentProfile() {
     const ext = file.name.split('.').pop() || 'jpg';
     const path = `${user.id}.${ext}`;
     const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
-    if (uploadError) { toast.error('Failed to upload image'); setUploadingAvatar(false); return; }
+    if (uploadError) { toast.error(`Upload failed: ${uploadError.message}`); setUploadingAvatar(false); return; }
     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
     const url = `${publicUrl}?t=${Date.now()}`;
     await supabase.from('profiles' as any).upsert({ user_id: user.id, avatar_url: url }, { onConflict: 'user_id' });
