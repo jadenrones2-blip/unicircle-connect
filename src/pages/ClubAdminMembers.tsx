@@ -921,7 +921,7 @@ export default function ClubAdminMembers() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNewSession(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowNewSession(false)} className="border-white/20 text-white hover:bg-white/10 hover:text-white">Cancel</Button>
             <Button variant="gold" onClick={createSession} disabled={creatingSession || !newSessionName.trim() || !newSessionDate}>
               {creatingSession ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}Create Session
             </Button>
