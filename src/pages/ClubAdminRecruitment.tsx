@@ -80,9 +80,9 @@ export default function ClubAdminRecruitment() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full" style={{ background: '#0A0A0A' }}>
+      <div className="min-h-screen flex w-full overflow-hidden" style={{ background: '#0A0A0A' }}>
         <ClubAdminSidebar />
-        <main className="flex-1 flex flex-col min-h-screen">
+        <main className="flex-1 flex flex-col min-h-screen min-w-0 overflow-hidden">
           <header className="h-14 flex items-center px-4 gap-3 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <SidebarTrigger className="text-zinc-500 hover:text-white transition-colors" />
             <AdminBreadcrumb items={[
