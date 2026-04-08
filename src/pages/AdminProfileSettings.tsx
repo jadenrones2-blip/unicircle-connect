@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, User, Upload, Save, Trash2 } from 'lucide-react';
+import { Loader2, User, Camera, Save, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Form,
@@ -23,7 +23,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form';
 import {
   AlertDialog,
@@ -54,6 +53,7 @@ export default function AdminProfileSettings() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [removingAvatar, setRemovingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -182,29 +182,22 @@ export default function AdminProfileSettings() {
   if (isLoading) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-background">
+        <div className="min-h-screen flex w-full" style={{ background: '#0A0A0A' }}>
           <ClubAdminSidebar />
           <main className="flex-1">
-            <header className="h-16 border-b border-border flex items-center px-4 gap-4">
-              <SidebarTrigger />
-              <Skeleton className="h-6 w-40" />
+            <header className="h-14 flex items-center px-4 gap-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <SidebarTrigger className="text-zinc-500 hover:text-white transition-colors" />
+              <Skeleton className="h-5 w-40 bg-white/10" />
             </header>
-            <div className="p-6 max-w-lg">
-              <Skeleton className="h-4 w-32 mb-6" />
-              <div className="premium-card p-6 space-y-6">
+            <div className="p-5 sm:p-7 max-w-lg">
+              <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-6 space-y-6">
                 <div className="flex flex-col items-center gap-4">
-                  <Skeleton className="w-24 h-24 rounded-full" />
-                  <Skeleton className="h-9 w-32" />
+                  <Skeleton className="w-24 h-24 rounded-full bg-white/10" />
+                  <Skeleton className="h-8 w-32 bg-white/10" />
                 </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-28" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-10 w-full bg-white/10" />
+                <Skeleton className="h-10 w-full bg-white/10" />
+                <Skeleton className="h-10 w-32 bg-white/10" />
               </div>
             </div>
           </main>
@@ -217,97 +210,95 @@ export default function AdminProfileSettings() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full" style={{ background: '#0A0A0A' }}>
         <ClubAdminSidebar />
-        
+
         <main className="flex-1">
-          <header className="h-16 border-b border-border flex items-center px-4 gap-4">
-            <SidebarTrigger />
-            <h1 className="text-xl font-display font-semibold text-foreground">
-              Profile Settings
-            </h1>
+          <header className="h-14 flex items-center px-4 gap-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <SidebarTrigger className="text-zinc-500 hover:text-white transition-colors" />
+            <AdminBreadcrumb items={[{ label: 'Profile Settings' }]} />
           </header>
 
-          <div className="p-6 max-w-lg">
-            <AdminBreadcrumb 
-              items={[{ label: 'Profile Settings' }]} 
-              className="mb-6"
-            />
-
-            <div className="premium-card p-6">
+          <div className="p-5 sm:p-7 max-w-lg">
+            <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Avatar Section */}
-                  <div className="flex flex-col items-center gap-4 pb-6 border-b border-border">
-                    <Avatar className="w-24 h-24 border-2 border-gold/30">
-                      <AvatarImage src={avatarUrl || undefined} />
-                      <AvatarFallback className="bg-gold/10 text-gold">
-                        <User className="w-10 h-10" />
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex gap-2">
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleAvatarUpload}
-                          disabled={uploadingAvatar}
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={uploadingAvatar}
-                          asChild
-                        >
-                          <span>
-                            {uploadingAvatar ? (
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                              <Upload className="w-4 h-4 mr-2" />
-                            )}
-                            {uploadingAvatar ? 'Uploading...' : 'Change Photo'}
-                          </span>
-                        </Button>
-                      </label>
-                      
+                  <div className="flex flex-col items-center gap-3 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                      disabled={uploadingAvatar}
+                    />
+
+                    {/* Clickable avatar */}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingAvatar}
+                      className="relative group focus:outline-none"
+                    >
+                      <Avatar className="w-24 h-24 border-2 border-gold/30">
+                        <AvatarImage src={avatarUrl || undefined} />
+                        <AvatarFallback className="bg-gold/10 text-gold">
+                          <User className="w-10 h-10" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        {uploadingAvatar ? (
+                          <Loader2 className="w-6 h-6 text-white animate-spin" />
+                        ) : (
+                          <Camera className="w-6 h-6 text-white" />
+                        )}
+                      </div>
+                    </button>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                        className="text-sm text-zinc-400 hover:text-white transition-colors disabled:opacity-50"
+                      >
+                        {uploadingAvatar ? 'Uploading...' : 'Change photo'}
+                      </button>
+
                       {avatarUrl && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              disabled={removingAvatar}
-                            >
-                              {removingAvatar ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="w-4 h-4" />
-                              )}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Remove Photo</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to remove your profile photo?
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleRemoveAvatar}>
-                                Remove
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <>
+                          <span className="text-zinc-700">·</span>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <button
+                                type="button"
+                                className="text-sm text-red-500 hover:text-red-400 transition-colors disabled:opacity-50"
+                                disabled={removingAvatar}
+                              >
+                                {removingAvatar ? 'Removing...' : 'Remove'}
+                              </button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-zinc-900 border-white/10">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-white">Remove Photo</AlertDialogTitle>
+                                <AlertDialogDescription className="text-zinc-400">
+                                  Are you sure you want to remove your profile photo?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleRemoveAvatar} className="bg-red-600 hover:bg-red-700 text-white">
+                                  Remove
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">Max 2MB • JPG, PNG, or WebP</p>
+                    <p className="text-xs text-zinc-600">Max 2MB · JPG, PNG, or WebP</p>
                   </div>
 
                   {/* Name Field */}
@@ -316,13 +307,15 @@ export default function AdminProfileSettings() {
                     name="display_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Name</FormLabel>
+                        <FormLabel className="text-zinc-300">Your Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. Sarah Chen" {...field} />
+                          <Input
+                            placeholder="e.g. Sarah Chen"
+                            className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-gold/50"
+                            {...field}
+                          />
                         </FormControl>
-                        <FormDescription>
-                          This is how you'll appear to other admins
-                        </FormDescription>
+                        <p className="text-xs text-zinc-500">This is how you'll appear to other admins</p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -334,13 +327,15 @@ export default function AdminProfileSettings() {
                     name="role_title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Your Role</FormLabel>
+                        <FormLabel className="text-zinc-300">Your Role</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. President, VP of Events" {...field} />
+                          <Input
+                            placeholder="e.g. President, VP of Events"
+                            className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-gold/50"
+                            {...field}
+                          />
                         </FormControl>
-                        <FormDescription>
-                          Your position in the club
-                        </FormDescription>
+                        <p className="text-xs text-zinc-500">Your position in the club</p>
                         <FormMessage />
                       </FormItem>
                     )}
