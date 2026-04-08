@@ -21,7 +21,7 @@ const corsHeaders = {
 };
 
 interface NotifyApplicantRequest {
-  notificationType: 'stage_advance' | 'application_received' | 'final_decision';
+  notificationType: 'stage_advance' | 'application_received' | 'final_decision' | 'custom';
   applicantId?: string;
   applicantEmail: string;
   applicantName: string;
@@ -29,6 +29,45 @@ interface NotifyApplicantRequest {
   clubName: string;
   clubId?: string;
   finalDecision?: string;
+  customSubject?: string;
+  customBody?: string;
+}
+
+function interpolate(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '');
+}
+
+function buildCustomHtml(body: string, clubName: string): string {
+  // Convert newlines to <br> and escape each line
+  const htmlBody = body
+    .split('\n')
+    .map(line => esc(line))
+    .join('<br>');
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1a1a; }
+        .container { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+        .header { text-align: center; margin-bottom: 32px; }
+        .logo { font-size: 28px; font-weight: bold; color: #b8860b; }
+        .card { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 16px; padding: 32px; color: #fff; }
+        .card p { margin: 0 0 16px 0; opacity: 0.9; line-height: 1.7; }
+        .footer { text-align: center; margin-top: 32px; color: #666; font-size: 14px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header"><div class="logo">✨ Unicircle</div></div>
+        <div class="card">
+          <p>${htmlBody}</p>
+        </div>
+        <div class="footer"><p>This message was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
+      </div>
+    </body>
+    </html>
+  `;
 }
 
 function getStageAdvanceEmail(stageName: string, applicantName: string, clubName: string): { subject: string; html: string } {
@@ -268,7 +307,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const body: NotifyApplicantRequest = await req.json();
-    const { notificationType, applicantEmail, applicantName, stageName, clubName, clubId, finalDecision } = body;
+    const { notificationType, applicantEmail, applicantName, stageName, clubName, clubId, finalDecision, customSubject, customBody } = body;
 
     // Validate required fields
     if (!applicantEmail || !applicantName || !clubName) {
@@ -324,6 +363,18 @@ const handler = async (req: Request): Promise<Response> => {
       emailContent = getFinalDecisionEmail(applicantName, clubName, finalDecision);
     } else if (notificationType === 'stage_advance' && stageName) {
       emailContent = getStageAdvanceEmail(stageName, applicantName, clubName);
+    } else if (notificationType === 'custom' && customSubject && customBody) {
+      const nameParts = applicantName.trim().split(/\s+/);
+      const vars: Record<string, string> = {
+        first_name: nameParts[0] ?? '',
+        last_name: nameParts.slice(1).join(' ') ?? '',
+        club_name: clubName,
+        stage: stageName ?? '',
+      };
+      emailContent = {
+        subject: interpolate(customSubject, vars),
+        html: buildCustomHtml(interpolate(customBody, vars), clubName),
+      };
     } else {
       return new Response(
         JSON.stringify({ success: true, message: "No email action needed" }),

@@ -13,7 +13,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Settings2, LayoutGrid, Table, FileText, Download } from 'lucide-react';
+import { Settings2, LayoutGrid, Table, FileText, Download, Mail } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,6 +26,7 @@ import { RequirementsBuilder } from './RequirementsBuilder';
 import { StudentVisibilitySettings } from './StudentVisibilitySettings';
 import { BulkAIScreen } from './BulkAIScreen';
 import { FormBuilder } from './FormBuilder';
+import { MessageComposer } from './MessageComposer';
 import { ApplicantDetailDrawer } from './ApplicantDetailDrawer';
 import type { RecruitmentStage, Applicant, RecruitmentSettings, FormQuestion } from '@/hooks/useRecruitment';
 
@@ -216,7 +217,7 @@ export function RecruitmentKanban({
     await onRefresh();
   };
 
-  const [activeView, setActiveView] = useState<'kanban' | 'table' | 'settings' | 'form'>(
+  const [activeView, setActiveView] = useState<'kanban' | 'table' | 'settings' | 'form' | 'messages'>(
     typeof window !== 'undefined' && window.innerWidth < 768 ? 'table' : 'kanban'
   );
 
@@ -240,6 +241,7 @@ export function RecruitmentKanban({
               {activeView === 'table' && 'View and manage all applicants'}
               {activeView === 'settings' && 'Configure screening requirements'}
               {activeView === 'form' && 'Build the application form students fill out'}
+              {activeView === 'messages' && 'Compose and send emails to applicants'}
             </p>
           </div>
           {/* View switcher — always visible */}
@@ -248,6 +250,7 @@ export function RecruitmentKanban({
               { view: 'kanban', icon: <LayoutGrid className="w-4 h-4" />, title: 'Kanban Board' },
               { view: 'table',  icon: <Table className="w-4 h-4" />,      title: 'Table View' },
               { view: 'form',   icon: <FileText className="w-4 h-4" />,   title: 'Application Form' },
+              { view: 'messages', icon: <Mail className="w-4 h-4" />, title: 'Message Applicants' },
               { view: 'settings', icon: <Settings2 className="w-4 h-4" />, title: 'Screening Settings' },
             ] as const).map(({ view, icon, title }, i, arr) => (
               <button
@@ -349,6 +352,10 @@ export function RecruitmentKanban({
         <div className="max-w-2xl">
           <FormBuilder clubId={clubId} fetchForm={fetchForm} saveForm={saveForm} />
         </div>
+      )}
+
+      {activeView === 'messages' && (
+        <MessageComposer clubId={clubId} clubName={clubName} stages={stages} applicants={applicants} />
       )}
 
       {activeView === 'settings' && (
