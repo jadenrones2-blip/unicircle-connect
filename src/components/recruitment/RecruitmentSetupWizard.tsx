@@ -183,10 +183,10 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
       </div>
 
       <div className="text-center">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => setMode('custom')}
-          className="gap-2"
+          className="gap-2 border-white/20 text-white hover:bg-white/10 hover:text-white"
         >
           <Wrench className="w-4 h-4" />
           Build Custom Pipeline
