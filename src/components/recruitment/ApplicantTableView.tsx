@@ -256,7 +256,7 @@ export function ApplicantTableView({
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10 hover:text-white">
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
               </Button>
@@ -335,7 +335,7 @@ export function ApplicantTableView({
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" disabled={bulkMoving}>
+                <Button variant="outline" size="sm" disabled={bulkMoving} className="border-white/20 text-white hover:bg-white/10 hover:text-white">
                   {bulkMoving ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
@@ -359,7 +359,7 @@ export function ApplicantTableView({
             <Button
               variant="outline"
               size="sm"
-              className="text-destructive hover:text-destructive"
+              className="border-white/20 text-red-400 hover:bg-red-500/10 hover:text-red-400"
               onClick={bulkDelete}
             >
               <Trash2 className="w-4 h-4 mr-2" />
