@@ -430,7 +430,7 @@ const ClubDetail = () => {
                     onUnsave={unsaveClub}
                     variant="button"
                   />
-                  <Button variant="outline" size="lg" onClick={() => {
+                  <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-gold hover:text-gold" onClick={() => {
                     const url = window.location.href;
                     if (navigator.share) {
                       navigator.share({ title: club.name, url });

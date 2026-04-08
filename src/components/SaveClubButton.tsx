@@ -74,7 +74,7 @@ export default function SaveClubButton({
     <Button
       variant="outline"
       size="lg"
-      className={`flex-1 ${className}`}
+      className={`flex-1 border-white/20 text-white hover:border-gold hover:text-gold ${className}`}
       onClick={handleToggle}
       disabled={toggling}
     >
