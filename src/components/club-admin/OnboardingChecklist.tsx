@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Image, FileText, Link2, Calendar, ArrowRight } from 'lucide-react';
+import { Check, Image, FileText, Link2, Calendar, ClipboardList, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { ClubOwnership } from '@/hooks/useClubOwnership';
 import { useExternalClubRecord } from '@/hooks/useExternalClubRecord';
 import { dataClient } from '@/integrations/supabase/dataClient';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChecklistItem {
   id: string;
@@ -23,6 +24,7 @@ interface OnboardingChecklistProps {
 export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
   const [hasEvents, setHasEvents] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const [hasApplicationForm, setHasApplicationForm] = useState(false);
   const { club: clubRecord, loading: loadingClub } = useExternalClubRecord(club.clubId);
 
   useEffect(() => {
@@ -40,6 +42,23 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
     checkEvents();
   }, [club.clubId]);
 
+  useEffect(() => {
+    const checkForm = async () => {
+      if (!club.clubId) return;
+      try {
+        const { data } = await supabase
+          .from('application_forms')
+          .select('questions')
+          .eq('club_id', club.clubId)
+          .maybeSingle();
+        if (data?.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+          setHasApplicationForm(true);
+        }
+      } catch { /* silent */ }
+    };
+    checkForm();
+  }, [club.clubId]);
+
   const isLoading = loadingClub || loadingEvents;
 
   const checklistItems: ChecklistItem[] = [
@@ -47,6 +66,7 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
     { id: 'description', title: 'Add a description', description: 'Tell students what your club is about', icon: FileText, completed: !!clubRecord?.description && clubRecord.description.length > 20, href: `/club-admin/clubs/${club.clubId}/edit`, ctaText: 'Write Description' },
     { id: 'social-links', title: 'Connect social links', description: 'Instagram, LinkedIn, or website', icon: Link2, completed: !!(clubRecord?.instagram || clubRecord?.linkedin || clubRecord?.website), href: `/club-admin/clubs/${club.clubId}/edit`, ctaText: 'Add Links' },
     { id: 'first-event', title: 'Submit your first event', description: 'Start promoting your club activities', icon: Calendar, completed: hasEvents, href: `/submit-event?club=${club.clubId}`, ctaText: 'Create Event' },
+    { id: 'application-form', title: 'Customize your application form', description: 'Add custom questions for applicants to answer', icon: ClipboardList, completed: hasApplicationForm, href: `/club-admin/clubs/${club.clubId}/recruitment`, ctaText: 'Build Form' },
   ];
 
   const completedCount = checklistItems.filter(i => i.completed).length;
@@ -173,7 +193,7 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
 
       {isLoading && (
         <div className="mt-1">
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1, 2, 3, 4].map((i) => (
             <div
               key={i}
               className="flex items-center gap-7 py-5"
