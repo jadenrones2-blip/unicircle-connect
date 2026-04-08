@@ -213,7 +213,7 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
             </div>
 
             <p className="text-xs text-muted-foreground mt-4">
-              Link expires in 24 hours. Check your spam folder if you don't see it.
+              Link expires in 1 hour. Check your spam folder if you don't see it.
             </p>
 
             <Button

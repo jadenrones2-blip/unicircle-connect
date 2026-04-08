@@ -38,7 +38,7 @@ interface ClaimRequest {
 }
 
 // ============ SECURITY CONSTANTS ============
-const TOKEN_EXPIRY_MINUTES = 10; // Changed from 24 hours to 10 minutes
+const TOKEN_EXPIRY_MINUTES = 60; // 1 hour
 const RATE_LIMIT_MAX_ATTEMPTS = 5;
 const RATE_LIMIT_WINDOW_MINUTES = 60;
 const RATE_LIMIT_BLOCK_MINUTES = 120;
@@ -502,7 +502,17 @@ const handler = async (req: Request): Promise<Response> => {
         similar_to: lookalike.similarTo
       }, ipAddress);
 
-      // Send verification email if Resend is configured
+      // Send verification email - required
+      if (!resendApiKey) {
+        console.error("[CLAIM] RESEND_API_KEY not configured");
+        // Roll back the claim we just inserted
+        await supabase.from("club_claim_requests").delete().eq("id", claim.id);
+        return new Response(
+          JSON.stringify({ error: "Email service not configured. Please contact support." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       if (resendApiKey) {
         const resend = new Resend(resendApiKey);
         const verifyUrl = `${redirectUrl || "https://unicircle.app"}/verify-claim?token=${rawToken}`;
@@ -524,7 +534,7 @@ const handler = async (req: Request): Promise<Response> => {
                     Verify Ownership
                   </a>
                 </div>
-                <p style="color: #cc0000; font-size: 14px; font-weight: 600;">⚠️ This link expires in ${TOKEN_EXPIRY_MINUTES} minutes.</p>
+                <p style="color: #cc0000; font-size: 14px; font-weight: 600;">⚠️ This link expires in 1 hour.</p>
                 <p style="color: #666; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
                 <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;" />
                 <p style="color: #999; font-size: 12px;">
