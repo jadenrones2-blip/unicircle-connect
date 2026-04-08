@@ -13,7 +13,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Settings2, LayoutGrid, Table, FileText } from 'lucide-react';
+import { Settings2, LayoutGrid, Table, FileText, Download } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -77,6 +77,36 @@ export function RecruitmentKanban({
   onUpdateNotes,
 }: RecruitmentKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  const exportCSV = () => {
+    const getStageName = (stageId: string | null) =>
+      stages.find(s => s.id === stageId)?.label ?? 'Unknown';
+
+    const rows = [
+      ['Name', 'Email', 'Major', 'Year', 'Stage', 'Final Decision', 'AI Score', 'Notes', 'Applied At'],
+      ...applicants.map(a => [
+        `${a.first_name} ${a.last_name}`,
+        a.email,
+        a.major ?? '',
+        a.year ?? '',
+        getStageName(a.stage_id),
+        (a as any).final_decision ?? '',
+        (a as any).ai_score ?? '',
+        (a as any).notes ?? '',
+        new Date(a.created_at).toLocaleDateString(),
+      ]),
+    ];
+
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${clubName.replace(/\s+/g, '_')}_applicants.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${applicants.length} applicants`);
+  };
 
   // Applicant detail drawer
   const [drawerApplicant, setDrawerApplicant] = useState<Applicant | null>(null);
@@ -214,6 +244,10 @@ export function RecruitmentKanban({
                 onConfigureRubric={() => setActiveView('settings')}
               />
               <CSVDataMapper onImport={onBulkAddApplicants} />
+              <Button size="sm" variant="outline" onClick={exportCSV} className="gap-1.5 border-white/20 text-white hover:bg-white/10">
+                <Download className="w-4 h-4" />
+                Export
+              </Button>
               <AddApplicantDialog onAdd={onAddApplicant} />
             </>
           )}
