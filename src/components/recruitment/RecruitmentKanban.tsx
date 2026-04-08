@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -58,6 +58,8 @@ interface RecruitmentKanbanProps {
   saveForm: (questions: FormQuestion[]) => Promise<boolean>;
   onUpdateFinalDecision: (id: string, decision: string) => Promise<boolean>;
   onUpdateNotes: (id: string, notes: string) => Promise<boolean>;
+  jumpToForm?: boolean;
+  onJumpToFormHandled?: () => void;
 }
 
 export function RecruitmentKanban({
@@ -75,6 +77,8 @@ export function RecruitmentKanban({
   saveForm,
   onUpdateFinalDecision,
   onUpdateNotes,
+  jumpToForm,
+  onJumpToFormHandled,
 }: RecruitmentKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -213,6 +217,13 @@ export function RecruitmentKanban({
   };
 
   const [activeView, setActiveView] = useState<'kanban' | 'table' | 'settings' | 'form'>('kanban');
+
+  useEffect(() => {
+    if (jumpToForm) {
+      setActiveView('form');
+      onJumpToFormHandled?.();
+    }
+  }, [jumpToForm]);
 
   return (
     <div className="h-full flex flex-col">
