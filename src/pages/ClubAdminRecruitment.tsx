@@ -34,6 +34,9 @@ export default function ClubAdminRecruitment() {
     bulkAddApplicants,
     updateApplicantStage,
     deleteApplicant,
+    updateStage,
+    addStage,
+    deleteStage,
     fetchForm,
     saveForm,
     updateFinalDecision,
@@ -144,6 +147,9 @@ export default function ClubAdminRecruitment() {
                 onAddApplicant={addApplicant}
                 onBulkAddApplicants={bulkAddApplicants}
                 onDeleteApplicant={deleteApplicant}
+                onUpdateStage={updateStage}
+                onAddStage={addStage}
+                onDeleteStage={deleteStage}
                 onRefresh={refetch}
                 fetchForm={fetchForm}
                 saveForm={saveForm}

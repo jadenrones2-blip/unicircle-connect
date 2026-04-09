@@ -13,7 +13,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Settings2, LayoutGrid, Table, FileText, Download, Mail, Users } from 'lucide-react';
+import { Settings2, LayoutGrid, Table, FileText, Download, Mail, Users, Pencil, Plus, Trash2, Check, X } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -55,6 +55,9 @@ interface RecruitmentKanbanProps {
     metadata?: Record<string, string>;
   }[]) => Promise<{ success: number; failed: number }>;
   onDeleteApplicant: (id: string) => Promise<boolean>;
+  onUpdateStage: (stageId: string, label: string) => Promise<boolean>;
+  onAddStage: (label: string) => Promise<boolean>;
+  onDeleteStage: (stageId: string) => Promise<boolean>;
   onRefresh: () => Promise<void>;
   fetchForm: () => Promise<FormQuestion[]>;
   saveForm: (questions: FormQuestion[]) => Promise<boolean>;
@@ -74,6 +77,9 @@ export function RecruitmentKanban({
   onAddApplicant,
   onBulkAddApplicants,
   onDeleteApplicant,
+  onUpdateStage,
+  onAddStage,
+  onDeleteStage,
   onRefresh,
   fetchForm,
   saveForm,
@@ -83,6 +89,23 @@ export function RecruitmentKanban({
   onJumpToFormHandled,
 }: RecruitmentKanbanProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [editingStageId, setEditingStageId] = useState<string | null>(null);
+  const [editingStageLabel, setEditingStageLabel] = useState('');
+  const [addingStage, setAddingStage] = useState(false);
+  const [newStageLabel, setNewStageLabel] = useState('');
+
+  const handleRenameStage = async (stageId: string) => {
+    if (!editingStageLabel.trim()) return;
+    await onUpdateStage(stageId, editingStageLabel.trim());
+    setEditingStageId(null);
+  };
+
+  const handleAddStage = async () => {
+    if (!newStageLabel.trim()) return;
+    await onAddStage(newStageLabel.trim());
+    setNewStageLabel('');
+    setAddingStage(false);
+  };
 
   const exportCSV = () => {
     const getStageName = (stageId: string | null) =>
@@ -318,9 +341,40 @@ export function RecruitmentKanban({
                     onDeleteApplicant={onDeleteApplicant}
                     onOpenDrawer={openDrawer}
                     onAdvanceRound={handleAdvanceRound}
+                    onRenameStage={onUpdateStage}
+                    onDeleteStage={onDeleteStage}
+                    editingStageId={editingStageId}
+                    editingStageLabel={editingStageLabel}
+                    setEditingStageId={setEditingStageId}
+                    setEditingStageLabel={setEditingStageLabel}
                   />
                 );
               })}
+
+              {/* Add stage */}
+              <div className="flex flex-col justify-start pt-1 w-48 shrink-0">
+                {addingStage ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      autoFocus
+                      placeholder="Stage name"
+                      value={newStageLabel}
+                      onChange={e => setNewStageLabel(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleAddStage(); if (e.key === 'Escape') setAddingStage(false); }}
+                      className="flex-1 text-xs bg-zinc-800 border border-gold/40 rounded px-2 py-1 text-white outline-none"
+                    />
+                    <button onClick={handleAddStage} className="text-green-400 hover:text-green-300"><Check className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => setAddingStage(false)} className="text-zinc-500 hover:text-zinc-300"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setAddingStage(true)}
+                    className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-gold border border-dashed border-white/10 hover:border-gold/30 rounded-lg px-3 py-2 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Stage
+                  </button>
+                )}
+              </div>
             </div>
 
             <DragOverlay>

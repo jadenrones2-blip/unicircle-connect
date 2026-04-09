@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronRight, Loader2, Pencil, Trash2, Check, X } from 'lucide-react';
 import { ApplicantCard } from './ApplicantCard';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 
@@ -13,9 +13,15 @@ interface StageColumnProps {
   onDeleteApplicant: (id: string) => void;
   onOpenDrawer?: (applicant: Applicant) => void;
   onAdvanceRound?: (applicantIds: string[], nextStageId: string) => Promise<void>;
+  onRenameStage?: (stageId: string, label: string) => Promise<boolean>;
+  onDeleteStage?: (stageId: string) => Promise<boolean>;
+  editingStageId?: string | null;
+  editingStageLabel?: string;
+  setEditingStageId?: (id: string | null) => void;
+  setEditingStageLabel?: (label: string) => void;
 }
 
-export function StageColumn({ stage, applicants, nextStageId, nextStageLabel, onDeleteApplicant, onOpenDrawer, onAdvanceRound }: StageColumnProps) {
+export function StageColumn({ stage, applicants, nextStageId, nextStageLabel, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel }: StageColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
@@ -42,8 +48,39 @@ export function StageColumn({ stage, applicants, nextStageId, nextStageLabel, on
 
   return (
     <div className="flex flex-col w-72 shrink-0">
-      <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className="font-medium text-sm text-zinc-200">{stage.label}</h3>
+      <div className="flex items-center justify-between mb-3 px-1 group">
+        {editingStageId === stage.id ? (
+          <div className="flex items-center gap-1 flex-1 mr-2">
+            <input
+              autoFocus
+              value={editingStageLabel}
+              onChange={e => setEditingStageLabel?.(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') { onRenameStage?.(stage.id, editingStageLabel || ''); setEditingStageId?.(null); }
+                if (e.key === 'Escape') setEditingStageId?.(null);
+              }}
+              className="flex-1 text-sm font-medium bg-zinc-800 border border-gold/40 rounded px-2 py-0.5 text-white outline-none"
+            />
+            <button onClick={() => { onRenameStage?.(stage.id, editingStageLabel || ''); setEditingStageId?.(null); }} className="text-green-400 hover:text-green-300"><Check className="w-3.5 h-3.5" /></button>
+            <button onClick={() => setEditingStageId?.(null)} className="text-zinc-500 hover:text-zinc-300"><X className="w-3.5 h-3.5" /></button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 flex-1 mr-2">
+            <h3 className="font-medium text-sm text-zinc-200">{stage.label}</h3>
+            {onRenameStage && (
+              <button
+                onClick={() => { setEditingStageId?.(stage.id); setEditingStageLabel?.(stage.label); }}
+                className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-zinc-300 transition-opacity"
+              ><Pencil className="w-3 h-3" /></button>
+            )}
+            {onDeleteStage && (
+              <button
+                onClick={() => onDeleteStage(stage.id)}
+                className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 transition-opacity"
+              ><Trash2 className="w-3 h-3" /></button>
+            )}
+          </div>
+        )}
         <div className="flex items-center gap-2">
           {nextStageId && (
             <button

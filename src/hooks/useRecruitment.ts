@@ -426,6 +426,41 @@ export function useRecruitment(clubId: string | undefined) {
     return true;
   };
 
+  const updateStage = async (stageId: string, label: string): Promise<boolean> => {
+    const { error } = await supabase
+      .from('recruitment_stages')
+      .update({ label })
+      .eq('id', stageId);
+    if (error) { toast.error('Failed to rename stage'); return false; }
+    setStages(prev => prev.map(s => s.id === stageId ? { ...s, label } : s));
+    return true;
+  };
+
+  const addStage = async (label: string): Promise<boolean> => {
+    if (!clubId) return false;
+    const orderIndex = stages.length;
+    const { data, error } = await supabase
+      .from('recruitment_stages')
+      .insert({ club_id: clubId, label, order_index: orderIndex })
+      .select()
+      .single();
+    if (error) { toast.error('Failed to add stage'); return false; }
+    setStages(prev => [...prev, data]);
+    return true;
+  };
+
+  const deleteStage = async (stageId: string): Promise<boolean> => {
+    const hasApplicants = applicants.some(a => a.stage_id === stageId);
+    if (hasApplicants) { toast.error('Move applicants out of this stage before deleting'); return false; }
+    const { error } = await supabase
+      .from('recruitment_stages')
+      .delete()
+      .eq('id', stageId);
+    if (error) { toast.error('Failed to delete stage'); return false; }
+    setStages(prev => prev.filter(s => s.id !== stageId));
+    return true;
+  };
+
   return {
     settings,
     stages,
@@ -439,6 +474,9 @@ export function useRecruitment(clubId: string | undefined) {
     bulkAddApplicants,
     updateApplicantStage,
     deleteApplicant,
+    updateStage,
+    addStage,
+    deleteStage,
     fetchForm,
     saveForm,
     updateFinalDecision,

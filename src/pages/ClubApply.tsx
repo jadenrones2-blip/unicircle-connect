@@ -248,15 +248,7 @@ function VideoQuestionField({
 
 export default function ClubApply() {
   const { id: clubId } = useParams<{ id: string }>();
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirect unauthenticated users to login, preserving the apply URL
-  useEffect(() => {
-    if (!authLoading && !user && clubId) {
-      navigate(`/login?redirect=/clubs/${clubId}/apply`);
-    }
-  }, [user, authLoading, clubId, navigate]);
+  const { user } = useAuth();
 
   // Club & form data
   const [clubName, setClubName] = useState<string>('');
