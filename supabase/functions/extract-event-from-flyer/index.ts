@@ -95,77 +95,55 @@ serve(async (req) => {
       }
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) {
+      throw new Error("ANTHROPIC_API_KEY is not configured");
     }
 
-    // Build the image content for the AI
-    let imageContent;
+    // Build the image source for Claude
+    let imageSource;
     if (imageBase64) {
-      // Detect media type from base64 header or default to jpeg
-      let mediaType = "image/jpeg";
-      if (imageBase64.startsWith("/9j/")) mediaType = "image/jpeg";
-      else if (imageBase64.startsWith("iVBOR")) mediaType = "image/png";
+      let mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" = "image/jpeg";
+      if (imageBase64.startsWith("iVBOR")) mediaType = "image/png";
       else if (imageBase64.startsWith("R0lGOD")) mediaType = "image/gif";
       else if (imageBase64.startsWith("UklGR")) mediaType = "image/webp";
 
-      imageContent = {
-        type: "image_url",
-        image_url: {
-          url: `data:${mediaType};base64,${imageBase64}`,
-        },
-      };
+      imageSource = { type: "base64", media_type: mediaType, data: imageBase64 };
     } else {
-      imageContent = {
-        type: "image_url",
-        image_url: {
-          url: imageUrl,
-        },
-      };
+      // Fetch the URL and convert to base64 for Claude
+      const imgRes = await fetch(imageUrl);
+      const imgBuf = await imgRes.arrayBuffer();
+      const imgB64 = btoa(String.fromCharCode(...new Uint8Array(imgBuf)));
+      const ct = imgRes.headers.get("content-type") || "image/jpeg";
+      imageSource = { type: "base64", media_type: ct, data: imgB64 };
     }
 
-    const systemPrompt = `You are an expert at extracting event information from flyers, posters, and Instagram posts. 
-Analyze the image and extract the following event details. Be precise and extract only what you can clearly see.
-
-For dates, return in YYYY-MM-DD format if possible. If you see "Feb 15" or "February 15th", infer the year (use 2025 if unclear).
-For times, return in HH:MM 24-hour format (e.g., "18:00" for 6 PM).
-For location, extract the full venue name and any room/building details.
-For title, extract the main event name.
-For description, extract any additional details like what the event is about, what to bring, RSVP info, etc.
-
-If you cannot determine a field with confidence, return null for that field.`;
-
-    const userPrompt = `Extract event details from this flyer/poster image. Return a JSON object with these exact fields:
-{
-  "title": "Event title or null",
-  "date": "YYYY-MM-DD or null",
-  "time": "HH:MM (24-hour) or null", 
-  "location": "Full location or null",
-  "description": "Event description/details or null"
-}
-
-Only return the JSON object, no additional text.`;
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1024,
+        system: "You are an expert at extracting event information from flyers, posters, and Instagram posts. Extract only what you can clearly see. For dates use YYYY-MM-DD format. For times use HH:MM 24-hour format. Return only a JSON object, no markdown, no extra text.",
         messages: [
-          { role: "system", content: systemPrompt },
           {
             role: "user",
             content: [
-              { type: "text", text: userPrompt },
-              imageContent,
+              {
+                type: "image",
+                source: imageSource,
+              },
+              {
+                type: "text",
+                text: `Extract event details from this flyer. Return exactly this JSON shape:\n{\n  "title": "Event title or null",\n  "date": "YYYY-MM-DD or null",\n  "time": "HH:MM (24-hour) or null",\n  "location": "Full location or null",\n  "description": "Event description or null"\n}`,
+              },
             ],
           },
         ],
-        max_tokens: 1000,
       }),
     });
 
@@ -176,19 +154,13 @@ Only return the JSON object, no additional text.`;
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
+      console.error("Anthropic API error:", response.status, errorText);
+      throw new Error(`Anthropic API error: ${response.status}`);
     }
 
     const aiResponse = await response.json();
-    const content = aiResponse.choices?.[0]?.message?.content;
+    const content = aiResponse.content?.[0]?.text;
 
     if (!content) {
       throw new Error("No response from AI");
