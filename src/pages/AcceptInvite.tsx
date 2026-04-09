@@ -15,6 +15,7 @@ interface InviteInfo {
   role: string;
   expires_at: string;
   used_by: string | null;
+  created_by: string;
 }
 
 type PageState = 'loading' | 'invalid' | 'expired' | 'already_used' | 'already_member' | 'ready' | 'signing_in' | 'claiming' | 'done';
@@ -41,7 +42,7 @@ export default function AcceptInvite() {
     (async () => {
       const { data, error } = await (supabase as any)
         .from('club_invites')
-        .select('id, token, club_id, club_name, role, expires_at, used_by')
+        .select('id, token, club_id, club_name, role, expires_at, used_by, created_by')
         .eq('token', token)
         .maybeSingle();
 
@@ -98,7 +99,7 @@ export default function AcceptInvite() {
           club_id: invite.club_id,
           club_name: invite.club_name,
           user_id: user.id,
-          invited_by: (await (supabase as any).from('club_invites').select('created_by').eq('id', invite.id).single()).data?.created_by,
+          invited_by: invite.created_by,
           role: invite.role,
         });
 
