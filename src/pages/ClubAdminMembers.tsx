@@ -42,7 +42,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Plus, Trash2, Upload, Download, Users, Search, DollarSign, Calendar, Trophy, Check, X, ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { dataClient } from '@/integrations/supabase/dataClient';
@@ -92,21 +91,15 @@ interface PointTransaction {
 }
 
 type ActiveTab = 'roster' | 'dues' | 'attendance' | 'points';
-type StatusFilter = 'all' | 'active' | 'inactive' | 'alumni';
+type StatusFilter = 'all' | 'active' | 'inactive';
 
 const STATUS_COLORS: Record<string, string> = {
   active: '#34d399',
   inactive: '#71717a',
-  alumni: '#60a5fa',
 };
 
 const YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Other'] as const;
 
-const defaultForm: {
-  name: string; email: string; pid: string; major: string; year: string;
-  status: 'active' | 'inactive' | 'alumni'; role: 'member' | 'officer';
-  joined_at: string; notes: string;
-} = { name: '', email: '', pid: '', major: '', year: '', status: 'active', role: 'member', joined_at: '', notes: '' };
 
 export default function ClubAdminMembers() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -120,8 +113,6 @@ export default function ClubAdminMembers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -255,8 +246,8 @@ export default function ClubAdminMembers() {
   const stats = useMemo(() => ({
     total: members.length,
     active: members.filter((m) => m.status === 'active').length,
+    inactive: members.filter((m) => m.status === 'inactive').length,
     officers: members.filter((m) => m.role === 'officer').length,
-    alumni: members.filter((m) => m.status === 'alumni').length,
   }), [members]);
 
   const filtered = useMemo(() => {
@@ -269,25 +260,6 @@ export default function ClubAdminMembers() {
   }, [members, search, statusFilter]);
 
   // ── Roster handlers ────────────────────────────────────────────────────────
-
-  const handleAddMember = async () => {
-    if (!form.name.trim() || !clubId) return;
-    setSaving(true);
-    try {
-      const { error } = await dataClient.from('club_members').insert({
-        club_id: clubId, name: form.name.trim(), email: form.email.trim() || null,
-        pid: form.pid.trim() || null, major: form.major.trim() || null,
-        year: form.year || null, status: form.status, role: form.role,
-        joined_at: form.joined_at || null, notes: form.notes.trim() || null,
-      });
-      if (error) throw new Error(error.message);
-      toast.success('Member added');
-      setShowAddModal(false);
-      setForm(defaultForm);
-      fetchMembers();
-    } catch (err) { console.error(err); toast.error('Failed to add member'); }
-    finally { setSaving(false); }
-  };
 
   const handleDelete = async () => {
     if (!deleteMemberId) return;
@@ -302,7 +274,7 @@ export default function ClubAdminMembers() {
   };
 
   const cycleStatus = async (member: ClubMember) => {
-    const next: Record<string, ClubMember['status']> = { active: 'inactive', inactive: 'alumni', alumni: 'active' };
+    const next: Record<string, ClubMember['status']> = { active: 'inactive', inactive: 'active', alumni: 'active' };
     const newStatus = next[member.status];
     try {
       const { error } = await dataClient.from('club_members').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', member.id);
@@ -317,21 +289,99 @@ export default function ClubAdminMembers() {
     setImporting(true);
     try {
       const text = await file.text();
-      const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+      // Split on newlines, strip BOM, filter blanks
+      const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
       if (lines.length < 2) { toast.error('CSV must have a header row and at least one data row'); return; }
-      const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
-      const nameIdx = headers.indexOf('name');
-      if (nameIdx === -1) { toast.error('CSV must have a "name" column'); return; }
-      const emailIdx = headers.indexOf('email');
-      const pidIdx = headers.indexOf('pid');
-      const majorIdx = headers.indexOf('major');
-      const yearIdx = headers.indexOf('year');
+
+      // Parse headers — strip quotes
+      const rawHeaders = lines[0].split(',').map((h) => h.replace(/^["']|["']$/g, '').trim().toLowerCase());
+
+      // Flexible column resolver — accepts many common naming conventions
+      const resolve = (...candidates: string[]) => {
+        for (const c of candidates) {
+          const idx = rawHeaders.findIndex((h) => h === c || h.replace(/[\s_-]/g, '') === c.replace(/[\s_-]/g, ''));
+          if (idx >= 0) return idx;
+        }
+        return -1;
+      };
+
+      // Name: try combined first, then split first+last
+      const fullNameIdx  = resolve('name', 'fullname', 'full name', 'full_name', 'member name', 'student name', 'member');
+      const firstNameIdx = resolve('first name', 'firstname', 'first', 'given name');
+      const lastNameIdx  = resolve('last name', 'lastname', 'last', 'surname', 'family name');
+      const emailIdx     = resolve('email', 'email address', 'e-mail', 'emailaddress');
+      const pidIdx       = resolve('pid', 'student id', 'studentid', 'id', 'student_id', 'a-number', 'anumber');
+      const majorIdx     = resolve('major', 'major/minor', 'degree', 'program', 'field of study');
+      const yearIdx      = resolve('year', 'class year', 'grade', 'year in school', 'academic year', 'level');
+      const roleIdx      = resolve('role', 'position', 'title');
+      const notesIdx     = resolve('notes', 'note', 'comments', 'comment', 'remarks');
+      const joinedIdx    = resolve('joined', 'joined at', 'join date', 'start date', 'date joined');
+
+      const hasName = fullNameIdx >= 0 || (firstNameIdx >= 0 && lastNameIdx >= 0) || firstNameIdx >= 0;
+      if (!hasName) {
+        toast.error('Could not find a name column. Expected "name", "full name", or "first name" + "last name".');
+        return;
+      }
+
+      // Parse a CSV line respecting quoted fields
+      const parseLine = (line: string): string[] => {
+        const cols: string[] = [];
+        let cur = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+          else if (ch === '"') { inQuotes = !inQuotes; }
+          else if (ch === ',' && !inQuotes) { cols.push(cur.trim()); cur = ''; }
+          else { cur += ch; }
+        }
+        cols.push(cur.trim());
+        return cols;
+      };
+
+      const get = (cols: string[], idx: number) => (idx >= 0 && idx < cols.length ? cols[idx].replace(/^["']|["']$/g, '').trim() : '');
+
       const rows = lines.slice(1).map((line) => {
-        const cols = line.split(',').map((c) => c.trim());
-        const year = yearIdx >= 0 ? cols[yearIdx] : '';
-        const validYear = YEARS.includes(year as typeof YEARS[number]) ? year : null;
-        return { club_id: clubId, name: cols[nameIdx] ?? '', email: emailIdx >= 0 ? cols[emailIdx] || null : null, pid: pidIdx >= 0 ? cols[pidIdx] || null : null, major: majorIdx >= 0 ? cols[majorIdx] || null : null, year: validYear, status: 'active' as const, role: 'member' as const };
-      }).filter((r) => r.name);
+        const cols = parseLine(line);
+
+        let name = '';
+        if (fullNameIdx >= 0) {
+          name = get(cols, fullNameIdx);
+        } else {
+          const first = get(cols, firstNameIdx);
+          const last  = lastNameIdx >= 0 ? get(cols, lastNameIdx) : '';
+          name = [first, last].filter(Boolean).join(' ');
+        }
+        if (!name) return null;
+
+        const yearRaw = get(cols, yearIdx);
+        // Normalize year: "Jr" → "Junior", "Sr" → "Senior" etc.
+        const yearMap: Record<string, string> = {
+          '1': 'Freshman', 'first': 'Freshman', 'fr': 'Freshman', 'frosh': 'Freshman',
+          '2': 'Sophomore', 'second': 'Sophomore', 'so': 'Sophomore', 'soph': 'Sophomore',
+          '3': 'Junior', 'third': 'Junior', 'jr': 'Junior',
+          '4': 'Senior', 'fourth': 'Senior', 'sr': 'Senior',
+          '5': 'Graduate', 'grad': 'Graduate', 'graduate': 'Graduate', 'ms': 'Graduate', 'phd': 'Graduate',
+        };
+        const normalizedYear = yearMap[yearRaw.toLowerCase()] ?? (YEARS.includes(yearRaw as typeof YEARS[number]) ? yearRaw : null);
+
+        const roleRaw = get(cols, roleIdx).toLowerCase();
+        const role: ClubMember['role'] = roleRaw.includes('officer') || roleRaw.includes('exec') || roleRaw.includes('lead') ? 'officer' : 'member';
+
+        return {
+          club_id: clubId,
+          name,
+          email:     get(cols, emailIdx)  || null,
+          pid:       get(cols, pidIdx)     || null,
+          major:     get(cols, majorIdx)   || null,
+          year:      normalizedYear,
+          role,
+          notes:     get(cols, notesIdx)   || null,
+          joined_at: get(cols, joinedIdx)  || null,
+          status:    'active' as const,
+        };
+      }).filter(Boolean) as Omit<ClubMember, 'id' | 'dues_paid' | 'dues_amount' | 'dues_due_date' | 'points' | 'created_at' | 'updated_at'>[];
+
       if (rows.length === 0) { toast.error('No valid rows found in CSV'); return; }
       const { error } = await dataClient.from('club_members').insert(rows);
       if (error) throw new Error(error.message);
@@ -342,19 +392,25 @@ export default function ClubAdminMembers() {
   };
 
   const handleCsvExport = () => {
-    if (members.length === 0) { toast.error('No members to export'); return; }
-    const header = 'name,email,pid,major,year,status,role,joined_at,notes';
-    const rows = members.map((m) =>
-      [m.name, m.email ?? '', m.pid ?? '', m.major ?? '', m.year ?? '', m.status, m.role, m.joined_at ?? '', m.notes ?? '']
-        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-        .join(',')
-    );
-    const csv = [header, ...rows].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const list = filtered.length > 0 && (search || statusFilter !== 'all') ? filtered : members;
+    if (list.length === 0) { toast.error('No members to export'); return; }
+    const q = (v: string | number | null | undefined) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const headers = ['Full Name', 'Email', 'PID', 'Major', 'Year', 'Status', 'Role', 'Joined At', 'Dues Paid', 'Dues Amount', 'Dues Due Date', 'Points', 'Notes'];
+    const rows = list.map((m) => [
+      q(m.name), q(m.email), q(m.pid), q(m.major), q(m.year),
+      q(m.status), q(m.role), q(m.joined_at ? new Date(m.joined_at).toLocaleDateString() : ''),
+      q(m.dues_paid ? 'Yes' : 'No'), q(m.dues_amount ?? ''), q(m.dues_due_date ?? ''),
+      q(m.points ?? 0), q(m.notes),
+    ].join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `${club?.clubName ?? 'members'}_roster.csv`; a.click();
+    a.href = url;
+    a.download = `${club?.clubName ?? 'members'}_roster_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
+    toast.success(`Exported ${list.length} member${list.length !== 1 ? 's' : ''}`);
   };
 
   // ── Dues handlers ──────────────────────────────────────────────────────────
@@ -504,10 +560,17 @@ export default function ClubAdminMembers() {
               </div>
             </div>
             {activeTab === 'roster' && (
-              <Button variant="gold" onClick={() => setShowAddModal(true)} className="shrink-0">
-                <Plus className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Add Member</span>
-              </Button>
+              <div className="flex gap-2 shrink-0">
+                <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={handleCsvImport} />
+                <Button variant="outline" size="sm" onClick={() => csvInputRef.current?.click()} disabled={importing}>
+                  {importing ? <Loader2 className="w-4 h-4 animate-spin sm:mr-2" /> : <Upload className="w-4 h-4 sm:mr-2" />}
+                  <span className="hidden sm:inline">Import CSV</span>
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleCsvExport}>
+                  <Download className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </div>
             )}
             {activeTab === 'attendance' && (
               <Button variant="gold" onClick={() => setShowNewSession(true)} className="shrink-0">
@@ -522,7 +585,7 @@ export default function ClubAdminMembers() {
 
             {/* Stats strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[{ label: 'Total', value: stats.total }, { label: 'Active', value: stats.active }, { label: 'Officers', value: stats.officers }, { label: 'Alumni', value: stats.alumni }].map((s) => (
+              {[{ label: 'Total', value: stats.total }, { label: 'Active', value: stats.active }, { label: 'Inactive', value: stats.inactive }, { label: 'Officers', value: stats.officers }].map((s) => (
                 <div key={s.label} className="rounded-xl border border-border bg-card p-4 text-center">
                   <p className="text-2xl font-bold font-display text-foreground">{s.value}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
@@ -555,23 +618,12 @@ export default function ClubAdminMembers() {
                     <Input placeholder="Search name, email, PID…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {(['all', 'active', 'inactive', 'alumni'] as StatusFilter[]).map((s) => (
+                    {(['all', 'active', 'inactive'] as StatusFilter[]).map((s) => (
                       <button key={s} onClick={() => setStatusFilter(s)} className="shrink-0 px-3 py-1 rounded-full text-xs font-medium capitalize transition-all"
                         style={statusFilter === s ? { background: s === 'all' ? 'hsl(43 74% 56%)' : STATUS_COLORS[s], color: '#000', border: '1px solid transparent' } : { background: 'transparent', color: '#71717a', border: '1px solid rgba(255,255,255,0.1)' }}>
                         {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
                       </button>
                     ))}
-                  </div>
-                  <div className="flex gap-2 sm:ml-auto">
-                    <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={handleCsvImport} />
-                    <Button variant="outline" size="sm" onClick={() => csvInputRef.current?.click()} disabled={importing}>
-                      {importing ? <Loader2 className="w-4 h-4 animate-spin sm:mr-2" /> : <Upload className="w-4 h-4 sm:mr-2" />}
-                      <span className="hidden sm:inline">Import CSV</span>
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleCsvExport}>
-                      <Download className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Export</span>
-                    </Button>
                   </div>
                 </div>
 
@@ -586,11 +638,8 @@ export default function ClubAdminMembers() {
                   <div className="text-center py-20">
                     <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                     <h2 className="text-xl font-semibold text-foreground mb-2">No members yet</h2>
-                    <p className="text-muted-foreground mb-6">Add members manually or import from a CSV file.</p>
-                    <div className="flex justify-center gap-3">
-                      <Button variant="gold" onClick={() => setShowAddModal(true)}><Plus className="w-4 h-4 mr-2" />Add Member</Button>
-                      <Button variant="outline" onClick={() => csvInputRef.current?.click()}><Upload className="w-4 h-4 mr-2" />Import CSV</Button>
-                    </div>
+                    <p className="text-muted-foreground mb-6">Import your roster from a CSV file to get started.</p>
+                    <Button variant="gold" onClick={() => csvInputRef.current?.click()}><Upload className="w-4 h-4 mr-2" />Import CSV</Button>
                   </div>
                 ) : filtered.length === 0 ? (
                   <div className="text-center py-16">
@@ -856,47 +905,6 @@ export default function ClubAdminMembers() {
           </div>
         </main>
       </div>
-
-      {/* Add Member Modal */}
-      <Dialog open={showAddModal} onOpenChange={(o) => { setShowAddModal(o); if (!o) setForm(defaultForm); }}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader><DialogTitle className="font-display">Add Member</DialogTitle></DialogHeader>
-          <div className="grid gap-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2"><Label htmlFor="name">Name *</Label><Input id="name" placeholder="Full name" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="mt-1" /></div>
-              <div><Label htmlFor="email">Email</Label><Input id="email" type="email" placeholder="student@ucsd.edu" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} className="mt-1" /></div>
-              <div><Label htmlFor="pid">PID</Label><Input id="pid" placeholder="A12345678" value={form.pid} onChange={(e) => setForm((f) => ({ ...f, pid: e.target.value }))} className="mt-1" /></div>
-              <div><Label htmlFor="major">Major</Label><Input id="major" placeholder="Computer Science" value={form.major} onChange={(e) => setForm((f) => ({ ...f, major: e.target.value }))} className="mt-1" /></div>
-              <div><Label htmlFor="year">Year</Label>
-                <Select value={form.year} onValueChange={(v) => setForm((f) => ({ ...f, year: v }))}>
-                  <SelectTrigger id="year" className="mt-1"><SelectValue placeholder="Select year" /></SelectTrigger>
-                  <SelectContent>{YEARS.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div><Label htmlFor="status">Status</Label>
-                <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v as ClubMember['status'] }))}>
-                  <SelectTrigger id="status" className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="active">Active</SelectItem><SelectItem value="inactive">Inactive</SelectItem><SelectItem value="alumni">Alumni</SelectItem></SelectContent>
-                </Select>
-              </div>
-              <div><Label htmlFor="role">Role</Label>
-                <Select value={form.role} onValueChange={(v) => setForm((f) => ({ ...f, role: v as ClubMember['role'] }))}>
-                  <SelectTrigger id="role" className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="member">Member</SelectItem><SelectItem value="officer">Officer</SelectItem></SelectContent>
-                </Select>
-              </div>
-              <div><Label htmlFor="joined_at">Joined</Label><Input id="joined_at" type="date" value={form.joined_at} onChange={(e) => setForm((f) => ({ ...f, joined_at: e.target.value }))} className="mt-1" /></div>
-              <div className="col-span-2"><Label htmlFor="notes">Notes</Label><Textarea id="notes" placeholder="Optional notes…" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} className="mt-1 resize-none" rows={2} /></div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setShowAddModal(false); setForm(defaultForm); }}>Cancel</Button>
-            <Button variant="gold" onClick={handleAddMember} disabled={saving || !form.name.trim()}>
-              {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}Add Member
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirm */}
       <AlertDialog open={!!deleteMemberId} onOpenChange={() => setDeleteMemberId(null)}>
