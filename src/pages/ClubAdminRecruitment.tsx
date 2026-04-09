@@ -51,8 +51,7 @@ export default function ClubAdminRecruitment() {
   }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, navigate]);
 
   const clubName = ownedClubs.find(c => c.clubId === clubId)?.clubName || 'Club';
-  const applySlug = clubName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-  const applyUrl = `https://unicircle.app/apply/${applySlug}`;
+  const applyUrl = `${window.location.origin}/clubs/${clubId}/apply`;
 
   const handleEnable = async () => {
     setEnabling(true);
