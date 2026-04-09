@@ -50,7 +50,7 @@ export default function ClubAdminRecruitment() {
       navigate('/club-admin');
   }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, isOfficerOf, navigate]);
 
-  const clubName = ownedClubs.find(c => c.clubId === clubId)?.clubName || 'Club';
+  const clubName = ownedClubs.find(c => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase())?.clubName || 'Club';
   const applyUrl = `${window.location.origin}/clubs/${clubId}/apply`;
 
   const handleEnable = async () => {

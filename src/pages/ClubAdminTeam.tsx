@@ -24,7 +24,7 @@ export default function ClubAdminTeam() {
     }
   }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, isOfficerOf, navigate]);
 
-  const club = ownedClubs.find((c) => c.clubId === clubId);
+  const club = ownedClubs.find((c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase());
   const clubName = club?.clubName || 'Club';
   const isOwner = !!club?.isOwner;
 

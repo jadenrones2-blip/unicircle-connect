@@ -211,7 +211,7 @@ export default function ClubAdminAnalytics() {
     return { total, avgGpa, topMajor, stageData, majorData, yearData };
   }, [applicants, stages]);
 
-  const clubName = ownedClubs.find((c) => c.clubId === clubId)?.clubName ?? "Club";
+  const clubName = ownedClubs.find((c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase())?.clubName ?? "Club";
 
   // ── Loading states ──────────────────────────────────────────────────────────
   if (authLoading || ownershipLoading || recruitmentLoading) {
