@@ -126,6 +126,7 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
       const result = await response.json();
       if (!result.success) throw new Error(result.error || 'Extraction failed');
 
+
       const data = result.data as ExtractedEventData;
       setLastResult(data);
 
@@ -136,9 +137,9 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
         toast.success(`Auto-filled ${extractedCount} field${extractedCount > 1 ? 's' : ''} from flyer`);
         onExtracted(data);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Extraction error:', err);
-      toast.error('Failed to extract event details. Please fill in manually.');
+      toast.error(err?.message || 'Failed to extract event details. Please fill in manually.');
     } finally {
       setExtracting(false);
     }
