@@ -71,9 +71,12 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
     if (!user) return;
     setGenerating(true);
     try {
+      // Generate token on the frontend — avoids pgcrypto/base64url dependency
+      const token = Array.from(crypto.getRandomValues(new Uint8Array(24)))
+        .map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 32);
       const { data, error } = await (supabase as any)
         .from('club_invites')
-        .insert({ club_id: clubId, club_name: clubName, created_by: user.id, role: 'officer' })
+        .insert({ club_id: clubId, club_name: clubName, created_by: user.id, role: 'officer', token })
         .select()
         .single();
       if (error) throw error;
