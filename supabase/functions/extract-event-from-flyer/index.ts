@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
@@ -12,66 +11,43 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    // Auth check
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
+  // Lightweight auth — just require a Bearer token (Supabase JWT)
+  const authHeader = req.headers.get("Authorization") || "";
+  if (!authHeader.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-    const { data: { user }, error: userError } = await authClient.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  }
 
-    // Parse body
-    let imageBase64: string | null = null;
-    try {
-      const body = await req.json();
-      imageBase64 = body.imageBase64 ?? null;
-    } catch {
-      return new Response(JSON.stringify({ error: "Invalid request body" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+  if (!ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ success: false, error: "ANTHROPIC_API_KEY not configured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
-    if (!imageBase64) {
-      return new Response(JSON.stringify({ error: "imageBase64 is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  let imageBase64: string;
+  try {
+    const body = await req.json();
+    imageBase64 = body.imageBase64;
+    if (!imageBase64) throw new Error("missing imageBase64");
+  } catch (e) {
+    return new Response(JSON.stringify({ success: false, error: "imageBase64 required" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!ANTHROPIC_API_KEY) {
-      console.error("ANTHROPIC_API_KEY is not set");
-      return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  // Detect media type from base64 prefix
+  let mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" = "image/jpeg";
+  if (imageBase64.startsWith("iVBOR")) mediaType = "image/png";
+  else if (imageBase64.startsWith("R0lGOD")) mediaType = "image/gif";
+  else if (imageBase64.startsWith("UklGR")) mediaType = "image/webp";
 
-    console.log("Calling Anthropic API, base64 length:", imageBase64.length);
-
-    // Detect media type
-    let mediaType = "image/jpeg";
-    if (imageBase64.startsWith("iVBOR")) mediaType = "image/png";
-    else if (imageBase64.startsWith("R0lGOD")) mediaType = "image/gif";
-    else if (imageBase64.startsWith("UklGR")) mediaType = "image/webp";
-
-    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": ANTHROPIC_API_KEY,
@@ -79,30 +55,19 @@ serve(async (req) => {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1024,
+        model: "claude-3-haiku-20240307",
+        max_tokens: 512,
         messages: [
           {
             role: "user",
             content: [
               {
                 type: "image",
-                source: {
-                  type: "base64",
-                  media_type: mediaType,
-                  data: imageBase64,
-                },
+                source: { type: "base64", media_type: mediaType, data: imageBase64 },
               },
               {
                 type: "text",
-                text: `Extract event details from this flyer. Return ONLY a JSON object with no markdown or extra text:
-{
-  "title": "Event title or null",
-  "date": "YYYY-MM-DD or null",
-  "time": "HH:MM in 24-hour format or null",
-  "location": "Full venue name and room or null",
-  "description": "Brief description of the event or null"
-}`,
+                text: 'Extract event details from this flyer. Return ONLY valid JSON, no markdown:\n{"title":null,"date":null,"time":null,"location":null,"description":null}\nFor date use YYYY-MM-DD. For time use HH:MM 24-hour.',
               },
             ],
           },
@@ -110,62 +75,47 @@ serve(async (req) => {
       }),
     });
 
-    if (!anthropicRes.ok) {
-      const errText = await anthropicRes.text();
-      console.error("Anthropic API error:", anthropicRes.status, errText);
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("Anthropic error:", res.status, errText);
       return new Response(
-        JSON.stringify({ success: false, error: `Anthropic error ${anthropicRes.status}: ${errText}` }),
+        JSON.stringify({ success: false, error: `Anthropic ${res.status}: ${errText}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const aiData = await anthropicRes.json();
-    console.log("Anthropic response received");
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || "";
 
-    const content = aiData.content?.[0]?.text || "";
-    console.log("Raw content:", content);
-
-    // Parse JSON — strip markdown fences if present
-    let clean = content.trim();
-    if (clean.startsWith("```")) clean = clean.replace(/^```[a-z]*\n?/, "").replace(/```$/, "").trim();
-
-    let extracted: Record<string, string | null>;
-    try {
-      extracted = JSON.parse(clean);
-    } catch {
-      // Try to find JSON object inside the text
-      const match = clean.match(/\{[\s\S]*\}/);
-      if (match) {
-        extracted = JSON.parse(match[0]);
-      } else {
-        console.error("Could not parse JSON from:", clean);
-        return new Response(
-          JSON.stringify({ success: false, error: "Could not parse AI response" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    // Strip markdown fences
+    let clean = raw.trim().replace(/^```[a-z]*\n?/, "").replace(/```$/, "").trim();
+    // Extract JSON object
+    const match = clean.match(/\{[\s\S]*\}/);
+    if (!match) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Could not parse AI response: " + raw }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const result = {
-      title: typeof extracted.title === "string" ? extracted.title.trim() : null,
-      date: typeof extracted.date === "string" ? extracted.date.trim() : null,
-      time: typeof extracted.time === "string" ? extracted.time.trim() : null,
-      location: typeof extracted.location === "string" ? extracted.location.trim() : null,
-      description: typeof extracted.description === "string" ? extracted.description.trim() : null,
-    };
-
-    console.log("Extracted result:", JSON.stringify(result));
-
+    const extracted = JSON.parse(match[0]);
     return new Response(
-      JSON.stringify({ success: true, data: result }),
+      JSON.stringify({
+        success: true,
+        data: {
+          title: extracted.title || null,
+          date: extracted.date || null,
+          time: extracted.time || null,
+          location: extracted.location || null,
+          description: extracted.description || null,
+        },
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
-  } catch (error) {
-    console.error("Unhandled error:", error);
-    const msg = error instanceof Error ? error.message : String(error);
+  } catch (err) {
+    console.error("Error:", err);
     return new Response(
-      JSON.stringify({ success: false, error: msg }),
+      JSON.stringify({ success: false, error: String(err) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
