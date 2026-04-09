@@ -38,13 +38,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { FormQuestion } from '@/hooks/useRecruitment';
 
@@ -236,16 +229,27 @@ function AddQuestionModal({
         <div className="space-y-4 py-2">
           <div className="space-y-1.5">
             <Label className="text-zinc-400">Question Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as FormQuestion['type'])}>
-              <SelectTrigger className="bg-zinc-900 border-white/10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-950 border-white/10">
-                <SelectItem value="short">Short Answer</SelectItem>
-                <SelectItem value="long">Long Answer</SelectItem>
-                <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                { value: 'short', label: 'Short Answer', icon: <AlignLeft className="w-4 h-4" /> },
+                { value: 'long', label: 'Long Answer', icon: <AlignJustify className="w-4 h-4" /> },
+                { value: 'multiple_choice', label: 'Multiple Choice', icon: <ListChecks className="w-4 h-4" /> },
+              ] as const).map(({ value, label, icon }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setType(value)}
+                  className={`flex flex-col items-center gap-1.5 px-2 py-3 rounded-lg border text-xs font-medium transition-colors ${
+                    type === value
+                      ? 'bg-[hsl(43_74%_56%/0.15)] border-[hsl(43,74%,56%)] text-[hsl(43,74%,56%)]'
+                      : 'bg-zinc-900 border-white/10 text-zinc-400 hover:text-white hover:border-white/25'
+                  }`}
+                >
+                  {icon}
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -254,13 +258,13 @@ function AddQuestionModal({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="e.g. Why do you want to join?"
-              className="bg-zinc-900 border-white/10"
+              className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600"
             />
           </div>
 
           <div className="flex items-center gap-3">
-            <Switch checked={required} onCheckedChange={setRequired} />
-            <span className="text-sm text-zinc-400">Required</span>
+            <Switch checked={required} onCheckedChange={setRequired} className="data-[state=checked]:bg-[hsl(43,74%,56%)]" />
+            <span className="text-sm text-zinc-300">Required</span>
           </div>
 
           {type === 'multiple_choice' && (
@@ -276,7 +280,7 @@ function AddQuestionModal({
                       setOptions(next);
                     }}
                     placeholder={`Option ${i + 1}`}
-                    className="bg-zinc-900 border-white/10"
+                    className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600"
                   />
                   {options.length > 1 && (
                     <Button
@@ -304,9 +308,15 @@ function AddQuestionModal({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => { reset(); onClose(); }}>Cancel</Button>
           <Button
-            variant="gold"
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10 hover:text-white hover:border-white/40"
+            onClick={() => { reset(); onClose(); }}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="bg-[hsl(43,74%,56%)] text-zinc-900 font-semibold hover:bg-[hsl(43,74%,48%)] disabled:opacity-40"
             onClick={handleAdd}
             disabled={!label.trim() || (type === 'multiple_choice' && options.filter(o => o.trim()).length < 2)}
           >
