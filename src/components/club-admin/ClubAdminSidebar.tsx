@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, User, Users, BarChart2, BookUser, UserCircle2, Kanban, Trophy } from 'lucide-react';
+import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, User, Users, BarChart2, BookUser, UserCircle2, Kanban, Trophy, Link2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
@@ -221,6 +221,22 @@ export function ClubAdminSidebar() {
                         >
                           <Trophy className="w-4 h-4" />
                           {!collapsed && <span>Scorecard</span>}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link
+                          to={`/club-admin/clubs/${club.clubId}/team`}
+                          className={cn(
+                            'flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-sm',
+                            location.pathname === `/club-admin/clubs/${club.clubId}/team`
+                              ? 'bg-gold/10 text-gold'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          )}
+                        >
+                          <Link2 className="w-3.5 h-3.5" />
+                          {!collapsed && <span>Team</span>}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

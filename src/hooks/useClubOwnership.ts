@@ -21,6 +21,7 @@ export interface ClubOwnership {
   trustScore: number;
   restrictions: ClubRestrictions;
   provisionalUntil: string | null;
+  isOwner: boolean; // true = club_owners row, false = club_officers row
 }
 
 const DEFAULT_RESTRICTIONS: ClubRestrictions = {
@@ -58,27 +59,50 @@ export function useClubOwnership() {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('club_owners')
-          .select('club_id, club_name, email, verified_at, verification_state, trust_level, trust_score, restrictions, provisional_until')
-          .eq('user_id', user.id);
+        const [ownersRes, officersRes] = await Promise.all([
+          supabase
+            .from('club_owners')
+            .select('club_id, club_name, email, verified_at, verification_state, trust_level, trust_score, restrictions, provisional_until')
+            .eq('user_id', user.id),
+          supabase
+            .from('club_officers')
+            .select('club_id, club_name')
+            .eq('user_id', user.id),
+        ]);
 
-        if (error) throw error;
+        if (ownersRes.error) throw ownersRes.error;
+
+        const ownerClubs: ClubOwnership[] = (ownersRes.data || []).map((row) => ({
+          clubId: row.club_id,
+          clubName: row.club_name,
+          email: row.email,
+          verifiedAt: row.verified_at,
+          verificationState: (row.verification_state as VerificationState) || 'verified',
+          trustLevel: (row.trust_level as TrustLevel) || 'high',
+          trustScore: row.trust_score || 100,
+          restrictions: (row.restrictions as unknown as ClubRestrictions) || DEFAULT_RESTRICTIONS,
+          provisionalUntil: row.provisional_until,
+          isOwner: true,
+        }));
+
+        // Officer clubs — they get access to the dashboard but with limited permissions
+        const officerClubs: ClubOwnership[] = (officersRes.data || [])
+          .filter((row) => !ownerClubs.some((o) => o.clubId === row.club_id))
+          .map((row) => ({
+            clubId: row.club_id,
+            clubName: row.club_name,
+            email: user.email || '',
+            verifiedAt: '',
+            verificationState: 'verified' as VerificationState,
+            trustLevel: 'high' as TrustLevel,
+            trustScore: 100,
+            restrictions: { can_publish_events: false, can_mass_message: false, can_add_links: false },
+            provisionalUntil: null,
+            isOwner: false,
+          }));
 
         if (isMounted) {
-          setOwnedClubs(
-            (data || []).map((row) => ({
-              clubId: row.club_id,
-              clubName: row.club_name,
-              email: row.email,
-              verifiedAt: row.verified_at,
-              verificationState: (row.verification_state as VerificationState) || 'verified',
-              trustLevel: (row.trust_level as TrustLevel) || 'high',
-              trustScore: row.trust_score || 100,
-              restrictions: (row.restrictions as unknown as ClubRestrictions) || DEFAULT_RESTRICTIONS,
-              provisionalUntil: row.provisional_until,
-            }))
-          );
+          setOwnedClubs([...ownerClubs, ...officerClubs]);
         }
       } catch (err) {
         console.error('Error fetching owned clubs:', err);
@@ -97,7 +121,12 @@ export function useClubOwnership() {
 
   const isOwnerOf = (clubId: string): boolean => {
     const target = normalizeClubId(clubId);
-    return ownedClubs.some((club) => normalizeClubId(club.clubId) === target);
+    return ownedClubs.some((club) => normalizeClubId(club.clubId) === target && club.isOwner);
+  };
+
+  const isOfficerOf = (clubId: string): boolean => {
+    const target = normalizeClubId(clubId);
+    return ownedClubs.some((club) => normalizeClubId(club.clubId) === target && !club.isOwner);
   };
 
   const getClubOwnership = (clubId: string): ClubOwnership | undefined => {
@@ -154,6 +183,7 @@ export function useClubOwnership() {
     ownedClubs,
     loading,
     isOwnerOf,
+    isOfficerOf,
     getClubOwnership,
     canPerformAction,
     isProvisional,

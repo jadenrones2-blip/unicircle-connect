@@ -16,7 +16,7 @@ export default function ClubAdminRecruitment() {
   const navigate = useNavigate();
   const { clubId } = useParams<{ clubId: string }>();
   const { user, loading: authLoading } = useAuth();
-  const { isOwnerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
+  const { isOwnerOf, isOfficerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
   const [enabling, setEnabling] = useState(false);
   const [creatingStages, setCreatingStages] = useState(false);
   const [jumpToForm, setJumpToForm] = useState(false);
@@ -46,9 +46,9 @@ export default function ClubAdminRecruitment() {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (!authLoading && !ownershipLoading && user && clubId && !isOwnerOf(clubId))
+    if (!authLoading && !ownershipLoading && user && clubId && !isOwnerOf(clubId) && !isOfficerOf(clubId))
       navigate('/club-admin');
-  }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, navigate]);
+  }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, isOfficerOf, navigate]);
 
   const clubName = ownedClubs.find(c => c.clubId === clubId)?.clubName || 'Club';
   const applyUrl = `${window.location.origin}/clubs/${clubId}/apply`;

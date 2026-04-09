@@ -47,6 +47,8 @@ import OrgScorecard from "./pages/OrgScorecard";
 import StudentProfile from "./pages/StudentProfile";
 import ApplyBySlug from "./pages/ApplyBySlug";
 import StartupIncubatorDemo from "./pages/StartupIncubatorDemo";
+import AcceptInvite from "./pages/AcceptInvite";
+import ClubAdminTeam from "./pages/ClubAdminTeam";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,6 +90,7 @@ const App = () => (
           <Route path="/club-admin/clubs/:clubId/recruitment" element={<ClubAdminRecruitment />} />
           <Route path="/club-admin/clubs/:clubId/analytics" element={<ClubAdminAnalytics />} />
           <Route path="/club-admin/clubs/:clubId/members" element={<ClubAdminMembers />} />
+          <Route path="/club-admin/clubs/:clubId/team" element={<ClubAdminTeam />} />
           <Route path="/club-admin/clubs/:clubId/people" element={<OrgPeopleDashboard />} />
           <Route path="/club-admin/clubs/:clubId/people/:personId" element={<OrgPersonProfile />} />
           <Route path="/club-admin/clubs/:clubId/pipeline" element={<OrgPipeline />} />
@@ -96,6 +99,7 @@ const App = () => (
           <Route path="/club-admin/request" element={<ClubOnboardingRequest />} />
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/invite/:token" element={<AcceptInvite />} />
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/test-resume" element={<TestResumeUpload />} />
