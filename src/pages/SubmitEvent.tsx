@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { dataClient } from '@/integrations/supabase/dataClient';
@@ -64,19 +64,26 @@ export default function SubmitEvent() {
   const { user, loading: authLoading } = useAuth();
   const { ownedClubs, loading: ownershipLoading, canPerformAction } = useClubOwnership();
   const [submitting, setSubmitting] = useState(false);
-  
+
+  const SESSION_KEY = 'submit_event_draft';
+
+  // Restore draft from sessionStorage on mount
+  const savedDraft = (() => {
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}'); } catch { return {}; }
+  })();
+
   const form = useForm<EventSubmission>({
     resolver: zodResolver(eventSubmissionSchema),
     defaultValues: {
-      event_title: '',
-      club_id: preselectedClubId || '',
-      event_date: '',
-      event_time: '',
-      location: '',
-      description: '',
-      instagram_url: '',
-      image_url: null,
-      co_hosts: '',
+      event_title: savedDraft.event_title || '',
+      club_id: preselectedClubId || savedDraft.club_id || '',
+      event_date: savedDraft.event_date || '',
+      event_time: savedDraft.event_time || '',
+      location: savedDraft.location || '',
+      description: savedDraft.description || '',
+      instagram_url: savedDraft.instagram_url || '',
+      image_url: savedDraft.image_url || null,
+      co_hosts: savedDraft.co_hosts || '',
     },
   });
 
@@ -108,13 +115,18 @@ export default function SubmitEvent() {
     }
   }, [ownedClubs, preselectedClubId, form]);
 
-  const selectedClubId = form.watch('club_id');
+  // Targeted watches — only re-render what needs updating, not the whole page
+  const selectedClubId = useWatch({ control: form.control, name: 'club_id' });
+  const watchedValues = useWatch({ control: form.control });
+
   const selectedClub = ownedClubs.find(c => c.clubId === selectedClubId);
   const canPublish = selectedClub ? canPerformAction(selectedClub.clubId, 'can_publish_events') : false;
   const isProvisional = selectedClub?.verificationState === 'provisional';
 
-  // Watch form values for live preview
-  const watchedValues = form.watch();
+  // Auto-save draft to sessionStorage whenever form values change
+  useEffect(() => {
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(watchedValues)); } catch { /* ignore */ }
+  }, [watchedValues]);
 
   // Handle AI extraction from flyer
   const handleFlyerExtracted = (data: ExtractedEventData) => {
@@ -181,7 +193,8 @@ export default function SubmitEvent() {
         (supabase as any).from('event_cohosts').insert(coHostRecords).then(() => {});
       }
 
-      // Success - show toast and redirect to club admin events page
+      // Clear saved draft on success
+      try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
       toast.success(canPublish ? 'Event published!' : 'Event saved as draft');
       navigate(`/club-admin/clubs/${selectedClub.clubId}/events`);
 

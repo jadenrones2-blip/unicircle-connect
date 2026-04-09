@@ -18,6 +18,34 @@ import {
 } from '@/components/ui/tooltip';
 import type { Applicant } from '@/hooks/useRecruitment';
 
+const AVATAR_COLORS = [
+  'bg-sky-500/20 text-sky-300',
+  'bg-emerald-500/20 text-emerald-300',
+  'bg-rose-500/20 text-rose-300',
+  'bg-amber-500/20 text-amber-300',
+  'bg-purple-500/20 text-purple-300',
+  'bg-pink-500/20 text-pink-300',
+  'bg-teal-500/20 text-teal-300',
+  'bg-orange-500/20 text-orange-300',
+];
+
+function getAvatarColor(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+export function ApplicantAvatar({ firstName, lastName, size = 'sm' }: { firstName: string; lastName: string; size?: 'sm' | 'md' | 'lg' }) {
+  const initials = `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
+  const color = getAvatarColor(`${firstName}${lastName}`);
+  const sizeClass = size === 'lg' ? 'w-10 h-10 text-sm' : size === 'md' ? 'w-8 h-8 text-xs' : 'w-7 h-7 text-xs';
+  return (
+    <div className={`${sizeClass} ${color} rounded-full flex items-center justify-center font-semibold shrink-0`}>
+      {initials || '?'}
+    </div>
+  );
+}
+
 interface ApplicantCardProps {
   applicant: Applicant;
   onDelete: (id: string) => void;
@@ -81,10 +109,12 @@ export function ApplicantCard({ applicant, onDelete, onOpen }: ApplicantCardProp
         <button
           {...attributes}
           {...listeners}
-          className="mt-1 p-0.5 rounded hover:bg-white/10 cursor-grab active:cursor-grabbing"
+          className="mt-1 p-0.5 rounded hover:bg-white/10 cursor-grab active:cursor-grabbing shrink-0"
         >
           <GripVertical className="w-4 h-4 text-zinc-600" />
         </button>
+
+        <ApplicantAvatar firstName={applicant.first_name} lastName={applicant.last_name} size="sm" />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">

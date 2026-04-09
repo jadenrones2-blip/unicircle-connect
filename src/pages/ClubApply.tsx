@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, CheckCircle2, Upload } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, Upload, Video, StopCircle, RotateCcw, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -21,6 +21,230 @@ import { toast } from 'sonner';
 import type { FormQuestion } from '@/hooks/useRecruitment';
 
 const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'Other'];
+
+// ─── Video Question Field ─────────────────────────────────────────────────────
+
+interface VideoData {
+  blob: Blob;
+  url: string;
+  filename: string;
+}
+
+function formatSeconds(s: number) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return m > 0 ? `${m}:${sec.toString().padStart(2, '0')}` : `0:${sec.toString().padStart(2, '0')}`;
+}
+
+function VideoQuestionField({
+  question,
+  value,
+  onChange,
+}: {
+  question: import('@/hooks/useRecruitment').FormQuestion;
+  value: VideoData | null;
+  onChange: (data: VideoData | null) => void;
+}) {
+  const maxDuration = question.maxDuration ?? 60;
+  const [mode, setMode] = useState<'idle' | 'recording' | 'preview'>('idle');
+  const [timeLeft, setTimeLeft] = useState(maxDuration);
+  const [elapsed, setElapsed] = useState(0);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const liveVideoRef = useRef<HTMLVideoElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Set preview src when value changes
+  const previewRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    if (value && previewRef.current) {
+      previewRef.current.src = value.url;
+    }
+  }, [value]);
+
+  const stopStream = useCallback(() => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    if (timerRef.current) clearInterval(timerRef.current);
+  }, []);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      streamRef.current = stream;
+      if (liveVideoRef.current) {
+        liveVideoRef.current.srcObject = stream;
+        liveVideoRef.current.play();
+      }
+      chunksRef.current = [];
+      const mr = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' });
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        onChange({ blob, url, filename: `intro-${Date.now()}.webm` });
+        setMode('preview');
+        stopStream();
+      };
+      mr.start();
+      recorderRef.current = mr;
+      setElapsed(0);
+      setTimeLeft(maxDuration);
+      setMode('recording');
+
+      timerRef.current = setInterval(() => {
+        setElapsed((prev) => {
+          const next = prev + 1;
+          setTimeLeft(maxDuration - next);
+          if (next >= maxDuration) {
+            recorderRef.current?.stop();
+            if (timerRef.current) clearInterval(timerRef.current);
+          }
+          return next;
+        });
+      }, 1000);
+    } catch {
+      toast.error('Camera access denied. Please upload a video file instead.');
+    }
+  };
+
+  const stopRecording = () => {
+    recorderRef.current?.stop();
+    if (timerRef.current) clearInterval(timerRef.current);
+  };
+
+  const handleFileUpload = (file: File) => {
+    if (file.size > 250 * 1024 * 1024) {
+      toast.error('Video must be under 250 MB.');
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    onChange({ blob: file, url, filename: file.name });
+    setMode('preview');
+  };
+
+  const handleRedo = () => {
+    if (value) URL.revokeObjectURL(value.url);
+    onChange(null);
+    setMode('idle');
+    setElapsed(0);
+    setTimeLeft(maxDuration);
+  };
+
+  useEffect(() => () => { stopStream(); }, [stopStream]);
+
+  const progressPct = mode === 'recording' ? Math.min((elapsed / maxDuration) * 100, 100) : 0;
+
+  return (
+    <div className="space-y-3">
+      {question.videoPrompt && (
+        <p className="text-xs text-zinc-500 italic">"{question.videoPrompt}"</p>
+      )}
+
+      {mode === 'idle' && (
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={startRecording}
+            className="flex flex-col items-center gap-2 px-4 py-5 rounded-xl border border-white/10 bg-zinc-900 hover:border-gold/30 hover:bg-gold/5 transition-colors group"
+          >
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center group-hover:bg-gold/20 transition-colors">
+              <Video className="w-5 h-5 text-gold" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-white">Record</p>
+              <p className="text-xs text-zinc-500">Up to {formatSeconds(maxDuration)}</p>
+            </div>
+          </button>
+
+          <label className="flex flex-col items-center gap-2 px-4 py-5 rounded-xl border border-white/10 bg-zinc-900 hover:border-white/25 hover:bg-white/[0.02] transition-colors cursor-pointer">
+            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+              <Upload className="w-5 h-5 text-zinc-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-medium text-white">Upload</p>
+              <p className="text-xs text-zinc-500">MP4, MOV, WebM</p>
+            </div>
+            <input
+              type="file"
+              accept="video/mp4,video/quicktime,video/webm,video/*"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); }}
+            />
+          </label>
+        </div>
+      )}
+
+      {mode === 'recording' && (
+        <div className="rounded-xl border border-red-500/30 bg-zinc-900 overflow-hidden">
+          <video
+            ref={liveVideoRef}
+            muted
+            playsInline
+            className="w-full aspect-video object-cover bg-black"
+          />
+          <div className="px-4 py-3 space-y-2">
+            {/* Progress bar */}
+            <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full bg-red-500 transition-all duration-1000"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-xs text-red-400 font-medium">Recording</span>
+              </div>
+              <span className="text-xs text-zinc-400 font-mono">{formatSeconds(timeLeft)} left</span>
+              <button
+                type="button"
+                onClick={stopRecording}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors"
+              >
+                <StopCircle className="w-3.5 h-3.5" />
+                Stop
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mode === 'preview' && value && (
+        <div className="rounded-xl border border-white/10 bg-zinc-900 overflow-hidden">
+          <video
+            ref={previewRef}
+            controls
+            playsInline
+            className="w-full aspect-video object-cover bg-black"
+          />
+          <div className="px-4 py-3 flex items-center justify-between">
+            <p className="text-xs text-zinc-500 truncate max-w-[60%]">{value.filename}</p>
+            <div className="flex items-center gap-2">
+              <a
+                href={value.url}
+                download={value.filename}
+                className="p-1.5 text-zinc-600 hover:text-zinc-300 transition-colors"
+                title="Download"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </a>
+              <button
+                type="button"
+                onClick={handleRedo}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 text-zinc-400 text-xs font-medium hover:border-white/25 hover:text-white transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Redo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ClubApply() {
   const { id: clubId } = useParams<{ id: string }>();
@@ -51,6 +275,9 @@ export default function ClubApply() {
 
   // Custom question answers: { [questionId]: answer }
   const [answers, setAnswers] = useState<Record<string, string>>({});
+
+  // Video answers: { [questionId]: VideoData }
+  const [videoAnswers, setVideoAnswers] = useState<Record<string, VideoData | null>>({});
 
   // Resume
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -115,9 +342,11 @@ export default function ClubApply() {
     }
 
     // Validate required custom questions
-    const missingRequired = questions.filter(
-      (q) => q.required && !answers[q.id]?.trim()
-    );
+    const missingRequired = questions.filter((q) => {
+      if (!q.required) return false;
+      if (q.type === 'video') return !videoAnswers[q.id];
+      return !answers[q.id]?.trim();
+    });
     if (missingRequired.length > 0) {
       toast.error(`Please answer all required questions: ${missingRequired.map((q) => q.label).join(', ')}`);
       return;
@@ -125,6 +354,9 @@ export default function ClubApply() {
 
     setSubmitting(true);
     try {
+      // Build metadata — start with text answers, video URLs added after upload
+      const metadata: Record<string, string> = { ...answers };
+
       // Insert applicant
       const { data: applicant, error: insertError } = await supabase
         .from('applicants')
@@ -137,7 +369,7 @@ export default function ClubApply() {
           major: major.trim() || null,
           year: year || null,
           gpa: gpa ? parseFloat(gpa) : null,
-          metadata: answers,
+          metadata,
         })
         .select('id')
         .single();
@@ -160,6 +392,42 @@ export default function ClubApply() {
           await supabase.storage.from('resumes').upload(path, resumeFile, { upsert: true });
         } catch (uploadErr) {
           console.warn('Resume upload failed (non-fatal):', uploadErr);
+        }
+      }
+
+      // Upload video answers and patch metadata with public URLs
+      if (applicant?.id) {
+        const videoQuestions = questions.filter((q) => q.type === 'video');
+        const videoUpdates: Record<string, string> = {};
+        for (const q of videoQuestions) {
+          const vid = videoAnswers[q.id];
+          if (!vid) continue;
+          try {
+            const ext = vid.filename.split('.').pop() || 'webm';
+            const path = `${clubId}/${applicant.id}/${q.id}.${ext}`;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('application-videos')
+              .upload(path, vid.blob, { upsert: true, contentType: vid.blob.type || 'video/webm' });
+            if (!uploadError && uploadData) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('application-videos')
+                .getPublicUrl(uploadData.path);
+              videoUpdates[q.id] = publicUrl;
+            }
+          } catch (vidErr) {
+            console.warn(`Video upload failed for question ${q.id} (non-fatal):`, vidErr);
+          }
+        }
+        // Patch applicant metadata with video URLs if any uploaded
+        if (Object.keys(videoUpdates).length > 0) {
+          try {
+            await supabase
+              .from('applicants')
+              .update({ metadata: { ...metadata, ...videoUpdates } })
+              .eq('id', applicant.id);
+          } catch (patchErr) {
+            console.warn('Metadata patch failed (non-fatal):', patchErr);
+          }
         }
       }
 
@@ -386,6 +654,14 @@ export default function ClubApply() {
                       rows={5}
                       className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 resize-none"
                       required={q.required}
+                    />
+                  )}
+
+                  {q.type === 'video' && (
+                    <VideoQuestionField
+                      question={q}
+                      value={videoAnswers[q.id] ?? null}
+                      onChange={(data) => setVideoAnswers((prev) => ({ ...prev, [q.id]: data }))}
                     />
                   )}
 

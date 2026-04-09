@@ -38,10 +38,12 @@ type ApplicantRow = Omit<Applicant, 'metadata'> & { metadata: unknown };
 
 export interface FormQuestion {
   id: string;
-  type: 'short' | 'long' | 'multiple_choice';
+  type: 'short' | 'long' | 'multiple_choice' | 'video';
   label: string;
   required: boolean;
   options: string[];
+  maxDuration?: number; // seconds, for video questions
+  videoPrompt?: string; // optional prompt shown to student during recording
 }
 
 export interface RecruitmentSettings {

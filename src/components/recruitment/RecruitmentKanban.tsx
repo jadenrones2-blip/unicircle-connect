@@ -13,7 +13,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Settings2, LayoutGrid, Table, FileText, Download, Mail } from 'lucide-react';
+import { Settings2, LayoutGrid, Table, FileText, Download, Mail, Users } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,6 +28,7 @@ import { BulkAIScreen } from './BulkAIScreen';
 import { FormBuilder } from './FormBuilder';
 import { MessageComposer } from './MessageComposer';
 import { ApplicantDetailDrawer } from './ApplicantDetailDrawer';
+import { ApplicantRosterView } from './ApplicantRosterView';
 import type { RecruitmentStage, Applicant, RecruitmentSettings, FormQuestion } from '@/hooks/useRecruitment';
 
 interface RecruitmentKanbanProps {
@@ -217,7 +218,7 @@ export function RecruitmentKanban({
     await onRefresh();
   };
 
-  const [activeView, setActiveView] = useState<'kanban' | 'table' | 'settings' | 'form' | 'messages'>(
+  const [activeView, setActiveView] = useState<'kanban' | 'table' | 'roster' | 'settings' | 'form' | 'messages'>(
     typeof window !== 'undefined' && window.innerWidth < 768 ? 'table' : 'kanban'
   );
 
@@ -239,6 +240,7 @@ export function RecruitmentKanban({
             <p className="text-sm text-zinc-500 hidden sm:block">
               {activeView === 'kanban' && 'Drag and drop applicants between stages'}
               {activeView === 'table' && 'View and manage all applicants'}
+              {activeView === 'roster' && 'Applicant roster with full names and demographics'}
               {activeView === 'settings' && 'Configure screening requirements'}
               {activeView === 'form' && 'Build the application form students fill out'}
               {activeView === 'messages' && 'Compose and send emails to applicants'}
@@ -247,10 +249,11 @@ export function RecruitmentKanban({
           {/* View switcher — always visible */}
           <div className="flex border border-white/15 rounded-md shrink-0">
             {([
-              { view: 'kanban', icon: <LayoutGrid className="w-4 h-4" />, title: 'Kanban Board' },
-              { view: 'table',  icon: <Table className="w-4 h-4" />,      title: 'Table View' },
-              { view: 'form',   icon: <FileText className="w-4 h-4" />,   title: 'Application Form' },
-              { view: 'messages', icon: <Mail className="w-4 h-4" />, title: 'Message Applicants' },
+              { view: 'kanban',   icon: <LayoutGrid className="w-4 h-4" />, title: 'Kanban Board' },
+              { view: 'table',    icon: <Table className="w-4 h-4" />,      title: 'Table View' },
+              { view: 'roster',   icon: <Users className="w-4 h-4" />,      title: 'Roster' },
+              { view: 'form',     icon: <FileText className="w-4 h-4" />,   title: 'Application Form' },
+              { view: 'messages', icon: <Mail className="w-4 h-4" />,       title: 'Message Applicants' },
               { view: 'settings', icon: <Settings2 className="w-4 h-4" />, title: 'Screening Settings' },
             ] as const).map(({ view, icon, title }, i, arr) => (
               <button
@@ -269,7 +272,7 @@ export function RecruitmentKanban({
           </div>
         </div>
         {/* Action buttons — wrap on mobile */}
-        {(activeView === 'kanban' || activeView === 'table') && (
+        {(activeView === 'kanban' || activeView === 'table' || activeView === 'roster') && (
           <div className="flex flex-wrap items-center gap-2">
             <StudentVisibilitySettings
               clubId={clubId}
@@ -344,6 +347,14 @@ export function RecruitmentKanban({
           onMoveApplicant={onMoveApplicant}
           onDeleteApplicant={onDeleteApplicant}
           onRefresh={onRefresh}
+          onOpenDrawer={openDrawer}
+        />
+      )}
+
+      {activeView === 'roster' && (
+        <ApplicantRosterView
+          stages={stages}
+          applicants={applicants}
           onOpenDrawer={openDrawer}
         />
       )}

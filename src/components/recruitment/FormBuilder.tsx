@@ -10,7 +10,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   GripVertical, Plus, Trash2, Eye, Save, Loader2,
-  AlignLeft, AlignJustify, ListChecks, Copy, Upload, X,
+  AlignLeft, AlignJustify, ListChecks, Copy, Upload, X, Video,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,14 @@ const TYPES = [
   { value: 'short' as const, label: 'Short', icon: <AlignLeft className="w-3.5 h-3.5" /> },
   { value: 'long' as const, label: 'Long', icon: <AlignJustify className="w-3.5 h-3.5" /> },
   { value: 'multiple_choice' as const, label: 'Multiple Choice', icon: <ListChecks className="w-3.5 h-3.5" /> },
+  { value: 'video' as const, label: 'Video', icon: <Video className="w-3.5 h-3.5" /> },
+];
+
+const VIDEO_DURATION_OPTIONS = [
+  { label: '30 seconds', value: 30 },
+  { label: '1 minute', value: 60 },
+  { label: '2 minutes', value: 120 },
+  { label: '5 minutes', value: 300 },
 ];
 
 // ─── Text parser ──────────────────────────────────────────────────────────────
@@ -246,6 +254,40 @@ function InlineQuestionCard({
           </button>
         ))}
       </div>
+
+      {/* Video config */}
+      {question.type === 'video' && (
+        <div className="space-y-2.5 pl-2 border-l-2 border-white/5">
+          <div className="space-y-1">
+            <p className="text-xs text-zinc-500">Max recording duration</p>
+            <div className="flex gap-1.5 flex-wrap">
+              {VIDEO_DURATION_OPTIONS.map(({ label, value }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => onChange(question.id, { maxDuration: value })}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    (question.maxDuration ?? 60) === value
+                      ? 'bg-gold/15 border-gold/40 text-gold'
+                      : 'bg-white/5 border-white/10 text-zinc-500 hover:text-zinc-300 hover:border-white/20'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-zinc-500">Prompt shown while recording (optional)</p>
+            <input
+              value={question.videoPrompt || ''}
+              onChange={(e) => onChange(question.id, { videoPrompt: e.target.value })}
+              placeholder="e.g. Introduce yourself in 60 seconds"
+              className="w-full bg-transparent text-sm text-zinc-300 placeholder:text-zinc-600 focus:outline-none border-b border-transparent focus:border-white/20 py-1 transition-colors"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Multiple choice options */}
       {question.type === 'multiple_choice' && (
@@ -546,6 +588,17 @@ function PreviewModal({
               </Label>
               {q.type === 'short' && <Input disabled className="bg-zinc-900 border-white/10" />}
               {q.type === 'long' && <Textarea disabled rows={4} className="bg-zinc-900 border-white/10 resize-none" />}
+              {q.type === 'video' && (
+                <div className="flex items-center gap-3 px-4 py-5 rounded-lg border border-dashed border-white/15 bg-zinc-900/40">
+                  <Video className="w-5 h-5 text-zinc-600 shrink-0" />
+                  <div>
+                    <p className="text-sm text-zinc-500">Video response</p>
+                    <p className="text-xs text-zinc-600">
+                      Up to {Math.floor((q.maxDuration ?? 60) / 60) > 0 ? `${Math.floor((q.maxDuration ?? 60) / 60)}m ` : ''}{(q.maxDuration ?? 60) % 60 > 0 ? `${(q.maxDuration ?? 60) % 60}s` : ''} — record or upload
+                    </p>
+                  </div>
+                </div>
+              )}
               {q.type === 'multiple_choice' && (
                 <div className="space-y-1.5">
                   {(q.options.filter(o => o.trim()).length > 0 ? q.options.filter(o => o.trim()) : ['Option 1', 'Option 2']).map((opt) => (

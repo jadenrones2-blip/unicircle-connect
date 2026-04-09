@@ -46,6 +46,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
+import { ApplicantAvatar } from './ApplicantCard';
 
 interface ApplicantTableViewProps {
   clubId: string;
@@ -459,7 +460,10 @@ export function ApplicantTableView({
                       />
                     </TableCell>
                     <TableCell className="font-medium">
-                      {applicant.first_name} {applicant.last_name}
+                      <div className="flex items-center gap-2.5">
+                        <ApplicantAvatar firstName={applicant.first_name} lastName={applicant.last_name} size="md" />
+                        <span>{applicant.first_name} {applicant.last_name}</span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {applicant.email}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ThumbsUp, ThumbsDown, Minus, Sparkles, Loader2, Check, Star } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Minus, Sparkles, Loader2, Check, Star, Download, ClipboardList } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -21,6 +21,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import type { Applicant, FormQuestion } from '@/hooks/useRecruitment';
+import { useRecruitmentRequirements } from '@/hooks/useRecruitmentRequirements';
+import { useRubricScoring, parseCriterionValue, calcWeightedScore } from '@/hooks/useRubricScoring';
 
 type VoteValue = 'yes' | 'no' | 'maybe';
 type FinalDecision = 'pending' | 'accepted' | 'waitlisted' | 'rejected';
@@ -132,6 +134,22 @@ export function ApplicantDetailDrawer({
 
   // AI screening
   const [aiRunning, setAiRunning] = useState(false);
+
+  // Rubric scoring
+  const { aiCriteria } = useRecruitmentRequirements(clubId);
+  const { scores, saving: scoreSaving, saveScore, teamAvgForCriterion } = useRubricScoring(
+    open && applicant ? applicant.id : null
+  );
+  const [scoreNotes, setScoreNotes] = useState<Record<string, string>>({});
+
+  // Sync local note state from loaded scores
+  useEffect(() => {
+    if (open && applicant) {
+      const notes: Record<string, string> = {};
+      Object.values(scores).forEach((s) => { notes[s.requirementId] = s.note; });
+      setScoreNotes(notes);
+    }
+  }, [open, applicant?.id, scores]);
 
   const fetchVotes = useCallback(async () => {
     if (!applicant?.id || !user) return;
@@ -288,12 +306,39 @@ export function ApplicantDetailDrawer({
                 {formQuestions.map((q) => {
                   const answer = metadata[q.id];
                   if (!answer) return null;
+                  const isVideo =
+                    q.type === 'video' ||
+                    /\.(mp4|mov|webm)(\?|$)/i.test(answer) ||
+                    answer.includes('application-videos');
                   return (
                     <div key={q.id} className="space-y-1">
                       <p className="text-xs text-zinc-500">{q.label}</p>
-                      <p className="text-sm text-zinc-200 bg-zinc-900 rounded-lg px-3 py-2 border border-white/10">
-                        {answer}
-                      </p>
+                      {isVideo ? (
+                        <div className="rounded-lg border border-white/10 overflow-hidden bg-zinc-900">
+                          <video
+                            src={answer}
+                            controls
+                            playsInline
+                            className="w-full aspect-video object-cover bg-black"
+                          />
+                          <div className="px-3 py-2 flex items-center justify-end">
+                            <a
+                              href={answer}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download
+                              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Download
+                            </a>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-zinc-200 bg-zinc-900 rounded-lg px-3 py-2 border border-white/10">
+                          {answer}
+                        </p>
+                      )}
                     </div>
                   );
                 })}
@@ -330,6 +375,104 @@ export function ApplicantDetailDrawer({
               </div>
             )}
           </section>
+
+          {/* Rubric Scoring */}
+          {aiCriteria.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+                  Your Scores
+                </p>
+                {(() => {
+                  const ws = calcWeightedScore(scores, aiCriteria);
+                  return ws !== null ? (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold/10 border border-gold/20">
+                      <ClipboardList className="w-3.5 h-3.5 text-gold" />
+                      <span className="text-sm font-bold text-gold">{ws}</span>
+                      <span className="text-xs text-gold/70">/ 100</span>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+
+              <div className="space-y-4">
+                {aiCriteria.map((req) => {
+                  const { description, weight } = parseCriterionValue(req);
+                  const myScore = scores[req.id]?.score ?? 0;
+                  const teamAvg = teamAvgForCriterion(req.id);
+                  const isSaving = scoreSaving === req.id;
+
+                  return (
+                    <div key={req.id} className="rounded-xl border border-white/10 bg-zinc-900/60 p-3.5 space-y-3">
+                      {/* Criterion header */}
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm text-zinc-200 leading-snug">{description}</p>
+                        <div className="flex items-center gap-0.5 shrink-0 ml-2 mt-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <div
+                              key={i}
+                              className={`w-1.5 h-1.5 rounded-full ${i < weight ? 'bg-gold/50' : 'bg-white/10'}`}
+                            />
+                          ))}
+                          <span className="text-[10px] text-zinc-600 ml-1.5">w{weight}</span>
+                        </div>
+                      </div>
+
+                      {/* 1–5 dot selector */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1.5">
+                          {[1, 2, 3, 4, 5].map((val) => (
+                            <button
+                              key={val}
+                              type="button"
+                              disabled={isSaving}
+                              onClick={() => saveScore(req.id, val, scoreNotes[req.id] || '')}
+                              title={`${val}/5`}
+                              className={`w-8 h-8 rounded-full border text-xs font-bold transition-all ${
+                                myScore === val
+                                  ? 'bg-gold border-gold text-zinc-900 scale-110'
+                                  : myScore > 0 && val <= myScore
+                                  ? 'bg-gold/30 border-gold/50 text-gold'
+                                  : 'bg-white/5 border-white/15 text-zinc-600 hover:border-white/30 hover:text-zinc-300'
+                              }`}
+                            >
+                              {val}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 ml-1">
+                          {myScore > 0 && (
+                            <span className="text-sm font-semibold text-white">{myScore}/5</span>
+                          )}
+                          {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />}
+                          {teamAvg !== null && (
+                            <span className="text-xs text-zinc-600">team avg {teamAvg}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Qualitative note */}
+                      <input
+                        value={scoreNotes[req.id] || ''}
+                        onChange={(e) => setScoreNotes((prev) => ({ ...prev, [req.id]: e.target.value }))}
+                        onBlur={() => {
+                          if (myScore > 0) saveScore(req.id, myScore, scoreNotes[req.id] || '');
+                        }}
+                        placeholder="Add a note for this criterion… (optional)"
+                        className="w-full bg-transparent text-xs text-zinc-400 placeholder:text-zinc-700 focus:outline-none border-b border-transparent focus:border-white/15 py-0.5 transition-colors"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {aiCriteria.length > 0 && Object.keys(scores).length === 0 && (
+                <p className="text-xs text-zinc-600 text-center mt-2">
+                  Click the numbered dots above to score each criterion
+                </p>
+              )}
+            </section>
+          )}
 
           {/* Deliberation */}
           <section>
