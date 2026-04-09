@@ -116,11 +116,9 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
           toast.error('Rate limit hit. Please wait a moment and try again.');
           return;
         }
-        if (response.status === 402) {
-          toast.error('AI credits exhausted. Please contact support.');
-          return;
-        }
-        throw new Error(`Server error: ${response.status}`);
+        // Read body to get actual error message
+        const errBody = await response.json().catch(() => ({}));
+        throw new Error(errBody?.error || `Server error: ${response.status}`);
       }
 
       const result = await response.json();
