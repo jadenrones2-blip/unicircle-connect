@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell } from "lucide-react";
+import { Menu, X, Sparkles, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
@@ -219,6 +219,12 @@ const Header = () => {
                     </Link>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem asChild>
+                  <Link to={isClubOwner ? "/club-admin/profile" : "/profile"} className="cursor-pointer">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Profile Settings
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
                   <LogOut className="w-4 h-4 mr-2" />
@@ -326,15 +332,29 @@ const Header = () => {
                       </Link>
                     </motion.div>
                     <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.32 }}
+                    >
+                      <Link
+                        to={isClubOwner ? "/club-admin/profile" : "/profile"}
+                        className="block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 tracking-[0.1em] uppercase"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <Settings className="w-4 h-4 inline-block mr-2 opacity-70" />
+                        Profile Settings
+                      </Link>
+                    </motion.div>
+                    <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.32 }}
+                      transition={{ delay: 0.4 }}
                       className="mt-4"
                     >
-                      <Button 
-                        variant="outline" 
-                        size="lg" 
-                        className="w-full" 
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full"
                         onClick={() => {
                           handleSignOut();
                           setIsMobileMenuOpen(false);

@@ -253,6 +253,22 @@ export function ClubAdminSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link
+                to="/club-admin/profile"
+                className={cn(
+                  'flex items-center gap-2 px-3 py-2 rounded-md transition-colors',
+                  isActive('/club-admin/profile')
+                    ? 'bg-gold/10 text-gold'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+              >
+                <Settings className="w-4 h-4" />
+                {!collapsed && <span>Profile & Settings</span>}
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link
                 to="/"
                 className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted transition-colors text-muted-foreground"
               >
