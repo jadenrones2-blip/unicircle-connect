@@ -53,12 +53,11 @@ export function calcWeightedScore(
 
 export function useRubricScoring(applicantId: string | null) {
   const { user } = useAuth();
-  // scores keyed by requirementId
   const [scores, setScores] = useState<Record<string, CriterionScore>>({});
-  // all officers' scores for this applicant (to compute team average)
   const [allScores, setAllScores] = useState<RubricScoreRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState<string | null>(null); // requirementId being saved
+  const [scoringError, setScoringError] = useState<string | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
 
   const fetchScores = useCallback(async () => {
     if (!applicantId || !user) return;
@@ -84,8 +83,9 @@ export function useRubricScoring(applicantId: string | null) {
         };
       }
       setScores(mine);
-    } catch {
-      // Table may not exist yet — fail silently
+    } catch (err: any) {
+      const msg = err?.message || String(err);
+      setScoringError(msg.includes('does not exist') ? 'Scoring table not set up yet — run the SQL migration.' : msg);
     } finally {
       setLoading(false);
     }
@@ -141,6 +141,7 @@ export function useRubricScoring(applicantId: string | null) {
     allScores,
     loading,
     saving,
+    scoringError,
     saveScore,
     teamAvgForCriterion,
     refetch: fetchScores,

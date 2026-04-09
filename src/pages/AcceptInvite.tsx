@@ -106,10 +106,16 @@ export default function AcceptInvite() {
       if (officerErr) throw officerErr;
 
       setPageState('done');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Failed to accept invite. Please try again.');
-      setPageState('ready');
+      const msg = err?.message || String(err);
+      if (msg.includes('23505') || msg.includes('unique')) {
+        // Already inserted as officer — treat as success
+        setPageState('already_member');
+      } else {
+        toast.error('Failed to accept invite: ' + msg);
+        setPageState('ready');
+      }
     }
   };
 

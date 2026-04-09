@@ -423,17 +423,20 @@ export default function ClubApply() {
         }
       }
 
-      // Send "application received" email notification (best-effort)
+      // Send "application received" email notification (best-effort, 5s timeout)
       try {
-        await supabase.functions.invoke('notify-applicant-stage', {
-          body: {
-            notificationType: 'application_received',
-            applicantEmail: email.trim().toLowerCase(),
-            applicantName: `${firstName.trim()} ${lastName.trim()}`,
-            clubName: clubName || 'the club',
-            clubId,
-          },
-        });
+        await Promise.race([
+          supabase.functions.invoke('notify-applicant-stage', {
+            body: {
+              notificationType: 'application_received',
+              applicantEmail: email.trim().toLowerCase(),
+              applicantName: `${firstName.trim()} ${lastName.trim()}`,
+              clubName: clubName || 'the club',
+              clubId,
+            },
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+        ]);
       } catch (notifyErr) {
         console.warn('Application received notification failed (non-fatal):', notifyErr);
       }

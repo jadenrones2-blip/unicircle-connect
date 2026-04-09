@@ -76,7 +76,14 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
         .map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 32);
       const { data, error } = await (supabase as any)
         .from('club_invites')
-        .insert({ club_id: clubId, club_name: clubName, created_by: user.id, role: 'officer', token })
+        .insert({
+          club_id: clubId,
+          club_name: clubName,
+          created_by: user.id,
+          role: 'officer',
+          token,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        })
         .select()
         .single();
       if (error) throw error;
