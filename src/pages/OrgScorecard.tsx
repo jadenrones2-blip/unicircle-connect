@@ -234,7 +234,7 @@ export default function OrgScorecard() {
           <div className="flex gap-2 flex-wrap mb-6">
             <button
               onClick={() => setStageFilter('all')}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${stageFilter === 'all' ? 'bg-white text-black' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${stageFilter === 'all' ? 'bg-gold text-zinc-900' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
             >
               All ({rows.length})
             </button>
@@ -244,7 +244,7 @@ export default function OrgScorecard() {
                 onClick={() => setStageFilter(s)}
                 className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
                 style={stageFilter === s
-                  ? { background: STAGE_COLORS[s], color: '#000' }
+                  ? { background: STAGE_COLORS[s], color: '#fff' }
                   : { background: 'rgba(255,255,255,0.05)', color: '#a1a1aa' }}
               >
                 {STAGE_LABELS[s]} ({stageCounts[s]})

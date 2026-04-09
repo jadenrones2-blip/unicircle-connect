@@ -348,7 +348,7 @@ export default function OrgPeopleDashboard() {
               <Button onClick={() => setImportOpen(true)} variant="outline" className="border-white/10 text-zinc-300 hover:bg-white/5">
                 <Upload className="w-4 h-4 mr-1.5" /> Import CSV
               </Button>
-              <Button onClick={() => setAddOpen(true)} className="bg-gold text-black font-semibold hover:bg-gold/90">
+              <Button onClick={() => setAddOpen(true)} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">
                 <Plus className="w-4 h-4 mr-1" /> Add Person
               </Button>
             </div>
@@ -358,7 +358,7 @@ export default function OrgPeopleDashboard() {
           <div className="flex gap-2 flex-wrap mb-4">
             <button
               onClick={() => setStageFilter('all')}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${stageFilter === 'all' ? 'bg-white text-black' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${stageFilter === 'all' ? 'bg-gold text-zinc-900' : 'bg-white/5 text-zinc-400 hover:bg-white/10'}`}
             >
               All ({people.length})
             </button>
@@ -406,7 +406,7 @@ export default function OrgPeopleDashboard() {
                   onClick={handleBulkMove}
                   disabled={!bulkStage || bulkMoving}
                   size="sm"
-                  className="bg-gold text-black font-semibold hover:bg-gold/90 h-8"
+                  className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90 h-8"
                 >
                   {bulkMoving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Move'}
                 </Button>
@@ -556,7 +556,7 @@ export default function OrgPeopleDashboard() {
           </div>
           <DialogFooter className="mt-2">
             <Button variant="ghost" onClick={() => setAddOpen(false)} className="text-zinc-400">Cancel</Button>
-            <Button onClick={handleAdd} disabled={adding} className="bg-gold text-black font-semibold hover:bg-gold/90">
+            <Button onClick={handleAdd} disabled={adding} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">
               {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add Person'}
             </Button>
           </DialogFooter>
@@ -579,7 +579,7 @@ export default function OrgPeopleDashboard() {
                 <p className="text-white font-semibold text-lg">{importResult?.inserted} people imported</p>
                 {importResult?.skipped ? <p className="text-zinc-500 text-sm mt-1">{importResult.skipped} rows skipped due to errors</p> : null}
               </div>
-              <Button onClick={closeImport} className="bg-gold text-black font-semibold hover:bg-gold/90">Done</Button>
+              <Button onClick={closeImport} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">Done</Button>
             </div>
           ) : csvRows.length === 0 ? (
             <div className="space-y-4 py-2">
@@ -640,7 +640,7 @@ export default function OrgPeopleDashboard() {
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={closeImport} className="text-zinc-400">Cancel</Button>
-                <Button onClick={handleImport} disabled={importing || validCount === 0} className="bg-gold text-black font-semibold hover:bg-gold/90">
+                <Button onClick={handleImport} disabled={importing || validCount === 0} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">
                   {importing ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Importing...</> : `Import ${validCount} ${validCount === 1 ? 'Person' : 'People'}`}
                 </Button>
               </DialogFooter>

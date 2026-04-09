@@ -90,7 +90,7 @@ export function LockedRecruitmentCard({ clubId }: LockedRecruitmentCardProps) {
           </p>
 
           <button
-            className="inline-flex items-center gap-2 bg-white text-black text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-zinc-100 active:scale-[0.98] transition-all"
+            className="inline-flex items-center gap-2 bg-gold text-zinc-900 text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-gold/90 active:scale-[0.98] transition-all"
             onClick={(e) => { e.stopPropagation(); setModalOpen(true); }}
           >
             Request Exclusive Access

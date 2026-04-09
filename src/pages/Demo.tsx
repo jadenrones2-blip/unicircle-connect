@@ -334,7 +334,7 @@ function ApplicantViewTab() {
                     className="flex flex-col items-center gap-2.5"
                   >
                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-all ${
-                      done ? 'border-[#C9A84C] bg-[#C9A84C] text-black' : 'border-white/15 bg-[#0A0A0A] text-white/25'
+                      done ? 'border-[#C9A84C] bg-[#C9A84C] text-zinc-900' : 'border-white/15 bg-[#0A0A0A] text-white/25'
                     }`}>
                       {done ? <CheckCircle className="w-4 h-4" /> : <Clock className="w-3.5 h-3.5" />}
                     </div>
@@ -517,7 +517,7 @@ export default function Demo() {
           </div>
           <Link
             to="/signup"
-            className="flex items-center gap-2.5 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-black font-bold px-7 py-4 rounded-xl text-sm transition-colors whitespace-nowrap"
+            className="flex items-center gap-2.5 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-zinc-900 font-bold px-7 py-4 rounded-xl text-sm transition-colors whitespace-nowrap"
           >
             Get early access
             <ArrowRight className="w-4 h-4" />

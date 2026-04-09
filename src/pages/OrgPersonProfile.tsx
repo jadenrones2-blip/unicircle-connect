@@ -419,7 +419,7 @@ export default function OrgPersonProfile() {
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={handleSave} disabled={saving} size="sm" className="bg-gold text-black font-semibold hover:bg-gold/90 flex-1">
+                      <Button onClick={handleSave} disabled={saving} size="sm" className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90 flex-1">
                         {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Check className="w-3.5 h-3.5 mr-1" /> Save</>}
                       </Button>
                       <Button onClick={() => { setEditing(false); setEditForm(person); }} size="sm" variant="ghost" className="text-zinc-400">
@@ -476,7 +476,7 @@ export default function OrgPersonProfile() {
                   onClick={handleSubmitReview}
                   disabled={submittingReview}
                   size="sm"
-                  className="bg-gold text-black font-semibold hover:bg-gold/90"
+                  className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90"
                 >
                   {submittingReview ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : myReview ? 'Update Review' : 'Submit Review'}
                 </Button>
@@ -556,7 +556,7 @@ export default function OrgPersonProfile() {
           </div>
           <DialogFooter className="mt-2">
             <Button variant="ghost" onClick={() => setEmailOpen(false)} className="text-zinc-400">Cancel</Button>
-            <Button onClick={handleSendEmail} disabled={sendingEmail} className="bg-gold text-black font-semibold hover:bg-gold/90">
+            <Button onClick={handleSendEmail} disabled={sendingEmail} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">
               {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Mail className="w-3.5 h-3.5 mr-1.5" />Send Email</>}
             </Button>
           </DialogFooter>

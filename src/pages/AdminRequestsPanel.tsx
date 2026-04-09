@@ -250,7 +250,7 @@ export default function AdminRequestsPanel() {
               onClick={() => setStatusFilter(f)}
               className={`px-3 py-1 rounded-full text-xs font-medium capitalize transition-all ${
                 statusFilter === f
-                  ? 'bg-gold text-black'
+                  ? 'bg-gold text-zinc-900'
                   : 'bg-transparent text-zinc-500 border border-white/10 hover:border-white/20'
               }`}
             >

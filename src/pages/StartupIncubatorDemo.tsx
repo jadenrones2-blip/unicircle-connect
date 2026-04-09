@@ -471,7 +471,7 @@ export default function StartupIncubatorDemo() {
               </div>
               <div className="pt-2">
                 <button
-                  className="w-full py-2.5 rounded-xl text-sm font-semibold text-black transition-colors"
+                  className="w-full py-2.5 rounded-xl text-sm font-semibold text-zinc-900 transition-colors"
                   style={{ background: SI_COLOR }}
                 >
                   Submit Application
@@ -515,7 +515,7 @@ export default function StartupIncubatorDemo() {
           <p className="text-zinc-400 mb-6">Set up takes less than 10 minutes. We'll walk you through it.</p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link to="/club-admin/request">
-              <button className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-black bg-white hover:bg-zinc-100 transition-colors">
+              <button className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-zinc-900 bg-gold hover:bg-gold/90 transition-colors">
                 Get Started <ArrowRight className="w-4 h-4" />
               </button>
             </Link>

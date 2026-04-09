@@ -148,7 +148,7 @@ export function WaitlistModal({ open, onClose, clubId }: WaitlistModalProps) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-white text-black text-sm font-semibold py-3 rounded-lg hover:bg-zinc-100 active:scale-[0.98] transition-all disabled:opacity-50 mt-2"
+                  className="w-full flex items-center justify-center gap-2 bg-gold text-zinc-900 text-sm font-semibold py-3 rounded-lg hover:bg-gold/90 active:scale-[0.98] transition-all disabled:opacity-50 mt-2"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

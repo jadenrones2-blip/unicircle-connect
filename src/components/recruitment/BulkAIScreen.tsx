@@ -341,7 +341,7 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
           <Button
             onClick={handleRun}
             disabled={running || targetApplicants.length === 0}
-            className="w-full gap-2 bg-gold text-black hover:bg-gold/90 font-medium"
+            className="w-full gap-2 bg-gold text-zinc-900 hover:bg-gold/90 font-medium"
           >
             {running ? (
               <>

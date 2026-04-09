@@ -362,7 +362,7 @@ export default function StudentProfile() {
           <Button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="w-full bg-gold text-black font-semibold hover:bg-gold/90 h-10"
+            className="w-full bg-gold text-zinc-900 font-semibold hover:bg-gold/90 h-10"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1.5" />Save Profile</>}
           </Button>
@@ -463,7 +463,7 @@ export default function StudentProfile() {
           <Button
             onClick={handleSaveInterests}
             disabled={savingInterests || !interestsDirty}
-            className="w-full bg-gold text-black font-semibold hover:bg-gold/90 h-10 disabled:opacity-30"
+            className="w-full bg-gold text-zinc-900 font-semibold hover:bg-gold/90 h-10 disabled:opacity-30"
           >
             {savingInterests
               ? <Loader2 className="w-4 h-4 animate-spin" />

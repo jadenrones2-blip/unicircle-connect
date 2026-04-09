@@ -279,7 +279,7 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
             exit={{ opacity: 0, scale: 0.8, y: 16 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
             onClick={handleOpen}
-            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-[hsl(43_76%_52%)] px-4 py-3 text-sm font-semibold text-black shadow-lg hover:bg-[hsl(43_76%_46%)] transition-colors duration-200"
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-[hsl(43_76%_52%)] px-4 py-3 text-sm font-semibold text-zinc-900 shadow-lg hover:bg-[hsl(43_76%_46%)] transition-colors duration-200"
             aria-label="Open club finder chat"
           >
             <MessageCircle className="h-4 w-4" />
@@ -357,7 +357,7 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
                                   className={[
                                     "rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150",
                                     isSelected
-                                      ? "border-[hsl(43_76%_52%)] bg-[hsl(43_76%_52%)] text-black"
+                                      ? "border-[hsl(43_76%_52%)] bg-[hsl(43_76%_52%)] text-zinc-900"
                                       : stepLocked
                                       ? "border-white/10 text-white/30 cursor-not-allowed"
                                       : "border-white/20 text-white hover:border-[hsl(43_76%_52%)] hover:text-[hsl(43_76%_52%)]",
@@ -373,7 +373,7 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
                     ) : (
                       /* User bubble — right-aligned gold */
                       <div className="flex justify-end">
-                        <div className="max-w-[75%] rounded-2xl rounded-tr-sm bg-[hsl(43_76%_52%)] px-3 py-2 text-xs font-medium text-black leading-relaxed">
+                        <div className="max-w-[75%] rounded-2xl rounded-tr-sm bg-[hsl(43_76%_52%)] px-3 py-2 text-xs font-medium text-zinc-900 leading-relaxed">
                           {msg.text}
                         </div>
                       </div>
