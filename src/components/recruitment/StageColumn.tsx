@@ -139,7 +139,7 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
             ))}
             {applicants.length === 0 && (
               <div className="text-center py-8 text-sm text-zinc-600">
-                Drop applicants here
+                Applications will appear here
               </div>
             )}
           </div>

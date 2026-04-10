@@ -16,7 +16,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Settings2, LayoutGrid, Table, FileText, Download, Mail, Users, Pencil, Plus, Trash2, Check, X } from 'lucide-react';
+import { Settings2, LayoutGrid, Table, FileText, Download, Mail, Users, Pencil, Plus, Trash2, Check, X, BarChart2 } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -33,6 +33,8 @@ import { MessageComposer } from './MessageComposer';
 import { ApplicantDetailDrawer } from './ApplicantDetailDrawer';
 import { ApplicantRosterView } from './ApplicantRosterView';
 import type { RecruitmentStage, Applicant, RecruitmentSettings, FormQuestion } from '@/hooks/useRecruitment';
+
+const STAGE_PALETTE = ['#3b82f6', '#a855f7', '#f97316', '#06b6d4', '#10b981', '#ec4899'];
 
 interface RecruitmentKanbanProps {
   clubId: string;
@@ -94,6 +96,34 @@ export function RecruitmentKanban({
   const { user } = useAuth();
   const { aiCriteria } = useRecruitmentRequirements(clubId);
   const [officerScoreMap, setOfficerScoreMap] = useState<Record<string, number>>({});
+
+  const [voteMap, setVoteMap] = useState<Record<string, { yes: number; no: number; maybe: number }>>({});
+
+  const refreshVoteMap = useCallback(async () => {
+    if (applicants.length === 0) return;
+    const ids = applicants.map(a => a.id);
+    try {
+      const { data } = await (supabase as any)
+        .from('deliberation_votes')
+        .select('applicant_id, vote')
+        .in('applicant_id', ids);
+      if (!data) return;
+      const map: Record<string, { yes: number; no: number; maybe: number }> = {};
+      for (const row of data) {
+        if (!map[row.applicant_id]) map[row.applicant_id] = { yes: 0, no: 0, maybe: 0 };
+        if (row.vote === 'yes') map[row.applicant_id].yes++;
+        else if (row.vote === 'no') map[row.applicant_id].no++;
+        else if (row.vote === 'maybe') map[row.applicant_id].maybe++;
+      }
+      setVoteMap(map);
+    } catch {
+      // deliberation_votes might not exist — fail silently
+    }
+  }, [applicants]);
+
+  useEffect(() => {
+    refreshVoteMap();
+  }, [refreshVoteMap]);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingStageId, setEditingStageId] = useState<string | null>(null);
@@ -197,8 +227,16 @@ export function RecruitmentKanban({
 
   const closeDrawer = () => {
     setDrawerOpen(false);
-    // Refresh score badges after officer may have scored in the drawer
-    setTimeout(refreshOfficerScores, 300);
+    setTimeout(() => { refreshOfficerScores(); refreshVoteMap(); }, 300);
+  };
+
+  const handleMoveFromDrawer = async (applicantId: string, stageId: string): Promise<boolean> => {
+    const ok = await onMoveApplicant(applicantId, stageId, clubName);
+    if (ok) {
+      setDrawerApplicant(prev => prev ? { ...prev, stage_id: stageId } : prev);
+      await onRefresh();
+    }
+    return ok;
   };
 
   const handleRunAISingleApplicant = async (applicantId: string) => {
@@ -289,7 +327,7 @@ export function RecruitmentKanban({
     await onRefresh();
   };
 
-  const [activeView, setActiveView] = useState<'kanban' | 'table' | 'roster' | 'settings' | 'form' | 'messages'>(
+  const [activeView, setActiveView] = useState<'kanban' | 'scorecard' | 'table' | 'roster' | 'settings' | 'form' | 'messages'>(
     typeof window !== 'undefined' && window.innerWidth < 768 ? 'table' : 'kanban'
   );
 
@@ -310,6 +348,7 @@ export function RecruitmentKanban({
             </h2>
             <p className="text-sm text-zinc-500 hidden sm:block">
               {activeView === 'kanban' && 'Drag and drop applicants between stages'}
+              {activeView === 'scorecard' && 'Full applicant scorecard sorted by AI fit score'}
               {activeView === 'table' && 'View and manage all applicants'}
               {activeView === 'roster' && 'Applicant roster with full names and demographics'}
               {activeView === 'settings' && 'Configure screening requirements'}
@@ -320,12 +359,13 @@ export function RecruitmentKanban({
           {/* View switcher — always visible */}
           <div className="flex border border-white/15 rounded-md shrink-0">
             {([
-              { view: 'kanban',   icon: <LayoutGrid className="w-4 h-4" />, title: 'Kanban Board' },
-              { view: 'table',    icon: <Table className="w-4 h-4" />,      title: 'Table View' },
-              { view: 'roster',   icon: <Users className="w-4 h-4" />,      title: 'Roster' },
-              { view: 'form',     icon: <FileText className="w-4 h-4" />,   title: 'Application Form' },
-              { view: 'messages', icon: <Mail className="w-4 h-4" />,       title: 'Message Applicants' },
-              { view: 'settings', icon: <Settings2 className="w-4 h-4" />, title: 'Screening Settings' },
+              { view: 'kanban',    icon: <LayoutGrid className="w-4 h-4" />,  title: 'Kanban Board' },
+              { view: 'scorecard', icon: <BarChart2 className="w-4 h-4" />,   title: 'Scorecard' },
+              { view: 'table',     icon: <Table className="w-4 h-4" />,       title: 'Table View' },
+              { view: 'roster',    icon: <Users className="w-4 h-4" />,       title: 'Roster' },
+              { view: 'form',      icon: <FileText className="w-4 h-4" />,    title: 'Application Form' },
+              { view: 'messages',  icon: <Mail className="w-4 h-4" />,        title: 'Message Applicants' },
+              { view: 'settings',  icon: <Settings2 className="w-4 h-4" />,  title: 'Screening Settings' },
             ] as const).map(({ view, icon, title }, i, arr) => (
               <button
                 key={view}
@@ -343,7 +383,7 @@ export function RecruitmentKanban({
           </div>
         </div>
         {/* Action buttons — wrap on mobile */}
-        {(activeView === 'kanban' || activeView === 'table' || activeView === 'roster') && (
+        {(activeView === 'kanban' || activeView === 'scorecard' || activeView === 'table' || activeView === 'roster') && (
           <div className="flex flex-wrap items-center gap-2">
             <StudentVisibilitySettings
               clubId={clubId}
@@ -443,6 +483,102 @@ export function RecruitmentKanban({
         </ScrollArea>
       )}
 
+      {activeView === 'scorecard' && (() => {
+        const stageColorMap = stages.reduce<Record<string, string>>((acc, s, i) => {
+          acc[s.id] = STAGE_PALETTE[i % STAGE_PALETTE.length];
+          return acc;
+        }, {});
+        const sorted = [...applicants].sort((a, b) => (b.fit_score ?? -1) - (a.fit_score ?? -1));
+        return (
+          <div className="overflow-x-auto rounded-xl border border-white/10">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10 bg-zinc-900/60">
+                  <th className="text-left py-3 px-3 text-xs text-zinc-500 font-medium w-8">#</th>
+                  <th className="text-left py-3 px-3 text-xs text-zinc-500 font-medium">Applicant</th>
+                  <th className="text-left py-3 px-3 text-xs text-zinc-500 font-medium">Stage</th>
+                  <th className="text-right py-3 px-3 text-xs text-zinc-500 font-medium">AI Score</th>
+                  <th className="text-right py-3 px-3 text-xs text-zinc-500 font-medium">Officer Score</th>
+                  <th className="text-center py-3 px-3 text-xs text-zinc-500 font-medium">Votes</th>
+                  <th className="text-left py-3 px-3 text-xs text-zinc-500 font-medium">Decision</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((applicant, i) => {
+                  const votes = voteMap[applicant.id] ?? { yes: 0, no: 0, maybe: 0 };
+                  const stage = stages.find(s => s.id === applicant.stage_id);
+                  const stageColor = stageColorMap[applicant.stage_id ?? ''] ?? '#71717a';
+                  const decision = (applicant as any).final_decision ?? 'pending';
+                  const officerScore = officerScoreMap[applicant.id];
+                  const hasVotes = votes.yes > 0 || votes.no > 0 || votes.maybe > 0;
+                  return (
+                    <tr
+                      key={applicant.id}
+                      onClick={() => openDrawer(applicant)}
+                      className="border-b border-white/5 hover:bg-white/5 cursor-pointer transition-colors last:border-0"
+                    >
+                      <td className="py-2.5 px-3 text-zinc-600 text-xs">{i + 1}</td>
+                      <td className="py-2.5 px-3">
+                        <p className="font-medium text-white text-sm">{applicant.first_name} {applicant.last_name}</p>
+                        {(applicant.major || applicant.year) && (
+                          <p className="text-xs text-zinc-500 mt-0.5">{[applicant.major, applicant.year].filter(Boolean).join(' · ')}</p>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        {stage && (
+                          <span
+                            className="px-2 py-0.5 rounded-full text-xs font-medium"
+                            style={{ background: `${stageColor}22`, color: stageColor }}
+                          >
+                            {stage.label}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        {applicant.fit_score !== null && applicant.fit_score !== undefined ? (
+                          <span className={`font-medium text-sm ${
+                            applicant.fit_score >= 80 ? 'text-green-400' :
+                            applicant.fit_score >= 60 ? 'text-gold' : 'text-zinc-400'
+                          }`}>{applicant.fit_score}</span>
+                        ) : <span className="text-zinc-700">—</span>}
+                      </td>
+                      <td className="py-2.5 px-3 text-right">
+                        {officerScore !== undefined ? (
+                          <span className="text-gold font-medium text-sm">{officerScore}</span>
+                        ) : <span className="text-zinc-700">—</span>}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {hasVotes ? (
+                          <span className="flex items-center justify-center gap-1.5 text-xs">
+                            {votes.yes > 0 && <span className="text-green-400">{votes.yes}✓</span>}
+                            {votes.no > 0 && <span className="text-red-400">{votes.no}✗</span>}
+                            {votes.maybe > 0 && <span className="text-zinc-400">{votes.maybe}?</span>}
+                          </span>
+                        ) : <span className="text-zinc-700">—</span>}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        {decision !== 'pending' && (
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                            decision === 'accepted' ? 'bg-green-500/10 text-green-400' :
+                            decision === 'rejected' ? 'bg-red-500/10 text-red-400' :
+                            'bg-gold/10 text-gold'
+                          }`}>
+                            {decision.charAt(0).toUpperCase() + decision.slice(1)}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {applicants.length === 0 && (
+              <div className="text-center py-16 text-sm text-zinc-600">No applicants yet</div>
+            )}
+          </div>
+        );
+      })()}
+
       {activeView === 'table' && (
         <ApplicantTableView
           clubId={clubId}
@@ -486,10 +622,12 @@ export function RecruitmentKanban({
         open={drawerOpen}
         onClose={closeDrawer}
         clubId={clubId}
+        stages={stages}
         formQuestions={formQuestions}
         onUpdateFinalDecision={onUpdateFinalDecision}
         onUpdateNotes={onUpdateNotes}
         onRunAIScreen={handleRunAISingleApplicant}
+        onMoveApplicant={handleMoveFromDrawer}
       />
     </div>
   );

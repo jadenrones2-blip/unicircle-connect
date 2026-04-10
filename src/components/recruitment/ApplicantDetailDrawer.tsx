@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ThumbsUp, ThumbsDown, Minus, Sparkles, Loader2, Check, Star, Download, ClipboardList } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Minus, Sparkles, Loader2, Check, Star, Download, ClipboardList, ArrowRight, Mail } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -20,7 +20,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import type { Applicant, FormQuestion } from '@/hooks/useRecruitment';
+import type { Applicant, FormQuestion, RecruitmentStage } from '@/hooks/useRecruitment';
 import { useRecruitmentRequirements } from '@/hooks/useRecruitmentRequirements';
 import { useRubricScoring, parseCriterionValue, calcWeightedScore } from '@/hooks/useRubricScoring';
 
@@ -33,15 +33,23 @@ interface VoteTally {
   maybe: number;
 }
 
+interface VoteRow {
+  voter_id: string;
+  vote: VoteValue;
+  comment: string | null;
+}
+
 interface ApplicantDetailDrawerProps {
   applicant: Applicant | null;
   open: boolean;
   onClose: () => void;
   clubId: string;
+  stages: RecruitmentStage[];
   formQuestions: FormQuestion[];
   onUpdateFinalDecision: (id: string, decision: string) => Promise<boolean>;
   onUpdateNotes: (id: string, notes: string) => Promise<boolean>;
   onRunAIScreen: (applicantId: string) => Promise<void>;
+  onMoveApplicant: (applicantId: string, stageId: string) => Promise<boolean>;
 }
 
 // ─── Fit score badge ──────────────────────────────────────────────────────────
@@ -103,6 +111,16 @@ function VoteButton({
   );
 }
 
+// ─── Section divider ──────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
+      {children}
+    </p>
+  );
+}
+
 // ─── Main Drawer ──────────────────────────────────────────────────────────────
 
 export function ApplicantDetailDrawer({
@@ -110,10 +128,12 @@ export function ApplicantDetailDrawer({
   open,
   onClose,
   clubId,
+  stages,
   formQuestions,
   onUpdateFinalDecision,
   onUpdateNotes,
   onRunAIScreen,
+  onMoveApplicant,
 }: ApplicantDetailDrawerProps) {
   const { user } = useAuth();
 
@@ -121,7 +141,12 @@ export function ApplicantDetailDrawer({
   const [myVote, setMyVote] = useState<VoteValue | null>(null);
   const [comment, setComment] = useState('');
   const [tally, setTally] = useState<VoteTally>({ yes: 0, no: 0, maybe: 0 });
+  const [allVoteRows, setAllVoteRows] = useState<VoteRow[]>([]);
   const [voteSaving, setVoteSaving] = useState(false);
+
+  // Stage move
+  const [movingToStage, setMovingToStage] = useState<string | null>(null);
+  const [currentStageId, setCurrentStageId] = useState<string | null>(null);
 
   // Final decision
   const [decision, setDecision] = useState<FinalDecision>('pending');
@@ -161,9 +186,10 @@ export function ApplicantDetailDrawer({
 
       if (error) return;
 
-      const myRow = data?.find((v) => v.voter_id === user.id);
+      const myRow = data?.find((v: VoteRow) => v.voter_id === user.id);
       setMyVote((myRow?.vote as VoteValue) || null);
       setComment(myRow?.comment || '');
+      setAllVoteRows(data || []);
 
       const t: VoteTally = { yes: 0, no: 0, maybe: 0 };
       for (const row of data || []) {
@@ -182,6 +208,7 @@ export function ApplicantDetailDrawer({
       setDecision((applicant as any).final_decision || 'pending');
       setNotes(applicant.notes || '');
       setNotesDirty(false);
+      setCurrentStageId(applicant.stage_id);
       fetchVotes();
     }
   }, [open, applicant, fetchVotes]);
@@ -221,11 +248,20 @@ export function ApplicantDetailDrawer({
         );
       if (error) throw error;
       toast.success('Comment saved');
+      await fetchVotes();
     } catch {
       toast.error('Failed to save comment');
     } finally {
       setVoteSaving(false);
     }
+  };
+
+  const handleMoveToStage = async (stageId: string) => {
+    if (!applicant?.id) return;
+    setMovingToStage(stageId);
+    const ok = await onMoveApplicant(applicant.id, stageId);
+    if (ok) setCurrentStageId(stageId);
+    setMovingToStage(null);
   };
 
   const handleDecisionChange = async (value: string) => {
@@ -255,6 +291,8 @@ export function ApplicantDetailDrawer({
 
   const metadata = applicant.metadata as Record<string, string> | null;
   const isStandout = applicant.is_standout ?? ((applicant.fit_score ?? 0) >= 85 && applicant.passes_strict_filters !== false);
+  const otherVoteComments = allVoteRows.filter(v => v.voter_id !== user?.id && v.comment);
+  const totalVotes = tally.yes + tally.no + tally.maybe;
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -296,12 +334,302 @@ export function ApplicantDetailDrawer({
         </SheetHeader>
 
         <div className="space-y-6 pt-5">
-          {/* Application Responses */}
+
+          {/* 1. AI Summary */}
+          <section>
+            <SectionLabel>AI Summary</SectionLabel>
+            {applicant.ai_summary ? (
+              <p className="text-sm text-zinc-300 bg-zinc-900 rounded-lg px-3 py-2 border border-white/10 leading-relaxed">
+                {applicant.ai_summary}
+              </p>
+            ) : (
+              <div className="flex items-center gap-3">
+                <p className="text-sm text-zinc-500">No AI summary yet.</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRunAI}
+                  disabled={aiRunning}
+                  className="border-white/10 text-zinc-400"
+                >
+                  {aiRunning ? (
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                  )}
+                  Run AI Screen
+                </Button>
+              </div>
+            )}
+          </section>
+
+          {/* 2. Your Vote */}
+          <section>
+            <SectionLabel>Your Vote</SectionLabel>
+            <div className="flex gap-2 mb-3">
+              {(['yes', 'no', 'maybe'] as VoteValue[]).map((v) => (
+                <VoteButton
+                  key={v}
+                  value={v}
+                  current={myVote}
+                  onClick={() => handleVote(v)}
+                  disabled={voteSaving}
+                />
+              ))}
+            </div>
+            <div className="space-y-2">
+              <Label className="text-zinc-400 text-xs">Comment (optional)</Label>
+              <Textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={2}
+                placeholder="Add a note about this applicant..."
+                className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 resize-none text-sm"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-white/10 text-zinc-400"
+                onClick={handleSaveComment}
+                disabled={voteSaving}
+              >
+                {voteSaving ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
+                Save comment
+              </Button>
+            </div>
+          </section>
+
+          {/* 3. Team Votes */}
+          <section>
+            <SectionLabel>Team Votes</SectionLabel>
+            {totalVotes > 0 ? (
+              <>
+                <div className="flex gap-5 text-sm mb-3">
+                  <span className="flex items-center gap-1.5 text-green-400 font-medium">
+                    <ThumbsUp className="w-3.5 h-3.5" />{tally.yes}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-red-400 font-medium">
+                    <ThumbsDown className="w-3.5 h-3.5" />{tally.no}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
+                    <Minus className="w-3.5 h-3.5" />{tally.maybe}
+                  </span>
+                </div>
+                {otherVoteComments.length > 0 && (
+                  <div className="space-y-2">
+                    {otherVoteComments.map((v, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
+                          v.vote === 'yes' ? 'bg-green-500/20 text-green-400' : v.vote === 'no' ? 'bg-red-500/20 text-red-400' : 'bg-zinc-500/20 text-zinc-400'
+                        }`}>
+                          {v.vote === 'yes' ? '✓' : v.vote === 'no' ? '✗' : '?'}
+                        </div>
+                        <p className="text-xs text-zinc-400 bg-zinc-900 rounded-lg px-3 py-2 border border-white/10 flex-1 leading-relaxed">
+                          {v.comment}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-zinc-600">No votes yet</p>
+            )}
+          </section>
+
+          {/* 4. Rubric Score */}
+          {aiCriteria.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <SectionLabel>Score</SectionLabel>
+                {(() => {
+                  const ws = calcWeightedScore(scores, aiCriteria);
+                  return ws !== null ? (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold/10 border border-gold/20">
+                      <ClipboardList className="w-3.5 h-3.5 text-gold" />
+                      <span className="text-sm font-bold text-gold">{ws}</span>
+                      <span className="text-xs text-gold/70">/ 100</span>
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+
+              <div className="space-y-4">
+                {aiCriteria.map((req) => {
+                  const { description, weight } = parseCriterionValue(req);
+                  const myScore = scores[req.id]?.score ?? 0;
+                  const teamAvg = teamAvgForCriterion(req.id);
+                  const isSaving = scoreSaving === req.id;
+
+                  return (
+                    <div key={req.id} className="rounded-xl border border-white/10 bg-zinc-900/60 p-3.5 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm text-zinc-200 leading-snug">{description}</p>
+                        <div className="flex items-center gap-0.5 shrink-0 ml-2 mt-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <div
+                              key={i}
+                              className={`w-1.5 h-1.5 rounded-full ${i < weight ? 'bg-gold/50' : 'bg-white/10'}`}
+                            />
+                          ))}
+                          <span className="text-[10px] text-zinc-600 ml-1.5">w{weight}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1.5">
+                          {[1, 2, 3, 4, 5].map((val) => (
+                            <button
+                              key={val}
+                              type="button"
+                              disabled={isSaving}
+                              onClick={() => saveScore(req.id, val, scoreNotes[req.id] || '')}
+                              title={`${val}/5`}
+                              className={`w-8 h-8 rounded-full border text-xs font-bold transition-all ${
+                                myScore === val
+                                  ? 'bg-gold border-gold text-zinc-900 scale-110'
+                                  : myScore > 0 && val <= myScore
+                                  ? 'bg-gold/30 border-gold/50 text-gold'
+                                  : 'bg-white/5 border-white/15 text-zinc-600 hover:border-white/30 hover:text-zinc-300'
+                              }`}
+                            >
+                              {val}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 ml-1">
+                          {myScore > 0 && (
+                            <span className="text-sm font-semibold text-white">{myScore}/5</span>
+                          )}
+                          {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />}
+                          {teamAvg !== null && (
+                            <span className="text-xs text-zinc-600">team avg {teamAvg}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <input
+                        value={scoreNotes[req.id] || ''}
+                        onChange={(e) => setScoreNotes((prev) => ({ ...prev, [req.id]: e.target.value }))}
+                        onBlur={() => {
+                          if (myScore > 0) saveScore(req.id, myScore, scoreNotes[req.id] || '');
+                        }}
+                        placeholder="Add a note for this criterion… (optional)"
+                        className="w-full bg-transparent text-xs text-zinc-400 placeholder:text-zinc-700 focus:outline-none border-b border-transparent focus:border-white/15 py-0.5 transition-colors"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {aiCriteria.length > 0 && Object.keys(scores).length === 0 && (
+                <p className="text-xs text-zinc-600 text-center mt-2">
+                  Click the numbered dots above to score each criterion
+                </p>
+              )}
+            </section>
+          )}
+
+          {/* 5. Move to Stage */}
+          {stages.length > 0 && (
+            <section>
+              <SectionLabel>Move to Stage</SectionLabel>
+              <div className="flex flex-wrap gap-2">
+                {stages.map((stage) => {
+                  const isCurrent = currentStageId === stage.id;
+                  const isMoving = movingToStage === stage.id;
+                  return (
+                    <button
+                      key={stage.id}
+                      type="button"
+                      disabled={isCurrent || !!movingToStage}
+                      onClick={() => handleMoveToStage(stage.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors disabled:cursor-default ${
+                        isCurrent
+                          ? 'bg-gold/15 border-gold/40 text-gold'
+                          : 'border-white/10 text-zinc-400 hover:text-white hover:border-white/25 hover:bg-white/5 disabled:opacity-50'
+                      }`}
+                    >
+                      {isMoving ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : isCurrent ? (
+                        <Check className="w-3 h-3" />
+                      ) : (
+                        <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100" />
+                      )}
+                      {stage.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* 6. Emails Sent */}
+          <section>
+            <SectionLabel>Emails Sent</SectionLabel>
+            <div className="flex items-center gap-2.5 px-3 py-3 rounded-lg border border-dashed border-white/10 text-zinc-600">
+              <Mail className="w-4 h-4 shrink-0" />
+              <p className="text-xs">Email history not available yet</p>
+            </div>
+          </section>
+
+          {/* 7. Final Decision */}
+          <section>
+            <SectionLabel>Final Decision</SectionLabel>
+            <div className="flex items-center gap-3">
+              <Select value={decision} onValueChange={handleDecisionChange} disabled={decisionSaving}>
+                <SelectTrigger className="bg-zinc-900 border-white/10 text-white w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-950 border-white/10">
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="accepted">Accepted</SelectItem>
+                  <SelectItem value="waitlisted">Waitlisted</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+              {decisionSaving && <Loader2 className="w-4 h-4 animate-spin text-zinc-500" />}
+              {decision === 'accepted' && (
+                <Badge className="bg-green-500/10 text-green-400 border-green-500/20">Accepted</Badge>
+              )}
+              {decision === 'rejected' && (
+                <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Rejected</Badge>
+              )}
+              {decision === 'waitlisted' && (
+                <Badge className="bg-gold/10 text-gold border-gold/20">Waitlisted</Badge>
+              )}
+            </div>
+          </section>
+
+          {/* 8. Officer Notes */}
+          <section>
+            <SectionLabel>Officer Notes</SectionLabel>
+            <Textarea
+              value={notes}
+              onChange={(e) => { setNotes(e.target.value); setNotesDirty(true); }}
+              rows={4}
+              placeholder="Private notes visible only to club officers..."
+              className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 resize-none text-sm mb-2"
+            />
+            {notesDirty && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-white/10 text-zinc-400"
+                onClick={handleSaveNotes}
+                disabled={notesSaving}
+              >
+                {notesSaving ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
+                Save notes
+              </Button>
+            )}
+          </section>
+
+          {/* 9. Application Responses */}
           {formQuestions.length > 0 && metadata && Object.keys(metadata).length > 0 && (
             <section>
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-                Application Responses
-              </p>
+              <SectionLabel>Application Responses</SectionLabel>
               <div className="space-y-4">
                 {formQuestions.map((q) => {
                   const answer = metadata[q.id];
@@ -346,240 +674,6 @@ export function ApplicantDetailDrawer({
             </section>
           )}
 
-          {/* AI Summary */}
-          <section>
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-              AI Summary
-            </p>
-            {applicant.ai_summary ? (
-              <p className="text-sm text-zinc-300 bg-zinc-900 rounded-lg px-3 py-2 border border-white/10 leading-relaxed">
-                {applicant.ai_summary}
-              </p>
-            ) : (
-              <div className="flex items-center gap-3">
-                <p className="text-sm text-zinc-500">No AI summary yet.</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRunAI}
-                  disabled={aiRunning}
-                  className="border-white/10 text-zinc-400"
-                >
-                  {aiRunning ? (
-                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                  )}
-                  Run AI Screen
-                </Button>
-              </div>
-            )}
-          </section>
-
-          {/* Rubric Scoring */}
-          {aiCriteria.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
-                  Your Scores
-                </p>
-                {(() => {
-                  const ws = calcWeightedScore(scores, aiCriteria);
-                  return ws !== null ? (
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold/10 border border-gold/20">
-                      <ClipboardList className="w-3.5 h-3.5 text-gold" />
-                      <span className="text-sm font-bold text-gold">{ws}</span>
-                      <span className="text-xs text-gold/70">/ 100</span>
-                    </div>
-                  ) : null;
-                })()}
-              </div>
-
-              <div className="space-y-4">
-                {aiCriteria.map((req) => {
-                  const { description, weight } = parseCriterionValue(req);
-                  const myScore = scores[req.id]?.score ?? 0;
-                  const teamAvg = teamAvgForCriterion(req.id);
-                  const isSaving = scoreSaving === req.id;
-
-                  return (
-                    <div key={req.id} className="rounded-xl border border-white/10 bg-zinc-900/60 p-3.5 space-y-3">
-                      {/* Criterion header */}
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm text-zinc-200 leading-snug">{description}</p>
-                        <div className="flex items-center gap-0.5 shrink-0 ml-2 mt-0.5">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <div
-                              key={i}
-                              className={`w-1.5 h-1.5 rounded-full ${i < weight ? 'bg-gold/50' : 'bg-white/10'}`}
-                            />
-                          ))}
-                          <span className="text-[10px] text-zinc-600 ml-1.5">w{weight}</span>
-                        </div>
-                      </div>
-
-                      {/* 1–5 dot selector */}
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-1.5">
-                          {[1, 2, 3, 4, 5].map((val) => (
-                            <button
-                              key={val}
-                              type="button"
-                              disabled={isSaving}
-                              onClick={() => saveScore(req.id, val, scoreNotes[req.id] || '')}
-                              title={`${val}/5`}
-                              className={`w-8 h-8 rounded-full border text-xs font-bold transition-all ${
-                                myScore === val
-                                  ? 'bg-gold border-gold text-zinc-900 scale-110'
-                                  : myScore > 0 && val <= myScore
-                                  ? 'bg-gold/30 border-gold/50 text-gold'
-                                  : 'bg-white/5 border-white/15 text-zinc-600 hover:border-white/30 hover:text-zinc-300'
-                              }`}
-                            >
-                              {val}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-2 ml-1">
-                          {myScore > 0 && (
-                            <span className="text-sm font-semibold text-white">{myScore}/5</span>
-                          )}
-                          {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />}
-                          {teamAvg !== null && (
-                            <span className="text-xs text-zinc-600">team avg {teamAvg}</span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Qualitative note */}
-                      <input
-                        value={scoreNotes[req.id] || ''}
-                        onChange={(e) => setScoreNotes((prev) => ({ ...prev, [req.id]: e.target.value }))}
-                        onBlur={() => {
-                          if (myScore > 0) saveScore(req.id, myScore, scoreNotes[req.id] || '');
-                        }}
-                        placeholder="Add a note for this criterion… (optional)"
-                        className="w-full bg-transparent text-xs text-zinc-400 placeholder:text-zinc-700 focus:outline-none border-b border-transparent focus:border-white/15 py-0.5 transition-colors"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-
-              {aiCriteria.length > 0 && Object.keys(scores).length === 0 && (
-                <p className="text-xs text-zinc-600 text-center mt-2">
-                  Click the numbered dots above to score each criterion
-                </p>
-              )}
-            </section>
-          )}
-
-          {/* Deliberation */}
-          <section>
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-              Deliberation
-            </p>
-
-            {/* Vote buttons */}
-            <div className="flex gap-2 mb-3">
-              {(['yes', 'no', 'maybe'] as VoteValue[]).map((v) => (
-                <VoteButton
-                  key={v}
-                  value={v}
-                  current={myVote}
-                  onClick={() => handleVote(v)}
-                  disabled={voteSaving}
-                />
-              ))}
-            </div>
-
-            {/* Comment */}
-            <div className="space-y-2 mb-3">
-              <Label className="text-zinc-400 text-xs">Comment (optional)</Label>
-              <Textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={2}
-                placeholder="Add a note about this applicant..."
-                className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 resize-none text-sm"
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-white/10 text-zinc-400"
-                onClick={handleSaveComment}
-                disabled={voteSaving}
-              >
-                {voteSaving ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
-                Save comment
-              </Button>
-            </div>
-
-            {/* Tally */}
-            <div className="flex gap-4 text-sm">
-              <span className="text-green-400 font-medium">{tally.yes} Yes</span>
-              <span className="text-zinc-500">·</span>
-              <span className="text-red-400 font-medium">{tally.no} No</span>
-              <span className="text-zinc-500">·</span>
-              <span className="text-zinc-400 font-medium">{tally.maybe} Maybe</span>
-            </div>
-          </section>
-
-          {/* Final Decision */}
-          <section>
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-              Final Decision
-            </p>
-            <div className="flex items-center gap-3">
-              <Select value={decision} onValueChange={handleDecisionChange} disabled={decisionSaving}>
-                <SelectTrigger className="bg-zinc-900 border-white/10 text-white w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-950 border-white/10">
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="accepted">Accepted</SelectItem>
-                  <SelectItem value="waitlisted">Waitlisted</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-              {decisionSaving && <Loader2 className="w-4 h-4 animate-spin text-zinc-500" />}
-              {decision === 'accepted' && (
-                <Badge className="bg-green-500/10 text-green-400 border-green-500/20">Accepted</Badge>
-              )}
-              {decision === 'rejected' && (
-                <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Rejected</Badge>
-              )}
-              {decision === 'waitlisted' && (
-                <Badge className="bg-gold/10 text-gold border-gold/20">Waitlisted</Badge>
-              )}
-            </div>
-          </section>
-
-          {/* Notes */}
-          <section>
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-              Officer Notes
-            </p>
-            <Textarea
-              value={notes}
-              onChange={(e) => { setNotes(e.target.value); setNotesDirty(true); }}
-              rows={4}
-              placeholder="Private notes visible only to club officers..."
-              className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 resize-none text-sm mb-2"
-            />
-            {notesDirty && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-white/10 text-zinc-400"
-                onClick={handleSaveNotes}
-                disabled={notesSaving}
-              >
-                {notesSaving ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
-                Save notes
-              </Button>
-            )}
-          </section>
         </div>
       </SheetContent>
     </Sheet>
