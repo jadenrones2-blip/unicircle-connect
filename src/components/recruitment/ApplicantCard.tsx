@@ -50,9 +50,11 @@ interface ApplicantCardProps {
   applicant: Applicant;
   onDelete: (id: string) => void;
   onOpen?: (applicant: Applicant) => void;
+  /** Officer's own weighted rubric score 0–100, shown as secondary badge */
+  officerScore?: number | null;
 }
 
-export function ApplicantCard({ applicant, onDelete, onOpen }: ApplicantCardProps) {
+export function ApplicantCard({ applicant, onDelete, onOpen, officerScore }: ApplicantCardProps) {
   const {
     attributes,
     listeners,
@@ -163,6 +165,21 @@ export function ApplicantCard({ applicant, onDelete, onOpen }: ApplicantCardProp
               </span>
             )}
             {getFitScoreBadge()}
+            {officerScore != null && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="text-xs gap-1 border-gold/40 text-gold/80">
+                      <Star className="w-3 h-3" />
+                      {officerScore}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm">Your rubric score</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
       </div>

@@ -64,9 +64,9 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
   if (mode === 'custom') {
     return (
       <div className="max-w-lg mx-auto py-12 px-4">
-        <Button 
-          variant="ghost" 
-          className="mb-6" 
+        <Button
+          variant="ghost"
+          className="mb-6"
           onClick={() => setMode('select')}
         >
           ← Back to templates
@@ -86,15 +86,27 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
 
         <Card>
           <CardContent className="pt-6 space-y-4">
+            {/* "Applied" is always the first stage — locked */}
+            <div className="flex items-center gap-2 opacity-60">
+              <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center shrink-0 text-sm font-medium text-gold">
+                1
+              </div>
+              <div className="flex-1 px-3 py-2 rounded-md border border-white/10 bg-white/5 text-sm text-zinc-400 flex items-center justify-between">
+                Applied
+                <span className="text-xs text-zinc-600 ml-2">locked — intake stage</span>
+              </div>
+              <div className="w-9" />
+            </div>
+
             {customStages.map((stage, index) => (
               <div key={index} className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0 text-sm font-medium">
-                  {index + 1}
+                  {index + 2}
                 </div>
                 <Input
                   value={stage}
                   onChange={(e) => updateCustomStage(index, e.target.value)}
-                  placeholder={`Stage ${index + 1} (e.g., ${['Application', 'Interview', 'Final Round'][index] || 'Stage name'})`}
+                  placeholder={`Stage ${index + 2} (e.g., ${['Interview', 'Final Round', 'Decision'][index] || 'Stage name'})`}
                   className="flex-1"
                 />
                 {customStages.length > 2 && (
@@ -165,13 +177,18 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
+                {/* Always show Applied as locked first stage */}
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold/10 text-sm border border-gold/20">
+                  <span className="w-4 h-4 rounded-full bg-gold/20 text-gold text-xs flex items-center justify-center">1</span>
+                  <span className="text-gold/80">Applied</span>
+                </div>
                 {template.stages.map((stage, index) => (
-                  <div 
+                  <div
                     key={stage}
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm"
                   >
                     <span className="w-4 h-4 rounded-full bg-gold/20 text-gold text-xs flex items-center justify-center">
-                      {index + 1}
+                      {index + 2}
                     </span>
                     {stage}
                   </div>

@@ -131,13 +131,57 @@ export function useRecruitment(clubId: string | undefined) {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
       await Promise.all([fetchSettings(), fetchStages(), fetchApplicants()]);
       setLoading(false);
     };
 
     loadData();
+
+    if (!clubId || !user) return;
+
+    const channel = supabase
+      .channel(`applicants:${clubId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'applicants',
+        filter: `club_id=eq.${clubId}`,
+      }, (payload) => {
+        setApplicants(prev => {
+          if (prev.find(a => a.id === (payload.new as any).id)) return prev;
+          const a = payload.new as any;
+          return [{
+            ...a,
+            metadata: (a.metadata as Record<string, string>) || null,
+            final_decision: a.final_decision ?? null,
+            is_standout: a.is_standout ?? null,
+          } as Applicant, ...prev];
+        });
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'applicants',
+        filter: `club_id=eq.${clubId}`,
+      }, (payload) => {
+        setApplicants(prev => prev.map(existing => {
+          if (existing.id !== (payload.new as any).id) return existing;
+          const a = payload.new as any;
+          return {
+            ...a,
+            metadata: (a.metadata as Record<string, string>) || null,
+            final_decision: a.final_decision ?? null,
+            is_standout: a.is_standout ?? null,
+          } as Applicant;
+        }));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [clubId, user, fetchSettings, fetchStages, fetchApplicants]);
 
   const enableRecruitment = async () => {
@@ -166,10 +210,13 @@ export function useRecruitment(clubId: string | undefined) {
   const createStages = async (stageLabels: string[]) => {
     if (!clubId || !user) return false;
 
-    const stagesToInsert = stageLabels.map((label, index) => ({
+    // Always ensure "Applied" is the first (intake) stage
+    const allLabels = ['Applied', ...stageLabels.filter(l => l.trim().toLowerCase() !== 'applied')];
+    const stagesToInsert = allLabels.map((label, index) => ({
       club_id: clubId,
       label,
       order_index: index,
+      is_intake: index === 0,
     }));
 
     const { error } = await supabase
@@ -450,6 +497,9 @@ export function useRecruitment(clubId: string | undefined) {
   };
 
   const deleteStage = async (stageId: string): Promise<boolean> => {
+    const stage = stages.find(s => s.id === stageId);
+    const isIntake = stage?.order_index === Math.min(...stages.map(s => s.order_index));
+    if (isIntake) { toast.error('The "Applied" intake stage cannot be deleted'); return false; }
     const hasApplicants = applicants.some(a => a.stage_id === stageId);
     if (hasApplicants) { toast.error('Move applicants out of this stage before deleting'); return false; }
     const { error } = await supabase

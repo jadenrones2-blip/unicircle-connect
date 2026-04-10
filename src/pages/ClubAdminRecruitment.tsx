@@ -9,7 +9,7 @@ import { RecruitmentIntro } from '@/components/recruitment/RecruitmentIntro';
 import { RecruitmentSetupWizard } from '@/components/recruitment/RecruitmentSetupWizard';
 import { RecruitmentKanban } from '@/components/recruitment/RecruitmentKanban';
 import { useRecruitment } from '@/hooks/useRecruitment';
-import { Loader2, Link2, Copy, FileText } from 'lucide-react';
+import { Loader2, Link2, Copy, FileText, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ClubAdminRecruitment() {
@@ -94,6 +94,16 @@ export default function ClubAdminRecruitment() {
           </header>
 
           <div className="flex-1 flex flex-col p-5 sm:p-7 min-h-0">
+            {/* Email verification warning */}
+            {user && !user.email_confirmed_at && (
+              <div className="mb-3 flex items-center gap-3 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5">
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <p className="text-sm text-amber-300">
+                  Please verify your email address — check your inbox for a confirmation link.
+                </p>
+              </div>
+            )}
+
             {/* Apply link banner — shown once recruitment is live */}
             {isEnabled && hasStages && (
               <div className="mb-3 flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-2.5 rounded-xl border border-white/8 bg-white/[0.02]">
