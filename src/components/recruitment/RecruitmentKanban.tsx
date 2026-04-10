@@ -16,7 +16,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Settings2, LayoutGrid, Table, FileText, Download, Mail, Users, Pencil, Plus, Trash2, Check, X, BarChart2 } from 'lucide-react';
+import { Settings2, LayoutGrid, Table, FileText, Download, Mail, Users, Pencil, Plus, Trash2, Check, X, BarChart2, FileDown } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -207,6 +207,61 @@ export function RecruitmentKanban({
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`Exported ${applicants.length} applicants`);
+  };
+
+  const exportScorecardPDF = async () => {
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
+
+    const sorted = [...applicants].sort((a, b) => (b.fit_score ?? -1) - (a.fit_score ?? -1));
+    const getStageName = (id: string | null) => stages.find(s => s.id === id)?.label ?? '—';
+
+    // Header
+    doc.setFontSize(18);
+    doc.setTextColor(30, 30, 30);
+    doc.text(`${clubName} — Applicant Scorecard`, 40, 44);
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} · ${sorted.length} applicant${sorted.length !== 1 ? 's' : ''}`, 40, 60);
+
+    autoTable(doc, {
+      startY: 76,
+      head: [['#', 'Name', 'Major / Year', 'Stage', 'AI Score', 'Officer Score', 'Votes', 'Decision']],
+      body: sorted.map((a, i) => {
+        const votes = voteMap[a.id] ?? { yes: 0, no: 0, maybe: 0 };
+        const voteStr = [
+          votes.yes   > 0 ? `${votes.yes} Yes`   : '',
+          votes.no    > 0 ? `${votes.no} No`      : '',
+          votes.maybe > 0 ? `${votes.maybe} Maybe` : '',
+        ].filter(Boolean).join('  ') || '—';
+        const decision = (a as any).final_decision ?? 'pending';
+        return [
+          i + 1,
+          `${a.first_name} ${a.last_name}`,
+          [a.major, a.year].filter(Boolean).join(' · ') || '—',
+          getStageName(a.stage_id),
+          a.fit_score !== null && a.fit_score !== undefined ? a.fit_score : '—',
+          officerScoreMap[a.id] !== undefined ? officerScoreMap[a.id] : '—',
+          voteStr,
+          decision === 'pending' ? '—' : decision.charAt(0).toUpperCase() + decision.slice(1),
+        ];
+      }),
+      styles: { fontSize: 9, cellPadding: 6, textColor: [30, 30, 30] },
+      headStyles: { fillColor: [24, 24, 27], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [248, 248, 250] },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 28 },
+        4: { halign: 'center' },
+        5: { halign: 'center' },
+        6: { halign: 'center' },
+        7: { halign: 'center' },
+      },
+    });
+
+    doc.save(`${clubName.replace(/\s+/g, '_')}_scorecard.pdf`);
+    toast.success('Scorecard exported as PDF');
   };
 
   // Applicant detail drawer
@@ -400,8 +455,14 @@ export function RecruitmentKanban({
             <CSVDataMapper onImport={onBulkAddApplicants} />
             <Button size="sm" variant="outline" onClick={exportCSV} className="gap-1.5 border-white/20 text-white hover:bg-white/10">
               <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">Export</span>
+              <span className="hidden sm:inline">Export CSV</span>
             </Button>
+            {activeView === 'scorecard' && (
+              <Button size="sm" variant="outline" onClick={exportScorecardPDF} className="gap-1.5 border-white/20 text-white hover:bg-white/10">
+                <FileDown className="w-4 h-4" />
+                <span className="hidden sm:inline">Export PDF</span>
+              </Button>
+            )}
             <AddApplicantDialog onAdd={onAddApplicant} />
           </div>
         )}
