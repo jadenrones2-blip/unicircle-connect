@@ -1,0 +1,9 @@
+supabase/functions
+supabase/migrations
+supabase/.branches
+supabase/.temp
+.claude
+*.log
+*.local
+.env.local
+.env.*.local
