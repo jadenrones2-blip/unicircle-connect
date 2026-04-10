@@ -59,7 +59,7 @@ const REQUIRED_FIELDS = ['first_name', 'last_name', 'email'] as const;
 const OPTIONAL_FIELDS = ['major', 'year', 'gpa'] as const;
 const ALL_FIELDS = [...REQUIRED_FIELDS, ...OPTIONAL_FIELDS] as const;
 
-type FieldName = (typeof ALL_FIELDS)[number];
+type FieldName = (typeof ALL_FIELDS)[number] | 'full_name';
 
 interface ColumnMapping {
   csvHeader: string;
@@ -67,6 +67,16 @@ interface ColumnMapping {
   autoDetected: boolean;
   wasModified: boolean;
 }
+
+const FIELD_LABELS: Record<string, string> = {
+  first_name: 'First Name *',
+  last_name: 'Last Name *',
+  email: 'Email *',
+  full_name: 'Full Name * (auto-split)',
+  major: 'Major',
+  year: 'Year',
+  gpa: 'GPA',
+};
 
 export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
   const [open, setOpen] = useState(false);
@@ -127,7 +137,7 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const text = event.target?.result as string;
+      const text = (event.target?.result as string).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
       const lines = text.trim().split('\n');
 
       if (lines.length < 2) {
@@ -156,6 +166,19 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
         // Skip timestamp columns (common in Google Forms)
         if (lowerHeader.includes('timestamp') || lowerHeader === 'submitted at' || lowerHeader === 'response id') {
           mappedTo = 'skip';
+        }
+        // Full name (combined) — split into first + last at import time
+        else if (
+          normalized === 'name' ||
+          normalized === 'full name' ||
+          normalized === 'fullname' ||
+          normalized === 'full_name' ||
+          normalized === 'student name' ||
+          normalized === 'applicant name' ||
+          normalized === 'your name' ||
+          normalized === 'contact name'
+        ) {
+          mappedTo = 'full_name';
         }
         // First name patterns
         else if (
@@ -240,8 +263,11 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
   const validateMappings = (): boolean => {
     const mapped = mappings.filter((m) => m.mappedTo !== 'skip' && m.mappedTo !== 'metadata');
     const mappedFields = mapped.map((m) => m.mappedTo);
+    const hasFullName = mappedFields.includes('full_name');
 
     for (const required of REQUIRED_FIELDS) {
+      // full_name satisfies both first_name and last_name
+      if ((required === 'first_name' || required === 'last_name') && hasFullName) continue;
       if (!mappedFields.includes(required)) {
         setErrors([`Missing required field: ${required.replace('_', ' ')}`]);
         return false;
@@ -285,6 +311,10 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
           if (value.trim()) {
             applicant.metadata[mapping.csvHeader] = value;
           }
+        } else if (mapping.mappedTo === 'full_name') {
+          const parts = value.trim().split(/\s+/);
+          applicant.first_name = parts[0] || '';
+          applicant.last_name = parts.slice(1).join(' ') || parts[0] || '';
         } else if (mapping.mappedTo === 'gpa') {
           const gpa = parseFloat(value);
           if (!isNaN(gpa)) {
@@ -362,7 +392,7 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
   };
 
   const getMappingBadgeVariant = (mappedTo: string) => {
-    if (REQUIRED_FIELDS.includes(mappedTo as (typeof REQUIRED_FIELDS)[number])) {
+    if (mappedTo === 'full_name' || REQUIRED_FIELDS.includes(mappedTo as (typeof REQUIRED_FIELDS)[number])) {
       return 'default';
     }
     if (OPTIONAL_FIELDS.includes(mappedTo as (typeof OPTIONAL_FIELDS)[number])) {
@@ -476,6 +506,7 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
                           <SelectItem value="skip">
                             <span className="text-muted-foreground">Skip</span>
                           </SelectItem>
+                          <SelectItem value="full_name">Full Name * (splits into first + last)</SelectItem>
                           <SelectItem value="first_name">First Name *</SelectItem>
                           <SelectItem value="last_name">Last Name *</SelectItem>
                           <SelectItem value="email">Email *</SelectItem>
