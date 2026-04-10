@@ -9,6 +9,7 @@ interface StageColumnProps {
   stage: RecruitmentStage;
   applicants: Applicant[];
   allStages?: RecruitmentStage[];
+  officerScoreMap?: Record<string, number>;
   nextStageId?: string;
   nextStageLabel?: string;
   onDeleteApplicant: (id: string) => void;
@@ -23,7 +24,7 @@ interface StageColumnProps {
   setEditingStageLabel?: (label: string) => void;
 }
 
-export function StageColumn({ stage, applicants, allStages, nextStageId, nextStageLabel, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onMoveApplicant, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel }: StageColumnProps) {
+export function StageColumn({ stage, applicants, allStages, officerScoreMap, nextStageId, nextStageLabel, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onMoveApplicant, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel }: StageColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
@@ -133,6 +134,7 @@ export function StageColumn({ stage, applicants, allStages, nextStageId, nextSta
                 stages={allStages}
                 currentStageId={stage.id}
                 onMove={onMoveApplicant}
+                officerScore={officerScoreMap?.[applicant.id] ?? null}
               />
             ))}
             {applicants.length === 0 && (

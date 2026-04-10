@@ -1,5 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useRecruitmentRequirements } from '@/hooks/useRecruitmentRequirements';
+import { calcWeightedScore } from '@/hooks/useRubricScoring';
 import { toast } from 'sonner';
 import {
   DndContext,
@@ -88,11 +91,50 @@ export function RecruitmentKanban({
   jumpToForm,
   onJumpToFormHandled,
 }: RecruitmentKanbanProps) {
+  const { user } = useAuth();
+  const { aiCriteria } = useRecruitmentRequirements(clubId);
+  const [officerScoreMap, setOfficerScoreMap] = useState<Record<string, number>>({});
+
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingStageId, setEditingStageId] = useState<string | null>(null);
   const [editingStageLabel, setEditingStageLabel] = useState('');
   const [addingStage, setAddingStage] = useState(false);
   const [newStageLabel, setNewStageLabel] = useState('');
+
+  // Fetch officer's own rubric scores for all applicants and compute weighted totals
+  const refreshOfficerScores = useCallback(async () => {
+    if (!user || applicants.length === 0 || aiCriteria.length === 0) return;
+    const ids = applicants.map(a => a.id);
+    const { data } = await (supabase as any)
+      .from('officer_rubric_scores')
+      .select('applicant_id, requirement_id, score')
+      .eq('officer_id', user.id)
+      .in('applicant_id', ids);
+
+    if (!data) return;
+
+    // Group rows by applicant_id into the CriterionScore shape calcWeightedScore expects
+    const byApplicant: Record<string, Record<string, { requirementId: string; score: number; note: string }>> = {};
+    for (const row of data) {
+      if (!byApplicant[row.applicant_id]) byApplicant[row.applicant_id] = {};
+      byApplicant[row.applicant_id][row.requirement_id] = {
+        requirementId: row.requirement_id,
+        score: row.score,
+        note: '',
+      };
+    }
+
+    const map: Record<string, number> = {};
+    for (const [appId, scores] of Object.entries(byApplicant)) {
+      const ws = calcWeightedScore(scores, aiCriteria);
+      if (ws !== null) map[appId] = ws;
+    }
+    setOfficerScoreMap(map);
+  }, [user, applicants, aiCriteria]);
+
+  useEffect(() => {
+    refreshOfficerScores();
+  }, [refreshOfficerScores]);
 
   const handleRenameStage = async (stageId: string) => {
     if (!editingStageLabel.trim()) return;
@@ -151,6 +193,12 @@ export function RecruitmentKanban({
   const openDrawer = (applicant: Applicant) => {
     setDrawerApplicant(applicant);
     setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    // Refresh score badges after officer may have scored in the drawer
+    setTimeout(refreshOfficerScores, 300);
   };
 
   const handleRunAISingleApplicant = async (applicantId: string) => {
@@ -337,6 +385,7 @@ export function RecruitmentKanban({
                     stage={stage}
                     applicants={getApplicantsForStage(stage.id)}
                     allStages={stages}
+                    officerScoreMap={officerScoreMap}
                     nextStageId={nextStage?.id}
                     nextStageLabel={nextStage?.label}
                     onDeleteApplicant={onDeleteApplicant}
@@ -435,7 +484,7 @@ export function RecruitmentKanban({
       <ApplicantDetailDrawer
         applicant={drawerApplicant}
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={closeDrawer}
         clubId={clubId}
         formQuestions={formQuestions}
         onUpdateFinalDecision={onUpdateFinalDecision}
