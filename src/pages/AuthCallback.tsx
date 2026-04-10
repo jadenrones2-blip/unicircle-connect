@@ -24,6 +24,30 @@ export default function AuthCallback() {
 
       const userId = data.session.user.id;
 
+      // If Supabase redirected back here from an email confirmation that
+      // originated from an invite link, the original URL is in the hash
+      // as `next` or embedded in the redirect_to param.
+      // Check window.location for an invite path.
+      const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+      const redirectTo = params.get('redirect_to') || hashParams.get('redirect_to') || '';
+      if (redirectTo.includes('/invite/')) {
+        navigate(redirectTo);
+        return;
+      }
+
+      // Also check if the user came from an invite by checking club_officers
+      // (no club_owners row but has a club_officers row = they're an officer)
+      const { data: officerClubs } = await supabase
+        .from('club_officers' as any)
+        .select('club_id')
+        .eq('user_id', userId)
+        .limit(1);
+      if (officerClubs && officerClubs.length > 0) {
+        navigate(`/club-admin/clubs/${officerClubs[0].club_id}/recruitment`);
+        return;
+      }
+
       // Block non-UCSD Google sign-ins
       const provider = data.session.user.app_metadata?.provider;
       const email = data.session.user.email || '';

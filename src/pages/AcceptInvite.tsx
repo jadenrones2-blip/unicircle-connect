@@ -18,7 +18,7 @@ interface InviteInfo {
   created_by: string;
 }
 
-type PageState = 'loading' | 'invalid' | 'expired' | 'already_used' | 'already_member' | 'ready' | 'signing_in' | 'claiming' | 'done';
+type PageState = 'loading' | 'invalid' | 'expired' | 'already_used' | 'already_member' | 'ready' | 'signing_in' | 'awaiting_confirmation' | 'claiming' | 'done';
 
 export default function AcceptInvite() {
   const { token } = useParams<{ token: string }>();
@@ -58,12 +58,12 @@ export default function AcceptInvite() {
   // 2. Once user is authenticated and invite is ready → auto-claim
   useEffect(() => {
     if (authLoading || !invite || !user) return;
-    if (pageState === 'loading' || pageState === 'signing_in') return;
+    if (pageState === 'loading' || pageState === 'signing_in' || pageState === 'awaiting_confirmation') return;
     if (invite.used_by) return;
 
     claimInvite();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading, invite]);
+  }, [user, authLoading, invite, pageState]);
 
   const claimInvite = async () => {
     if (!invite || !user) return;
@@ -128,15 +128,25 @@ export default function AcceptInvite() {
       if (authMode === 'signin') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        // signIn always returns a session — useEffect will trigger claimInvite
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: name } },
+          options: {
+            data: { full_name: name },
+            // Send them back to this exact invite URL after confirming email
+            emailRedirectTo: `${window.location.origin}/invite/${token}`,
+          },
         });
         if (error) throw error;
+        // If email confirmation is required, session will be null
+        if (!data.session) {
+          setPageState('awaiting_confirmation');
+          return;
+        }
+        // Email confirmation off — session is live, useEffect will trigger claimInvite
       }
-      // useEffect above will fire claimInvite once user resolves
     } catch (err: any) {
       setAuthError(err.message || 'Authentication failed');
       setPageState('ready');
@@ -213,6 +223,27 @@ export default function AcceptInvite() {
             : `Welcome to the ${invite?.club_name} team. Redirecting to your dashboard…`}
         </p>
         <Loader2 className="w-4 h-4 text-zinc-600 animate-spin mt-4" />
+      </Screen>
+    );
+  }
+
+  if (pageState === 'awaiting_confirmation') {
+    return (
+      <Screen>
+        <div className="w-14 h-14 rounded-2xl bg-gold/15 flex items-center justify-center mb-4">
+          <ShieldCheck className="w-7 h-7 text-gold" />
+        </div>
+        <h2 className="text-xl font-semibold text-white mb-2 text-center">Check your email</h2>
+        <p className="text-sm text-zinc-400 text-center max-w-xs">
+          We sent a confirmation link to <span className="text-white">{email}</span>.
+          Click it to confirm your account — you'll be brought back here automatically to finish joining <span className="text-white">{invite?.club_name}</span>.
+        </p>
+        <p className="text-xs text-zinc-600 mt-6 text-center">
+          Already confirmed?{' '}
+          <button onClick={() => setPageState('ready')} className="text-gold hover:underline">
+            Click here to continue
+          </button>
+        </p>
       </Screen>
     );
   }
