@@ -8,11 +8,13 @@ import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 interface StageColumnProps {
   stage: RecruitmentStage;
   applicants: Applicant[];
+  allStages?: RecruitmentStage[];
   nextStageId?: string;
   nextStageLabel?: string;
   onDeleteApplicant: (id: string) => void;
   onOpenDrawer?: (applicant: Applicant) => void;
   onAdvanceRound?: (applicantIds: string[], nextStageId: string) => Promise<void>;
+  onMoveApplicant?: (applicantId: string, stageId: string) => void;
   onRenameStage?: (stageId: string, label: string) => Promise<boolean>;
   onDeleteStage?: (stageId: string) => Promise<boolean>;
   editingStageId?: string | null;
@@ -21,7 +23,7 @@ interface StageColumnProps {
   setEditingStageLabel?: (label: string) => void;
 }
 
-export function StageColumn({ stage, applicants, nextStageId, nextStageLabel, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel }: StageColumnProps) {
+export function StageColumn({ stage, applicants, allStages, nextStageId, nextStageLabel, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onMoveApplicant, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel }: StageColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
@@ -128,6 +130,9 @@ export function StageColumn({ stage, applicants, nextStageId, nextStageLabel, on
                 applicant={applicant}
                 onDelete={onDeleteApplicant}
                 onOpen={onOpenDrawer}
+                stages={allStages}
+                currentStageId={stage.id}
+                onMove={onMoveApplicant}
               />
             ))}
             {applicants.length === 0 && (

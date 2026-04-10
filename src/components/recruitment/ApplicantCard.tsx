@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Mail, MoreVertical, Trash2, Sparkles, Star } from 'lucide-react';
+import { GripVertical, Mail, MoreVertical, Trash2, Sparkles, Star, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -52,9 +56,14 @@ interface ApplicantCardProps {
   onOpen?: (applicant: Applicant) => void;
   /** Officer's own weighted rubric score 0–100, shown as secondary badge */
   officerScore?: number | null;
+  /** All pipeline stages for the "Move to →" dropdown */
+  stages?: { id: string; label: string }[];
+  /** Current stage id — excluded from move options */
+  currentStageId?: string;
+  onMove?: (applicantId: string, stageId: string) => void;
 }
 
-export function ApplicantCard({ applicant, onDelete, onOpen, officerScore }: ApplicantCardProps) {
+export function ApplicantCard({ applicant, onDelete, onOpen, officerScore, stages, currentStageId, onMove }: ApplicantCardProps) {
   const {
     attributes,
     listeners,
@@ -142,9 +151,30 @@ export function ApplicantCard({ applicant, onDelete, onOpen, officerScore }: App
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem 
+                {stages && stages.filter(s => s.id !== currentStageId).length > 0 && (
+                  <>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <ChevronRight className="w-4 h-4 mr-2" />
+                        Move to
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {stages.filter(s => s.id !== currentStageId).map(s => (
+                          <DropdownMenuItem
+                            key={s.id}
+                            onClick={(e) => { e.stopPropagation(); onMove?.(applicant.id, s.id); }}
+                          >
+                            {s.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
-                  onClick={() => onDelete(applicant.id)}
+                  onClick={(e) => { e.stopPropagation(); onDelete(applicant.id); }}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Remove

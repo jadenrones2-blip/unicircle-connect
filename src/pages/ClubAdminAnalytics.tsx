@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 import {
   BarChart,
   Bar,
@@ -138,6 +139,19 @@ export default function ClubAdminAnalytics() {
   const { isOwnerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
   const { stages, applicants, loading: recruitmentLoading, isEnabled } = useRecruitment(clubId);
 
+  // Also count people from the OrgPeopleDashboard `people` table
+  const [peopleCount, setPeopleCount] = useState(0);
+  useEffect(() => {
+    if (!clubId) return;
+    (supabase as any)
+      .from('people')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', clubId)
+      .then(({ count }: { count: number | null }) => {
+        if (count) setPeopleCount(count);
+      });
+  }, [clubId]);
+
   // ── Auth guard ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!authLoading && !user) {
@@ -153,7 +167,8 @@ export default function ClubAdminAnalytics() {
 
   // ── Derived analytics data ──────────────────────────────────────────────────
   const analytics = useMemo(() => {
-    const total = applicants.length;
+    // Use kanban applicants if available, fall back to people table count
+    const total = applicants.length > 0 ? applicants.length : peopleCount;
 
     // Avg GPA
     const gpas = applicants.map((a) => a.gpa).filter((g): g is number => g !== null);

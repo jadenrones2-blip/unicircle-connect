@@ -336,11 +336,13 @@ export function RecruitmentKanban({
                     key={stage.id}
                     stage={stage}
                     applicants={getApplicantsForStage(stage.id)}
+                    allStages={stages}
                     nextStageId={nextStage?.id}
                     nextStageLabel={nextStage?.label}
                     onDeleteApplicant={onDeleteApplicant}
                     onOpenDrawer={openDrawer}
                     onAdvanceRound={handleAdvanceRound}
+                    onMoveApplicant={(applicantId, stageId) => onMoveApplicant(applicantId, stageId, clubName)}
                     onRenameStage={onUpdateStage}
                     onDeleteStage={onDeleteStage}
                     editingStageId={editingStageId}

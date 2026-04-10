@@ -68,6 +68,14 @@ export default function ClubAdminRecruitment() {
     setCreatingStages(false);
   };
 
+  // Auto-create the "Applied" intake stage if recruitment is enabled but no stages exist yet
+  useEffect(() => {
+    if (!recruitmentLoading && isEnabled && !hasStages && !creatingStages) {
+      handleCreateStages([]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recruitmentLoading, isEnabled, hasStages]);
+
   const isLoading = authLoading || ownershipLoading || recruitmentLoading;
 
   if (isLoading) {
