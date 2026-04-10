@@ -244,16 +244,30 @@ export default function OrgPeopleDashboard() {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (h) => h.toLowerCase().trim().replace(/\s+/g, '_'),
+      // Strip BOM, lowercase, trim, collapse spaces → underscores
+      transformHeader: (h) => h.replace(/^\uFEFF/, '').toLowerCase().trim().replace(/\s+/g, '_'),
       complete: (results) => {
         const rows = (results.data as any[]).map((row) => {
-          const firstName = (row.first_name || row.firstname || row['first name'] || '').trim();
-          const lastName = (row.last_name || row.lastname || row['last name'] || '').trim();
-          const email = (row.email || '').trim().toLowerCase();
-          const year = (row.year || '').trim();
-          const major = (row.major || '').trim();
+          // Handle combined "Name" / "Full Name" column — split on first space
+          const combinedName = (row.name || row.full_name || row.fullname || row.student_name || row.applicant_name || '').trim();
+          const combinedParts = combinedName ? combinedName.split(/\s+/) : [];
+
+          let firstName = (row.first_name || row.firstname || (combinedParts[0] ?? '')).trim();
+          let lastName  = (row.last_name  || row.lastname  || combinedParts.slice(1).join(' ')).trim();
+
+          // If only one token in combined field, use it as both to avoid "Missing last name"
+          if (combinedName && !lastName) lastName = firstName;
+
+          const email = (
+            row.email || row.email_address || row.ucsd_email ||
+            row.school_email || row.student_email || row.contact_email || ''
+          ).trim().toLowerCase();
+
+          const year = (row.year || row.class_year || row.academic_year || row.grade_level || '').trim();
+          const major = (row.major || row.field_of_study || row.area_of_study || row.concentration || '').trim();
           const stageRaw = (row.stage || '').trim();
           const notes = (row.notes || '').trim();
+
           let error = '';
           if (!firstName) error = 'Missing first name';
           else if (!lastName) error = 'Missing last name';
@@ -584,8 +598,13 @@ export default function OrgPeopleDashboard() {
           ) : csvRows.length === 0 ? (
             <div className="space-y-4 py-2">
               <p className="text-zinc-400 text-sm">
-                Upload a CSV with columns: <code className="bg-white/5 px-1.5 py-0.5 rounded text-zinc-300 text-xs">first_name, last_name, email, year, major, stage, notes</code>
+                Upload a CSV — column names are flexible. Accepted headers:
               </p>
+              <ul className="text-zinc-500 text-xs space-y-0.5 list-disc list-inside">
+                <li><code className="text-zinc-300">Name</code> or <code className="text-zinc-300">Full Name</code> <span className="text-zinc-600">(auto-splits into first + last)</span>, or separate <code className="text-zinc-300">First Name</code> / <code className="text-zinc-300">Last Name</code></li>
+                <li><code className="text-zinc-300">Email</code>, <code className="text-zinc-300">Email Address</code>, <code className="text-zinc-300">UCSD Email</code></li>
+                <li><code className="text-zinc-300">Major</code>, <code className="text-zinc-300">Year</code> <span className="text-zinc-600">(optional)</span></li>
+              </ul>
               <p className="text-zinc-500 text-xs">Valid stages: member, applied, under_review, interview, accepted, rejected. Defaults to <em>applied</em> if blank.</p>
               <label className="flex flex-col items-center justify-center gap-3 border border-dashed border-white/15 rounded-xl py-10 cursor-pointer hover:border-white/30 transition-colors">
                 <Upload className="w-6 h-6 text-zinc-500" />
