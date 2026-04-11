@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ChevronRight, Loader2, Pencil, Trash2, Check, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, ChevronUp, Loader2, Pencil, Trash2, Check, X } from 'lucide-react';
 import { ApplicantCard } from './ApplicantCard';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
+import { getStageColor } from '@/lib/stageColors';
+
+interface AttendanceEvent {
+  id: string;
+  title: string;
+  rsvpEmails: Set<string>;
+}
 
 interface StageColumnProps {
   stage: RecruitmentStage;
@@ -12,6 +19,8 @@ interface StageColumnProps {
   officerScoreMap?: Record<string, number>;
   nextStageId?: string;
   nextStageLabel?: string;
+  isIntake?: boolean;
+  attendanceEvents?: AttendanceEvent[];
   onDeleteApplicant: (id: string) => void;
   onOpenDrawer?: (applicant: Applicant) => void;
   onAdvanceRound?: (applicantIds: string[], nextStageId: string) => Promise<void>;
@@ -24,12 +33,15 @@ interface StageColumnProps {
   setEditingStageLabel?: (label: string) => void;
 }
 
-export function StageColumn({ stage, applicants, allStages, officerScoreMap, nextStageId, nextStageLabel, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onMoveApplicant, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel }: StageColumnProps) {
+export function StageColumn({ stage, applicants, allStages, officerScoreMap, nextStageId, nextStageLabel, isIntake, attendanceEvents, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onMoveApplicant, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel }: StageColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
 
   const [advancing, setAdvancing] = useState(false);
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
+
+  const stageColor = getStageColor(stage, allStages ?? [stage]);
 
   const acceptedApplicants = applicants.filter(a => a.final_decision === 'accepted');
   const canAdvance = !!nextStageId && acceptedApplicants.length > 0 && !!onAdvanceRound;
@@ -69,6 +81,7 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
           </div>
         ) : (
           <div className="flex items-center gap-1.5 flex-1 mr-2">
+            <span style={{ background: stageColor }} className="w-2 h-2 rounded-full shrink-0" />
             <h3 className="font-medium text-sm text-zinc-200">{stage.label}</h3>
             {onRenameStage && (
               <button
@@ -139,12 +152,53 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
             ))}
             {applicants.length === 0 && (
               <div className="text-center py-8 text-sm text-zinc-600">
-                Applications will appear here
+                {isIntake ? 'Applications will appear here' : 'Drop applicants here'}
               </div>
             )}
           </div>
         </SortableContext>
       </div>
+
+      {attendanceEvents && attendanceEvents.length > 0 && (
+        <div className="mt-2 rounded-lg border border-white/10 bg-zinc-900/40 overflow-hidden">
+          <button
+            className="w-full flex items-center justify-between px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+            onClick={() => setAttendanceOpen((o) => !o)}
+          >
+            <span className="font-medium">Attendance</span>
+            {attendanceOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+          {attendanceOpen && (
+            <div className="border-t border-white/10 px-3 py-2 space-y-2">
+              {attendanceEvents.map((ev) => {
+                const attended = applicants.filter((a) => ev.rsvpEmails.has(a.email));
+                return (
+                  <div key={ev.id}>
+                    <p className="text-xs text-zinc-500 mb-1 truncate">
+                      <span className="font-medium text-zinc-300">{attended.length}/{applicants.length}</span> attended{' '}
+                      <span className="italic">{ev.title}</span>
+                    </p>
+                    <div className="space-y-0.5">
+                      {applicants.map((a) => (
+                        <div key={a.id} className="flex items-center gap-1.5 text-xs">
+                          {ev.rsvpEmails.has(a.email) ? (
+                            <span className="text-green-400">✓</span>
+                          ) : (
+                            <span className="text-zinc-600">—</span>
+                          )}
+                          <span className={ev.rsvpEmails.has(a.email) ? 'text-zinc-300' : 'text-zinc-600'}>
+                            {a.first_name} {a.last_name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

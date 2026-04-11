@@ -120,6 +120,7 @@ export function ApplicantRosterView({ stages, applicants, onOpenDrawer }: Applic
                   <ApplicantAvatar
                     firstName={applicant.first_name}
                     lastName={applicant.last_name}
+                    avatarUrl={(applicant as any).avatar_url}
                     size="lg"
                   />
                   <div className="min-w-0 flex-1">

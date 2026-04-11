@@ -1,0 +1,121 @@
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { dataClient } from '@/integrations/supabase/dataClient';
+import type { Club, RecruitingStatus } from '@/data/mockData';
+
+// ── transform (copied from useExternalDB) ────────────────────────────────────
+
+const cleanText = (value: unknown) =>
+  String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/( at)+$/i, '')
+    .trim();
+
+const cleanClubName = (name: string): string => {
+  let s = cleanText(name);
+  s = s.replace(/\)\s+[A-Za-z]{1,4}$/, ')');
+  s = s.replace(/\s+[Cc]lub$/i, '');
+  s = s.replace(/\s+(Pre|Pro|The|And|For|With|Of|At|In|On|To|By|Or|As|An|A)$/i, '');
+  s = s.replace(/\s+[A-Za-z]{1,2}$/, '');
+  return s;
+};
+
+const transformClub = (record: Record<string, unknown>): Club => {
+  const recruitingStatus: RecruitingStatus = 'closed';
+  const category = cleanText(record.category);
+  const categoryBucket = cleanText(record.category_bucket);
+  const tags: string[] = [];
+  if (category) tags.push(category);
+  return {
+    id: cleanText(record.id || ''),
+    name: cleanClubName(String(record.name ?? '')),
+    category,
+    categoryBucket,
+    description: cleanText(record.description),
+    memberCount: 0,
+    imageUrl: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop',
+    tags,
+    recruitingStatus,
+    meetingSchedule: 'TBD',
+    email: cleanText(record.email),
+    instagram: cleanText(record.instagram),
+    website: cleanText(record.website),
+    cover_image: record.cover_image ? String(record.cover_image) : null,
+    recruitingStatus: (record.recruitingStatus as RecruitingStatus) || recruitingStatus,
+  } as Club & { cover_image: string | null };
+};
+
+// ── cache (survives re-renders, cleared only on hard reload) ─────────────────
+
+let _cache: Club[] | null = null;
+let _fetchPromise: Promise<Club[]> | null = null;
+
+// ── context ──────────────────────────────────────────────────────────────────
+
+interface ClubsContextValue {
+  clubs: Club[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+const ClubsContext = createContext<ClubsContextValue | null>(null);
+
+export function ClubsProvider({ children }: { children: ReactNode }) {
+  const [clubs, setClubs] = useState<Club[]>(_cache || []);
+  const [loading, setLoading] = useState(_cache === null);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchClubs = useCallback(async (force = false) => {
+    if (_cache && !force) {
+      setClubs(_cache);
+      setLoading(false);
+      return;
+    }
+
+    // Deduplicate concurrent fetches — if one is already in-flight, wait for it
+    if (!_fetchPromise || force) {
+      _fetchPromise = (async () => {
+        const { data: records, error: dbError } = await dataClient
+          .from('clubs')
+          .select('id, name, category, category_bucket, description, email, instagram, website, cover_image, recruitingStatus')
+          .order('name', { ascending: true })
+          .limit(1000);
+
+        if (dbError) throw new Error(dbError.message);
+        const result = (records || []).map(transformClub);
+        _cache = result;
+        _fetchPromise = null;
+        return result;
+      })();
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await _fetchPromise!;
+      setClubs(result);
+    } catch (err) {
+      console.error('Error fetching clubs:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch clubs');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchClubs();
+  }, [fetchClubs]);
+
+  return (
+    <ClubsContext.Provider value={{ clubs, loading, error, refetch: () => fetchClubs(true) }}>
+      {children}
+    </ClubsContext.Provider>
+  );
+}
+
+export function useClubsContext(): ClubsContextValue {
+  const ctx = useContext(ClubsContext);
+  if (!ctx) throw new Error('useClubsContext must be inside ClubsProvider');
+  return ctx;
+}

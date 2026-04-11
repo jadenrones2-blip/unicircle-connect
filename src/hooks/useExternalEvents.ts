@@ -21,6 +21,8 @@ export interface ExternalEvent {
   reviewed_at: string | null;
   posted_at: string | null;
   created_at: string | null;
+  is_recruitment_event?: boolean | null;
+  recruitment_stage_id?: string | null;
 }
 
 interface UseExternalEventsResult {

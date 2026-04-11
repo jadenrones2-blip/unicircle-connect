@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { dataClient } from "@/integrations/supabase/dataClient";
-import type { Club, Event, RecruitingStatus } from "@/data/mockData";
+import type { Club, Event } from "@/data/mockData";
+import { useClubsContext } from "@/contexts/ClubsContext";
 
 interface UseExternalDBResult<T> {
   data: T[];
@@ -8,49 +9,6 @@ interface UseExternalDBResult<T> {
   error: string | null;
   refetch: () => void;
 }
-
-// Transform external DB club record to app Club type
-const transformClub = (record: Record<string, unknown>): Club => {
-  const cleanText = (value: unknown) =>
-    String(value ?? "")
-      .replace(/\s+/g, " ")
-      .trim()
-      .replace(/( at)+$/i, "")
-      .trim();
-
-  const cleanClubName = (name: string): string => {
-    let cleaned = cleanText(name);
-    cleaned = cleaned.replace(/\)\s+[A-Za-z]{1,4}$/, ')');
-    cleaned = cleaned.replace(/\s+[Cc]lub$/i, '');
-    cleaned = cleaned.replace(/\s+(Pre|Pro|The|And|For|With|Of|At|In|On|To|By|Or|As|An|A)$/i, '');
-    cleaned = cleaned.replace(/\s+[A-Za-z]{1,2}$/, '');
-    return cleaned;
-  };
-
-  const recruitingStatus: RecruitingStatus = "closed";
-  const category = cleanText(record.category);
-  const categoryBucket = cleanText(record.category_bucket);
-  const tags: string[] = [];
-  if (category) tags.push(category);
-
-  return {
-    id: cleanText(record.id || ""),
-    name: cleanClubName(String(record.name ?? "")),
-    category,
-    categoryBucket,
-    description: cleanText(record.description),
-    memberCount: 0,
-    imageUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400&h=300&fit=crop",
-    tags,
-    recruitingStatus,
-    meetingSchedule: "TBD",
-    email: cleanText(record.email),
-    instagram: cleanText(record.instagram),
-    website: cleanText(record.website),
-    cover_image: record.cover_image ? String(record.cover_image) : null,
-    recruitingStatus: (record.recruitingStatus as RecruitingStatus) || recruitingStatus,
-  } as Club & { cover_image: string | null };
-};
 
 // Transform external DB event record to app Event type
 const transformEvent = (record: Record<string, unknown>, clubs: Club[]): Event => {
@@ -78,38 +36,9 @@ const transformEvent = (record: Record<string, unknown>, clubs: Club[]): Event =
 };
 
 export function useClubs(): UseExternalDBResult<Club> {
-  const [data, setData] = useState<Club[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchClubs = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { data: records, error: dbError } = await dataClient
-        .from('clubs')
-        .select('*')
-        .order('name', { ascending: true })
-        .limit(1000);
-
-      if (dbError) throw new Error(dbError.message);
-
-      const clubs = (records || []).map(transformClub);
-      setData(clubs);
-    } catch (err) {
-      console.error("Error fetching clubs:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch clubs");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchClubs();
-  }, [fetchClubs]);
-
-  return { data, loading, error, refetch: fetchClubs };
+  // Delegates to ClubsContext — single fetch + in-memory cache for the whole session
+  const { clubs, loading, error, refetch } = useClubsContext();
+  return { data: clubs, loading, error, refetch };
 }
 
 export function useEvents(clubs: Club[]): UseExternalDBResult<Event> {

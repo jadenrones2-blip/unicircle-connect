@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { dataClient } from '@/integrations/supabase/dataClient';
+import { getStageColor } from '@/lib/stageColors';
 import { useAuth } from '@/hooks/useAuth';
 import { useRecruitmentRequirements } from '@/hooks/useRecruitmentRequirements';
 import { calcWeightedScore } from '@/hooks/useRubricScoring';
@@ -33,8 +35,6 @@ import { MessageComposer } from './MessageComposer';
 import { ApplicantDetailDrawer } from './ApplicantDetailDrawer';
 import { ApplicantRosterView } from './ApplicantRosterView';
 import type { RecruitmentStage, Applicant, RecruitmentSettings, FormQuestion } from '@/hooks/useRecruitment';
-
-const STAGE_PALETTE = ['#3b82f6', '#a855f7', '#f97316', '#06b6d4', '#10b981', '#ec4899'];
 
 interface RecruitmentKanbanProps {
   clubId: string;
@@ -98,6 +98,7 @@ export function RecruitmentKanban({
   const [officerScoreMap, setOfficerScoreMap] = useState<Record<string, number>>({});
 
   const [voteMap, setVoteMap] = useState<Record<string, { yes: number; no: number; maybe: number }>>({});
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, { id: string; title: string; rsvpEmails: Set<string> }[]>>({});
 
   const refreshVoteMap = useCallback(async () => {
     if (applicants.length === 0) return;
@@ -124,6 +125,76 @@ export function RecruitmentKanban({
   useEffect(() => {
     refreshVoteMap();
   }, [refreshVoteMap]);
+
+  const fetchAttendanceData = useCallback(async () => {
+    if (!clubId) return;
+    try {
+      const { data: eventRows } = await (dataClient as any)
+        .from('events')
+        .select('id,title,corrected_title,recruitment_stage_id')
+        .eq('club_handle', clubId)
+        .eq('is_recruitment_event', true);
+
+      if (!eventRows || eventRows.length === 0) return;
+
+      const eventsByStage: Record<string, { id: string; title: string }[]> = {};
+      for (const ev of eventRows) {
+        const stageId = ev.recruitment_stage_id as string | null;
+        if (!stageId) continue;
+        if (!eventsByStage[stageId]) eventsByStage[stageId] = [];
+        eventsByStage[stageId].push({ id: ev.id, title: ev.corrected_title || ev.title || 'Event' });
+      }
+
+      const allEventIds = eventRows.map((e: { id: string }) => e.id);
+      const { data: rsvpRows } = await (supabase as any)
+        .from('event_rsvps')
+        .select('event_id,user_id')
+        .in('event_id', allEventIds);
+
+      if (!rsvpRows || rsvpRows.length === 0) {
+        // No RSVPs yet — still build the map with empty sets
+        const result: Record<string, { id: string; title: string; rsvpEmails: Set<string> }[]> = {};
+        for (const [stageId, evs] of Object.entries(eventsByStage)) {
+          result[stageId] = evs.map((ev) => ({ ...ev, rsvpEmails: new Set<string>() }));
+        }
+        setAttendanceMap(result);
+        return;
+      }
+
+      const rsvpByEvent: Record<string, string[]> = {};
+      for (const row of rsvpRows) {
+        if (!rsvpByEvent[row.event_id]) rsvpByEvent[row.event_id] = [];
+        rsvpByEvent[row.event_id].push(row.user_id);
+      }
+
+      const uniqueUserIds = [...new Set(rsvpRows.map((r: { user_id: string }) => r.user_id))];
+      const { data: profileRows } = await (supabase as any)
+        .from('profiles')
+        .select('user_id,email')
+        .in('user_id', uniqueUserIds);
+
+      const userIdToEmail: Record<string, string> = {};
+      for (const p of (profileRows || [])) {
+        userIdToEmail[p.user_id] = p.email;
+      }
+
+      const result: Record<string, { id: string; title: string; rsvpEmails: Set<string> }[]> = {};
+      for (const [stageId, evs] of Object.entries(eventsByStage)) {
+        result[stageId] = evs.map((ev) => {
+          const userIds = rsvpByEvent[ev.id] ?? [];
+          const rsvpEmails = new Set(userIds.map((uid) => userIdToEmail[uid]).filter(Boolean) as string[]);
+          return { ...ev, rsvpEmails };
+        });
+      }
+      setAttendanceMap(result);
+    } catch {
+      // fail silently — attendance is non-critical
+    }
+  }, [clubId]);
+
+  useEffect(() => {
+    fetchAttendanceData();
+  }, [fetchAttendanceData]);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingStageId, setEditingStageId] = useState<string | null>(null);
@@ -489,6 +560,8 @@ export function RecruitmentKanban({
                     officerScoreMap={officerScoreMap}
                     nextStageId={nextStage?.id}
                     nextStageLabel={nextStage?.label}
+                    isIntake={stage.order_index === 0}
+                    attendanceEvents={attendanceMap[stage.id]}
                     onDeleteApplicant={onDeleteApplicant}
                     onOpenDrawer={openDrawer}
                     onAdvanceRound={handleAdvanceRound}
@@ -545,8 +618,8 @@ export function RecruitmentKanban({
       )}
 
       {activeView === 'scorecard' && (() => {
-        const stageColorMap = stages.reduce<Record<string, string>>((acc, s, i) => {
-          acc[s.id] = STAGE_PALETTE[i % STAGE_PALETTE.length];
+        const stageColorMap = stages.reduce<Record<string, string>>((acc, s) => {
+          acc[s.id] = getStageColor(s, stages);
           return acc;
         }, {});
         const sorted = [...applicants].sort((a, b) => (b.fit_score ?? -1) - (a.fit_score ?? -1));

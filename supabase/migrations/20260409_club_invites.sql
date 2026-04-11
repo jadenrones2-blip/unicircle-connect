@@ -51,6 +51,9 @@ create policy "Owner can create invites"
   with check (created_by = auth.uid());
 
 -- Anyone authenticated can update (to mark used_by)
+-- WITH CHECK is required: without it, PostgreSQL re-evaluates USING on the NEW row,
+-- which fails because used_by is no longer null after the update.
 create policy "Authenticated can claim invite"
   on club_invites for update to authenticated
-  using (used_by is null and expires_at > now());
+  using (used_by is null and expires_at > now())
+  with check (used_by = auth.uid());

@@ -290,23 +290,34 @@ export default function ClubApply() {
     (async () => {
       setLoadingForm(true);
       try {
-        // Both fetches use anon-safe policies (TO anon, authenticated)
-        const [formRes, stagesRes] = await Promise.all([
-          timeout(6000, (supabase as any).from('application_forms').select('questions').eq('club_id', clubId).maybeSingle()),
-          timeout(6000, supabase.from('recruitment_stages').select('id, order_index').eq('club_id', clubId).order('order_index', { ascending: true }).limit(1)),
-        ]);
-
-        const qs = (formRes.data?.questions as FormQuestion[]) || [];
-        setQuestions(qs);
+        // Stages fetch is the gate — if it fails/times out, show "Applications Closed"
+        // Form fetch is best-effort — if it fails, show standard fields only
+        const stagesRes = await timeout(6000, supabase
+          .from('recruitment_stages')
+          .select('id, order_index')
+          .eq('club_id', clubId)
+          .order('order_index', { ascending: true })
+          .limit(1));
 
         const firstStage = stagesRes.data?.[0];
         if (!firstStage) {
-          // No stages or RLS blocked anon read — show closed state
           setNotFound(true);
           setLoadingForm(false);
           return;
         }
         setFirstStageId(firstStage.id);
+
+        // Fetch active form questions — non-blocking, empty custom questions on failure
+        timeout(6000, (supabase as any)
+          .from('application_forms')
+          .select('questions')
+          .eq('club_id', clubId)
+          .eq('is_active', true)
+          .maybeSingle()
+        ).then((formRes: { data?: { questions?: FormQuestion[] } }) => {
+          const qs = (formRes?.data?.questions as FormQuestion[]) || [];
+          setQuestions(qs);
+        }).catch(() => { /* use standard fields only */ });
 
         // Club name from external DB is purely cosmetic — never block on it
         timeout(4000, import('@/integrations/supabase/dataClient').then(async ({ dataClient }) => {

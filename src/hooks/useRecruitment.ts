@@ -29,6 +29,7 @@ export interface Applicant {
   passes_strict_filters: boolean | null;
   is_standout: boolean | null;
   final_decision: string | null;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -120,6 +121,7 @@ export function useRecruitment(clubId: string | undefined) {
       metadata: (row.metadata as Record<string, string>) || null,
       final_decision: row.final_decision ?? null,
       is_standout: row.is_standout ?? null,
+      avatar_url: row.avatar_url ?? null,
     }));
     
     setApplicants(typedApplicants);
@@ -382,6 +384,7 @@ export function useRecruitment(clubId: string | undefined) {
         .from('application_forms')
         .select('questions')
         .eq('club_id', clubId)
+        .eq('is_active', true)
         .maybeSingle();
       if (error) return [];
       return (data?.questions as FormQuestion[]) || [];
@@ -390,17 +393,42 @@ export function useRecruitment(clubId: string | undefined) {
     }
   };
 
-  const saveForm = async (questions: FormQuestion[]): Promise<boolean> => {
+  const saveForm = async (questions: FormQuestion[], formName?: string): Promise<boolean> => {
     if (!clubId || !user) return false;
-    const { error } = await (supabase as any)
-      .from('application_forms')
-      .upsert({ club_id: clubId, questions, updated_at: new Date().toISOString() }, { onConflict: 'club_id' });
-    if (error) {
+    try {
+      // Find the active form to update by id (avoids relying on unique club_id constraint)
+      const { data: existing } = await (supabase as any)
+        .from('application_forms')
+        .select('id')
+        .eq('club_id', clubId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (existing?.id) {
+        const update: Record<string, unknown> = { questions, updated_at: new Date().toISOString() };
+        if (formName) update.form_name = formName;
+        const { error } = await (supabase as any)
+          .from('application_forms')
+          .update(update)
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await (supabase as any)
+          .from('application_forms')
+          .insert({
+            club_id: clubId,
+            questions,
+            form_name: formName || 'Default Form',
+            is_active: true,
+          });
+        if (error) throw error;
+      }
+      toast.success('Application form saved!');
+      return true;
+    } catch {
       toast.error('Failed to save form');
       return false;
     }
-    toast.success('Application form saved!');
-    return true;
   };
 
   const updateFinalDecision = async (applicantId: string, decision: string, clubName?: string): Promise<boolean> => {

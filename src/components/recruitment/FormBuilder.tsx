@@ -11,6 +11,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   GripVertical, Plus, Trash2, Eye, Save, Loader2,
   AlignLeft, AlignJustify, ListChecks, Copy, Upload, X, Video,
+  ChevronDown, Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,8 +21,12 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import * as pdfjsLib from 'pdfjs-dist';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import type { FormQuestion } from '@/hooks/useRecruitment';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -31,10 +36,18 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface FormRecord {
+  id: string;
+  form_name: string;
+  is_active: boolean;
+  questions: FormQuestion[];
+}
+
 interface FormBuilderProps {
   clubId: string;
-  fetchForm: () => Promise<FormQuestion[]>;
-  saveForm: (questions: FormQuestion[]) => Promise<boolean>;
+  // Legacy props kept for compatibility — FormBuilder now manages forms internally
+  fetchForm?: () => Promise<FormQuestion[]>;
+  saveForm?: (questions: FormQuestion[]) => Promise<boolean>;
 }
 
 const TYPES = [
@@ -624,14 +637,63 @@ function PreviewModal({
   );
 }
 
+// ─── New Form Dialog ──────────────────────────────────────────────────────────
+
+function NewFormDialog({
+  open,
+  onClose,
+  onCreate,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreate: (name: string) => void;
+}) {
+  const [name, setName] = useState('');
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-sm bg-zinc-950 border-white/10 text-white">
+        <DialogHeader>
+          <DialogTitle className="font-display">New Application Form</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-2">
+          <Label className="text-zinc-300">Form name</Label>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Round 2 — Interview Form"
+            className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600"
+            onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) { onCreate(name.trim()); setName(''); } }}
+            autoFocus
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} className="border-white/20 text-white hover:bg-white/10">Cancel</Button>
+          <Button
+            className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90"
+            disabled={!name.trim()}
+            onClick={() => { onCreate(name.trim()); setName(''); }}
+          >
+            Create Form
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── FormBuilder (main) ───────────────────────────────────────────────────────
 
-export function FormBuilder({ fetchForm, saveForm }: FormBuilderProps) {
+export function FormBuilder({ clubId }: FormBuilderProps) {
+  const [forms, setForms] = useState<FormRecord[]>([]);
+  const [activeFormId, setActiveFormId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<FormQuestion[]>([]);
+  const [formName, setFormName] = useState('Default Form');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [settingActive, setSettingActive] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [newFormOpen, setNewFormOpen] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -639,10 +701,49 @@ export function FormBuilder({ fetchForm, saveForm }: FormBuilderProps) {
     useSensor(TouchSensor),
   );
 
+  const loadForms = async () => {
+    if (!clubId) return;
+    setLoading(true);
+    try {
+      const { data, error } = await (supabase as any)
+        .from('application_forms')
+        .select('id, form_name, is_active, questions')
+        .eq('club_id', clubId)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      const rows: FormRecord[] = (data || []).map((r: FormRecord) => ({
+        ...r,
+        questions: (r.questions as FormQuestion[]) || [],
+      }));
+      setForms(rows);
+      // Select active form, or first form
+      const active = rows.find((f) => f.is_active) || rows[0] || null;
+      if (active) {
+        setActiveFormId(active.id);
+        setFormName(active.form_name || 'Default Form');
+        setQuestions(active.questions);
+      } else {
+        setActiveFormId(null);
+        setFormName('Default Form');
+        setQuestions([]);
+      }
+    } catch {
+      toast.error('Failed to load forms');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchForm().then((q) => { setQuestions(q); setLoading(false); });
+    loadForms();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [clubId]);
+
+  const switchToForm = (form: FormRecord) => {
+    setActiveFormId(form.id);
+    setFormName(form.form_name || 'Default Form');
+    setQuestions(form.questions);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -691,8 +792,74 @@ export function FormBuilder({ fetchForm, saveForm }: FormBuilderProps) {
       label: q.label.trim(),
       options: q.type === 'multiple_choice' ? q.options.filter(o => o.trim()) : [],
     }));
-    await saveForm(cleaned);
-    setSaving(false);
+    try {
+      if (activeFormId) {
+        const { error } = await (supabase as any)
+          .from('application_forms')
+          .update({ questions: cleaned, form_name: formName, updated_at: new Date().toISOString() })
+          .eq('id', activeFormId);
+        if (error) throw error;
+        setForms(prev => prev.map(f => f.id === activeFormId ? { ...f, questions: cleaned, form_name: formName } : f));
+        toast.success('Form saved!');
+      } else {
+        // No form exists yet — create first one as active
+        const { data, error } = await (supabase as any)
+          .from('application_forms')
+          .insert({ club_id: clubId, questions: cleaned, form_name: formName, is_active: true })
+          .select('id, form_name, is_active, questions')
+          .single();
+        if (error) throw error;
+        const newForm = { ...data, questions: cleaned };
+        setForms([newForm]);
+        setActiveFormId(newForm.id);
+        toast.success('Form saved!');
+      }
+    } catch {
+      toast.error('Failed to save form');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreateForm = async (name: string) => {
+    setNewFormOpen(false);
+    try {
+      const { data, error } = await (supabase as any)
+        .from('application_forms')
+        .insert({ club_id: clubId, questions: [], form_name: name, is_active: false })
+        .select('id, form_name, is_active, questions')
+        .single();
+      if (error) throw error;
+      const newForm: FormRecord = { ...data, questions: [] };
+      setForms(prev => [...prev, newForm]);
+      switchToForm(newForm);
+      toast.success(`"${name}" created`);
+    } catch {
+      toast.error('Failed to create form');
+    }
+  };
+
+  const handleSetActive = async (formId: string) => {
+    setSettingActive(true);
+    try {
+      // Set all forms for this club to inactive
+      await (supabase as any)
+        .from('application_forms')
+        .update({ is_active: false })
+        .eq('club_id', clubId);
+      // Set selected form to active
+      const { error } = await (supabase as any)
+        .from('application_forms')
+        .update({ is_active: true })
+        .eq('id', formId);
+      if (error) throw error;
+      setForms(prev => prev.map(f => ({ ...f, is_active: f.id === formId })));
+      toast.success('Active form updated — students will now see this form');
+    } catch {
+      toast.error('Failed to set active form');
+    } finally {
+      setSettingActive(false);
+    }
   };
 
   if (loading) {
@@ -703,9 +870,85 @@ export function FormBuilder({ fetchForm, saveForm }: FormBuilderProps) {
     );
   }
 
+  const currentForm = forms.find(f => f.id === activeFormId) ?? null;
+  const isCurrentActive = currentForm?.is_active ?? false;
+
   return (
     <div className="space-y-4">
-      {/* Header */}
+      {/* Form selector bar */}
+      <div className="flex items-center gap-3 flex-wrap">
+        {forms.length > 0 ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="border-white/10 text-zinc-300 hover:text-white gap-2 max-w-[220px]">
+                <span className="truncate">{currentForm?.form_name || 'Select form'}</span>
+                {isCurrentActive && (
+                  <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-gold/15 text-gold text-[10px] font-semibold leading-none">LIVE</span>
+                )}
+                <ChevronDown className="w-3.5 h-3.5 shrink-0 text-zinc-500" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-zinc-950 border-white/10 text-white min-w-[200px]">
+              {forms.map(f => (
+                <DropdownMenuItem
+                  key={f.id}
+                  onClick={() => switchToForm(f)}
+                  className="flex items-center justify-between gap-3 cursor-pointer hover:bg-white/5"
+                >
+                  <span className="truncate text-sm">{f.form_name || 'Untitled'}</span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {f.is_active && <span className="px-1.5 py-0.5 rounded-full bg-gold/15 text-gold text-[10px] font-semibold">LIVE</span>}
+                    {f.id === activeFormId && <Check className="w-3.5 h-3.5 text-zinc-400" />}
+                  </div>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem
+                onClick={() => setNewFormOpen(true)}
+                className="text-zinc-400 hover:text-white cursor-pointer hover:bg-white/5"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                New form
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button variant="outline" size="sm" className="border-white/10 text-zinc-400 hover:text-white" onClick={() => setNewFormOpen(true)}>
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            New form
+          </Button>
+        )}
+
+        {/* Form name editable inline */}
+        {activeFormId && (
+          <input
+            value={formName}
+            onChange={(e) => setFormName(e.target.value)}
+            className="flex-1 min-w-0 bg-transparent text-sm text-zinc-300 placeholder:text-zinc-600 focus:outline-none border-b border-transparent focus:border-white/20 py-1 transition-colors"
+            placeholder="Form name"
+          />
+        )}
+
+        {/* Set as active button */}
+        {activeFormId && !isCurrentActive && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleSetActive(activeFormId)}
+            disabled={settingActive}
+            className="border-gold/30 text-gold hover:bg-gold/10 shrink-0"
+          >
+            {settingActive ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Set as Live'}
+          </Button>
+        )}
+
+        <Button variant="outline" size="sm" onClick={() => setNewFormOpen(true)} className="border-white/10 text-zinc-400 hover:text-white shrink-0">
+          <Plus className="w-3.5 h-3.5 mr-1" />
+          New Form
+        </Button>
+      </div>
+
+      {/* Action buttons */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <p className="text-sm text-zinc-500">
           Standard fields (name, email, major, year, GPA) are always included.
@@ -792,6 +1035,11 @@ export function FormBuilder({ fetchForm, saveForm }: FormBuilderProps) {
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
         questions={questions}
+      />
+      <NewFormDialog
+        open={newFormOpen}
+        onClose={() => setNewFormOpen(false)}
+        onCreate={handleCreateForm}
       />
     </div>
   );

@@ -101,6 +101,9 @@ export default function AdminProfileSettings() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
+    // Reset input so same file can be re-selected
+    e.target.value = '';
+
     if (!file.type.startsWith('image/')) {
       toast.error('Please upload an image file');
       return;
@@ -112,27 +115,33 @@ export default function AdminProfileSettings() {
 
     setUploadingAvatar(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
 
-      const { error: uploadError } = await supabase.storage
-        .from('club-images')
-        .upload(fileName, file, { upsert: true });
+      const formData = new FormData();
+      formData.append('file', file);
 
-      if (uploadError) throw uploadError;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-avatar`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          body: formData,
+        }
+      );
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('club-images')
-        .getPublicUrl(fileName);
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || 'Upload failed');
 
-      setAvatarUrl(publicUrl);
-      
-      // Save immediately
-      await updateProfile({ avatar_url: publicUrl });
+      setAvatarUrl(json.url);
+      // Profile table already updated by edge function — sync local state
+      if (profile) {
+        profile.avatar_url = json.url;
+      }
       toast.success('Photo updated!');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload error:', err);
-      toast.error('Failed to upload photo');
+      toast.error(err?.message || 'Failed to upload photo');
     } finally {
       setUploadingAvatar(false);
     }
@@ -140,16 +149,18 @@ export default function AdminProfileSettings() {
 
   const handleRemoveAvatar = async () => {
     if (!user) return;
-    
+
     setRemovingAvatar(true);
     try {
-      // Remove from storage
-      const fileName = `${user.id}/avatar`;
       await supabase.storage
-        .from('club-images')
-        .remove([`${fileName}.png`, `${fileName}.jpg`, `${fileName}.jpeg`, `${fileName}.webp`]);
+        .from('avatars')
+        .remove([
+          `admin-avatars/${user.id}.png`,
+          `admin-avatars/${user.id}.jpg`,
+          `admin-avatars/${user.id}.jpeg`,
+          `admin-avatars/${user.id}.webp`,
+        ]);
 
-      // Update profile
       await updateProfile({ avatar_url: '' });
       setAvatarUrl(null);
       toast.success('Photo removed');

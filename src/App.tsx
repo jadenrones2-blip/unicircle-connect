@@ -3,6 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ClubOwnershipProvider } from "@/contexts/ClubOwnershipContext";
+import { ClubsProvider } from "@/contexts/ClubsContext";
 import CustomCursor from "./components/CustomCursor";
 import ScrollProgress from "./components/ScrollProgress";
 import PageIntro from "./components/PageIntro";
@@ -55,6 +58,9 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <ClubOwnershipProvider>
+      <ClubsProvider>
     <TooltipProvider>
       <PageIntro />
       <CustomCursor />
@@ -111,6 +117,9 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+      </ClubsProvider>
+      </ClubOwnershipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

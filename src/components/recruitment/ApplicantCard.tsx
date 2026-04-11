@@ -39,10 +39,15 @@ function getAvatarColor(name: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-export function ApplicantAvatar({ firstName, lastName, size = 'sm' }: { firstName: string; lastName: string; size?: 'sm' | 'md' | 'lg' }) {
+export function ApplicantAvatar({ firstName, lastName, avatarUrl, size = 'sm' }: { firstName: string; lastName: string; avatarUrl?: string | null; size?: 'sm' | 'md' | 'lg' }) {
   const initials = `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
   const color = getAvatarColor(`${firstName}${lastName}`);
   const sizeClass = size === 'lg' ? 'w-10 h-10 text-sm' : size === 'md' ? 'w-8 h-8 text-xs' : 'w-7 h-7 text-xs';
+  if (avatarUrl) {
+    return (
+      <img src={avatarUrl} className={`${sizeClass} rounded-full object-cover shrink-0`} alt="" />
+    );
+  }
   return (
     <div className={`${sizeClass} ${color} rounded-full flex items-center justify-center font-semibold shrink-0`}>
       {initials || '?'}
@@ -125,7 +130,7 @@ export function ApplicantCard({ applicant, onDelete, onOpen, officerScore, stage
           <GripVertical className="w-4 h-4 text-zinc-600" />
         </button>
 
-        <ApplicantAvatar firstName={applicant.first_name} lastName={applicant.last_name} size="sm" />
+        <ApplicantAvatar firstName={applicant.first_name} lastName={applicant.last_name} avatarUrl={applicant.avatar_url} size="sm" />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">

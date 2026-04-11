@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format, parseISO } from "date-fns";
 import { Loader2, Save, Calendar as CalendarIcon } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -56,6 +57,8 @@ interface EventEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSaved: () => void;
+  clubStages?: { id: string; label: string }[];
+  isRecruitmentEnabled?: boolean;
 }
 
 const hours = Array.from({ length: 24 }, (_, i) => 
@@ -63,8 +66,10 @@ const hours = Array.from({ length: 24 }, (_, i) =>
 );
 const minutes = ["00", "15", "30", "45"];
 
-export function EventEditModal({ event, isOpen, onClose, onSaved }: EventEditModalProps) {
+export function EventEditModal({ event, isOpen, onClose, onSaved, clubStages, isRecruitmentEnabled }: EventEditModalProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [isRecruitmentEvent, setIsRecruitmentEvent] = useState(false);
+  const [recruitmentStageId, setRecruitmentStageId] = useState('');
 
   const form = useForm<EventEditFormData>({
     resolver: zodResolver(eventEditSchema),
@@ -125,6 +130,8 @@ export function EventEditModal({ event, isOpen, onClose, onSaved }: EventEditMod
         endMinute: endMin,
         location: event.corrected_location || event.location || "",
       });
+      setIsRecruitmentEvent(!!event.is_recruitment_event);
+      setRecruitmentStageId(event.recruitment_stage_id ?? '');
     }
   }, [event, form]);
 
@@ -150,6 +157,8 @@ export function EventEditModal({ event, isOpen, onClose, onSaved }: EventEditMod
           corrected_start_time: startDateTime.toISOString(),
           corrected_end_time: endDateTime ? endDateTime.toISOString() : null,
           corrected_location: data.location || null,
+          is_recruitment_event: isRecruitmentEvent,
+          recruitment_stage_id: isRecruitmentEvent && recruitmentStageId ? recruitmentStageId : null,
         })
         .eq('id', event.id);
 
@@ -328,6 +337,33 @@ export function EventEditModal({ event, isOpen, onClose, onSaved }: EventEditMod
                 </FormItem>
               )}
             />
+
+            {isRecruitmentEnabled && clubStages && clubStages.length > 0 && (
+              <div className="space-y-3 rounded-lg border border-white/10 bg-zinc-900/40 p-4">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="is-recruitment-event"
+                    checked={isRecruitmentEvent}
+                    onCheckedChange={(v) => { setIsRecruitmentEvent(!!v); if (!v) setRecruitmentStageId(''); }}
+                  />
+                  <label htmlFor="is-recruitment-event" className="text-sm text-zinc-300 cursor-pointer">
+                    This is a recruitment event
+                  </label>
+                </div>
+                {isRecruitmentEvent && (
+                  <Select value={recruitmentStageId} onValueChange={setRecruitmentStageId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select pipeline stage" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover z-50">
+                      {clubStages.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-3 pt-4">
               <Button
