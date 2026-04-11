@@ -166,22 +166,41 @@ export default function StudentProfile() {
     if (!file || !user) return;
     if (file.size > 10 * 1024 * 1024) { toast.error('Resume must be under 10MB'); return; }
     setUploadingResume(true);
-    const path = `profile/${user.id}/resume.pdf`;
-    const { error: uploadError } = await supabase.storage.from('resumes').upload(path, file, { upsert: true });
-    if (uploadError) { toast.error(`Resume upload failed: ${uploadError.message}`); console.error('Resume upload error:', JSON.stringify(uploadError)); setUploadingResume(false); return; }
+    const path = `${user.id}/resume.pdf`;
+    // Remove old file first to avoid upsert conflicts
+    await supabase.storage.from('resumes').remove([path]);
+    const { error: uploadError } = await supabase.storage.from('resumes').upload(path, file, { upsert: true, contentType: 'application/pdf' });
+    if (uploadError) {
+      console.error('Resume upload error:', JSON.stringify(uploadError));
+      toast.error(`Upload failed: ${uploadError.message}`);
+      setUploadingResume(false);
+      e.target.value = '';
+      return;
+    }
     const { data: { publicUrl } } = supabase.storage.from('resumes').getPublicUrl(path);
     const url = `${publicUrl}?t=${Date.now()}`;
-    await supabase.from('profiles' as any).update({ resume_url: url }).eq('user_id', user.id);
-    setProfile(p => ({ ...p, resume_url: url }));
-    toast.success('Resume uploaded');
+    const { error: profileErr } = await supabase.from('profiles' as any).upsert({ user_id: user.id, resume_url: url }, { onConflict: 'user_id' });
+    if (profileErr) {
+      console.error('Profile resume_url save error:', JSON.stringify(profileErr));
+      toast.error(`Saved file but failed to update profile: ${profileErr.message}`);
+    } else {
+      setProfile(p => ({ ...p, resume_url: url }));
+      toast.success('Resume uploaded');
+    }
     setUploadingResume(false);
     e.target.value = '';
   };
 
   const handleRemoveResume = async () => {
     if (!user) return;
-    await supabase.storage.from('resumes').remove([`profile/${user.id}/resume.pdf`]);
-    await supabase.from('profiles' as any).update({ resume_url: null }).eq('user_id', user.id);
+    const { error: removeErr } = await supabase.storage.from('resumes').remove([`${user.id}/resume.pdf`]);
+    if (removeErr) console.error('Resume remove error:', JSON.stringify(removeErr));
+    const { error: profileErr } = await supabase.from('profiles' as any).update({ resume_url: null }).eq('user_id', user.id);
+    if (profileErr) {
+      console.error('Profile resume_url clear error:', JSON.stringify(profileErr));
+      toast.error('Failed to remove resume');
+      return;
+    }
     setProfile(p => ({ ...p, resume_url: null }));
     toast.success('Resume removed');
   };
