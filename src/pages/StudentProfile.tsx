@@ -168,7 +168,7 @@ export default function StudentProfile() {
     setUploadingResume(true);
     const path = `profile/${user.id}/resume.pdf`;
     const { error: uploadError } = await supabase.storage.from('resumes').upload(path, file, { upsert: true });
-    if (uploadError) { toast.error('Failed to upload resume'); setUploadingResume(false); return; }
+    if (uploadError) { toast.error(`Resume upload failed: ${uploadError.message}`); console.error('Resume upload error:', JSON.stringify(uploadError)); setUploadingResume(false); return; }
     const { data: { publicUrl } } = supabase.storage.from('resumes').getPublicUrl(path);
     const url = `${publicUrl}?t=${Date.now()}`;
     await supabase.from('profiles' as any).update({ resume_url: url }).eq('user_id', user.id);
