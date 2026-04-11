@@ -64,17 +64,38 @@ export default function ClubAdminEvents() {
 
   const fetchClubEvents = useCallback(async () => {
     if (!clubId || !club) return;
-    
+
     setLoading(true);
     try {
-      const { data, error: dbError } = await dataClient
-        .from('events')
-        .select('*')
-        .eq('club_handle', club.clubId)
-        .limit(50);
+      // Fetch by club_handle (UUID fallback) and also try club_id
+      const [byHandle, byId] = await Promise.all([
+        dataClient.from('events').select('*').ilike('club_handle', club.clubId).limit(50),
+        dataClient.from('events').select('*').eq('club_id', club.clubId).limit(50),
+      ]);
 
-      if (dbError) throw new Error(dbError.message);
-      setEvents((data || []) as ExternalEvent[]);
+      const seen = new Set<string>();
+      const merged: ExternalEvent[] = [];
+      for (const e of [...(byHandle.data || []), ...(byId.data || [])]) {
+        if (!seen.has(e.id)) { seen.add(e.id); merged.push(e as ExternalEvent); }
+      }
+
+      // Also look up the club's instagram handle to fetch by that too
+      try {
+        const { data: clubRow } = await dataClient
+          .from('clubs')
+          .select('instagram')
+          .or(`id.eq.${club.clubId},instagram.ilike.${club.clubId}`)
+          .maybeSingle();
+        if (clubRow?.instagram && clubRow.instagram !== club.clubId) {
+          const { data: byInsta } = await dataClient
+            .from('events').select('*').ilike('club_handle', clubRow.instagram).limit(50);
+          for (const e of (byInsta || [])) {
+            if (!seen.has(e.id)) { seen.add(e.id); merged.push(e as ExternalEvent); }
+          }
+        }
+      } catch { /* non-fatal */ }
+
+      setEvents(merged);
     } catch (err) {
       console.error('Error fetching club events:', err);
       toast.error('Failed to load events');

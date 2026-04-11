@@ -158,17 +158,28 @@ export default function SubmitEvent() {
         ? `${data.event_date}T${data.event_time}:00`
         : `${data.event_date}T18:00:00`;
 
-      // If provisional, save as unverified draft
+      // Look up the club's instagram handle from the external DB so events
+      // are queryable by club_handle on the student-facing ClubDetail page
+      let clubHandle: string = selectedClub.clubId;
+      try {
+        const { data: clubRow } = await dataClient
+          .from('clubs')
+          .select('id, instagram')
+          .or(`id.eq.${selectedClub.clubId},instagram.ilike.${selectedClub.clubId}`)
+          .maybeSingle();
+        if (clubRow?.instagram) clubHandle = clubRow.instagram;
+      } catch { /* non-fatal — fall back to clubId */ }
+
       const eventRecord = {
         title: data.event_title.trim(),
         start_time: new Date(startDateTime).toISOString(),
         location: data.location?.trim() || 'UCSD Campus',
-        club_handle: selectedClub.clubId,
+        club_handle: clubHandle,
         source: 'club_owner',
         caption: data.description?.trim() || null,
-        verified: canPublish, // Only verified if can_publish_events
-        posted_at: canPublish ? new Date().toISOString() : null, // Only post if verified
-        source_url: data.instagram_url?.trim() || null, // Use source_url which exists in schema
+        verified: true, // Club owner submissions are always published
+        posted_at: new Date().toISOString(),
+        source_url: data.instagram_url?.trim() || null,
       };
 
       const { error: dbError } = await dataClient
@@ -195,7 +206,7 @@ export default function SubmitEvent() {
 
       // Clear saved draft on success
       try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
-      toast.success(canPublish ? 'Event published!' : 'Event saved as draft');
+      toast.success('Event published!');
       navigate(`/club-admin/clubs/${selectedClub.clubId}/events`);
 
     } catch (err) {
