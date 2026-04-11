@@ -166,40 +166,43 @@ export default function StudentProfile() {
     if (!file || !user) return;
     if (file.size > 10 * 1024 * 1024) { toast.error('Resume must be under 10MB'); return; }
     setUploadingResume(true);
-    const path = `${user.id}/resume.pdf`;
-    // Remove old file first to avoid upsert conflicts
-    const removeRes = await supabase.storage.from('resumes').remove([path]);
-    console.log('Resume remove result:', JSON.stringify(removeRes));
-    const { error: uploadError } = await supabase.storage.from('resumes').upload(path, file, { upsert: true, contentType: 'application/pdf' });
-    if (uploadError) {
-      console.error('Resume upload error:', JSON.stringify(uploadError));
-      toast.error(`Upload failed: ${uploadError.message}`);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error('Not authenticated'); setUploadingResume(false); return; }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-resume`,
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          body: formData,
+        }
+      );
+      const json = await res.json();
+      if (!res.ok) {
+        console.error('Resume upload error:', json);
+        toast.error(`Upload failed: ${json.error || res.statusText}`);
+        return;
+      }
+      setProfile(p => ({ ...p, resume_url: json.url }));
+      toast.success('Resume uploaded');
+    } catch (err) {
+      console.error('Resume upload exception:', err);
+      toast.error('Upload failed — please try again');
+    } finally {
       setUploadingResume(false);
       e.target.value = '';
-      return;
     }
-    const { data: { publicUrl } } = supabase.storage.from('resumes').getPublicUrl(path);
-    const url = `${publicUrl}?t=${Date.now()}`;
-    // Use raw update only — avoids INSERT policy issues if row already exists
-    const { error: profileErr } = await supabase.from('profiles' as any).update({ resume_url: url }).eq('user_id', user.id);
-    if (profileErr) {
-      console.error('Profile resume_url save error:', JSON.stringify(profileErr));
-      toast.error(`Saved file but failed to update profile: ${profileErr.message}`);
-    } else {
-      setProfile(p => ({ ...p, resume_url: url }));
-      toast.success('Resume uploaded');
-    }
-    setUploadingResume(false);
-    e.target.value = '';
   };
 
   const handleRemoveResume = async () => {
     if (!user) return;
-    const { error: removeErr } = await supabase.storage.from('resumes').remove([`${user.id}/resume.pdf`]);
-    if (removeErr) console.error('Resume remove error:', JSON.stringify(removeErr));
+    await supabase.storage.from('resumes').remove([`${user.id}/resume.pdf`]);
     const { error: profileErr } = await supabase.from('profiles' as any).update({ resume_url: null }).eq('user_id', user.id);
     if (profileErr) {
-      console.error('Profile resume_url clear error:', JSON.stringify(profileErr));
       toast.error('Failed to remove resume');
       return;
     }
