@@ -101,6 +101,7 @@ export default function AcceptInvite() {
           user_id: user.id,
           invited_by: invite.created_by,
           role: invite.role,
+          email: user.email ?? null,
         });
 
       if (officerErr) throw officerErr;
@@ -153,12 +154,13 @@ export default function AcceptInvite() {
     }
   };
 
-  // Redirect once done
+  // Redirect once done — delay gives useClubOwnership time to re-fetch
+  // so the officer doesn't get bounced by the isOfficerOf() guard on arrival
   useEffect(() => {
     if (pageState === 'done' || pageState === 'already_member') {
       const timer = setTimeout(() => {
-        navigate(`/club-admin/clubs/${invite?.club_id}/recruitment`);
-      }, 2500);
+        navigate(`/club-admin/clubs/${invite?.club_id}/recruitment?welcome=1`);
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [pageState, invite, navigate]);

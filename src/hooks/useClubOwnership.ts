@@ -64,9 +64,9 @@ export function useClubOwnership() {
             .from('club_owners')
             .select('club_id, club_name, email, verified_at, verification_state, trust_level, trust_score, restrictions, provisional_until')
             .eq('user_id', user.id),
-          supabase
+          (supabase as any)
             .from('club_officers')
-            .select('club_id, club_name')
+            .select('club_id, club_name, email')
             .eq('user_id', user.id),
         ]);
 
