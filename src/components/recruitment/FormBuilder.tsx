@@ -708,15 +708,15 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
       const { data, error } = await (supabase as any)
         .from('application_forms')
         .select('id, form_name, is_active, questions')
-        .eq('club_id', clubId)
-        .order('created_at', { ascending: true });
+        .eq('club_id', clubId);
       if (error) throw error;
-      const rows: FormRecord[] = (data || []).map((r: FormRecord) => ({
-        ...r,
+      const rows: FormRecord[] = (data || []).map((r: any) => ({
+        id: r.id,
+        form_name: r.form_name || 'Default Form',
+        is_active: r.is_active ?? false,
         questions: (r.questions as FormQuestion[]) || [],
       }));
       setForms(rows);
-      // Select active form, or first form
       const active = rows.find((f) => f.is_active) || rows[0] || null;
       if (active) {
         setActiveFormId(active.id);
@@ -727,8 +727,22 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
         setFormName('Default Form');
         setQuestions([]);
       }
-    } catch {
-      toast.error('Failed to load forms');
+    } catch (err: any) {
+      console.error('Failed to load forms:', err);
+      // If new columns don't exist yet, fall back to simple fetch
+      try {
+        const { data: fallback } = await (supabase as any)
+          .from('application_forms')
+          .select('id, questions')
+          .eq('club_id', clubId)
+          .maybeSingle();
+        if (fallback) {
+          const row: FormRecord = { id: fallback.id, form_name: 'Default Form', is_active: true, questions: fallback.questions || [] };
+          setForms([row]);
+          setActiveFormId(row.id);
+          setQuestions(row.questions);
+        }
+      } catch { /* no form exists yet */ }
     } finally {
       setLoading(false);
     }
@@ -796,26 +810,39 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
       if (activeFormId) {
         const { error } = await (supabase as any)
           .from('application_forms')
-          .update({ questions: cleaned, form_name: formName, updated_at: new Date().toISOString() })
+          .update({ questions: cleaned, form_name: formName })
           .eq('id', activeFormId);
         if (error) throw error;
         setForms(prev => prev.map(f => f.id === activeFormId ? { ...f, questions: cleaned, form_name: formName } : f));
         toast.success('Form saved!');
       } else {
-        // No form exists yet — create first one as active
+        // No form exists yet — upsert by club_id (works whether constraint exists or not)
         const { data, error } = await (supabase as any)
           .from('application_forms')
-          .insert({ club_id: clubId, questions: cleaned, form_name: formName, is_active: true })
+          .upsert({ club_id: clubId, questions: cleaned, form_name: formName, is_active: true }, { onConflict: 'club_id', ignoreDuplicates: false })
           .select('id, form_name, is_active, questions')
-          .single();
-        if (error) throw error;
-        const newForm = { ...data, questions: cleaned };
-        setForms([newForm]);
-        setActiveFormId(newForm.id);
+          .maybeSingle();
+        if (error) {
+          // Fallback: plain insert if upsert fails
+          const { data: inserted, error: insertErr } = await (supabase as any)
+            .from('application_forms')
+            .insert({ club_id: clubId, questions: cleaned, form_name: formName, is_active: true })
+            .select('id, form_name, is_active, questions')
+            .single();
+          if (insertErr) throw insertErr;
+          const newForm = { ...inserted, questions: cleaned };
+          setForms([newForm]);
+          setActiveFormId(newForm.id);
+        } else if (data) {
+          const newForm = { ...data, questions: cleaned };
+          setForms([newForm]);
+          setActiveFormId(newForm.id);
+        }
         toast.success('Form saved!');
       }
-    } catch {
-      toast.error('Failed to save form');
+    } catch (err: any) {
+      console.error('Save form error:', err);
+      toast.error(err?.message || 'Failed to save form');
     } finally {
       setSaving(false);
     }
@@ -830,12 +857,13 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
         .select('id, form_name, is_active, questions')
         .single();
       if (error) throw error;
-      const newForm: FormRecord = { ...data, questions: [] };
+      const newForm: FormRecord = { id: data.id, form_name: data.form_name || name, is_active: false, questions: [] };
       setForms(prev => [...prev, newForm]);
       switchToForm(newForm);
       toast.success(`"${name}" created`);
-    } catch {
-      toast.error('Failed to create form');
+    } catch (err: any) {
+      console.error('Create form error:', err);
+      toast.error(err?.message || 'Failed to create form');
     }
   };
 
