@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, CheckCircle2, Upload, Video, StopCircle, RotateCcw, Download } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle2, Upload, Video, StopCircle, RotateCcw, Download, Camera } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -271,6 +271,9 @@ export default function ClubApply() {
   // Video answers: { [questionId]: VideoData }
   const [videoAnswers, setVideoAnswers] = useState<Record<string, VideoData | null>>({});
 
+  // Profile photo
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+
   // Resume
   const [resumeFile, setResumeFile] = useState<File | null>(null);
 
@@ -280,14 +283,17 @@ export default function ClubApply() {
 
   useEffect(() => {
     if (!clubId) return;
+
+    const timeout = <T,>(ms: number, promise: Promise<T>): Promise<T> =>
+      Promise.race([promise, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))]);
+
     (async () => {
       setLoadingForm(true);
       try {
-        // Fetch club name from external DB (clubs are in the external dataClient)
-        // We use the lovable supabase client here to fetch form + stages
+        // Both fetches use anon-safe policies (TO anon, authenticated)
         const [formRes, stagesRes] = await Promise.all([
-          (supabase as any).from('application_forms').select('questions').eq('club_id', clubId).maybeSingle(),
-          supabase.from('recruitment_stages').select('id, order_index').eq('club_id', clubId).order('order_index', { ascending: true }).limit(1),
+          timeout(6000, (supabase as any).from('application_forms').select('questions').eq('club_id', clubId).maybeSingle()),
+          timeout(6000, supabase.from('recruitment_stages').select('id, order_index').eq('club_id', clubId).order('order_index', { ascending: true }).limit(1)),
         ]);
 
         const qs = (formRes.data?.questions as FormQuestion[]) || [];
@@ -295,23 +301,23 @@ export default function ClubApply() {
 
         const firstStage = stagesRes.data?.[0];
         if (!firstStage) {
-          // No stages set up — can't apply
+          // No stages or RLS blocked anon read — show closed state
           setNotFound(true);
           setLoadingForm(false);
           return;
         }
         setFirstStageId(firstStage.id);
 
-        // Try to get club name from the clubs table (external DB) — fall back to a generic label
-        try {
-          const { dataClient } = await import('@/integrations/supabase/dataClient');
+        // Club name from external DB is purely cosmetic — never block on it
+        timeout(4000, import('@/integrations/supabase/dataClient').then(async ({ dataClient }) => {
           const { data: clubData } = await dataClient.from('clubs').select('name').eq('id', clubId).maybeSingle();
           if (clubData?.name) setClubName(clubData.name);
-        } catch {
-          // club name not critical
-        }
+        })).catch(() => {/* non-fatal */});
+
       } catch (err) {
-        console.error('Error loading form:', err);
+        console.error('Error loading apply form:', err);
+        // On timeout or network error, still show form if we have a stageId
+        // otherwise fall through to notFound
         setNotFound(true);
       } finally {
         setLoadingForm(false);
@@ -349,6 +355,22 @@ export default function ClubApply() {
       // Build metadata — start with text answers, video URLs added after upload
       const metadata: Record<string, string> = { ...answers };
 
+      // Upload profile photo if provided
+      let photoUrl: string | null = null;
+      if (photoFile) {
+        try {
+          const photoPath = `applicants/${clubId}/${Date.now()}_${photoFile.name}`;
+          const { data: photoUpload, error: photoError } = await supabase.storage
+            .from('avatars')
+            .upload(photoPath, photoFile, { upsert: true, contentType: photoFile.type });
+          if (!photoError && photoUpload) {
+            photoUrl = supabase.storage.from('avatars').getPublicUrl(photoUpload.path).data.publicUrl;
+          }
+        } catch {
+          // non-fatal
+        }
+      }
+
       // Insert applicant
       const { data: applicant, error: insertError } = await supabase
         .from('applicants')
@@ -362,6 +384,7 @@ export default function ClubApply() {
           year: year || null,
           gpa: gpa ? parseFloat(gpa) : null,
           metadata,
+          avatar_url: photoUrl,
         })
         .select('id')
         .single();
@@ -532,6 +555,38 @@ export default function ClubApply() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Profile Photo (optional) */}
+          <div className="rounded-xl border border-white/10 bg-zinc-900/40 p-6 space-y-3">
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Profile Photo</p>
+            <Label className="text-zinc-300">Photo (optional)</Label>
+            <label className="flex items-center gap-3 px-4 py-3 rounded-lg border border-dashed border-white/15 cursor-pointer hover:border-white/30 transition-colors">
+              <Camera className="w-4 h-4 text-zinc-500 shrink-0" />
+              <span className="text-sm text-zinc-400 truncate">
+                {photoFile ? photoFile.name : 'Click to upload a profile photo'}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+              />
+            </label>
+            {photoFile && (
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-zinc-400 border-white/10 text-xs">
+                  {(photoFile.size / 1024).toFixed(0)} KB
+                </Badge>
+                <button
+                  type="button"
+                  className="text-xs text-zinc-600 hover:text-red-400 transition-colors"
+                  onClick={() => setPhotoFile(null)}
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Standard fields */}
           <div className="rounded-xl border border-white/10 bg-zinc-900/40 p-6 space-y-5">
             <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
