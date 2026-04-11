@@ -168,7 +168,8 @@ export default function StudentProfile() {
     setUploadingResume(true);
     const path = `${user.id}/resume.pdf`;
     // Remove old file first to avoid upsert conflicts
-    await supabase.storage.from('resumes').remove([path]);
+    const removeRes = await supabase.storage.from('resumes').remove([path]);
+    console.log('Resume remove result:', JSON.stringify(removeRes));
     const { error: uploadError } = await supabase.storage.from('resumes').upload(path, file, { upsert: true, contentType: 'application/pdf' });
     if (uploadError) {
       console.error('Resume upload error:', JSON.stringify(uploadError));
@@ -179,7 +180,8 @@ export default function StudentProfile() {
     }
     const { data: { publicUrl } } = supabase.storage.from('resumes').getPublicUrl(path);
     const url = `${publicUrl}?t=${Date.now()}`;
-    const { error: profileErr } = await supabase.from('profiles' as any).upsert({ user_id: user.id, resume_url: url }, { onConflict: 'user_id' });
+    // Use raw update only — avoids INSERT policy issues if row already exists
+    const { error: profileErr } = await supabase.from('profiles' as any).update({ resume_url: url }).eq('user_id', user.id);
     if (profileErr) {
       console.error('Profile resume_url save error:', JSON.stringify(profileErr));
       toast.error(`Saved file but failed to update profile: ${profileErr.message}`);
