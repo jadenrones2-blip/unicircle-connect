@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UniCircle — SIC Pitch</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold: hsl(43, 74%, 56%);
+      --gold-dim: rgba(200, 160, 60, 0.15);
+      --gold-border: rgba(200, 160, 60, 0.25);
+      --bg: #0A0A0A;
+      --bg2: #111111;
+      --bg3: #181818;
+      --text: #f4f4f4;
+      --text-muted: #71717a;
+      --text-sub: #a1a1aa;
+      --border: rgba(255,255,255,0.08);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Slide container ── */
+    #deck {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 80px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── Nav ── */
+    #nav {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      z-index: 100;
+      background: rgba(10,10,10,0.9);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 10px 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    #nav button {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: color 0.2s;
+    }
+
+    #nav button:hover { color: var(--gold); }
+    #nav button:disabled { color: var(--border); cursor: default; }
+
+    #slide-counter {
+      font-size: 12px;
+      color: var(--text-muted);
+      min-width: 50px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+
+    .dot-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s, transform 0.3s;
+    }
+    .dot.on { background: var(--gold); transform: scale(1.4); }
+
+    /* ── Slide number badge ── */
+    .slide-num {
+      position: fixed;
+      top: 24px;
+      right: 32px;
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Shared typography ── */
+    .label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+
+    .headline {
+      font-size: clamp(32px, 4.5vw, 58px);
+      font-weight: 700;
+      line-height: 1.15;
+      color: var(--text);
+    }
+
+    .headline span { color: var(--gold); }
+
+    .sub {
+      font-size: clamp(15px, 1.8vw, 20px);
+      color: var(--text-sub);
+      line-height: 1.6;
+      max-width: 680px;
+    }
+
+    .divider {
+      width: 48px;
+      height: 2px;
+      background: var(--gold);
+      margin: 24px 0;
+      border-radius: 2px;
+    }
+
+    /* ── Cards grid ── */
+    .card-grid {
+      display: grid;
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .card-grid.cols2 { grid-template-columns: 1fr 1fr; }
+    .card-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+    }
+
+    .card-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+
+    .card.gold-border { border-color: var(--gold-border); background: var(--gold-dim); }
+
+    /* ── Stat row ── */
+    .stat-row {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── Quote block ── */
+    .quote {
+      border-left: 3px solid var(--gold);
+      padding: 16px 24px;
+      background: var(--bg3);
+      border-radius: 0 12px 12px 0;
+      font-size: clamp(16px, 2vw, 22px);
+      color: var(--text-sub);
+      font-style: italic;
+      line-height: 1.6;
+      max-width: 760px;
+    }
+
+    /* ── Slide-specific ── */
+
+    /* Slide 1 — Title */
+    .title-logo {
+      font-size: clamp(52px, 8vw, 96px);
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+
+    .title-tagline {
+      font-size: clamp(16px, 2vw, 22px);
+      color: var(--text-sub);
+      margin-top: 12px;
+    }
+
+    .title-meta {
+      margin-top: 40px;
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* Slide — Problem side by side */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+      max-width: 960px;
+    }
+
+    .split-panel {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+    }
+
+    .split-panel h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .split-panel ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .split-panel ul li {
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.5;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .split-panel ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--gold);
+    }
+
+    /* Pipeline mockup */
+    .pipeline {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      max-width: 900px;
+      overflow: hidden;
+    }
+
+    .pipe-col {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .pipe-col-header {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pipe-count {
+      background: var(--gold-dim);
+      color: var(--gold);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    .pipe-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .pipe-card-name {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .pipe-card-sub {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .pipe-card-score {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 10px;
+      background: var(--gold-dim);
+      color: var(--gold);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    /* SIC timeline */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .tl-item {
+      display: flex;
+      gap: 20px;
+      position: relative;
+    }
+
+    .tl-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 32px;
+      flex-shrink: 0;
+    }
+
+    .tl-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .tl-line {
+      width: 2px;
+      flex: 1;
+      background: var(--border);
+      margin-top: 4px;
+    }
+
+    .tl-item:last-child .tl-line { display: none; }
+
+    .tl-content {
+      padding-bottom: 28px;
+    }
+
+    .tl-content h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .tl-content p {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+
+    /* Traction */
+    .traction-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .traction-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .traction-card.highlight { border-color: var(--gold-border); background: var(--gold-dim); }
+
+    .traction-card .t-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .traction-card .t-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .traction-card .t-sub {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    /* Closing */
+    .closing-ask {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 800px;
+    }
+
+    .ask-pill {
+      border: 1px solid var(--gold-border);
+      background: var(--gold-dim);
+      color: var(--gold);
+      border-radius: 50px;
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* Background decorations */
+    .bg-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .glow-gold {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(200,160,60,0.07) 0%, transparent 70%);
+      top: -100px;
+      right: -100px;
+    }
+
+    .glow-blue {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(60,100,200,0.05) 0%, transparent 70%);
+      bottom: -80px;
+      left: -80px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-glow glow-gold"></div>
+<div class="bg-glow glow-blue"></div>
+
+<div id="deck">
+
+  <!-- ── SLIDE 1: Title ── -->
+  <div class="slide active" data-index="0">
+    <div style="text-align:center; display:flex; flex-direction:column; align-items:center;">
+      <div class="label">SIC Demo Night 2026</div>
+      <div class="title-logo">UniCircle</div>
+      <div class="title-tagline">The operating system for student organizations</div>
+      <div class="divider" style="margin: 28px auto;"></div>
+      <div class="title-meta">Jaden Rones &nbsp;·&nbsp; Founder &nbsp;·&nbsp; UCSD</div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 2: Hook ── -->
+  <div class="slide" data-index="1">
+    <div style="max-width:800px; width:100%;">
+      <div class="label">The moment it starts</div>
+      <div class="headline">You're new.<br>You know <span>no one.</span></div>
+      <div class="divider"></div>
+      <div class="sub">You want to find your people — smart, driven students who are actually doing things. So you Google "UCSD clubs."<br><br>
+      You get a PDF. A spreadsheet. An Instagram last updated in 2022.<br><br>
+      <strong style="color:var(--text);">That's how we help students find community in 2025.</strong></div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 3: Founder Story ── -->
+  <div class="slide" data-index="2">
+    <div style="max-width:800px; width:100%; display:flex; flex-direction:column; gap:24px;">
+      <div>
+        <div class="label">Founder Story</div>
+        <div class="headline" style="font-size: clamp(26px,3.5vw,44px);">I transferred to UCSD<br>not knowing anyone.</div>
+      </div>
+      <div class="quote">
+        "I went through a few club recruitments and saw how polished they looked from the outside. Then I asked the people running them how they actually managed it all. The answer was always the same — Google Forms, spreadsheets, and a group chat."
+      </div>
+      <div class="sub" style="font-size:15px;">These organizations run 200–800 person recruitment processes with tools that weren't built for them. That's when I knew there was a real problem to solve.</div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 4: The Problem ── -->
+  <div class="slide" data-index="3">
+    <div style="max-width:960px; width:100%; display:flex; flex-direction:column; align-items:center; gap:28px;">
+      <div style="text-align:center;">
+        <div class="label">The Problem</div>
+        <div class="headline">Broken on <span>both sides</span></div>
+      </div>
+      <div class="split">
+        <div class="split-panel">
+          <h3>🎓 For Students</h3>
+          <ul>
+            <li>No centralized place to discover clubs</li>
+            <li>Find out about opportunities through word of mouth</li>
+            <li>Miss deadlines because no one told them</li>
+            <li>End up in clubs that don't actually fit</li>
+          </ul>
+        </div>
+        <div class="split-panel">
+          <h3>📋 For Club Leaders</h3>
+          <ul>
+            <li>Running a hiring process with zero infrastructure</li>
+            <li>Rebuild the same Google Form every semester</li>
+            <li>Scores tracked in someone's head</li>
+            <li>Great candidates lost to chaos</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 5: Market ── -->
+  <div class="slide" data-index="4">
+    <div style="display:flex; flex-direction:column; align-items:center; gap:40px; text-align:center;">
+      <div>
+        <div class="label">Market Opportunity</div>
+        <div class="headline">This problem exists on <span>every campus</span></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-num">500+</div>
+          <div class="stat-label">Registered orgs at UCSD alone</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">4,000+</div>
+          <div class="stat-label">Universities in the US</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">2×</div>
+          <div class="stat-label">Recruitment cycles per year</div>
+        </div>
+      </div>
+      <div class="sub" style="max-width:600px;">Hundreds of thousands of student organizations. Each running recruitment multiple times a year. None of them with the right tools.</div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 6: Product — Student Side ── -->
+  <div class="slide" data-index="5">
+    <div style="max-width:900px; width:100%; display:flex; flex-direction:column; gap:28px;">
+      <div>
+        <div class="label">The Product — Students</div>
+        <div class="headline">Find your <span>people</span></div>
+      </div>
+      <div class="card-grid cols3">
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <h3>Smart Discovery</h3>
+          <p>Build a profile, set interests, get matched to clubs that actually fit — not a PDF list</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚖️</div>
+          <h3>Side-by-Side Compare</h3>
+          <p>Browse and compare clubs, see recruitment status, deadlines, and what they're looking for</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📨</div>
+          <h3>Apply Directly</h3>
+          <p>One place to submit applications, upload resumes, and track your status across every club</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 7: Product — Pipeline ── -->
+  <div class="slide" data-index="6">
+    <div style="max-width:960px; width:100%; display:flex; flex-direction:column; gap:24px;">
+      <div>
+        <div class="label">The Product — Club Leaders</div>
+        <div class="headline">A real <span>recruitment backend</span></div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-col">
+          <div class="pipe-col-header">Applied <span class="pipe-count">12</span></div>
+          <div class="pipe-card">
+            <div class="pipe-card-name">Alex Kim</div>
+            <div class="pipe-card-sub">Computer Science · Junior</div>
+            <span class="pipe-card-score">Score: 8.4</span>
+          </div>
+          <div class="pipe-card">
+            <div class="pipe-card-name">Jordan Lee</div>
+            <div class="pipe-card-sub">Business · Sophomore</div>
+            <span class="pipe-card-score">Score: 7.9</span>
+          </div>
+        </div>
+        <div class="pipe-col">
+          <div class="pipe-col-header">Interview <span class="pipe-count">5</span></div>
+          <div class="pipe-card">
+            <div class="pipe-card-name">Taylor Nguyen</div>
+            <div class="pipe-card-sub">Data Science · Senior</div>
+            <span class="pipe-card-score">Score: 9.1</span>
+          </div>
+        </div>
+        <div class="pipe-col">
+          <div class="pipe-col-header">Final Round <span class="pipe-count">3</span></div>
+          <div class="pipe-card">
+            <div class="pipe-card-name">Morgan Chen</div>
+            <div class="pipe-card-sub">Cognitive Science · Junior</div>
+            <span class="pipe-card-score">Score: 9.6</span>
+          </div>
+        </div>
+        <div class="pipe-col" style="border-color: var(--gold-border); background: var(--gold-dim);">
+          <div class="pipe-col-header" style="color:var(--gold);">Accepted <span class="pipe-count">2</span></div>
+          <div class="pipe-card" style="border-color:var(--gold-border);">
+            <div class="pipe-card-name">Sam Rivera</div>
+            <div class="pipe-card-sub">Engineering · Junior</div>
+            <span class="pipe-card-score">Score: 9.8</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <div class="ask-pill" style="font-size:12px;">Custom Application Forms</div>
+        <div class="ask-pill" style="font-size:12px;">Weighted Rubric Scoring</div>
+        <div class="ask-pill" style="font-size:12px;">Officer Deliberation Voting</div>
+        <div class="ask-pill" style="font-size:12px;">Automated Email Notifications</div>
+        <div class="ask-pill" style="font-size:12px;">Team Invite Links</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 8: Traction ── -->
+  <div class="slide" data-index="7">
+    <div style="max-width:800px; width:100%; display:flex; flex-direction:column; gap:28px;">
+      <div>
+        <div class="label">Traction</div>
+        <div class="headline">Early signal is <span>strong</span></div>
+      </div>
+      <div class="traction-grid">
+        <div class="traction-card highlight">
+          <div class="t-label">SDSU Pilot</div>
+          <div class="t-value">800</div>
+          <div class="t-sub">Member club ready to pilot next recruitment cycle</div>
+        </div>
+        <div class="traction-card highlight">
+          <div class="t-label">UCSD Pilots</div>
+          <div class="t-value">Multiple</div>
+          <div class="t-sub">Club leaders embedded during build — ready to onboard</div>
+        </div>
+        <div class="traction-card">
+          <div class="t-label">Strategy</div>
+          <div class="t-value" style="font-size:18px; margin-top:4px;">Campus Reps</div>
+          <div class="t-sub">Students on each campus who own club growth and recruitment</div>
+        </div>
+        <div class="traction-card">
+          <div class="t-label">Expansion</div>
+          <div class="t-value" style="font-size:18px; margin-top:4px;">Multi-campus</div>
+          <div class="t-sub">UCSD → SDSU → UC system → national</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 9: SIC ── -->
+  <div class="slide" data-index="8">
+    <div style="max-width:800px; width:100%; display:flex; flex-direction:column; gap:28px;">
+      <div>
+        <div class="label">The SIC Story</div>
+        <div class="headline">Why I'm standing <span>here</span></div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <h4>Idea Validation</h4>
+            <p>SIC pushed me to talk to real club leaders before building — that process changed what I built and saved months of going in the wrong direction.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <h4>Product Direction</h4>
+            <p>Workshops and industry connections helped me refine what to build first — not everything, just the core that mattered most to users.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot"></div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <h4>Accountability</h4>
+            <p>Solo founding is isolating. SIC kept me moving — check-ins, deadlines, people who asked the hard questions when I needed it most.</p>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot"></div></div>
+          <div class="tl-content">
+            <h4>Hiring Support (Now)</h4>
+            <p>Currently building the team. SIC is in this room with me — helping think through who to hire, what to look for, how to structure early roles.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SLIDE 10: Close ── -->
+  <div class="slide" data-index="9">
+    <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:24px; max-width:800px;">
+      <div class="label">The Vision</div>
+      <div class="headline" style="font-size: clamp(28px,4vw,52px);">Student organizations are how people find community, build skills, and launch careers.<br><span>The infrastructure is broken.</span></div>
+      <div class="divider" style="margin: 8px auto;"></div>
+      <div class="sub">UniCircle is fixing that — one campus at a time.</div>
+      <div class="closing-ask">
+        <div class="ask-pill">Looking to hire</div>
+        <div class="ask-pill">Pilots open now</div>
+        <div class="ask-pill">Talk to me after this</div>
+      </div>
+      <div style="margin-top: 8px; font-size: 13px; color: var(--text-muted);">Jaden Rones &nbsp;·&nbsp; jaden@unicircle.app</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Navigation ── -->
+<div id="nav">
+  <button id="prev" onclick="go(-1)" disabled>&#8592;</button>
+  <div class="dot-row" id="dots"></div>
+  <span id="slide-counter">1 / 10</span>
+  <button id="next" onclick="go(1)">&#8594;</button>
+</div>
+
+<div class="slide-num" id="slide-num">01 / 10</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  // Build dots
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' on' : '');
+    d.onclick = () => jump(i);
+    d.style.cursor = 'pointer';
+    dotsEl.appendChild(d);
+  });
+
+  function show(index) {
+    slides[current].classList.remove('active');
+    dotsEl.children[current].classList.remove('on');
+    current = index;
+    slides[current].classList.add('active');
+    dotsEl.children[current].classList.add('on');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('slide-num').textContent = String(current + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    document.getElementById('prev').disabled = current === 0;
+    document.getElementById('next').disabled = current === total - 1;
+  }
+
+  function go(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) show(next);
+  }
+
+  function jump(i) { show(i); }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  });
+</script>
+</body>
+</html>
