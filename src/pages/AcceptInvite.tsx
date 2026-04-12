@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,6 +28,7 @@ export default function AcceptInvite() {
   const [invite, setInvite] = useState<InviteInfo | null>(null);
   const [pageState, setPageState] = useState<PageState>('loading');
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const claimAttempted = useRef(false);
 
   // Sign in form state
   const [email, setEmail] = useState('');
@@ -55,12 +56,15 @@ export default function AcceptInvite() {
     })();
   }, [token]);
 
-  // 2. Once user is authenticated and invite is ready → auto-claim
+  // 2. Once user is authenticated and invite is ready → auto-claim (only once)
   useEffect(() => {
     if (authLoading || !invite || !user) return;
     if (pageState === 'loading' || pageState === 'signing_in' || pageState === 'awaiting_confirmation') return;
+    if (pageState === 'claiming' || pageState === 'done' || pageState === 'already_member') return;
     if (invite.used_by) return;
+    if (claimAttempted.current) return;
 
+    claimAttempted.current = true;
     claimInvite();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading, invite, pageState]);
@@ -278,7 +282,7 @@ export default function AcceptInvite() {
           <p className="text-sm text-zinc-400 text-center">
             Signed in as <span className="text-white">{user.email}</span>
           </p>
-          <Button variant="gold" className="w-full" onClick={claimInvite}>
+          <Button variant="gold" className="w-full" onClick={() => { claimAttempted.current = false; claimInvite(); }}>
             Accept Invite & Access Dashboard
           </Button>
           <button

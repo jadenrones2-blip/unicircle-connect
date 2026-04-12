@@ -701,6 +701,9 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
     useSensor(TouchSensor),
   );
 
+  const isSchemaErr = (err: any) =>
+    err?.message?.includes('schema cache') || err?.message?.includes('Could not find');
+
   const loadForms = async () => {
     if (!clubId) return;
     setLoading(true);
@@ -729,7 +732,7 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
       }
     } catch (err: any) {
       console.error('Failed to load forms:', err);
-      // If new columns don't exist yet, fall back to simple fetch
+      // Schema cache lag — fall back to minimal select
       try {
         const { data: fallback } = await (supabase as any)
           .from('application_forms')
@@ -808,36 +811,42 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
     }));
     try {
       if (activeFormId) {
-        const { error } = await (supabase as any)
+        let error: any;
+        // Try full update with form_name
+        ({ error } = await (supabase as any)
           .from('application_forms')
           .update({ questions: cleaned, form_name: formName })
-          .eq('id', activeFormId);
+          .eq('id', activeFormId));
+        if (error && isSchemaErr(error)) {
+          // Schema cache lag — fall back to questions-only update
+          ({ error } = await (supabase as any)
+            .from('application_forms')
+            .update({ questions: cleaned })
+            .eq('id', activeFormId));
+        }
         if (error) throw error;
         setForms(prev => prev.map(f => f.id === activeFormId ? { ...f, questions: cleaned, form_name: formName } : f));
         toast.success('Form saved!');
       } else {
-        // No form exists yet — upsert by club_id (works whether constraint exists or not)
-        const { data, error } = await (supabase as any)
+        // No form yet — try insert with all columns, fall back to minimal
+        let data: any = null;
+        let error: any = null;
+        ({ data, error } = await (supabase as any)
           .from('application_forms')
-          .upsert({ club_id: clubId, questions: cleaned, form_name: formName, is_active: true }, { onConflict: 'club_id', ignoreDuplicates: false })
-          .select('id, form_name, is_active, questions')
-          .maybeSingle();
-        if (error) {
-          // Fallback: plain insert if upsert fails
-          const { data: inserted, error: insertErr } = await (supabase as any)
+          .insert({ club_id: clubId, questions: cleaned, form_name: formName, is_active: true })
+          .select('id, questions')
+          .single());
+        if (error && isSchemaErr(error)) {
+          ({ data, error } = await (supabase as any)
             .from('application_forms')
-            .insert({ club_id: clubId, questions: cleaned, form_name: formName, is_active: true })
-            .select('id, form_name, is_active, questions')
-            .single();
-          if (insertErr) throw insertErr;
-          const newForm = { ...inserted, questions: cleaned };
-          setForms([newForm]);
-          setActiveFormId(newForm.id);
-        } else if (data) {
-          const newForm = { ...data, questions: cleaned };
-          setForms([newForm]);
-          setActiveFormId(newForm.id);
+            .insert({ club_id: clubId, questions: cleaned })
+            .select('id, questions')
+            .single());
         }
+        if (error) throw error;
+        const newForm: FormRecord = { id: data.id, form_name: formName, is_active: true, questions: cleaned };
+        setForms([newForm]);
+        setActiveFormId(newForm.id);
         toast.success('Form saved!');
       }
     } catch (err: any) {
@@ -851,13 +860,23 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
   const handleCreateForm = async (name: string) => {
     setNewFormOpen(false);
     try {
-      const { data, error } = await (supabase as any)
+      let data: any = null;
+      let error: any = null;
+      ({ data, error } = await (supabase as any)
         .from('application_forms')
         .insert({ club_id: clubId, questions: [], form_name: name, is_active: false })
-        .select('id, form_name, is_active, questions')
-        .single();
+        .select('id, questions')
+        .single());
+      if (error && isSchemaErr(error)) {
+        // Schema cache lag — insert minimal, use local id
+        ({ data, error } = await (supabase as any)
+          .from('application_forms')
+          .insert({ club_id: clubId, questions: [] })
+          .select('id, questions')
+          .single());
+      }
       if (error) throw error;
-      const newForm: FormRecord = { id: data.id, form_name: data.form_name || name, is_active: false, questions: [] };
+      const newForm: FormRecord = { id: data?.id || crypto.randomUUID(), form_name: name, is_active: false, questions: [] };
       setForms(prev => [...prev, newForm]);
       switchToForm(newForm);
       toast.success(`"${name}" created`);
