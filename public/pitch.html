@@ -637,57 +637,203 @@
 
   <!-- ── SLIDE 7: Product — Pipeline ── -->
   <div class="slide" data-index="6">
-    <div style="max-width:960px; width:100%; display:flex; flex-direction:column; gap:24px;">
-      <div>
-        <div class="label">The Product — Club Leaders</div>
-        <div class="headline">A real <span>recruitment backend</span></div>
-      </div>
-      <div class="pipeline">
-        <div class="pipe-col">
-          <div class="pipe-col-header">Applied <span class="pipe-count">12</span></div>
-          <div class="pipe-card">
-            <div class="pipe-card-name">Alex Kim</div>
-            <div class="pipe-card-sub">Computer Science · Junior</div>
-            <span class="pipe-card-score">Score: 8.4</span>
-          </div>
-          <div class="pipe-card">
-            <div class="pipe-card-name">Jordan Lee</div>
-            <div class="pipe-card-sub">Business · Sophomore</div>
-            <span class="pipe-card-score">Score: 7.9</span>
-          </div>
-        </div>
-        <div class="pipe-col">
-          <div class="pipe-col-header">Interview <span class="pipe-count">5</span></div>
-          <div class="pipe-card">
-            <div class="pipe-card-name">Taylor Nguyen</div>
-            <div class="pipe-card-sub">Data Science · Senior</div>
-            <span class="pipe-card-score">Score: 9.1</span>
-          </div>
-        </div>
-        <div class="pipe-col">
-          <div class="pipe-col-header">Final Round <span class="pipe-count">3</span></div>
-          <div class="pipe-card">
-            <div class="pipe-card-name">Morgan Chen</div>
-            <div class="pipe-card-sub">Cognitive Science · Junior</div>
-            <span class="pipe-card-score">Score: 9.6</span>
-          </div>
-        </div>
-        <div class="pipe-col" style="border-color: var(--gold-border); background: var(--gold-dim);">
-          <div class="pipe-col-header" style="color:var(--gold);">Accepted <span class="pipe-count">2</span></div>
-          <div class="pipe-card" style="border-color:var(--gold-border);">
-            <div class="pipe-card-name">Sam Rivera</div>
-            <div class="pipe-card-sub">Engineering · Junior</div>
-            <span class="pipe-card-score">Score: 9.8</span>
-          </div>
+    <div style="max-width:980px; width:100%; display:flex; flex-direction:column; gap:20px;">
+      <div style="display:flex; align-items:baseline; justify-content:space-between;">
+        <div>
+          <div class="label">The Product — Club Leaders</div>
+          <div class="headline" style="font-size:clamp(22px,3vw,38px);">A real <span>recruitment backend</span></div>
         </div>
       </div>
-      <div style="display:flex; gap:12px; flex-wrap:wrap;">
-        <div class="ask-pill" style="font-size:12px;">Custom Application Forms</div>
-        <div class="ask-pill" style="font-size:12px;">Weighted Rubric Scoring</div>
-        <div class="ask-pill" style="font-size:12px;">Officer Deliberation Voting</div>
-        <div class="ask-pill" style="font-size:12px;">Automated Email Notifications</div>
-        <div class="ask-pill" style="font-size:12px;">Team Invite Links</div>
+
+      <!-- Stats row (exact from demo) -->
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); border:1px solid rgba(255,255,255,0.06); border-radius:16px; overflow:hidden; gap:1px; background:rgba(255,255,255,0.06);">
+        <div style="background:#0A0A0A; padding:16px 20px; display:flex; align-items:center; gap:14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div><div style="font-size:18px;font-weight:800;color:#fff;">10</div><div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px;">Applicants</div></div>
+        </div>
+        <div style="background:#0A0A0A; padding:16px 20px; display:flex; align-items:center; gap:14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <div><div style="font-size:18px;font-weight:800;color:#fff;">81.9</div><div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px;">Avg Score</div></div>
+        </div>
+        <div style="background:#0A0A0A; padding:16px 20px; display:flex; align-items:center; gap:14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <div><div style="font-size:18px;font-weight:800;color:#fff;">20%</div><div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px;">Accepted</div></div>
+        </div>
+        <div style="background:#0A0A0A; padding:16px 20px; display:flex; align-items:center; gap:14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <div><div style="font-size:18px;font-weight:800;color:#fff;">5</div><div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px;">In Review</div></div>
+        </div>
       </div>
+
+      <!-- Kanban (exact from demo) -->
+      <div style="display:flex; gap:14px; overflow-x:auto; padding-bottom:4px;">
+
+        <!-- Applied -->
+        <div style="width:175px; flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#6366f1;"></div>
+              <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:.1em;text-transform:uppercase;">Applied</span>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,0.25);">3</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;cursor:pointer;">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:26px;height:26px;border-radius:50%;background:rgba(99,102,241,0.15);border:1.5px solid rgba(99,102,241,0.25);color:#6366f1;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">SC</div>
+                  <div><div style="font-size:12px;font-weight:700;color:#fff;line-height:1;">Sarah Chen</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;">Junior · CS</div></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span style="font-size:11px;font-weight:800;color:#fff;">87</span>
+                </div>
+                <span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(59,130,246,0.15);color:#60a5fa;font-weight:700;">Strong</span>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="width:26px;height:26px;border-radius:50%;background:rgba(99,102,241,0.15);border:1.5px solid rgba(99,102,241,0.25);color:#6366f1;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">MJ</div>
+                <div><div style="font-size:12px;font-weight:700;color:#fff;line-height:1;">Marcus Johnson</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;">Soph · Business</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span style="font-size:11px;font-weight:800;color:#fff;">72</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screening -->
+        <div style="width:175px; flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#f59e0b;"></div>
+              <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:.1em;text-transform:uppercase;">Screening</span>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,0.25);">2</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="width:26px;height:26px;border-radius:50%;background:rgba(245,158,11,0.15);border:1.5px solid rgba(245,158,11,0.25);color:#f59e0b;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">PP</div>
+                <div><div style="font-size:12px;font-weight:700;color:#fff;line-height:1;">Priya Patel</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;">Senior · Cog Sci</div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span style="font-size:11px;font-weight:800;color:#fff;">91</span>
+                </div>
+                <span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(201,168,76,0.15);color:#C9A84C;font-weight:700;">Top Pick</span>
+              </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="width:26px;height:26px;border-radius:50%;background:rgba(245,158,11,0.15);border:1.5px solid rgba(245,158,11,0.25);color:#f59e0b;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">AK</div>
+                <div><div style="font-size:12px;font-weight:700;color:#fff;line-height:1;">Alex Kim</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;">Junior · Math-CS</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span style="font-size:11px;font-weight:800;color:#fff;">78</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coffee Chat -->
+        <div style="width:175px; flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#3b82f6;"></div>
+              <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:.1em;text-transform:uppercase;">Coffee Chat</span>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,0.25);">2</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="width:26px;height:26px;border-radius:50%;background:rgba(59,130,246,0.15);border:1.5px solid rgba(59,130,246,0.25);color:#3b82f6;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">JL</div>
+                <div><div style="font-size:12px;font-weight:700;color:#fff;line-height:1;">Jordan Lee</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;">Soph · Economics</div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span style="font-size:11px;font-weight:800;color:#fff;">84</span>
+                </div>
+                <span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(59,130,246,0.15);color:#60a5fa;font-weight:700;">Strong</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Final Round -->
+        <div style="width:175px; flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#8b5cf6;"></div>
+              <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:.1em;text-transform:uppercase;">Final Round</span>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,0.25);">1</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="width:26px;height:26px;border-radius:50%;background:rgba(139,92,246,0.15);border:1.5px solid rgba(139,92,246,0.25);color:#8b5cf6;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">KZ</div>
+                <div><div style="font-size:12px;font-weight:700;color:#fff;line-height:1;">Kevin Zhang</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;">Senior · CS</div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span style="font-size:11px;font-weight:800;color:#fff;">93</span>
+                </div>
+                <span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(201,168,76,0.15);color:#C9A84C;font-weight:700;">Top Pick</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accepted -->
+        <div style="width:175px; flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#10b981;"></div>
+              <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:.1em;text-transform:uppercase;">Accepted</span>
+            </div>
+            <span style="font-size:10px;color:rgba(255,255,255,0.25);">2</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:12px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="width:26px;height:26px;border-radius:50%;background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.25);color:#10b981;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">AW</div>
+                <div><div style="font-size:12px;font-weight:700;color:#fff;line-height:1;">Aisha Williams</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;">Junior · Poli Sci</div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span style="font-size:11px;font-weight:800;color:#fff;">88</span>
+                </div>
+                <span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(16,185,129,0.15);color:#34d399;font-weight:700;">Accepted</span>
+              </div>
+            </div>
+            <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:12px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div style="width:26px;height:26px;border-radius:50%;background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.25);color:#10b981;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">DP</div>
+                <div><div style="font-size:12px;font-weight:700;color:#fff;line-height:1;">Daniel Park</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;">Soph · Math</div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:4px;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span style="font-size:11px;font-weight:800;color:#fff;">85</span>
+                </div>
+                <span style="font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(16,185,129,0.15);color:#34d399;font-weight:700;">Accepted</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end kanban -->
     </div>
   </div>
 
