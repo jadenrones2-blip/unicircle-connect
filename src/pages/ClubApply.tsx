@@ -410,12 +410,21 @@ export default function ClubApply() {
         return;
       }
 
-      // Upload resume if provided
+      // Upload resume via edge function (bypasses RLS on private resumes bucket)
       if (resumeFile && applicant?.id) {
         try {
-          const ext = resumeFile.name.split('.').pop() || 'pdf';
-          const path = `${clubId}/${applicant.id}.${ext}`;
-          await supabase.storage.from('resumes').upload(path, resumeFile, { upsert: true });
+          const fd = new FormData();
+          fd.append('file', resumeFile);
+          fd.append('applicant_id', applicant.id);
+          fd.append('club_id', clubId!);
+          const res = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-applicant-resume`,
+            { method: 'POST', body: fd }
+          );
+          if (!res.ok) {
+            const json = await res.json().catch(() => ({}));
+            console.warn('Resume upload failed:', json.error);
+          }
         } catch (uploadErr) {
           console.warn('Resume upload failed (non-fatal):', uploadErr);
         }
