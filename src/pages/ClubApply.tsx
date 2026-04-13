@@ -410,24 +410,22 @@ export default function ClubApply() {
         return;
       }
 
-      // Upload resume via edge function (bypasses RLS on private resumes bucket)
+      // Upload resume directly — bucket has public INSERT policy
       if (resumeFile && applicant?.id) {
         try {
-          const fd = new FormData();
-          fd.append('file', resumeFile);
-          fd.append('applicant_id', applicant.id);
-          fd.append('club_id', clubId!);
-          const res = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-applicant-resume`,
-            {
-              method: 'POST',
-              headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-              body: fd,
-            }
-          );
-          if (!res.ok) {
-            const json = await res.json().catch(() => ({}));
-            console.warn('Resume upload failed:', json.error);
+          const ext = resumeFile.name.split('.').pop()?.toLowerCase() || 'pdf';
+          const path = `${clubId}/${applicant.id}.${ext}`;
+          const { error: uploadErr } = await supabase.storage
+            .from('resumes')
+            .upload(path, resumeFile, { upsert: true, contentType: resumeFile.type || 'application/pdf' });
+          if (uploadErr) {
+            console.warn('Resume upload failed:', uploadErr.message);
+          } else {
+            // Store the storage path on the applicant row
+            await (supabase as any)
+              .from('applicants')
+              .update({ resume_url: path })
+              .eq('id', applicant.id);
           }
         } catch (uploadErr) {
           console.warn('Resume upload failed (non-fatal):', uploadErr);
