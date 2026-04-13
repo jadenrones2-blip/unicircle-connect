@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UniCircle — Investor Deck</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold: hsl(43, 74%, 56%);
+      --gold-dim: rgba(200, 160, 60, 0.12);
+      --gold-border: rgba(200, 160, 60, 0.25);
+      --bg: #0A0A0A;
+      --bg2: #111111;
+      --bg3: #161616;
+      --text: #f4f4f4;
+      --text-muted: #71717a;
+      --text-sub: #a1a1aa;
+      --border: rgba(255,255,255,0.07);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #deck { width: 100vw; height: 100vh; position: relative; }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 52px 80px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    .slide.active { opacity: 1; pointer-events: all; }
+
+    /* Nav */
+    #nav {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 100;
+      background: rgba(10,10,10,0.92);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 9px 18px;
+      backdrop-filter: blur(12px);
+    }
+    #nav button {
+      background: none; border: none; color: var(--text-sub);
+      font-size: 17px; cursor: pointer; padding: 3px 8px;
+      border-radius: 6px; transition: color 0.2s;
+    }
+    #nav button:hover { color: var(--gold); }
+    #nav button:disabled { color: var(--border); cursor: default; }
+    #slide-counter { font-size: 11px; color: var(--text-muted); min-width: 44px; text-align: center; letter-spacing: .05em; }
+
+    .dot-row { display: flex; gap: 5px; align-items: center; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); transition: background .3s, transform .3s; cursor: pointer; }
+    .dot.on { background: var(--gold); transform: scale(1.4); }
+
+    .slide-num { position: fixed; top: 22px; right: 28px; font-size: 11px; color: var(--text-muted); letter-spacing: .1em; }
+
+    /* Glows */
+    .bg-glow { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: -1; }
+    .glow-gold { width: 600px; height: 600px; background: radial-gradient(circle, rgba(200,160,60,0.06) 0%, transparent 70%); top: -150px; right: -150px; }
+    .glow-blue { width: 500px; height: 500px; background: radial-gradient(circle, rgba(60,100,200,0.04) 0%, transparent 70%); bottom: -100px; left: -100px; }
+
+    /* Typography */
+    .label { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+    .headline { font-size: clamp(30px, 4.2vw, 54px); font-weight: 800; line-height: 1.12; color: var(--text); }
+    .headline span { color: var(--gold); }
+    .sub { font-size: clamp(14px, 1.6vw, 18px); color: var(--text-sub); line-height: 1.65; max-width: 660px; }
+    .divider { width: 44px; height: 2px; background: var(--gold); margin: 22px 0; border-radius: 2px; }
+
+    /* Cards */
+    .card { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 22px 26px; }
+    .card h3 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 7px; }
+    .card p { font-size: 13px; color: var(--text-sub); line-height: 1.6; }
+    .card-icon { font-size: 24px; margin-bottom: 10px; }
+    .card.gold { border-color: var(--gold-border); background: var(--gold-dim); }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; max-width: 900px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; width: 100%; max-width: 900px; }
+
+    /* Stat */
+    .stat-num { font-size: clamp(40px, 5.5vw, 68px); font-weight: 900; color: var(--gold); line-height: 1; }
+    .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+
+    /* Quote */
+    .quote { border-left: 3px solid var(--gold); padding: 14px 22px; background: var(--bg3); border-radius: 0 12px 12px 0; font-size: clamp(15px, 1.8vw, 20px); color: var(--text-sub); font-style: italic; line-height: 1.6; max-width: 740px; }
+
+    /* Pill */
+    .pill { border: 1px solid var(--gold-border); background: var(--gold-dim); color: var(--gold); border-radius: 50px; padding: 8px 18px; font-size: 13px; font-weight: 600; }
+
+    /* Split */
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 940px; }
+    .split-panel { background: var(--bg3); border: 1px solid var(--border); border-radius: 18px; padding: 28px 30px; }
+    .split-panel h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+    .split-panel ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .split-panel ul li { font-size: 13px; color: var(--text-sub); line-height: 1.5; padding-left: 18px; position: relative; }
+    .split-panel ul li::before { content: '—'; position: absolute; left: 0; color: var(--gold); }
+
+    /* Timeline */
+    .tl { display: flex; flex-direction: column; gap: 0; width: 100%; max-width: 680px; }
+    .tl-item { display: flex; gap: 18px; }
+    .tl-left { display: flex; flex-direction: column; align-items: center; width: 28px; flex-shrink: 0; }
+    .tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); flex-shrink: 0; margin-top: 5px; }
+    .tl-line { width: 1.5px; flex: 1; background: var(--border); margin-top: 4px; }
+    .tl-item:last-child .tl-line { display: none; }
+    .tl-content { padding-bottom: 24px; }
+    .tl-content h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .tl-content p { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
+
+    /* Comparison table */
+    .comp-table { width: 100%; max-width: 860px; border-collapse: collapse; }
+    .comp-table th, .comp-table td { padding: 12px 18px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border); }
+    .comp-table th { font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+    .comp-table td:first-child { color: var(--text-sub); font-weight: 500; }
+    .comp-table td.us { color: var(--gold); font-weight: 700; }
+    .comp-table td.no { color: #ef4444; }
+    .comp-table td.yes { color: #10b981; }
+    .comp-table tr:last-child td { border-bottom: none; }
+    .comp-table thead tr th:nth-child(2) { color: var(--gold); }
+    .comp-col-us { background: var(--gold-dim); }
+
+    /* Freemium tiers */
+    .tier { background: var(--bg3); border: 1px solid var(--border); border-radius: 18px; padding: 28px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+    .tier.featured { border-color: var(--gold-border); background: var(--gold-dim); }
+    .tier-name { font-size: 11px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--text-muted); }
+    .tier.featured .tier-name { color: var(--gold); }
+    .tier-price { font-size: 32px; font-weight: 900; color: var(--text); line-height: 1; }
+    .tier-price span { font-size: 14px; font-weight: 400; color: var(--text-muted); }
+    .tier ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .tier ul li { font-size: 13px; color: var(--text-sub); padding-left: 18px; position: relative; }
+    .tier ul li::before { content: '✓'; position: absolute; left: 0; color: var(--gold); font-weight: 700; font-size: 11px; top: 2px; }
+
+    /* Roadmap */
+    .road-row { display: flex; gap: 12px; width: 100%; max-width: 900px; }
+    .road-phase { flex: 1; border-radius: 16px; padding: 22px; border: 1px solid var(--border); background: var(--bg3); }
+    .road-phase.active { border-color: var(--gold-border); background: var(--gold-dim); }
+    .road-label { font-size: 10px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .road-phase.active .road-label { color: var(--gold); }
+    .road-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .road-items { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .road-items li { font-size: 12px; color: var(--text-sub); padding-left: 14px; position: relative; }
+    .road-items li::before { content: '·'; position: absolute; left: 0; color: var(--gold); font-size: 16px; line-height: 1; top: -1px; }
+
+    /* Team */
+    .team-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 18px; padding: 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .avatar-ring { width: 56px; height: 56px; border-radius: 50%; background: var(--gold-dim); border: 2px solid var(--gold-border); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; color: var(--gold); }
+    .hiring-card { background: var(--bg3); border: 1px dashed var(--gold-border); border-radius: 18px; padding: 28px; display: flex; flex-direction: column; gap: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="bg-glow glow-gold"></div>
+<div class="bg-glow glow-blue"></div>
+
+<div id="deck">
+
+  <!-- 01 · COVER -->
+  <div class="slide active" data-index="0">
+    <div style="text-align:center; display:flex; flex-direction:column; align-items:center;">
+      <div class="label">Confidential · 2026</div>
+      <div style="font-size:clamp(64px,10vw,110px); font-weight:900; color:var(--gold); letter-spacing:-3px; line-height:1;">UniCircle</div>
+      <div style="font-size:clamp(16px,2vw,22px); color:var(--text-sub); margin-top:10px;">The operating system for student organizations</div>
+      <div class="divider" style="margin:28px auto;"></div>
+      <div style="font-size:13px; color:var(--text-muted);">Jaden Rones &nbsp;·&nbsp; Founder &nbsp;·&nbsp; jaden@unicircle.app</div>
+    </div>
+  </div>
+
+  <!-- 02 · PROBLEM -->
+  <div class="slide" data-index="1">
+    <div style="max-width:940px; width:100%; display:flex; flex-direction:column; align-items:center; gap:26px;">
+      <div style="text-align:center;">
+        <div class="label">The Problem</div>
+        <div class="headline">Broken on <span>both sides</span> of the market</div>
+      </div>
+      <div class="split">
+        <div class="split-panel">
+          <h3>🎓 For Students</h3>
+          <ul>
+            <li>No central place to discover clubs that match their interests</li>
+            <li>Find out about opportunities through word of mouth or Instagram</li>
+            <li>Miss deadlines because no one told them they existed</li>
+            <li>End up in clubs that don't fit — no data to go on</li>
+          </ul>
+        </div>
+        <div class="split-panel">
+          <h3>📋 For Club Leaders</h3>
+          <ul>
+            <li>Running a 200–800 person hiring process with zero infrastructure</li>
+            <li>Rebuild the same Google Form every single cycle</li>
+            <li>Scores tracked in someone's head or a shared doc</li>
+            <li>Great candidates lost because the process is chaotic</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 · MARKET -->
+  <div class="slide" data-index="2">
+    <div style="display:flex; flex-direction:column; align-items:center; gap:36px; text-align:center; width:100%; max-width:900px;">
+      <div>
+        <div class="label">Market Opportunity</div>
+        <div class="headline">A massive, <span>untouched</span> market</div>
+      </div>
+      <div style="display:flex; gap:40px; justify-content:center; flex-wrap:wrap;">
+        <div class="stat" style="text-align:center;">
+          <div class="stat-num">500+</div>
+          <div class="stat-label">Student orgs at UCSD alone</div>
+        </div>
+        <div class="stat" style="text-align:center;">
+          <div class="stat-num">4,500+</div>
+          <div class="stat-label">Universities in the US</div>
+        </div>
+        <div class="stat" style="text-align:center;">
+          <div class="stat-num">~30M</div>
+          <div class="stat-label">College students in the US</div>
+        </div>
+      </div>
+      <div class="sub" style="max-width:640px; text-align:center;">Every campus. Every semester. Hundreds of thousands of student organizations running recruitment with no real tools. The infrastructure for this doesn't exist yet — and no one has built it.</div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+        <div class="pill">SAM: US university clubs market</div>
+        <div class="pill">Expansion: International campuses</div>
+        <div class="pill">Adjacent: Greek life, sports teams, honor societies</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 · SOLUTION -->
+  <div class="slide" data-index="3">
+    <div style="max-width:900px; width:100%; display:flex; flex-direction:column; gap:26px;">
+      <div>
+        <div class="label">The Solution</div>
+        <div class="headline">UniCircle is the <span>operating system</span><br>for student organizations</div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-icon">🔍</div>
+          <h3>Discovery — for Students</h3>
+          <p>Profile + quiz + resume upload. We surface clubs and events that match. Browse, compare side-by-side, apply — one platform.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <h3>Recruitment Pipeline — for Clubs</h3>
+          <p>Custom application forms, kanban pipeline, weighted rubric scoring, officer deliberation votes, automated email notifications.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">👥</div>
+          <h3>Team Management</h3>
+          <p>Invite co-officers with a single link. Real-time shared pipeline access. Each officer gets their own scoring view.</p>
+        </div>
+        <div class="card gold">
+          <div class="card-icon">📊</div>
+          <h3>Data Layer (Moat)</h3>
+          <p>We sit between students and orgs — capturing which clubs are competitive, what backgrounds get in, what correlates with retention. No one else has this.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 · PRODUCT (pipeline UI) -->
+  <div class="slide" data-index="4">
+    <div style="max-width:980px; width:100%; display:flex; flex-direction:column; gap:18px;">
+      <div style="display:flex; align-items:baseline; justify-content:space-between;">
+        <div>
+          <div class="label">Product</div>
+          <div class="headline" style="font-size:clamp(22px,3vw,38px);">The <span>recruitment pipeline</span></div>
+        </div>
+        <div style="font-size:12px; color:var(--text-muted);">Live UI from unicircle.app/demo</div>
+      </div>
+
+      <!-- Stats bar -->
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); border:1px solid rgba(255,255,255,0.06); border-radius:14px; overflow:hidden; gap:1px; background:rgba(255,255,255,0.06);">
+        <div style="background:#0A0A0A; padding:14px 18px; display:flex; align-items:center; gap:12px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <div><div style="font-size:17px;font-weight:800;color:#fff;">10</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:1px;">Applicants</div></div>
+        </div>
+        <div style="background:#0A0A0A; padding:14px 18px; display:flex; align-items:center; gap:12px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <div><div style="font-size:17px;font-weight:800;color:#fff;">81.9</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:1px;">Avg Score</div></div>
+        </div>
+        <div style="background:#0A0A0A; padding:14px 18px; display:flex; align-items:center; gap:12px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <div><div style="font-size:17px;font-weight:800;color:#fff;">20%</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:1px;">Accepted</div></div>
+        </div>
+        <div style="background:#0A0A0A; padding:14px 18px; display:flex; align-items:center; gap:12px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <div><div style="font-size:17px;font-weight:800;color:#fff;">5</div><div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:1px;">In Review</div></div>
+        </div>
+      </div>
+
+      <!-- Kanban -->
+      <div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:4px;">
+        <!-- Applied -->
+        <div style="width:168px;flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:5px;"><div style="width:5px;height:5px;border-radius:50%;background:#6366f1;"></div><span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:.1em;text-transform:uppercase;">Applied</span></div><span style="font-size:9px;color:rgba(255,255,255,0.22);">3</span></div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:11px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.15);border:1.5px solid rgba(99,102,241,0.25);color:#6366f1;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">SC</div><div><div style="font-size:11px;font-weight:700;color:#fff;line-height:1;">Sarah Chen</div><div style="font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;">Junior · CS</div></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span style="font-size:10px;font-weight:800;color:#fff;">87</span></div><span style="font-size:8px;padding:2px 6px;border-radius:20px;background:rgba(59,130,246,0.15);color:#60a5fa;font-weight:700;">Strong</span></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:11px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.15);border:1.5px solid rgba(99,102,241,0.25);color:#6366f1;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">MJ</div><div><div style="font-size:11px;font-weight:700;color:#fff;line-height:1;">Marcus Johnson</div><div style="font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;">Soph · Business</div></div></div>
+              <div style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span style="font-size:10px;font-weight:800;color:#fff;">72</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Screening -->
+        <div style="width:168px;flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:5px;"><div style="width:5px;height:5px;border-radius:50%;background:#f59e0b;"></div><span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:.1em;text-transform:uppercase;">Screening</span></div><span style="font-size:9px;color:rgba(255,255,255,0.22);">2</span></div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:11px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(245,158,11,0.15);border:1.5px solid rgba(245,158,11,0.25);color:#f59e0b;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">PP</div><div><div style="font-size:11px;font-weight:700;color:#fff;line-height:1;">Priya Patel</div><div style="font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;">Senior · Cog Sci</div></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span style="font-size:10px;font-weight:800;color:#fff;">91</span></div><span style="font-size:8px;padding:2px 6px;border-radius:20px;background:rgba(201,168,76,0.15);color:#C9A84C;font-weight:700;">Top Pick</span></div>
+            </div>
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:11px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(245,158,11,0.15);border:1.5px solid rgba(245,158,11,0.25);color:#f59e0b;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">AK</div><div><div style="font-size:11px;font-weight:700;color:#fff;line-height:1;">Alex Kim</div><div style="font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;">Junior · Math-CS</div></div></div>
+              <div style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span style="font-size:10px;font-weight:800;color:#fff;">78</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Coffee Chat -->
+        <div style="width:168px;flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:5px;"><div style="width:5px;height:5px;border-radius:50%;background:#3b82f6;"></div><span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:.1em;text-transform:uppercase;">Coffee Chat</span></div><span style="font-size:9px;color:rgba(255,255,255,0.22);">2</span></div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:11px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(59,130,246,0.15);border:1.5px solid rgba(59,130,246,0.25);color:#3b82f6;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">JL</div><div><div style="font-size:11px;font-weight:700;color:#fff;line-height:1;">Jordan Lee</div><div style="font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;">Soph · Economics</div></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span style="font-size:10px;font-weight:800;color:#fff;">84</span></div><span style="font-size:8px;padding:2px 6px;border-radius:20px;background:rgba(59,130,246,0.15);color:#60a5fa;font-weight:700;">Strong</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Final Round -->
+        <div style="width:168px;flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:5px;"><div style="width:5px;height:5px;border-radius:50%;background:#8b5cf6;"></div><span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:.1em;text-transform:uppercase;">Final Round</span></div><span style="font-size:9px;color:rgba(255,255,255,0.22);">1</span></div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:11px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(139,92,246,0.15);border:1.5px solid rgba(139,92,246,0.25);color:#8b5cf6;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">KZ</div><div><div style="font-size:11px;font-weight:700;color:#fff;line-height:1;">Kevin Zhang</div><div style="font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;">Senior · CS</div></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span style="font-size:10px;font-weight:800;color:#fff;">93</span></div><span style="font-size:8px;padding:2px 6px;border-radius:20px;background:rgba(201,168,76,0.15);color:#C9A84C;font-weight:700;">Top Pick</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Accepted -->
+        <div style="width:168px;flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="display:flex;align-items:center;gap:5px;"><div style="width:5px;height:5px;border-radius:50%;background:#10b981;"></div><span style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:.1em;text-transform:uppercase;">Accepted</span></div><span style="font-size:9px;color:rgba(255,255,255,0.22);">2</span></div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.15);border-radius:11px;padding:11px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.25);color:#10b981;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">AW</div><div><div style="font-size:11px;font-weight:700;color:#fff;line-height:1;">Aisha Williams</div><div style="font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;">Junior · Poli Sci</div></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span style="font-size:10px;font-weight:800;color:#fff;">88</span></div><span style="font-size:8px;padding:2px 6px;border-radius:20px;background:rgba(16,185,129,0.15);color:#34d399;font-weight:700;">Accepted</span></div>
+            </div>
+            <div style="background:rgba(16,185,129,0.04);border:1px solid rgba(16,185,129,0.15);border-radius:11px;padding:11px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;"><div style="width:24px;height:24px;border-radius:50%;background:rgba(16,185,129,0.15);border:1.5px solid rgba(16,185,129,0.25);color:#10b981;font-size:8px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">DP</div><div><div style="font-size:11px;font-weight:700;color:#fff;line-height:1;">Daniel Park</div><div style="font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;">Soph · Math</div></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#C9A84C" stroke="#C9A84C" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span style="font-size:10px;font-weight:800;color:#fff;">85</span></div><span style="font-size:8px;padding:2px 6px;border-radius:20px;background:rgba(16,185,129,0.15);color:#34d399;font-weight:700;">Accepted</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 · COMPETITION -->
+  <div class="slide" data-index="5">
+    <div style="max-width:880px; width:100%; display:flex; flex-direction:column; gap:26px;">
+      <div>
+        <div class="label">Competitive Landscape</div>
+        <div class="headline">We're not competing.<br>We're <span>replacing</span> the default.</div>
+      </div>
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th style="color:var(--gold);">UniCircle</th>
+            <th>Google Forms + Sheets</th>
+            <th>Campus Portals</th>
+            <th>Custom-built</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Built for student orgs</td>
+            <td class="us">✓ Purpose-built</td>
+            <td class="no">✗ Generic</td>
+            <td class="no">✗ Admin-facing</td>
+            <td class="no">✗ One-off</td>
+          </tr>
+          <tr>
+            <td>Kanban recruitment pipeline</td>
+            <td class="us">✓</td>
+            <td class="no">✗</td>
+            <td class="no">✗</td>
+            <td class="yes">Sometimes</td>
+          </tr>
+          <tr>
+            <td>Weighted officer scoring</td>
+            <td class="us">✓</td>
+            <td class="no">✗</td>
+            <td class="no">✗</td>
+            <td class="no">✗</td>
+          </tr>
+          <tr>
+            <td>Student-facing discovery</td>
+            <td class="us">✓</td>
+            <td class="no">✗</td>
+            <td class="yes">Partial</td>
+            <td class="no">✗</td>
+          </tr>
+          <tr>
+            <td>Automated applicant emails</td>
+            <td class="us">✓</td>
+            <td class="no">✗ Manual</td>
+            <td class="no">✗</td>
+            <td class="yes">Sometimes</td>
+          </tr>
+          <tr>
+            <td>Setup time</td>
+            <td class="us">Minutes</td>
+            <td style="color:var(--text-sub);">Hours</td>
+            <td style="color:var(--text-sub);">Weeks</td>
+            <td style="color:var(--text-sub);">Months</td>
+          </tr>
+          <tr>
+            <td>Cost to clubs</td>
+            <td class="us">Free to start</td>
+            <td style="color:var(--text-sub);">Free</td>
+            <td style="color:var(--text-sub);">Included (limited)</td>
+            <td style="color:#ef4444;">$$$</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 07 · BUSINESS MODEL -->
+  <div class="slide" data-index="6">
+    <div style="max-width:880px; width:100%; display:flex; flex-direction:column; gap:26px;">
+      <div>
+        <div class="label">Business Model</div>
+        <div class="headline"><span>Freemium</span> — free to adopt,<br>paid to scale</div>
+      </div>
+      <div style="display:flex; gap:16px; width:100%;">
+        <div class="tier">
+          <div class="tier-name">Free</div>
+          <div class="tier-price">$0 <span>/ month</span></div>
+          <div style="font-size:12px; color:var(--text-muted);">Perfect for small orgs getting started</div>
+          <ul>
+            <li>1 active recruitment pipeline</li>
+            <li>Up to 50 applicants/cycle</li>
+            <li>Basic application form</li>
+            <li>Kanban pipeline</li>
+            <li>Student discovery listing</li>
+          </ul>
+        </div>
+        <div class="tier featured">
+          <div class="tier-name">Pro</div>
+          <div class="tier-price">$X <span>/ month</span></div>
+          <div style="font-size:12px; color:rgba(201,168,76,0.7);">For serious clubs running competitive recruitment</div>
+          <ul>
+            <li>Unlimited applicants</li>
+            <li>Weighted rubric scoring engine</li>
+            <li>Officer deliberation + voting</li>
+            <li>Automated email notifications</li>
+            <li>Team management (officer invites)</li>
+            <li>Analytics dashboard</li>
+            <li>Priority support</li>
+          </ul>
+        </div>
+        <div class="tier">
+          <div class="tier-name">Campus</div>
+          <div class="tier-price">TBD <span>/ campus</span></div>
+          <div style="font-size:12px; color:var(--text-muted);">University-wide licensing for all orgs</div>
+          <ul>
+            <li>Everything in Pro</li>
+            <li>All orgs on campus included</li>
+            <li>Centralized campus admin view</li>
+            <li>Branded student portal</li>
+            <li>Dedicated support</li>
+          </ul>
+        </div>
+      </div>
+      <div class="sub" style="font-size:13px; text-align:center; color:var(--text-muted);">Long-term: data insights product sold to career centers, employers, and universities</div>
+    </div>
+  </div>
+
+  <!-- 08 · TRACTION -->
+  <div class="slide" data-index="7">
+    <div style="max-width:860px; width:100%; display:flex; flex-direction:column; gap:28px;">
+      <div>
+        <div class="label">Traction</div>
+        <div class="headline">Early signal is <span>strong</span></div>
+      </div>
+      <div class="grid2">
+        <div class="card gold">
+          <div style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:6px;">SDSU Pilot</div>
+          <div style="font-size:36px; font-weight:900; color:var(--gold); line-height:1;">800</div>
+          <div style="font-size:13px; color:var(--text-sub); margin-top:4px;">Member org at SDSU ready to pilot next recruitment cycle — before a single dollar spent on sales</div>
+        </div>
+        <div class="card gold">
+          <div style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:6px;">UCSD Pilots</div>
+          <div style="font-size:36px; font-weight:900; color:var(--gold); line-height:1;">Multiple</div>
+          <div style="font-size:13px; color:var(--text-sub); margin-top:4px;">Club leaders embedded in the build process — already committed to onboarding this cycle</div>
+        </div>
+        <div class="card">
+          <div style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">Go-to-Market</div>
+          <div style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:6px;">Campus Rep Model</div>
+          <div style="font-size:13px; color:var(--text-sub);">Students on each campus own growth — bringing clubs onto the platform and becoming the face of UniCircle at their school</div>
+        </div>
+        <div class="card">
+          <div style="font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">Expansion Playbook</div>
+          <div style="font-size:16px; font-weight:800; color:var(--text); margin-bottom:6px;">Land → Prove → Expand</div>
+          <div style="font-size:13px; color:var(--text-sub);">UCSD → SDSU → UC System → California → National</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 09 · ROADMAP -->
+  <div class="slide" data-index="8">
+    <div style="max-width:940px; width:100%; display:flex; flex-direction:column; gap:26px;">
+      <div>
+        <div class="label">Roadmap</div>
+        <div class="headline">Campus by campus, <span>feature by feature</span></div>
+      </div>
+      <div class="road-row">
+        <div class="road-phase active">
+          <div class="road-label">Now · Q2 2026</div>
+          <div class="road-title">Pilot Launch</div>
+          <ul class="road-items">
+            <li>Ship team collaboration (officer invites)</li>
+            <li>Onboard UCSD pilots</li>
+            <li>Onboard SDSU 800-member org</li>
+            <li>Gather feedback, iterate fast</li>
+          </ul>
+        </div>
+        <div class="road-phase">
+          <div class="road-label">Q3 2026</div>
+          <div class="road-title">Prove & Expand</div>
+          <ul class="road-items">
+            <li>Launch campus rep program</li>
+            <li>Expand across UCSD + SDSU orgs</li>
+            <li>Introduce Pro tier</li>
+            <li>Build analytics dashboard v1</li>
+          </ul>
+        </div>
+        <div class="road-phase">
+          <div class="road-label">Q4 2026</div>
+          <div class="road-title">UC System</div>
+          <ul class="road-items">
+            <li>Target UC Berkeley, UCLA, UC Davis</li>
+            <li>Campus licensing conversations</li>
+            <li>Mobile app</li>
+            <li>Explore seed round</li>
+          </ul>
+        </div>
+        <div class="road-phase">
+          <div class="road-label">2027</div>
+          <div class="road-title">National</div>
+          <ul class="road-items">
+            <li>50+ campuses</li>
+            <li>Data insights product</li>
+            <li>Employer / career center partnerships</li>
+            <li>Series A</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 · TEAM -->
+  <div class="slide" data-index="9">
+    <div style="max-width:860px; width:100%; display:flex; flex-direction:column; gap:26px;">
+      <div>
+        <div class="label">Team</div>
+        <div class="headline">Built by a <span>student</span>,<br>for students</div>
+      </div>
+      <div class="grid2">
+        <div class="team-card">
+          <div class="avatar-ring">JR</div>
+          <div>
+            <div style="font-size:17px; font-weight:800; color:var(--text);">Jaden Rones</div>
+            <div style="font-size:12px; color:var(--gold); margin-top:2px;">Founder &amp; CEO · UCSD Transfer</div>
+          </div>
+          <ul style="list-style:none; display:flex; flex-direction:column; gap:6px; margin-top:4px;">
+            <li style="font-size:13px; color:var(--text-sub); padding-left:16px; position:relative;"><span style="position:absolute;left:0;color:var(--gold);">·</span>Built the full product solo — design, frontend, backend, infra</li>
+            <li style="font-size:13px; color:var(--text-sub); padding-left:16px; position:relative;"><span style="position:absolute;left:0;color:var(--gold);">·</span>Embedded in UCSD club community during build</li>
+            <li style="font-size:13px; color:var(--text-sub); padding-left:16px; position:relative;"><span style="position:absolute;left:0;color:var(--gold);">·</span>SIC (Startup Incubator Club) — validated, refined, and launched</li>
+          </ul>
+        </div>
+        <div class="hiring-card">
+          <div style="font-size:10px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--gold);">Now Hiring</div>
+          <div style="font-size:17px; font-weight:800; color:var(--text);">Building the founding team</div>
+          <div style="font-size:13px; color:var(--text-sub); line-height:1.6;">Looking for driven students who want to own a piece of something real from day one.</div>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+            <div style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px 14px;">
+              <div style="font-size:13px; font-weight:700; color:var(--text);">Growth / Campus Reps</div>
+              <div style="font-size:12px; color:var(--text-muted);">Own your campus. Bring clubs on. Commission-based.</div>
+            </div>
+            <div style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px 14px;">
+              <div style="font-size:13px; font-weight:700; color:var(--text);">Software Engineer</div>
+              <div style="font-size:12px; color:var(--text-muted);">React / TypeScript / Supabase. Ship fast, own features.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11 · CLOSE / ASK -->
+  <div class="slide" data-index="10">
+    <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:22px; max-width:800px;">
+      <div class="label">The Ask</div>
+      <div class="headline" style="font-size:clamp(26px,4vw,50px);">Student organizations are how millions of people find community, build skills, and launch careers.<br><span>The infrastructure is broken.</span></div>
+      <div class="divider" style="margin:6px auto;"></div>
+      <div class="sub">UniCircle is fixing that — one campus at a time. We're looking for advisors, connectors, and believers who want to be part of this early.</div>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center;">
+        <div class="pill">Introductions to club leaders</div>
+        <div class="pill">Campus connections</div>
+        <div class="pill">Advisors &amp; angels</div>
+      </div>
+      <div style="margin-top:10px; display:flex; flex-direction:column; gap:4px; align-items:center;">
+        <div style="font-size:15px; font-weight:700; color:var(--text);">Jaden Rones</div>
+        <div style="font-size:13px; color:var(--text-muted);">jaden@unicircle.app &nbsp;·&nbsp; unicircle.app</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Nav -->
+<div id="nav">
+  <button id="prev" onclick="go(-1)" disabled>&#8592;</button>
+  <div class="dot-row" id="dots"></div>
+  <span id="slide-counter">1 / 11</span>
+  <button id="next" onclick="go(1)">&#8594;</button>
+</div>
+<div class="slide-num" id="slide-num">01 / 11</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  const dotsEl = document.getElementById('dots');
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' on' : '');
+    d.onclick = () => show(i);
+    d.style.cursor = 'pointer';
+    dotsEl.appendChild(d);
+  });
+
+  function show(index) {
+    slides[current].classList.remove('active');
+    dotsEl.children[current].classList.remove('on');
+    current = index;
+    slides[current].classList.add('active');
+    dotsEl.children[current].classList.add('on');
+    document.getElementById('slide-counter').textContent = (current + 1) + ' / ' + total;
+    document.getElementById('slide-num').textContent = String(current + 1).padStart(2,'0') + ' / ' + String(total).padStart(2,'0');
+    document.getElementById('prev').disabled = current === 0;
+    document.getElementById('next').disabled = current === total - 1;
+  }
+
+  function go(dir) { const n = current + dir; if (n >= 0 && n < total) show(n); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  });
+</script>
+</body>
+</html>
