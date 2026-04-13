@@ -419,7 +419,11 @@ export default function ClubApply() {
           fd.append('club_id', clubId!);
           const res = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-applicant-resume`,
-            { method: 'POST', body: fd }
+            {
+              method: 'POST',
+              headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+              body: fd,
+            }
           );
           if (!res.ok) {
             const json = await res.json().catch(() => ({}));
