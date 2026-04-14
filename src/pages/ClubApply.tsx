@@ -417,20 +417,10 @@ export default function ClubApply() {
           fd.append('file', resumeFile);
           fd.append('applicant_id', applicant.id);
           fd.append('club_id', String(clubId));
-          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-          const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-          const res = await fetch(
-            `${supabaseUrl}/functions/v1/upload-applicant-resume`,
-            {
-              method: 'POST',
-              headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` },
-              body: fd,
-            }
-          );
-          const json = await res.json().catch(() => ({}));
-          if (!res.ok) {
-            console.warn('Resume upload failed:', json.error);
-          }
+          const { error: fnErr } = await supabase.functions.invoke('upload-applicant-resume', {
+            body: fd,
+          });
+          if (fnErr) console.warn('Resume upload failed:', fnErr.message);
         } catch (uploadErr) {
           console.warn('Resume upload failed (non-fatal):', uploadErr);
         }
