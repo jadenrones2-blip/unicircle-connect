@@ -167,18 +167,28 @@ export default function StudentProfile() {
     if (file.size > 10 * 1024 * 1024) { toast.error('Resume must be under 10MB'); return; }
     setUploadingResume(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error('Not signed in'); setUploadingResume(false); return; }
+
       const formData = new FormData();
       formData.append('file', file);
 
-      const { data, error: fnErr } = await supabase.functions.invoke('upload-resume', {
-        body: formData,
-      });
-      if (fnErr) {
-        console.error('Resume upload error:', fnErr);
-        toast.error(`Upload failed: ${fnErr.message}`);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(
+        `${supabaseUrl}/functions/v1/upload-resume`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${session.access_token}` },
+          body: formData,
+        }
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error('Resume upload error:', json);
+        toast.error(`Upload failed: ${json.error || res.statusText}`);
         return;
       }
-      setProfile(p => ({ ...p, resume_url: data?.url }));
+      setProfile(p => ({ ...p, resume_url: json.url }));
       toast.success('Resume uploaded');
     } catch (err) {
       console.error('Resume upload exception:', err);
