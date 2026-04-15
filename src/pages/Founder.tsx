@@ -95,9 +95,12 @@ export default function Founder() {
                 That's when the idea clicked. What if there was one platform — built specifically for this — that handled everything? Discovery for students, and a real recruitment backend for clubs. Not a workaround. An actual tool.
               </p>
 
-              <div className="border-l-2 border-[#C9A84C] pl-6 py-1">
-                <p className="text-zinc-200 italic">
-                  "No one had built it. So I did."
+              <div className="border-l-2 border-[#C9A84C] pl-6 py-2 space-y-4">
+                <p className="text-zinc-200 italic text-lg">
+                  "Student organizations are how millions of people find community, build skills, and launch careers."
+                </p>
+                <p className="text-zinc-500 text-sm">
+                  That stuck with me. And it's why I'm building this — with people who feel the same way. If you do, come find me.
                 </p>
               </div>
 
@@ -113,13 +116,13 @@ export default function Founder() {
                   Explore clubs
                   <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link
-                  to="/club-admin/request"
+                <a
+                  href="mailto:jaden@unicircle.app?subject=I want to build this with you"
                   className="inline-flex items-center gap-2 border border-white/10 text-white/70 hover:text-white hover:border-white/20 font-medium px-6 py-3 rounded-xl text-sm transition-colors"
                 >
-                  Bring UniCircle to your club
+                  Want to build this with me?
                   <ArrowRight className="w-4 h-4" />
-                </Link>
+                </a>
               </div>
             </motion.div>
           </div>
