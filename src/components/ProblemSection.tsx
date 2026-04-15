@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import AnimatedWords from "./AnimatedWords";
 
 const challenges = [
-  { number: "01", title: "Three tools, one job",     detail: "Google Forms, a spreadsheet, and Instagram DMs — none of them sync." },
-  { number: "02", title: "Reviewer chaos",           detail: "Multiple officers, different spreadsheet versions, zero coordination." },
-  { number: "03", title: "Applicants left guessing", detail: "No status system means they email you. Now that's your job too." },
-  { number: "04", title: "It breaks at scale",       detail: "50 applicants is manageable. 150 is chaos." },
+  { number: "01", title: "Three tools, zero system",  detail: "Google Forms dumps into a spreadsheet, decisions happen in a group chat. Nothing talks to anything." },
+  { number: "02", title: "Your officers are on their own", detail: "Everyone's working off a different version of the sheet. Someone always misses something." },
+  { number: "03", title: "Applicants just... wait",   detail: "No updates means they email you. Now you're managing that too." },
+  { number: "04", title: "150 apps. Good luck.",      detail: "The process that worked at 40 applications completely falls apart at 150." },
 ];
 
 const ProblemSection = () => {
@@ -37,7 +37,7 @@ const ProblemSection = () => {
               transition={{ delay: 0.2 }}
               className="text-white text-base leading-relaxed max-w-xs"
             >
-              Google Forms, spreadsheets, DMs. The tools aren't built for this.
+              Every club runs recruitment the same broken way. Nobody fixed it.
             </motion.p>
           </div>
 

@@ -34,9 +34,17 @@ const HeroSection = () => {
           <AnimatedWords
             text="Recruit with precision."
             as="h1"
-            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] mb-8 sm:mb-10 text-white/70"
+            className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] mb-5 sm:mb-6 text-white/70"
             goldWords={["precision."]}
           />
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.5 }}
+            className="text-white/50 text-lg sm:text-xl max-w-md mx-auto mb-8 sm:mb-10 leading-relaxed"
+          >
+            Applications, scoring, decisions — all in one place. No more spreadsheets passed around a group chat.
+          </motion.p>
 
           {/* CTA buttons */}
           <motion.div

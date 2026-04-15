@@ -20,7 +20,7 @@ const CTASection = () => {
               viewport={{ once: true }}
               className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
             >
-              The Solution
+              Get started
             </motion.p>
             <AnimatedWords
               text="Fix it today."
@@ -39,7 +39,7 @@ const CTASection = () => {
             className="flex flex-col gap-6 lg:items-end"
           >
             <p className="text-white text-base leading-relaxed max-w-xs lg:text-right">
-              Replace Google Forms, spreadsheets, and DMs with one system. Built for UCSD clubs — free.
+              Free to start. No spreadsheets. No chasing people down. Just a clean process your whole team can actually use.
             </p>
             <div className="flex items-center gap-8">
               <Link
