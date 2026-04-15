@@ -6,10 +6,11 @@ const Footer = () => {
   const { playHover } = useSoundEffects();
 
   const navLinks = [
-    { label: "Home",   href: "/" },
-    { label: "Clubs",  href: "/clubs" },
-    { label: "Events", href: "/events" },
-    { label: "Demo",   href: "/demo" },
+    { label: "Home",    href: "/" },
+    { label: "Clubs",   href: "/clubs" },
+    { label: "Events",  href: "/events" },
+    { label: "Demo",    href: "/demo" },
+    { label: "Our Story", href: "/story" },
   ];
 
   const legalLinks = [

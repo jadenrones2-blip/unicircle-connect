@@ -51,6 +51,7 @@ import StudentProfile from "./pages/StudentProfile";
 import ApplyBySlug from "./pages/ApplyBySlug";
 import StartupIncubatorDemo from "./pages/StartupIncubatorDemo";
 import AcceptInvite from "./pages/AcceptInvite";
+import Founder from "./pages/Founder";
 import ClubAdminTeam from "./pages/ClubAdminTeam";
 import NotFound from "./pages/NotFound";
 
@@ -111,6 +112,7 @@ const App = () => (
           <Route path="/test-resume" element={<TestResumeUpload />} />
           <Route path="/social-assets" element={<SocialAssets />} />
           <Route path="/demo" element={<Demo />} />
+          <Route path="/story" element={<Founder />} />
           <Route path="/reach" element={<ReachDemo />} />
           <Route path="/startup-incubator" element={<StartupIncubatorDemo />} />
           <Route path="*" element={<NotFound />} />
