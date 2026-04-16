@@ -395,52 +395,15 @@ export default function StudentProfile() {
 
         {/* ── Resume ──────────────────────────────────────────────────── */}
         <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 mb-3 space-y-4">
-          <h2 className="text-sm font-semibold text-zinc-300">Resume</h2>
-
-          {profile.resume_url ? (
-            <div className="flex items-center gap-3 p-3 rounded-xl border border-white/8 bg-white/[0.03]">
-              <div className="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                <FileText className="w-4 h-4 text-red-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">resume.pdf</p>
-                <p className="text-xs text-zinc-500 mt-0.5">Uploaded</p>
-              </div>
-              <a
-                href={profile.resume_url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors"
-              >
-                View
-              </a>
-              <button
-                onClick={() => resumeInputRef.current?.click()}
-                className="text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors"
-              >
-                Replace
-              </button>
-              <button
-                onClick={handleRemoveResume}
-                className="text-zinc-600 hover:text-red-400 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <label className="flex flex-col items-center justify-center gap-2 border border-dashed border-white/10 rounded-xl py-8 cursor-pointer hover:border-white/25 transition-colors">
-              {uploadingResume
-                ? <Loader2 className="w-5 h-5 text-zinc-500 animate-spin" />
-                : <Upload className="w-5 h-5 text-zinc-500" />}
-              <span className="text-sm text-zinc-400">{uploadingResume ? 'Uploading…' : 'Upload resume'}</span>
-              <span className="text-xs text-zinc-600">PDF · Max 10MB</span>
-              <input ref={resumeInputRef} type="file" accept=".pdf" className="hidden" onChange={handleResumeChange} />
-            </label>
-          )}
-          {/* Hidden input for replace flow */}
-          {profile.resume_url && (
-            <input ref={resumeInputRef} type="file" accept=".pdf" className="hidden" onChange={handleResumeChange} />
-          )}
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-zinc-300">Resume</h2>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#C9A84C]/10 text-[#C9A84C] border border-[#C9A84C]/20">Coming soon</span>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-2 border border-dashed border-white/8 rounded-xl py-8 opacity-50 cursor-not-allowed">
+            <FileText className="w-5 h-5 text-zinc-600" />
+            <span className="text-sm text-zinc-500">Resume upload coming soon</span>
+            <span className="text-xs text-zinc-700">We're working on it</span>
+          </div>
         </div>
 
         {/* ── Interests ───────────────────────────────────────────────── */}
