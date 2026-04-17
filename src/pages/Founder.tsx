@@ -24,8 +24,10 @@ export default function Founder() {
             transition={{ delay: 0.06 }}
             className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.0] tracking-tight mb-16"
           >
-            Built because<br />
-            <span className="text-[#C9A84C]">the problem was real.</span>
+            I worked for years<br />
+            <span className="text-[#C9A84C]">to get to the right room.</span><br />
+            Then I walked into<br />
+            <span className="text-[#C9A84C]">the wrong one.</span>
           </motion.h1>
         </div>
       </section>
@@ -58,6 +60,25 @@ export default function Founder() {
                   Transfer student. Built UniCircle from scratch — design, frontend, backend, all of it.
                 </div>
               </div>
+
+              <div className="mt-10 max-w-sm mx-auto lg:mx-0 border-t border-white/[0.06] pt-10">
+                <div className="relative">
+                  <img
+                    src="/talia.png"
+                    alt="Talia Rones, Co-Founder of UniCircle"
+                    className="w-full max-w-sm mx-auto lg:mx-0 rounded-2xl object-cover grayscale"
+                    style={{ aspectRatio: '3/4' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 max-w-sm mx-auto lg:mx-0" />
+                </div>
+                <div className="mt-6 max-w-sm mx-auto lg:mx-0">
+                  <div className="text-white font-semibold text-lg">Talia Rones</div>
+                  <div className="text-[#C9A84C] text-sm mt-1">Co-Founder · UniCircle</div>
+                </div>
+              </div>
             </motion.div>
 
             {/* Story text */}
@@ -68,44 +89,45 @@ export default function Founder() {
               className="space-y-8 text-base text-zinc-400 leading-relaxed"
             >
               <p className="text-zinc-200 text-xl leading-relaxed">
-                I transferred to UCSD not knowing anyone. The one thing I wanted was to find smart, driven people — people who were building things, going places. Real community.
+                I came from community college. I grinded for a 4.0 because I wanted more — more access, more opportunity, more people who were actually trying to go somewhere. Getting into UCSD felt like finally making it to the right room.
               </p>
 
               <p>
-                So I did what every new student does. I Googled "UCSD clubs." I got a messy university website, scattered Instagram pages, some that hadn't been updated since 2022. That's how we help students find their people in 2026.
-              </p>
-
-              <p>
-                I started going to club recruitments. And what I noticed first was how impressive they looked from the outside — polished pitch nights, competitive processes, hundreds of applicants.
-              </p>
-
-              <p>
-                Then I started talking to the people actually running them. The presidents, the recruitment chairs. I asked: how do you manage all of this?
+                I got there and did what basically every college student does: I fell into Greek life. It seemed like the obvious path to community, to connection, to the "real college experience." I went through it hoping to find the people I'd been looking for — driven, ambitious, constantly trying to better themselves.
               </p>
 
               <p className="text-zinc-200">
-                The answer was always the same. Google Forms feeding into a spreadsheet. A shared doc for officer feedback. A group chat where decisions got buried under messages.
+                It wasn't that. I spent months in rooms that felt off, with people I wasn't learning anything from. Greek life wasn't bad — it just wasn't it for me. And the problem was I didn't know what else to try. What would actually fit? What was worth the time? What wouldn't be so exclusive that I'd never get in?
               </p>
 
               <p>
-                These organizations run 200 to 300 person recruitment processes — and they're doing it with tools that weren't built for them. Every single semester, they start from scratch.
+                I kept hearing "you are the average of the 5 people you surround yourself with." And I knew I wasn't where I needed to be.
               </p>
 
               <p>
-                That's when the idea clicked. What if there was one platform — built specifically for this — that handled everything? Discovery for students, and a real recruitment backend for clubs. Not a workaround. An actual tool.
+                The clubs I actually wanted — the ones full of people who made me feel like I was growing — I barely knew they existed. UCSD has 600+ clubs. I found maybe 10. Figuring out who was even recruiting meant sifting through dead Instagram pages and Google Forms from two quarters ago.
               </p>
 
-              <div className="border-l-2 border-[#C9A84C] pl-6 py-2 space-y-4">
+              <p className="text-zinc-200">
+                I wasted months with the wrong people in the wrong place. Not because the right community wasn't there — but because I had no way to find it.
+              </p>
+
+              <p>
+                So I started talking to the people running those clubs. The recruitment chairs, the presidents. I asked how they managed everything. The answer was always the same: Google Form, spreadsheet, group chat. Deliberations running until 2am — not because the decisions were hard, but because the spreadsheet was. Matching hundreds of applicant names to Venmo transactions by hand, every quarter, starting from scratch.
+              </p>
+
+              <div className="border-l-2 border-[#C9A84C] pl-6 py-2">
                 <p className="text-zinc-200 italic text-lg">
-                  "Student organizations are how millions of people find community, build skills, and launch careers."
-                </p>
-                <p className="text-zinc-500 text-sm">
-                  That stuck with me. And it's why I'm building this — with people who feel the same way. If you do, come find me.
+                  "The most important thing about college isn't the GPA. It's who you're surrounded by."
                 </p>
               </div>
 
               <p>
-                UniCircle started at UCSD. We have pilots lined up here and at SDSU. The plan is simple — land pilots, prove the product works, then expand campus by campus until every student organization in the country has the tools they actually need.
+                That's why I built UniCircle. One place for students to find every club, see who's recruiting right now, and actually apply. And a real pipeline for the clubs running those processes — so they can spend their time on the people, not the spreadsheet.
+              </p>
+
+              <p>
+                We started at UCSD. SDSU is next. The plan is simple — campus by campus, until every student has a real shot at finding their people.
               </p>
 
               <div className="pt-4 flex flex-col sm:flex-row gap-4">
