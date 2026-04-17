@@ -37,7 +37,7 @@ export default function Founder() {
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
 
-            {/* Photo */}
+            {/* Photo — Jaden only */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -58,25 +58,6 @@ export default function Founder() {
                 <div className="text-[#C9A84C] text-sm mt-1">Founder & CEO · UCSD</div>
                 <div className="text-zinc-500 text-sm mt-3 leading-relaxed">
                   Transfer student. Built UniCircle from scratch — design, frontend, backend, all of it.
-                </div>
-              </div>
-
-              <div className="mt-10 max-w-sm mx-auto lg:mx-0 border-t border-white/[0.06] pt-10">
-                <div className="relative">
-                  <img
-                    src="/talia.png"
-                    alt="Talia Rones, Co-Founder of UniCircle"
-                    className="w-full max-w-sm mx-auto lg:mx-0 rounded-2xl object-cover grayscale"
-                    style={{ aspectRatio: '3/4' }}
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                  <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 max-w-sm mx-auto lg:mx-0" />
-                </div>
-                <div className="mt-6 max-w-sm mx-auto lg:mx-0">
-                  <div className="text-white font-semibold text-lg">Talia Rones</div>
-                  <div className="text-[#C9A84C] text-sm mt-1">Co-Founder · UniCircle</div>
                 </div>
               </div>
             </motion.div>
@@ -147,6 +128,51 @@ export default function Founder() {
                 </a>
               </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Founders */}
+      <section className="border-t border-white/[0.06] px-6 py-16">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-10">The team</p>
+          <div className="grid grid-cols-2 sm:grid-cols-2 gap-8 max-w-lg">
+            {[
+              {
+                name: 'Jaden Rones',
+                title: 'Founder & CEO · UCSD',
+                img: '/jaden.png',
+                alt: 'Jaden Rones',
+              },
+              {
+                name: 'Talia Rones',
+                title: 'Co-Founder · UniCircle',
+                img: '/talia.png',
+                alt: 'Talia Rones',
+              },
+            ].map((person) => (
+              <motion.div
+                key={person.name}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <div className="relative mb-4">
+                  <img
+                    src={person.img}
+                    alt={person.alt}
+                    className="w-full rounded-xl object-cover grayscale"
+                    style={{ aspectRatio: '3/4' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                  <div className="absolute inset-0 rounded-xl ring-1 ring-white/10" />
+                </div>
+                <div className="text-white font-semibold">{person.name}</div>
+                <div className="text-[#C9A84C] text-sm mt-0.5">{person.title}</div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
