@@ -1,65 +1,59 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import AnimatedWords from "./AnimatedWords";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const CTASection = () => {
-  const { playClick, playHover } = useSoundEffects();
-
   return (
-    <section id="cta" className="py-16 md:py-24 border-t border-white/[0.07]">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-12">
+    <section className="py-20 md:py-32 border-t border-white/[0.07]">
+      <div className="max-w-5xl mx-auto px-6">
 
-          {/* Left: headline */}
-          <div>
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
-            >
-              Get started
-            </motion.p>
-            <AnimatedWords
-              text="Fix it today."
-              as="h2"
-              className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tight text-white/70"
-              goldWords={["today."]}
-            />
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-end">
 
-          {/* Right: description + CTAs */}
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-col gap-6 lg:items-end"
           >
-            <p className="text-white text-base leading-relaxed max-w-xs lg:text-right">
-              Free to start. No spreadsheets. No chasing people down. Just a clean process your whole team can actually use.
+            <p className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-8">
+              Get started
             </p>
-            <div className="flex items-center gap-8">
+            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.0] tracking-tight">
+              The right room<br />
+              <span className="text-[#C9A84C]">is waiting.</span>
+            </h2>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 }}
+            className="space-y-6"
+          >
+            <p className="text-zinc-400 text-base leading-relaxed">
+              Whether you're a student looking for where you actually belong, or a club trying to run a real process — UniCircle is free and ready today.
+            </p>
+
+            <div className="flex flex-col gap-3">
               <Link
                 to="/clubs"
-                className="group flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-gold transition-colors duration-200"
-                onClick={playClick}
-                onMouseEnter={playHover}
+                className="inline-flex items-center gap-2 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-zinc-900 font-bold px-6 py-3 rounded-xl text-sm transition-colors w-fit"
               >
-                Claim your club
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+                Explore clubs
+                <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
-                to="/signup"
-                className="text-sm font-medium text-white/60 hover:text-white transition-colors duration-200"
-                onClick={playClick}
-                onMouseEnter={playHover}
+                to="/club-admin/request"
+                className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm font-medium transition-colors group w-fit"
               >
-                Create account
+                Get your org on UniCircle
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
+
+            <p className="text-zinc-600 text-xs pt-2">
+              Currently at UC San Diego. SDSU next.
+            </p>
           </motion.div>
 
         </div>
