@@ -89,31 +89,31 @@ export default function Founder() {
               className="space-y-8 text-base text-zinc-400 leading-relaxed"
             >
               <p className="text-zinc-200 text-xl leading-relaxed">
-                I came from community college. I grinded for a 4.0 because I wanted more — more access, more opportunity, more people who were actually trying to go somewhere. Getting into UCSD felt like finally making it to the right room.
+                It all started at a school I wasn't fit for. Leaving meant that I would have to work hard because I wanted more — more access, more opportunity, more people who were actually trying to go somewhere. Getting into UCSD felt like finally making it to the right room.
               </p>
 
               <p>
-                I got there and did what basically every college student does: I fell into Greek life. It seemed like the obvious path to community, to connection, to the "real college experience." I went through it hoping to find the people I'd been looking for — driven, ambitious, constantly trying to better themselves.
+                I got there and did what basically every college student does: I fell into Greek life. It seemed like the obvious path to community, to connection, to the "real college experience." I went through it hoping to find the people I'd been looking for: driven, ambitious, constantly trying to better themselves.
+              </p>
+
+              <p>
+                It wasn't that. I spent months in rooms that felt off, and the problem was that I didn't know what else to try. What would actually fit? What was worth the time? What wouldn't be so exclusive that I'd never get in?
               </p>
 
               <p className="text-zinc-200">
-                It wasn't that. I spent months in rooms that felt off, with people I wasn't learning anything from. Greek life wasn't bad — it just wasn't it for me. And the problem was I didn't know what else to try. What would actually fit? What was worth the time? What wouldn't be so exclusive that I'd never get in?
-              </p>
-
-              <p>
                 I kept hearing "you are the average of the 5 people you surround yourself with." And I knew I wasn't where I needed to be.
               </p>
 
               <p>
-                The clubs I actually wanted — the ones full of people who made me feel like I was growing — I barely knew they existed. UCSD has 600+ clubs. I found maybe 10. Figuring out who was even recruiting meant sifting through dead Instagram pages and Google Forms from two quarters ago.
-              </p>
-
-              <p className="text-zinc-200">
-                I wasted months with the wrong people in the wrong place. Not because the right community wasn't there — but because I had no way to find it.
+                The clubs I actually wanted to be involved with were the ones full of people who made me feel like I was growing, and I barely knew they existed. UCSD has 600+ clubs. I found maybe 10. Figuring out who was even recruiting meant sifting through dead Instagram pages and Google Forms from two quarters ago.
               </p>
 
               <p>
-                So I started talking to the people running those clubs. The recruitment chairs, the presidents. I asked how they managed everything. The answer was always the same: Google Form, spreadsheet, group chat. Deliberations running until 2am — not because the decisions were hard, but because the spreadsheet was. Matching hundreds of applicant names to Venmo transactions by hand, every quarter, starting from scratch.
+                I wasted months with the wrong people in the wrong place. Not because the right community wasn't there, but because I had no way to find it.
+              </p>
+
+              <p>
+                So I started talking to the people running those clubs. The recruitment chairs, the presidents. I asked how they managed everything. The answer was always the same: Google Form, spreadsheet, group chat. Deliberations running until 2 am. Matching hundreds of applicant names to Venmo transactions by hand, every quarter, starting from scratch.
               </p>
 
               <div className="border-l-2 border-[#C9A84C] pl-6 py-2">
@@ -123,11 +123,11 @@ export default function Founder() {
               </div>
 
               <p>
-                That's why I built UniCircle. One place for students to find every club, see who's recruiting right now, and actually apply. And a real pipeline for the clubs running those processes — so they can spend their time on the people, not the spreadsheet.
+                That's why I built UniCircle. One place for students to find every club, see who's recruiting right now, and actually apply. And a real pipeline for the clubs running those processes, so they can spend their time on the people, not the spreadsheet.
               </p>
 
-              <p>
-                We started at UCSD. SDSU is next. The plan is simple — campus by campus, until every student has a real shot at finding their people.
+              <p className="text-zinc-200">
+                The plan is simple — campus by campus, until every student has a real shot at finding their people.
               </p>
 
               <div className="pt-4 flex flex-col sm:flex-row gap-4">
