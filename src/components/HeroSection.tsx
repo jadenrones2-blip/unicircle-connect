@@ -1,8 +1,12 @@
-import { ArrowRight, UserPlus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import MagneticButton from "./MagneticButton";
+import { useSoundEffects } from "@/hooks/useSoundEffects";
 
 const HeroSection = () => {
+  const { playClick, playHover } = useSoundEffects();
+
   return (
     <section className="min-h-screen flex flex-col items-center justify-center pt-20 pb-16 relative overflow-hidden" style={{ background: '#0D0D0D' }}>
 
@@ -49,20 +53,28 @@ const HeroSection = () => {
             transition={{ delay: 0.4, duration: 0.5 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3"
           >
-            <Link
-              to="/clubs"
-              className="inline-flex items-center gap-2 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-zinc-900 font-bold px-8 py-3.5 rounded-xl text-sm transition-colors w-full sm:w-auto justify-center"
-            >
-              Explore clubs
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              to="/club-admin/request"
-              className="inline-flex items-center gap-2 border border-white/10 text-white/70 hover:text-white hover:border-white/20 font-medium px-8 py-3.5 rounded-xl text-sm transition-colors w-full sm:w-auto justify-center"
-            >
-              Get your org on UniCircle
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            <MagneticButton>
+              <Link
+                to="/clubs"
+                className="inline-flex items-center gap-2 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-zinc-900 font-bold px-8 py-3.5 rounded-xl text-sm transition-colors w-full sm:w-auto justify-center"
+                onMouseEnter={playHover}
+                onClick={playClick}
+              >
+                Explore clubs
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </MagneticButton>
+            <MagneticButton>
+              <Link
+                to="/club-admin/request"
+                className="inline-flex items-center gap-2 border border-white/10 text-white/70 hover:text-white hover:border-white/20 font-medium px-8 py-3.5 rounded-xl text-sm transition-colors w-full sm:w-auto justify-center"
+                onMouseEnter={playHover}
+                onClick={playClick}
+              >
+                Get your org on UniCircle
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </MagneticButton>
           </motion.div>
 
           <motion.p
