@@ -134,8 +134,7 @@ const HeroSection = () => {
             transition={{ delay: 0.25, duration: 0.5 }}
             className="text-zinc-400 text-lg sm:text-xl max-w-xl mx-auto mb-12 leading-relaxed"
           >
-            For students: one place to find every club that's recruiting right now and actually apply.
-            For orgs: a real pipeline — no spreadsheets, no group chat chaos.
+            The club discovery and recruitment platform built for UCSD students and orgs.
           </motion.p>
 
           <motion.div

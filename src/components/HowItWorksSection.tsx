@@ -3,15 +3,15 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
 const studentSteps = [
-  { step: "1", title: "Browse what's open", desc: "See every club recruiting right now — not last quarter's Google Form." },
-  { step: "2", title: "Apply in one place", desc: "Fill out the club's form, submit your resume, and you're done." },
-  { step: "3", title: "Track your status", desc: "See exactly where you stand. No more wondering, no more cold emails." },
+  { step: "1", title: "Browse what's open" },
+  { step: "2", title: "Apply in one place" },
+  { step: "3", title: "Track your status" },
 ];
 
 const orgSteps = [
-  { step: "1", title: "Set up your pipeline", desc: "Build your form, set your stages, invite your officers. Ten minutes." },
-  { step: "2", title: "Score together", desc: "Every officer reviews on the same rubric. No more inconsistent spreadsheets." },
-  { step: "3", title: "Decide and notify", desc: "Accept or pass. Applicants get emailed automatically. You don't write a thing." },
+  { step: "1", title: "Set up your pipeline" },
+  { step: "2", title: "Score together" },
+  { step: "3", title: "Decide and notify" },
 ];
 
 const HowItWorksSection = () => {
@@ -57,10 +57,7 @@ const HowItWorksSection = () => {
                   <div className="text-[#F5C842] font-display font-bold text-4xl leading-none opacity-30 flex-shrink-0 w-8">
                     {s.step}
                   </div>
-                  <div>
-                    <div className="text-white font-semibold text-sm mb-1">{s.title}</div>
-                    <div className="text-zinc-500 text-sm leading-relaxed">{s.desc}</div>
-                  </div>
+                  <div className="text-white font-semibold text-sm">{s.title}</div>
                 </motion.div>
               ))}
             </div>
@@ -109,10 +106,7 @@ const HowItWorksSection = () => {
                   <div className="text-[#F5C842] font-display font-bold text-4xl leading-none opacity-30 flex-shrink-0 w-8">
                     {s.step}
                   </div>
-                  <div>
-                    <div className="text-white font-semibold text-sm mb-1">{s.title}</div>
-                    <div className="text-zinc-500 text-sm leading-relaxed">{s.desc}</div>
-                  </div>
+                  <div className="text-white font-semibold text-sm">{s.title}</div>
                 </motion.div>
               ))}
             </div>

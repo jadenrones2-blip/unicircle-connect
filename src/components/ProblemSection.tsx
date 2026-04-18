@@ -3,13 +3,11 @@ import { motion } from "framer-motion";
 const studentProblems = [
   { text: "UCSD has 600+ clubs. You've heard of maybe 10." },
   { text: "Figuring out who's even recruiting means digging through dead Instagram pages and Google Forms from two quarters ago." },
-  { text: "The clubs full of people who'd actually push you — you don't know they exist." },
 ];
 
 const orgProblems = [
-  { text: "Google Form drops into a spreadsheet. Decisions happen in a group chat. Nothing talks to anything." },
+  { text: "Google Form drops into a spreadsheet. Decisions happen in a group chat. Nothing connects." },
   { text: "Deliberations run until 2am — not because the decisions are hard, but because the spreadsheet is." },
-  { text: "Matching 300 applicant names to Venmo transactions by hand. Every quarter. Starting from scratch." },
 ];
 
 const ProblemSection = () => {
