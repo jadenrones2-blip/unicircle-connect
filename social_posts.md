@@ -255,29 +255,15 @@ Example club entries for the visual (use real UCSD clubs if possible, otherwise 
 
 ### Instagram Caption
 
-UCSD has 600+ clubs.
+600+ clubs at UCSD. There's genuinely something for every interest.
 
-Here are 6 you've probably never heard of:
-
-↑ Swipe to see them
+Browse the full list and get matched with clubs that actually fit you → unicircle.app
 
 ---
 
-Most students spend four years on the same 10 clubs they heard about at the activities fair freshman week.
+#ucsd #ucsdclubs #collegelife #campuslife #unicircle
 
-The rest of the catalog? Nobody knows it exists.
-
-That's the whole problem we built UniCircle to fix.
-
-Browse every club at UCSD — sorted by category, recruiting status, and match to your interests.
-
-Free for students → unicircle.app
-
----
-
-#ucsd #ucsdlife #ucsdclubs #collegelife #campuslife #studentlife #clublife #collegeclub #campusorganization #studentleadership #hiddengemclubs #ucsdstudents #transferstudent #collegetips #findingyourtribe #greeklife #premed #prelaw #unicircle
-
-💾 Save this if you haven't explored the full catalog yet.
+💾 Save this and go find your club.
 
 ---
 
