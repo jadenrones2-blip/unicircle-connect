@@ -66,7 +66,7 @@ export default function AcceptInvite() {
 
     claimAttempted.current = true;
     claimInvite();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading, invite, pageState]);
 
   const claimInvite = async () => {
@@ -74,7 +74,9 @@ export default function AcceptInvite() {
     setPageState('claiming');
 
     try {
-      // Check if already an officer for this club
+      console.log('🔄 Claiming invite...', { inviteId: invite.id, userId: user.id, clubId: invite.club_id });
+
+      // Check if already an officer
       const { data: existing } = await (supabase as any)
         .from('club_officers')
         .select('id')
@@ -83,20 +85,31 @@ export default function AcceptInvite() {
         .maybeSingle();
 
       if (existing) {
+        console.log('✅ Already an officer');
         setPageState('already_member');
         return;
       }
 
-      // Mark invite used
-      const { error: inviteErr } = await (supabase as any)
+      // Mark invite as used
+      const { error: inviteErr, data: updatedInvite } = await (supabase as any)
         .from('club_invites')
-        .update({ used_by: user.id, used_at: new Date().toISOString() })
+        .update({
+          used_by: user.id,
+          used_at: new Date().toISOString()
+        })
         .eq('id', invite.id)
-        .is('used_by', null);
+        .is('used_by', null)
+        .select()
+        .single();
 
-      if (inviteErr) throw inviteErr;
+      if (inviteErr) {
+        console.error('❌ Invite update failed:', inviteErr);
+        throw inviteErr;
+      }
 
-      // Insert club_officers row
+      console.log('✅ Invite marked as used', updatedInvite);
+
+      // Insert into club_officers
       const { error: officerErr } = await (supabase as any)
         .from('club_officers')
         .insert({
@@ -108,18 +121,26 @@ export default function AcceptInvite() {
           email: user.email ?? null,
         });
 
-      if (officerErr) throw officerErr;
+      if (officerErr) {
+        console.error('❌ Officer insert failed:', officerErr);
+        throw officerErr;
+      }
 
+      console.log('✅ Officer row inserted successfully');
       setPageState('done');
+      toast.success(`Welcome to ${invite.club_name}!`);
+
     } catch (err: any) {
-      console.error(err);
+      console.error('💥 Full claim error:', err);
       const msg = err?.message || String(err);
-      if (msg.includes('23505') || msg.includes('unique')) {
-        // Already inserted as officer — treat as success
+      console.error('Error message:', msg);
+
+      if (msg.includes('23505') || msg.includes('unique') || msg.includes('already')) {
         setPageState('already_member');
       } else {
         toast.error('Failed to accept invite: ' + msg);
         setPageState('ready');
+        claimAttempted.current = false;
       }
     }
   };
@@ -267,6 +288,7 @@ export default function AcceptInvite() {
   return (
     <Screen>
       {/* Club badge */}
+
       <div className="w-14 h-14 rounded-2xl bg-gold/15 flex items-center justify-center mb-4">
         <ShieldCheck className="w-7 h-7 text-gold" />
       </div>
