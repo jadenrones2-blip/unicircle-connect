@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>The CTA</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <!-- Gold top bar -->
+  <rect x="0" y="0" width="1080" height="6" fill="#C9A84C"/>
+
+  <!-- Slide number -->
+  <text x="80" y="88" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4">05 / 05</text>
+
+  <!-- Large centered content -->
+  <text x="540" y="280" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="5">YOUR NEXT QUARTER STARTS SOON.</text>
+
+  <text x="540" y="420" font-family="'Arial Black', Arial, sans-serif" font-size="126" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">Set up</text>
+  <text x="540" y="546" font-family="'Arial Black', Arial, sans-serif" font-size="126" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">your pipeline</text>
+  <text x="540" y="672" font-family="'Arial Black', Arial, sans-serif" font-size="126" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="-5">before it</text>
+  <text x="540" y="798" font-family="'Arial Black', Arial, sans-serif" font-size="126" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="-5">starts.</text>
+
+  <!-- Gold CTA button -->
+  <rect x="190" y="848" width="700" height="90" rx="45" fill="#C9A84C"/>
+  <text x="540" y="905" font-family="'Arial Black', Arial, sans-serif" font-size="30" font-weight="900" fill="#0A0A0A" text-anchor="middle" letter-spacing="-0.5">unicircle.app — free to start</text>
+
+  <text x="540" y="990" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" fill="#333" text-anchor="middle">10 minutes to set up. Nothing to rebuild next quarter.</text>
+
+  <text x="540" y="1048" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" letter-spacing="3" opacity="0.4" text-anchor="middle">UNICIRCLE</text>
+</svg>

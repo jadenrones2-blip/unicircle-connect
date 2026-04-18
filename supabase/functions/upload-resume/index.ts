@@ -12,28 +12,22 @@ serve(async (req) => {
   }
 
   try {
-    // Validate the user JWT from Authorization header
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing authorization" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Use anon client to verify the JWT and get the user
-    const anonClient = createClient(
+    const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
-    const { data: { user }, error: authErr } = await anonClient.auth.getUser();
+
+    // Get user from JWT — use service client so key format doesn't matter
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authErr } = await serviceClient.auth.getUser(token);
+
     if (authErr || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Parse multipart form data
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     if (!file) {
@@ -48,25 +42,14 @@ serve(async (req) => {
       });
     }
 
-    // Use service role client — bypasses RLS entirely
-    const serviceClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
-
     const path = `${user.id}/resume.pdf`;
 
-    // Remove old file first (non-fatal)
     await serviceClient.storage.from("resumes").remove([path]);
 
-    // Upload new file
     const fileBuffer = await file.arrayBuffer();
     const { error: uploadErr } = await serviceClient.storage
       .from("resumes")
-      .upload(path, fileBuffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
+      .upload(path, fileBuffer, { contentType: "application/pdf", upsert: true });
 
     if (uploadErr) {
       return new Response(JSON.stringify({ error: uploadErr.message }), {
@@ -74,10 +57,13 @@ serve(async (req) => {
       });
     }
 
-    const { data: { publicUrl } } = serviceClient.storage.from("resumes").getPublicUrl(path);
-    const url = `${publicUrl}?t=${Date.now()}`;
+    // Generate signed URL since bucket is private
+    const { data: signed } = await serviceClient.storage
+      .from("resumes")
+      .createSignedUrl(path, 60 * 60 * 24 * 365);
 
-    // Update profiles table
+    const url = signed?.signedUrl || "";
+
     await serviceClient
       .from("profiles")
       .update({ resume_url: url })

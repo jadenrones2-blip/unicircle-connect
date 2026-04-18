@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Carousel Slide 3 — The Solution for Students</title>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0A0A0A"/>
+      <stop offset="100%" style="stop-color:#0f0f0f"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C9A84C"/>
+      <stop offset="100%" style="stop-color:#E8C96B"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+
+  <!-- Swipe hint -->
+  <rect x="1040" y="0" width="40" height="1080" fill="#C9A84C" fill-opacity="0.08"/>
+  <text x="1068" y="548" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" fill="#C9A84C" fill-opacity="0.5" text-anchor="middle" transform="rotate(90,1068,548)" letter-spacing="3">SWIPE →</text>
+
+  <!-- Slide number -->
+  <text x="72" y="80" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4">03 / 05</text>
+
+  <!-- Label -->
+  <text x="72" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#C9A84C" letter-spacing="3">WHAT UNICIRCLE GIVES YOU</text>
+  <rect x="72" y="192" width="340" height="2" fill="#C9A84C" opacity="0.5"/>
+
+  <!-- Header -->
+  <text x="72" y="295" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="82" font-weight="900" fill="#ffffff" letter-spacing="-3">One place.</text>
+  <text x="72" y="385" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="82" font-weight="900" fill="#C9A84C" letter-spacing="-3">All the clubs.</text>
+  <text x="72" y="474" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="82" font-weight="900" fill="#ffffff" letter-spacing="-3">Zero guessing.</text>
+
+  <!-- Feature grid — 2x2 -->
+  <!-- Row 1 -->
+  <rect x="72" y="524" width="432" height="190" rx="16" fill="#161618" stroke="#C9A84C" stroke-width="1" stroke-opacity="0.2"/>
+  <text x="104" y="580" font-family="'Helvetica Neue', Arial, sans-serif" font-size="34" fill="#C9A84C">◎</text>
+  <text x="148" y="576" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="700" fill="#ffffff">Browse every club</text>
+  <text x="104" y="608" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#71717a">All 600+ UCSD clubs in one</text>
+  <text x="104" y="630" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#71717a">feed. Updated in real time.</text>
+  <text x="104" y="692" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" fill="#C9A84C" font-weight="600">No Googling. No dead links.</text>
+
+  <rect x="536" y="524" width="432" height="190" rx="16" fill="#161618" stroke="#C9A84C" stroke-width="1" stroke-opacity="0.2"/>
+  <text x="568" y="580" font-family="'Helvetica Neue', Arial, sans-serif" font-size="34" fill="#10b981">●</text>
+  <text x="612" y="576" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="700" fill="#ffffff">See who's recruiting</text>
+  <text x="568" y="608" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#71717a">Filter by open recruitment</text>
+  <text x="568" y="630" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#71717a">right now — this quarter.</text>
+  <text x="568" y="692" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" fill="#10b981" font-weight="600">No more guessing if the form is live.</text>
+
+  <!-- Row 2 -->
+  <rect x="72" y="730" width="432" height="190" rx="16" fill="#161618" stroke="#C9A84C" stroke-width="1" stroke-opacity="0.2"/>
+  <text x="104" y="786" font-family="'Helvetica Neue', Arial, sans-serif" font-size="34" fill="#6366f1">⚡</text>
+  <text x="148" y="782" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="700" fill="#ffffff">Apply in 2 minutes</text>
+  <text x="104" y="814" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#71717a">Custom application, resume</text>
+  <text x="104" y="836" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#71717a">upload — done in one shot.</text>
+  <text x="104" y="898" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" fill="#6366f1" font-weight="600">No copy-paste. Just apply.</text>
+
+  <rect x="536" y="730" width="432" height="190" rx="16" fill="#161618" stroke="#C9A84C" stroke-width="1" stroke-opacity="0.2"/>
+  <text x="568" y="786" font-family="'Helvetica Neue', Arial, sans-serif" font-size="34" fill="#f59e0b">✉</text>
+  <text x="612" y="782" font-family="'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="700" fill="#ffffff">Actually hear back</text>
+  <text x="568" y="814" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#71717a">Email updates at every</text>
+  <text x="568" y="836" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" fill="#71717a">stage. No ghosting.</text>
+  <text x="568" y="898" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" fill="#f59e0b" font-weight="600">You'll know exactly where you stand.</text>
+
+  <text x="72" y="1040" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800" fill="#ffffff" opacity="0.3" letter-spacing="2">UNICIRCLE</text>
+</svg>

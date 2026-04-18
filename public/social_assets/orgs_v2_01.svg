@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>The Clock</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <!-- Slide label -->
+  <text x="80" y="88" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4">01 / 05</text>
+
+  <!-- Giant 10 — the visual -->
+  <text x="80" y="700" font-family="'Arial Black', Arial, sans-serif" font-size="720" font-weight="900" fill="#C9A84C" letter-spacing="-40" opacity="0.18">10</text>
+
+  <!-- Overlaid text on top of the number -->
+  <text x="80" y="290" font-family="'Arial Black', Arial, sans-serif" font-size="200" font-weight="900" fill="#ffffff" letter-spacing="-8">10</text>
+  <text x="80" y="370" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="36" font-weight="700" fill="#C9A84C" letter-spacing="6">WEEKS.</text>
+
+  <!-- Divider -->
+  <rect x="80" y="410" width="400" height="2" fill="#C9A84C" opacity="0.4"/>
+
+  <!-- Body copy -->
+  <text x="80" y="490" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="34" font-weight="400" fill="#ffffff" opacity="0.9">To recruit the people who will</text>
+  <text x="80" y="536" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="34" font-weight="400" fill="#ffffff" opacity="0.9">define your org for the next year.</text>
+
+  <text x="80" y="630" font-family="'Arial Black', Arial, sans-serif" font-size="44" font-weight="900" fill="#C9A84C" letter-spacing="-1">How much of that are you</text>
+  <text x="80" y="682" font-family="'Arial Black', Arial, sans-serif" font-size="44" font-weight="900" fill="#C9A84C" letter-spacing="-1">spending on a spreadsheet?</text>
+
+  <!-- Swipe -->
+  <text x="80" y="1000" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" fill="#555">Swipe to see where the hours actually go →</text>
+
+  <text x="80" y="1048" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" letter-spacing="3" opacity="0.4">UNICIRCLE</text>
+</svg>

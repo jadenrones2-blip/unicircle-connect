@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>The Math</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <!-- Top label -->
+  <text x="80" y="100" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" letter-spacing="5">DO THE MATH.</text>
+  <rect x="80" y="116" width="60" height="2" fill="#C9A84C"/>
+
+  <!-- Stat 1 -->
+  <text x="80" y="280" font-family="'Arial Black', Arial, sans-serif" font-size="130" font-weight="900" fill="#ffffff" letter-spacing="-5">4 years.</text>
+  <text x="80" y="350" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" fill="#555" letter-spacing="1">The window you have to build the network of your life.</text>
+
+  <rect x="80" y="385" width="920" height="1" fill="#ffffff" opacity="0.06"/>
+
+  <!-- Stat 2 -->
+  <text x="80" y="530" font-family="'Arial Black', Arial, sans-serif" font-size="130" font-weight="900" fill="#ffffff" letter-spacing="-5">600 clubs.</text>
+  <text x="80" y="600" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" fill="#555" letter-spacing="1">Communities at UCSD alone. Each one a different door.</text>
+
+  <rect x="80" y="635" width="920" height="1" fill="#ffffff" opacity="0.06"/>
+
+  <!-- Stat 3 — the gut punch -->
+  <text x="80" y="790" font-family="'Arial Black', Arial, sans-serif" font-size="130" font-weight="900" fill="#C9A84C" letter-spacing="-5">10 found.</text>
+  <text x="80" y="860" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" fill="#555" letter-spacing="1">The average number of clubs a student actually discovers.</text>
+
+  <rect x="80" y="895" width="920" height="1" fill="#ffffff" opacity="0.06"/>
+
+  <!-- Closer -->
+  <text x="80" y="975" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff">The most important connections you'll make in college</text>
+  <text x="80" y="1010" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff">don't start in a lecture hall. <tspan fill="#C9A84C">unicircle.app</tspan></text>
+</svg>

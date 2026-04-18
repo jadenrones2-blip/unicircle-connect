@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Orgs Carousel — Slide 4 The Fix</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <rect x="1050" y="0" width="30" height="1080" fill="#C9A84C" fill-opacity="0.06"/>
+  <text x="1068" y="548" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#C9A84C" fill-opacity="0.4" text-anchor="middle" transform="rotate(90,1068,548)" letter-spacing="3">SWIPE</text>
+
+  <text x="80" y="88" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4">04 / 05</text>
+
+  <text x="80" y="190" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" letter-spacing="5">WHAT WE BUILT FOR YOU.</text>
+  <rect x="80" y="204" width="60" height="2" fill="#C9A84C"/>
+
+  <!-- Header -->
+  <text x="80" y="310" font-family="'Arial Black', Arial, sans-serif" font-size="86" font-weight="900" fill="#ffffff" letter-spacing="-3">One platform.</text>
+  <text x="80" y="404" font-family="'Arial Black', Arial, sans-serif" font-size="86" font-weight="900" fill="#C9A84C" letter-spacing="-3">Zero rebuilding.</text>
+
+  <rect x="80" y="438" width="920" height="1" fill="#ffffff" opacity="0.07"/>
+
+  <!-- Fix rows — 2 column -->
+  <!-- Left column -->
+  <rect x="80" y="464" width="446" height="130" rx="10" fill="#111"/>
+  <rect x="80" y="464" width="3" height="130" rx="2" fill="#C9A84C"/>
+  <text x="108" y="510" font-family="'Arial Black', Arial, sans-serif" font-size="20" font-weight="900" fill="#C9A84C">Pipeline built in 10 min</text>
+  <text x="108" y="538" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">Drag-and-drop stages you</text>
+  <text x="108" y="558" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">define. Saves every quarter.</text>
+
+  <!-- Right column -->
+  <rect x="554" y="464" width="446" height="130" rx="10" fill="#111"/>
+  <rect x="554" y="464" width="3" height="130" rx="2" fill="#C9A84C"/>
+  <text x="582" y="510" font-family="'Arial Black', Arial, sans-serif" font-size="20" font-weight="900" fill="#C9A84C">Scoring in the app</text>
+  <text x="582" y="538" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">Each officer scores against</text>
+  <text x="582" y="558" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">your rubric. Weighted totals.</text>
+
+  <rect x="80" y="612" width="446" height="130" rx="10" fill="#111"/>
+  <rect x="80" y="612" width="3" height="130" rx="2" fill="#C9A84C"/>
+  <text x="108" y="658" font-family="'Arial Black', Arial, sans-serif" font-size="20" font-weight="900" fill="#C9A84C">Event attendance tracked</text>
+  <text x="108" y="686" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">Know exactly who showed up</text>
+  <text x="108" y="706" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">and match them to applicants.</text>
+
+  <rect x="554" y="612" width="446" height="130" rx="10" fill="#111"/>
+  <rect x="554" y="612" width="3" height="130" rx="2" fill="#C9A84C"/>
+  <text x="582" y="658" font-family="'Arial Black', Arial, sans-serif" font-size="20" font-weight="900" fill="#C9A84C">Emails automated</text>
+  <text x="582" y="686" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">Every stage change sends</text>
+  <text x="582" y="706" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">an email. Zero manual work.</text>
+
+  <rect x="80" y="760" width="920" height="130" rx="10" fill="#111"/>
+  <rect x="80" y="760" width="3" height="130" rx="2" fill="#C9A84C"/>
+  <text x="108" y="806" font-family="'Arial Black', Arial, sans-serif" font-size="20" font-weight="900" fill="#C9A84C">Nothing rebuilt next quarter</text>
+  <text x="108" y="834" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">Your pipeline, rubric, and forms carry over. New officers inherit</text>
+  <text x="108" y="858" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#555">a system that already works. Not a blank Google Sheet.</text>
+
+  <text x="80" y="960" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="24" fill="#555">30+ hours back every quarter. Starting now.</text>
+
+  <text x="80" y="1048" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#C9A84C" letter-spacing="2" opacity="0.5">UNICIRCLE</text>
+</svg>

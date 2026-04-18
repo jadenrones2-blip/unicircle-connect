@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>2am</title>
+
+  <!-- Warm dark background — not pure black, more like a late night room -->
+  <rect width="1080" height="1080" fill="#0D0B09"/>
+
+  <!-- Subtle warm vignette -->
+  <rect width="1080" height="1080" fill="#C9A84C" fill-opacity="0.03"/>
+
+  <!-- Top — small context label, feels like a phone notification -->
+  <rect x="80" y="80" width="280" height="44" rx="22" fill="#1a1612"/>
+  <rect x="80" y="80" width="280" height="44" rx="22" fill="none" stroke="#C9A84C" stroke-width="1" stroke-opacity="0.3"/>
+  <text x="220" y="108" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="2">UCSD · CLUB RECRUITMENT</text>
+
+  <!-- The time — massive, like staring at your phone at 2am -->
+  <text x="80" y="400" font-family="'Arial Black', Arial, sans-serif" font-size="280" font-weight="900" fill="#ffffff" letter-spacing="-15">2am.</text>
+
+  <!-- Thin gold underline -->
+  <rect x="80" y="430" width="560" height="3" fill="#C9A84C"/>
+
+  <!-- The context -->
+  <text x="80" y="530" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#ffffff" opacity="0.9">That's when deliberations</text>
+  <text x="80" y="578" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="38" font-weight="400" fill="#ffffff" opacity="0.9">finally wrapped up.</text>
+
+  <!-- Breathing room -->
+
+  <!-- The kicker — raw, specific -->
+  <text x="80" y="700" font-family="'Arial Black', Arial, sans-serif" font-size="46" font-weight="900" fill="#C9A84C" letter-spacing="-1">Not because the decisions were hard.</text>
+  <text x="80" y="758" font-family="'Arial Black', Arial, sans-serif" font-size="46" font-weight="900" fill="#C9A84C" letter-spacing="-1">Because the spreadsheet was.</text>
+
+  <!-- Bottom — no fake polish, just plain -->
+  <rect x="80" y="870" width="920" height="1" fill="#ffffff" opacity="0.06"/>
+
+  <text x="80" y="940" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" fill="#555">Every recruitment chair we talked to</text>
+  <text x="80" y="974" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="26" fill="#555">has a version of this story.</text>
+
+  <text x="80" y="1040" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#C9A84C" letter-spacing="2" opacity="0.5">UNICIRCLE</text>
+</svg>

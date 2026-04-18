@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>UniCircle Brutalist — 300 Applications. One Group Chat.</title>
+  <desc>Brutalist-style social asset for UniCircle. Raw campus flyer energy.</desc>
+
+  <!-- Off-white background — breaks the dark feed, stops the scroll -->
+  <rect width="1080" height="1080" fill="#F2EDE4"/>
+
+  <!-- Torn edge top — irregular SVG path for handmade feel -->
+  <path d="M0,0 L1080,0 L1080,18 Q1020,8 960,14 Q900,20 840,10 Q780,0 720,12 Q660,22 600,8 Q540,0 480,14 Q420,24 360,10 Q300,0 240,16 Q180,26 120,12 Q60,2 0,18 Z" fill="#C9A84C"/>
+
+  <!-- Thick black border frame — printed feel -->
+  <rect x="28" y="28" width="1024" height="1024" rx="0" fill="none" stroke="#1a1a1a" stroke-width="6"/>
+  <rect x="38" y="38" width="1004" height="1004" rx="0" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+
+  <!-- MASSIVE number "300" — bleeds, dominant -->
+  <text x="-18" y="420" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="440" font-weight="900" fill="#1a1a1a" letter-spacing="-20" opacity="0.92">300</text>
+
+  <!-- Horizontal rule — handmade thick line -->
+  <rect x="55" y="440" width="970" height="8" fill="#1a1a1a"/>
+  <rect x="55" y="454" width="970" height="2" fill="#1a1a1a" opacity="0.3"/>
+
+  <!-- Second line — APPS. large -->
+  <text x="55" y="590" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="190" font-weight="900" fill="#1a1a1a" letter-spacing="-8">APPS.</text>
+
+  <!-- Third line — smaller, sardonic -->
+  <text x="55" y="680" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="82" font-weight="900" fill="#1a1a1a" letter-spacing="-2">ONE GROUP CHAT.</text>
+
+  <!-- Rotated stamp/callout circle -->
+  <g transform="translate(900, 760) rotate(-12)">
+    <circle cx="0" cy="0" r="115" fill="none" stroke="#C9A84C" stroke-width="6"/>
+    <circle cx="0" cy="0" r="108" fill="none" stroke="#C9A84C" stroke-width="2"/>
+    <text x="0" y="-22" font-family="'Arial Black', Arial, sans-serif" font-size="22" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="1">THERE'S</text>
+    <text x="0" y="8" font-family="'Arial Black', Arial, sans-serif" font-size="22" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="1">A BETTER</text>
+    <text x="0" y="38" font-family="'Arial Black', Arial, sans-serif" font-size="22" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="1">WAY.</text>
+  </g>
+
+  <!-- Bottom bar — torn bottom edge -->
+  <path d="M0,1022 Q60,1010 120,1018 Q180,1026 240,1014 Q300,1006 360,1018 Q420,1028 480,1016 Q540,1006 600,1018 Q660,1028 720,1014 Q780,1004 840,1016 Q900,1026 960,1012 Q1020,1004 1080,1018 L1080,1080 L0,1080 Z" fill="#1a1a1a"/>
+
+  <!-- Bottom text on dark bar -->
+  <text x="55" y="1058" font-family="'Arial Black', Arial, sans-serif" font-size="22" font-weight="900" fill="#F2EDE4" letter-spacing="4">UNICIRCLE.APP</text>
+  <text x="1025" y="1058" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="400" fill="#C9A84C" text-anchor="end" letter-spacing="1">FIX YOUR RECRUITMENT →</text>
+</svg>

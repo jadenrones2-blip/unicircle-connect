@@ -1,0 +1,224 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>UniCircle Phone Mockup — The Pipeline Built for Student Orgs</title>
+  <desc>iPhone mockup showing UniCircle's kanban recruitment pipeline UI.</desc>
+
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f0f0f"/>
+      <stop offset="100%" style="stop-color:#080808"/>
+    </linearGradient>
+    <linearGradient id="phoneGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2a2a2a"/>
+      <stop offset="100%" style="stop-color:#1a1a1a"/>
+    </linearGradient>
+    <linearGradient id="screenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#111111"/>
+      <stop offset="100%" style="stop-color:#0d0d0d"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C9A84C"/>
+      <stop offset="100%" style="stop-color:#E8C96B"/>
+    </linearGradient>
+    <!-- Phone shadow -->
+    <filter id="phoneShadow" x="-20%" y="-10%" width="140%" height="130%">
+      <feDropShadow dx="0" dy="24" stdDeviation="40" flood-color="#000000" flood-opacity="0.8"/>
+    </filter>
+    <!-- Glow behind phone -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#C9A84C;stop-opacity:0.12"/>
+      <stop offset="100%" style="stop-color:#C9A84C;stop-opacity:0"/>
+    </radialGradient>
+    <!-- Clip for screen content -->
+    <clipPath id="screenClip">
+      <rect x="322" y="112" width="436" height="856" rx="10"/>
+    </clipPath>
+    <!-- Card shadow -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="url(#bgGrad)"/>
+
+  <!-- Subtle dot grid -->
+  <defs>
+    <pattern id="dotgrid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="16" cy="16" r="0.8" fill="#ffffff" opacity="0.04"/>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#dotgrid)"/>
+
+  <!-- Glow behind phone -->
+  <ellipse cx="540" cy="540" rx="300" ry="480" fill="url(#glow)"/>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- IPHONE FRAME                           -->
+  <!-- ═══════════════════════════════════════ -->
+  <!-- Outer phone body -->
+  <rect x="298" y="72" width="484" height="936" rx="58" fill="url(#phoneGrad)" filter="url(#phoneShadow)"/>
+
+  <!-- Phone rim highlight -->
+  <rect x="298" y="72" width="484" height="936" rx="58" fill="none" stroke="#3a3a3a" stroke-width="1.5"/>
+  <rect x="300" y="74" width="480" height="932" rx="56" fill="none" stroke="#4a4a4a" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Side buttons — left -->
+  <rect x="282" y="200" width="16" height="56" rx="6" fill="#252525"/>
+  <rect x="282" y="276" width="16" height="80" rx="6" fill="#252525"/>
+  <rect x="282" y="372" width="16" height="80" rx="6" fill="#252525"/>
+  <!-- Side button — right -->
+  <rect x="782" y="268" width="16" height="116" rx="6" fill="#252525"/>
+
+  <!-- Screen -->
+  <rect x="322" y="112" width="436" height="856" rx="12" fill="url(#screenGrad)"/>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SCREEN CONTENT (clipped)               -->
+  <!-- ═══════════════════════════════════════ -->
+  <g clip-path="url(#screenClip)">
+
+    <!-- Screen background -->
+    <rect x="322" y="112" width="436" height="856" fill="#0A0A0A"/>
+
+    <!-- Status bar area -->
+    <rect x="322" y="112" width="436" height="50" fill="#0d0d0d"/>
+
+    <!-- Dynamic Island -->
+    <rect x="476" y="122" width="128" height="30" rx="15" fill="#000000"/>
+
+    <!-- App header -->
+    <rect x="322" y="162" width="436" height="56" fill="#111111"/>
+    <text x="344" y="197" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Recruitment</text>
+    <!-- Club name pill -->
+    <rect x="500" y="176" width="130" height="28" rx="14" fill="#C9A84C" fill-opacity="0.15" stroke="#C9A84C" stroke-width="1" stroke-opacity="0.5"/>
+    <text x="565" y="195" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="600" fill="#C9A84C" text-anchor="middle">Kappa Kappa Gamma</text>
+
+    <!-- Kanban header tabs -->
+    <rect x="322" y="218" width="436" height="40" fill="#0d0d0d"/>
+
+    <!-- Tab: Applied (active) -->
+    <rect x="330" y="224" width="84" height="28" rx="14" fill="#C9A84C"/>
+    <text x="372" y="242" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="700" fill="#0A0A0A" text-anchor="middle">Applied</text>
+    <!-- Badge -->
+    <circle cx="406" cy="234" r="9" fill="#1a1a1a"/>
+    <text x="406" y="238" font-family="'Helvetica Neue', Arial, sans-serif" font-size="9" font-weight="700" fill="#C9A84C" text-anchor="middle">12</text>
+
+    <!-- Tab: Review -->
+    <rect x="428" y="224" width="74" height="28" rx="14" fill="#1e1e1e"/>
+    <text x="465" y="242" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="600" fill="#71717a" text-anchor="middle">Review</text>
+    <circle cx="495" cy="234" r="9" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+    <text x="495" y="238" font-family="'Helvetica Neue', Arial, sans-serif" font-size="9" font-weight="700" fill="#71717a" text-anchor="middle">8</text>
+
+    <!-- Tab: Interview -->
+    <rect x="510" y="224" width="78" height="28" rx="14" fill="#1e1e1e"/>
+    <text x="549" y="242" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="600" fill="#71717a" text-anchor="middle">Interview</text>
+
+    <!-- Tab: Accepted -->
+    <rect x="596" y="224" width="76" height="28" rx="14" fill="#1e1e1e"/>
+    <text x="634" y="242" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="600" fill="#71717a" text-anchor="middle">Accepted</text>
+
+    <!-- Column content area -->
+    <rect x="322" y="258" width="436" height="710" fill="#0A0A0A"/>
+
+    <!-- ── APPLICANT CARDS ── -->
+
+    <!-- Card 1 -->
+    <rect x="334" y="270" width="412" height="86" rx="12" fill="#161616" filter="url(#cardShadow)"/>
+    <rect x="334" y="270" width="3" height="86" rx="1" fill="#C9A84C"/>
+    <!-- Avatar -->
+    <circle cx="366" cy="313" r="20" fill="#C9A84C" fill-opacity="0.15"/>
+    <text x="366" y="319" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" text-anchor="middle">S</text>
+    <!-- Name + major -->
+    <text x="398" y="305" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Sofia Martinez</text>
+    <text x="398" y="322" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#71717a">Econ · Junior · UCSD</text>
+    <!-- Score badge -->
+    <rect x="606" y="296" width="124" height="22" rx="11" fill="#C9A84C" fill-opacity="0.12" stroke="#C9A84C" stroke-width="1" stroke-opacity="0.3"/>
+    <text x="668" y="311" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="600" fill="#C9A84C" text-anchor="middle">Score: 8.4 / 10</text>
+    <!-- Vote dots -->
+    <circle cx="400" cy="345" r="6" fill="#22c55e" fill-opacity="0.25" stroke="#22c55e" stroke-width="1"/>
+    <text x="400" y="349" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" fill="#22c55e" text-anchor="middle">Y</text>
+    <circle cx="418" cy="345" r="6" fill="#22c55e" fill-opacity="0.25" stroke="#22c55e" stroke-width="1"/>
+    <text x="418" y="349" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" fill="#22c55e" text-anchor="middle">Y</text>
+    <circle cx="436" cy="345" r="6" fill="#eab308" fill-opacity="0.25" stroke="#eab308" stroke-width="1"/>
+    <text x="436" y="349" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" fill="#eab308" text-anchor="middle">M</text>
+    <text x="458" y="349" font-family="'Helvetica Neue', Arial, sans-serif" font-size="9" fill="#555">2Y · 1M</text>
+
+    <!-- Card 2 -->
+    <rect x="334" y="368" width="412" height="86" rx="12" fill="#161616" filter="url(#cardShadow)"/>
+    <rect x="334" y="368" width="3" height="86" rx="1" fill="#6366f1"/>
+    <!-- Avatar -->
+    <circle cx="366" cy="411" r="20" fill="#6366f1" fill-opacity="0.15"/>
+    <text x="366" y="417" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="#6366f1" text-anchor="middle">A</text>
+    <!-- Name + major -->
+    <text x="398" y="403" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Aisha Johnson</text>
+    <text x="398" y="420" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#71717a">CS · Sophomore · UCSD</text>
+    <!-- Score badge -->
+    <rect x="606" y="394" width="124" height="22" rx="11" fill="#6366f1" fill-opacity="0.1" stroke="#6366f1" stroke-width="1" stroke-opacity="0.3"/>
+    <text x="668" y="409" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="600" fill="#6366f1" text-anchor="middle">Score: 7.9 / 10</text>
+    <!-- Votes -->
+    <circle cx="400" cy="443" r="6" fill="#22c55e" fill-opacity="0.25" stroke="#22c55e" stroke-width="1"/>
+    <text x="400" y="447" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" fill="#22c55e" text-anchor="middle">Y</text>
+    <circle cx="418" cy="443" r="6" fill="#ef4444" fill-opacity="0.25" stroke="#ef4444" stroke-width="1"/>
+    <text x="418" y="447" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" fill="#ef4444" text-anchor="middle">N</text>
+    <text x="436" y="447" font-family="'Helvetica Neue', Arial, sans-serif" font-size="9" fill="#555">1Y · 1N</text>
+
+    <!-- Card 3 -->
+    <rect x="334" y="466" width="412" height="86" rx="12" fill="#161616" filter="url(#cardShadow)"/>
+    <rect x="334" y="466" width="3" height="86" rx="1" fill="#f59e0b"/>
+    <!-- Avatar -->
+    <circle cx="366" cy="509" r="20" fill="#f59e0b" fill-opacity="0.15"/>
+    <text x="366" y="515" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="#f59e0b" text-anchor="middle">M</text>
+    <!-- Name + major -->
+    <text x="398" y="501" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Marcus Chen</text>
+    <text x="398" y="518" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#71717a">Business · Junior · UCSD</text>
+    <!-- Score badge -->
+    <rect x="606" y="492" width="124" height="22" rx="11" fill="#f59e0b" fill-opacity="0.1" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.3"/>
+    <text x="668" y="507" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="600" fill="#f59e0b" text-anchor="middle">Score: 9.1 / 10</text>
+    <!-- Votes -->
+    <circle cx="400" cy="541" r="6" fill="#22c55e" fill-opacity="0.25" stroke="#22c55e" stroke-width="1"/>
+    <text x="400" y="545" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" fill="#22c55e" text-anchor="middle">Y</text>
+    <circle cx="418" cy="541" r="6" fill="#22c55e" fill-opacity="0.25" stroke="#22c55e" stroke-width="1"/>
+    <text x="418" y="545" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" fill="#22c55e" text-anchor="middle">Y</text>
+    <circle cx="436" cy="541" r="6" fill="#22c55e" fill-opacity="0.25" stroke="#22c55e" stroke-width="1"/>
+    <text x="436" y="545" font-family="'Helvetica Neue', Arial, sans-serif" font-size="7" fill="#22c55e" text-anchor="middle">Y</text>
+    <text x="458" y="545" font-family="'Helvetica Neue', Arial, sans-serif" font-size="9" fill="#555">3Y</text>
+
+    <!-- Card 4 — partially visible at bottom -->
+    <rect x="334" y="564" width="412" height="86" rx="12" fill="#161616" filter="url(#cardShadow)"/>
+    <rect x="334" y="564" width="3" height="86" rx="1" fill="#ec4899"/>
+    <circle cx="366" cy="607" r="20" fill="#ec4899" fill-opacity="0.15"/>
+    <text x="366" y="613" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="#ec4899" text-anchor="middle">J</text>
+    <text x="398" y="599" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Jade Williams</text>
+    <text x="398" y="616" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#71717a">Poli Sci · Senior · UCSD</text>
+
+    <!-- Fade out at bottom of list -->
+    <defs>
+      <linearGradient id="listFade" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:#0A0A0A;stop-opacity:0"/>
+        <stop offset="100%" style="stop-color:#0A0A0A;stop-opacity:1"/>
+      </linearGradient>
+    </defs>
+    <rect x="322" y="600" width="436" height="368" fill="url(#listFade)"/>
+
+    <!-- Bottom nav bar -->
+    <rect x="322" y="926" width="436" height="42" fill="#111111"/>
+    <rect x="322" y="926" width="436" height="1" fill="#ffffff" opacity="0.06"/>
+    <!-- Home indicator -->
+    <rect x="476" y="954" width="128" height="4" rx="2" fill="#ffffff" opacity="0.3"/>
+
+  </g>
+
+  <!-- Phone camera cutout (on top of screen clip) -->
+  <circle cx="540" cy="138" r="8" fill="#0d0d0d"/>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- TEXT BELOW PHONE                       -->
+  <!-- ═══════════════════════════════════════ -->
+
+  <!-- Eyebrow -->
+  <text x="540" y="1026" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="4">UNICIRCLE</text>
+
+  <!-- Tagline -->
+  <text x="540" y="1062" font-family="'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="-0.5">This is what recruitment</text>
+  <!-- Second line handled separately since SVG doesn't auto-wrap -->
+</svg>

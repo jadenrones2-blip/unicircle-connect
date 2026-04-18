@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>UniCircle — Detection</title>
+
+  <!-- Real crosswalk photo -->
+  <image href="../photos/crosswalk.jpg" x="0" y="0" width="1080" height="1080" preserveAspectRatio="xMidYMid slice"/>
+
+  <!-- Slight dark tint over whole image to make labels pop -->
+  <rect width="1080" height="1080" fill="#000000" opacity="0.35"/>
+
+  <!-- DETECTION BOX 1 — top left person -->
+  <rect x="48" y="55" width="210" height="140" fill="none" stroke="#C9A84C" stroke-width="1.5"/>
+  <rect x="48" y="42" width="210" height="22" fill="#C9A84C"/>
+  <text x="54" y="58" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0A0A0A" letter-spacing="0.5">UNREAD APPLICATION · 87%</text>
+
+  <!-- DETECTION BOX 2 — top center person -->
+  <rect x="330" y="30" width="200" height="160" fill="none" stroke="#C9A84C" stroke-width="1.5"/>
+  <rect x="330" y="17" width="200" height="22" fill="#C9A84C"/>
+  <text x="336" y="33" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0A0A0A" letter-spacing="0.5">SPREADSHEET ROW 247 · 99%</text>
+
+  <!-- DETECTION BOX 3 — top right -->
+  <rect x="760" y="50" width="210" height="150" fill="none" stroke="#C9A84C" stroke-width="1.5"/>
+  <rect x="760" y="37" width="210" height="22" fill="#C9A84C"/>
+  <text x="766" y="53" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0A0A0A" letter-spacing="0.5">VENMO MISMATCH · 94%</text>
+
+  <!-- DETECTION BOX 4 — middle left -->
+  <rect x="40" y="380" width="220" height="170" fill="none" stroke="#ef4444" stroke-width="1.5"/>
+  <rect x="40" y="367" width="220" height="22" fill="#ef4444"/>
+  <text x="46" y="383" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" letter-spacing="0.5">2AM DELIBERATION · 100%</text>
+
+  <!-- DETECTION BOX 5 — middle center -->
+  <rect x="400" y="350" width="230" height="190" fill="none" stroke="#C9A84C" stroke-width="1.5"/>
+  <rect x="400" y="337" width="230" height="22" fill="#C9A84C"/>
+  <text x="406" y="353" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0A0A0A" letter-spacing="0.5">INCONSISTENT SCORE · 91%</text>
+
+  <!-- DETECTION BOX 6 — middle right -->
+  <rect x="760" y="340" width="210" height="180" fill="none" stroke="#ef4444" stroke-width="1.5"/>
+  <rect x="760" y="327" width="210" height="22" fill="#ef4444"/>
+  <text x="766" y="343" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff" letter-spacing="0.5">LOST APPLICANT · 88%</text>
+
+  <!-- DETECTION BOX 7 — bottom center -->
+  <rect x="350" y="620" width="220" height="160" fill="none" stroke="#C9A84C" stroke-width="1.5"/>
+  <rect x="350" y="607" width="220" height="22" fill="#C9A84C"/>
+  <text x="356" y="623" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#0A0A0A" letter-spacing="0.5">NO RUBRIC DETECTED · 96%</text>
+
+  <!-- Bottom overlay — dark bar -->
+  <rect x="0" y="836" width="1080" height="244" fill="#0A0A0A" opacity="0.88"/>
+  <rect x="0" y="836" width="1080" height="3" fill="#C9A84C"/>
+
+  <!-- Bottom text -->
+  <text x="60" y="910" font-family="'Arial Black', Arial, sans-serif" font-size="54" font-weight="900" fill="#ffffff" letter-spacing="-2">This is what we</text>
+  <text x="60" y="976" font-family="'Arial Black', Arial, sans-serif" font-size="54" font-weight="900" fill="#C9A84C" letter-spacing="-2">came to fix.</text>
+
+  <text x="1020" y="1040" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#C9A84C" text-anchor="end" letter-spacing="1">unicircle.app</text>
+</svg>

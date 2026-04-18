@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>The Name Drop</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <!-- Top label -->
+  <text x="80" y="100" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" letter-spacing="5">EVERYONE KNOWS THESE.</text>
+
+  <!-- Gold top rule -->
+  <rect x="80" y="116" width="60" height="2" fill="#C9A84C"/>
+
+  <!-- Famous clubs -->
+  <text x="80" y="280" font-family="'Arial Black', Arial, sans-serif" font-size="110" font-weight="900" fill="#ffffff" letter-spacing="-4">AKPsi.</text>
+  <text x="80" y="415" font-family="'Arial Black', Arial, sans-serif" font-size="110" font-weight="900" fill="#ffffff" letter-spacing="-4">Mock Trial.</text>
+  <text x="80" y="550" font-family="'Arial Black', Arial, sans-serif" font-size="110" font-weight="900" fill="#ffffff" letter-spacing="-4">Rady VC.</text>
+
+  <!-- Divider -->
+  <rect x="80" y="590" width="920" height="1" fill="#ffffff" opacity="0.08"/>
+
+  <!-- The challenge -->
+  <text x="80" y="700" font-family="'Arial Black', Arial, sans-serif" font-size="90" font-weight="900" fill="#C9A84C" letter-spacing="-3">Now name</text>
+  <text x="80" y="810" font-family="'Arial Black', Arial, sans-serif" font-size="90" font-weight="900" fill="#C9A84C" letter-spacing="-3">the other 597.</text>
+
+  <!-- Bottom -->
+  <text x="80" y="1020" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#C9A84C" letter-spacing="2">unicircle.app</text>
+</svg>

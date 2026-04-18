@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Orgs Carousel — Slide 5 CTA</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <text x="80" y="88" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4">05 / 05</text>
+
+  <!-- Centered -->
+  <text x="540" y="310" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="5">YOUR NEXT QUARTER STARTS SOON.</text>
+
+  <text x="540" y="460" font-family="'Arial Black', Arial, sans-serif" font-size="118" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">Don't do it</text>
+  <text x="540" y="578" font-family="'Arial Black', Arial, sans-serif" font-size="118" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">the old way</text>
+  <text x="540" y="696" font-family="'Arial Black', Arial, sans-serif" font-size="118" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="-5">again.</text>
+
+  <!-- CTA Button -->
+  <rect x="240" y="756" width="600" height="86" rx="43" fill="#C9A84C"/>
+  <text x="540" y="810" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" font-weight="800" fill="#0A0A0A" text-anchor="middle" letter-spacing="1">unicircle.app — it's free</text>
+
+  <text x="540" y="920" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" fill="#555" text-anchor="middle">Set up your pipeline in 10 minutes.</text>
+  <text x="540" y="958" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" fill="#555" text-anchor="middle">Everything carries over next quarter.</text>
+
+  <text x="540" y="1048" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#C9A84C" letter-spacing="2" opacity="0.5" text-anchor="middle">UNICIRCLE</text>
+</svg>

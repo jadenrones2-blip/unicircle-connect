@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>UniCircle Receipt — Your Club's Recruitment Stack</title>
+  <desc>Thermal receipt format showing the broken recruitment stack vs UniCircle.</desc>
+
+  <defs>
+    <!-- Receipt paper shadow -->
+    <filter id="shadow" x="-5%" y="-2%" width="110%" height="108%">
+      <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+    <!-- Scanline texture on background -->
+    <pattern id="scanlines" width="1080" height="4" patternUnits="userSpaceOnUse">
+      <rect width="1080" height="2" fill="#ffffff" opacity="0.015"/>
+    </pattern>
+  </defs>
+
+  <!-- Dark background -->
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+  <rect width="1080" height="1080" fill="url(#scanlines)"/>
+
+  <!-- Receipt paper — slightly off-white, centered -->
+  <rect x="230" y="60" width="620" height="960" rx="4" fill="#FAF8F3" filter="url(#shadow)"/>
+
+  <!-- Torn top edge of receipt -->
+  <path d="M230,88 Q250,72 270,86 Q290,98 310,80 Q330,66 350,82 Q370,96 390,78 Q410,64 430,80 Q450,94 470,76 Q490,62 510,78 Q530,92 550,74 Q570,60 590,76 Q610,90 630,72 Q650,58 670,74 Q690,88 710,70 Q730,58 750,74 Q770,88 790,70 Q810,60 830,88 L850,88 L850,60 L230,60 Z" fill="#FAF8F3"/>
+
+  <!-- Receipt header -->
+  <text x="540" y="140" font-family="'Courier New', Courier, monospace" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle" letter-spacing="3">* * * * * * * * * * * * *</text>
+  <text x="540" y="168" font-family="'Courier New', Courier, monospace" font-size="20" font-weight="700" fill="#1a1a1a" text-anchor="middle" letter-spacing="2">CLUB RECRUITMENT CO.</text>
+  <text x="540" y="192" font-family="'Courier New', Courier, monospace" font-size="11" fill="#555" text-anchor="middle" letter-spacing="1">UCSD CAMPUS · SINCE FOREVER</text>
+  <text x="540" y="212" font-family="'Courier New', Courier, monospace" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle" letter-spacing="3">* * * * * * * * * * * * *</text>
+
+  <!-- Date/order info -->
+  <text x="260" y="242" font-family="'Courier New', Courier, monospace" font-size="11" fill="#888">DATE: EVERY SEMESTER</text>
+  <text x="260" y="260" font-family="'Courier New', Courier, monospace" font-size="11" fill="#888">ORDER #: 0001  TABLE: CHAOS</text>
+
+  <!-- Divider -->
+  <text x="540" y="286" font-family="'Courier New', Courier, monospace" font-size="12" fill="#aaa" text-anchor="middle">- - - - - - - - - - - - - - - - - - - - -</text>
+
+  <!-- Column headers -->
+  <text x="260" y="312" font-family="'Courier New', Courier, monospace" font-size="12" font-weight="700" fill="#555" letter-spacing="1">ITEM</text>
+  <text x="820" y="312" font-family="'Courier New', Courier, monospace" font-size="12" font-weight="700" fill="#555" text-anchor="end" letter-spacing="1">QTY    COST</text>
+
+  <text x="540" y="326" font-family="'Courier New', Courier, monospace" font-size="12" fill="#bbb" text-anchor="middle">- - - - - - - - - - - - - - - - - - - - -</text>
+
+  <!-- Line items — broken stack -->
+  <!-- Item 1 -->
+  <text x="260" y="356" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#1a1a1a">Google Form</text>
+  <text x="260" y="374" font-family="'Courier New', Courier, monospace" font-size="11" fill="#888">  No scoring. No rubric.</text>
+  <text x="820" y="356" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#1a1a1a" text-anchor="end">x1    $0.00</text>
+
+  <!-- Item 2 -->
+  <text x="260" y="408" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#1a1a1a">Spreadsheet</text>
+  <text x="260" y="426" font-family="'Courier New', Courier, monospace" font-size="11" fill="#888">  300 rows. Good luck.</text>
+  <text x="820" y="408" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#1a1a1a" text-anchor="end">x1    $0.00</text>
+
+  <!-- Item 3 -->
+  <text x="260" y="460" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#1a1a1a">Group Chat</text>
+  <text x="260" y="478" font-family="'Courier New', Courier, monospace" font-size="11" fill="#888">  Officer feedback: buried.</text>
+  <text x="820" y="460" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#1a1a1a" text-anchor="end">x1    $0.00</text>
+
+  <!-- Item 4 -->
+  <text x="260" y="512" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#1a1a1a">Shared Google Doc</text>
+  <text x="260" y="530" font-family="'Courier New', Courier, monospace" font-size="11" fill="#888">  Last updated: who knows.</text>
+  <text x="820" y="512" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#1a1a1a" text-anchor="end">x1    $0.00</text>
+
+  <!-- Item 5 -->
+  <text x="260" y="564" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#1a1a1a">Your Time</text>
+  <text x="260" y="582" font-family="'Courier New', Courier, monospace" font-size="11" fill="#888">  Rebuilding every quarter.</text>
+  <text x="820" y="564" font-family="'Courier New', Courier, monospace" font-size="15" font-weight="700" fill="#cc3333" text-anchor="end">x∞   $∞</text>
+
+  <!-- Subtotal area -->
+  <text x="540" y="608" font-family="'Courier New', Courier, monospace" font-size="12" fill="#bbb" text-anchor="middle">- - - - - - - - - - - - - - - - - - - - -</text>
+
+  <text x="260" y="636" font-family="'Courier New', Courier, monospace" font-size="13" fill="#555">SUBTOTAL</text>
+  <text x="820" y="636" font-family="'Courier New', Courier, monospace" font-size="13" fill="#1a1a1a" text-anchor="end">$0.00</text>
+
+  <text x="260" y="660" font-family="'Courier New', Courier, monospace" font-size="13" fill="#555">CHAOS FEE</text>
+  <text x="820" y="660" font-family="'Courier New', Courier, monospace" font-size="13" fill="#cc3333" text-anchor="end">PRICELESS</text>
+
+  <!-- TOTAL — bold, big -->
+  <rect x="244" y="674" width="592" height="50" rx="0" fill="#1a1a1a"/>
+  <text x="260" y="708" font-family="'Courier New', Courier, monospace" font-size="20" font-weight="700" fill="#FAF8F3">** TOTAL: CHAOS **</text>
+  <text x="820" y="708" font-family="'Courier New', Courier, monospace" font-size="20" font-weight="700" fill="#FAF8F3" text-anchor="end">EVERY QTR</text>
+
+  <!-- Separator -->
+  <text x="540" y="748" font-family="'Courier New', Courier, monospace" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle" letter-spacing="3">* * * * * * * * * * * * *</text>
+  <text x="540" y="770" font-family="'Courier New', Courier, monospace" font-size="12" fill="#888" text-anchor="middle">THERE IS A BETTER WAY.</text>
+  <text x="540" y="790" font-family="'Courier New', Courier, monospace" font-size="13" font-weight="700" fill="#1a1a1a" text-anchor="middle" letter-spacing="3">* * * * * * * * * * * * *</text>
+
+  <!-- UniCircle promo block -->
+  <rect x="244" y="806" width="592" height="120" rx="0" fill="#C9A84C" fill-opacity="0.12"/>
+  <text x="540" y="836" font-family="'Courier New', Courier, monospace" font-size="16" font-weight="700" fill="#1a1a1a" text-anchor="middle" letter-spacing="2">TRY: UNICIRCLE</text>
+  <text x="540" y="860" font-family="'Courier New', Courier, monospace" font-size="11" fill="#555" text-anchor="middle">Pipeline · Scoring · Emails · Pipeline</text>
+  <text x="540" y="880" font-family="'Courier New', Courier, monospace" font-size="11" fill="#555" text-anchor="middle">All in one place. Free to start.</text>
+  <text x="540" y="908" font-family="'Courier New', Courier, monospace" font-size="18" font-weight="700" fill="#1a1a1a" text-anchor="middle" letter-spacing="2">UNICIRCLE.APP</text>
+
+  <!-- Torn bottom edge -->
+  <path d="M230,992 Q250,1006 270,994 Q290,982 310,998 Q330,1012 350,996 Q370,982 390,998 Q410,1010 430,994 Q450,980 470,996 Q490,1010 510,994 Q530,980 550,996 Q570,1010 590,994 Q610,980 630,996 Q650,1010 670,994 Q690,980 710,996 Q730,1010 750,994 Q770,982 790,998 Q810,1012 830,994 L850,994 L850,1020 L230,1020 Z" fill="#FAF8F3"/>
+</svg>

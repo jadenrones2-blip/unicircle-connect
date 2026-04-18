@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>UniCircle — Google Forms Isn't Your Fault. But It Is Your Problem.</title>
+  <desc>UniCircle social asset: The "villain swap" hook — the tool is broken, not the team running it.</desc>
+
+  <defs>
+    <linearGradient id="goldGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C9A84C;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E8C96B;stop-opacity:1" />
+    </linearGradient>
+    <!-- Strike-through red gradient -->
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background — slightly warmer dark -->
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <!-- Subtle noise pattern -->
+  <defs>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="12" r="0.8" fill="#ffffff" opacity="0.05"/>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#dots)"/>
+
+  <!-- Gold accent bar -->
+  <rect x="0" y="0" width="1080" height="5" fill="url(#goldGrad2)"/>
+
+  <!-- Eyebrow -->
+  <text x="80" y="78" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4" opacity="0.9">FOR CLUB LEADERS</text>
+  <rect x="80" y="88" width="240" height="2" fill="#C9A84C" opacity="0.4"/>
+
+  <!-- "NOT YOUR FAULT" block -->
+  <text x="80" y="230" font-family="'Helvetica Neue', Arial, sans-serif" font-size="98" font-weight="900" fill="#ffffff" letter-spacing="-3">Google Forms</text>
+
+  <!-- Strikethrough line over "Google Forms" -->
+  <rect x="80" y="175" width="900" height="8" rx="4" fill="url(#redGrad)"/>
+
+  <text x="80" y="330" font-family="'Helvetica Neue', Arial, sans-serif" font-size="72" font-weight="900" fill="#71717a" letter-spacing="-2">isn't your fault.</text>
+
+  <!-- Divider with label -->
+  <rect x="80" y="390" width="920" height="1" fill="#ffffff" opacity="0.08"/>
+  <text x="540" y="426" font-family="'Helvetica Neue', Arial, sans-serif" font-size="14" font-weight="700" fill="#71717a" text-anchor="middle" letter-spacing="3">BUT</text>
+  <rect x="80" y="435" width="920" height="1" fill="#ffffff" opacity="0.08"/>
+
+  <!-- "YOUR PROBLEM" block — gold, large -->
+  <text x="80" y="556" font-family="'Helvetica Neue', Arial, sans-serif" font-size="108" font-weight="900" fill="#C9A84C" letter-spacing="-4">It is your</text>
+  <text x="80" y="670" font-family="'Helvetica Neue', Arial, sans-serif" font-size="108" font-weight="900" fill="#C9A84C" letter-spacing="-4">problem.</text>
+
+  <!-- Body copy -->
+  <text x="80" y="760" font-family="'Helvetica Neue', Arial, sans-serif" font-size="27" font-weight="400" fill="#a1a1aa">300 applicants. A spreadsheet. A group chat.</text>
+  <text x="80" y="798" font-family="'Helvetica Neue', Arial, sans-serif" font-size="27" font-weight="400" fill="#a1a1aa">Every semester, from scratch. There's a better way.</text>
+
+  <!-- Two-column comparison -->
+  <!-- BEFORE box -->
+  <rect x="80" y="840" width="395" height="100" rx="12" fill="#18181b" stroke="#ef4444" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="277" y="875" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#ef4444" text-anchor="middle" letter-spacing="2">BEFORE</text>
+  <text x="277" y="906" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="700" fill="#ffffff" text-anchor="middle">Forms → Sheet → Chat</text>
+  <text x="277" y="928" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="400" fill="#71717a" text-anchor="middle">chaos every time</text>
+
+  <!-- AFTER box -->
+  <rect x="605" y="840" width="395" height="100" rx="12" fill="#C9A84C" fill-opacity="0.1" stroke="#C9A84C" stroke-width="1.5" stroke-opacity="0.6"/>
+  <text x="802" y="875" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="2">WITH UNICIRCLE</text>
+  <text x="802" y="906" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="700" fill="#ffffff" text-anchor="middle">Pipeline built for orgs</text>
+  <text x="802" y="928" font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="400" fill="#C9A84C" text-anchor="middle">one place, every semester</text>
+
+  <!-- Arrow between boxes -->
+  <text x="540" y="900" font-family="'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="900" fill="#C9A84C" text-anchor="middle">→</text>
+
+  <!-- Watermark -->
+  <text x="1000" y="44" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff" opacity="0.2" text-anchor="end">unicircle.app</text>
+</svg>

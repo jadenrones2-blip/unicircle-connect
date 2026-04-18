@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Consistently</title>
+
+  <!-- Dark background -->
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <!-- Warm amber glow top left — like a lamp in a late night room -->
+  <ellipse cx="100" cy="100" rx="300" ry="300" fill="#C9A84C" fill-opacity="0.06"/>
+
+  <!-- Label -->
+  <text x="80" y="88" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4" opacity="0.6">THE #1 THING THEY SAID.</text>
+
+  <!-- The quote — direct, in quotes, no dressing up -->
+  <!-- Large open quote -->
+  <text x="60" y="340" font-family="Georgia, 'Times New Roman', serif" font-size="240" fill="#C9A84C" opacity="0.15">"</text>
+
+  <text x="80" y="310" font-family="'Arial Black', Arial, sans-serif" font-size="82" font-weight="900" fill="#ffffff" letter-spacing="-3">Getting my exec</text>
+  <text x="80" y="402" font-family="'Arial Black', Arial, sans-serif" font-size="82" font-weight="900" fill="#ffffff" letter-spacing="-3">board to actually</text>
+  <text x="80" y="494" font-family="'Arial Black', Arial, sans-serif" font-size="82" font-weight="900" fill="#ffffff" letter-spacing="-3">review and score</text>
+  <text x="80" y="586" font-family="'Arial Black', Arial, sans-serif" font-size="82" font-weight="900" fill="#C9A84C" letter-spacing="-3">consistently.</text>
+
+  <!-- Attribution — vague but real -->
+  <text x="80" y="650" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" fill="#555">— Multiple recruitment chairs. Word for word.</text>
+
+  <rect x="80" y="690" width="920" height="1" fill="#ffffff" opacity="0.06"/>
+
+  <!-- The reframe -->
+  <text x="80" y="770" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="32" fill="#ffffff" opacity="0.9">It's not a people problem.</text>
+  <text x="80" y="816" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="32" fill="#ffffff" opacity="0.9">It's a tools problem.</text>
+
+  <text x="80" y="900" font-family="'Arial Black', Arial, sans-serif" font-size="40" font-weight="900" fill="#C9A84C" letter-spacing="-1">UniCircle gives every officer</text>
+  <text x="80" y="950" font-family="'Arial Black', Arial, sans-serif" font-size="40" font-weight="900" fill="#C9A84C" letter-spacing="-1">a rubric and a score. No more group chat.</text>
+
+  <text x="80" y="1040" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#C9A84C" letter-spacing="2" opacity="0.5">UNICIRCLE</text>
+</svg>

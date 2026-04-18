@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>The Iceberg</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <!-- Top label -->
+  <text x="80" y="100" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" letter-spacing="5">WHAT STUDENTS SEE.</text>
+  <rect x="80" y="116" width="60" height="2" fill="#C9A84C"/>
+
+  <!-- Above the line — visible clubs -->
+  <text x="80" y="230" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#ffffff" letter-spacing="-2">AKPsi</text>
+  <text x="80" y="320" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#ffffff" letter-spacing="-2">Mock Trial</text>
+  <text x="80" y="410" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#ffffff" letter-spacing="-2">Rady VC</text>
+
+  <!-- THE SURFACE LINE -->
+  <rect x="0" y="455" width="1080" height="3" fill="#C9A84C"/>
+  <text x="540" y="448" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="4">THE SURFACE</text>
+
+  <!-- Below the line — the hidden majority -->
+  <text x="80" y="545" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#ffffff" opacity="0.5" letter-spacing="-2">Finance Club</text>
+  <text x="80" y="630" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#ffffff" opacity="0.35" letter-spacing="-2">Robotics Team</text>
+  <text x="80" y="715" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#ffffff" opacity="0.22" letter-spacing="-2">Triton Consulting</text>
+  <text x="80" y="800" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#ffffff" opacity="0.12" letter-spacing="-2">Design Co.</text>
+
+  <!-- Big reveal -->
+  <text x="80" y="920" font-family="'Arial Black', Arial, sans-serif" font-size="82" font-weight="900" fill="#C9A84C" letter-spacing="-3">590+ more.</text>
+  <text x="80" y="990" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#555">The ones that could actually change your trajectory.</text>
+
+  <text x="80" y="1050" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#C9A84C" letter-spacing="2">unicircle.app</text>
+</svg>

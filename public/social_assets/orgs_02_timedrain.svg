@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Orgs Carousel — Slide 2 Time Drain</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <rect x="1050" y="0" width="30" height="1080" fill="#C9A84C" fill-opacity="0.06"/>
+  <text x="1068" y="548" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="11" fill="#C9A84C" fill-opacity="0.4" text-anchor="middle" transform="rotate(90,1068,548)" letter-spacing="3">SWIPE</text>
+
+  <text x="80" y="88" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4">02 / 05</text>
+
+  <text x="80" y="170" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ef4444" letter-spacing="5">WHERE YOUR TIME GOES.</text>
+  <rect x="80" y="184" width="60" height="2" fill="#ef4444"/>
+
+  <!-- Time drain rows -->
+
+  <!-- Row 1 -->
+  <rect x="80" y="216" width="920" height="108" rx="8" fill="#111"/>
+  <rect x="80" y="216" width="3" height="108" rx="2" fill="#ef4444"/>
+  <text x="112" y="264" font-family="'Arial Black', Arial, sans-serif" font-size="26" font-weight="900" fill="#ffffff" letter-spacing="-1">Building the Google Form. Again.</text>
+  <text x="112" y="296" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#555">New quarter, new form. Copy, paste, pray it works.</text>
+
+  <!-- Row 2 -->
+  <rect x="80" y="338" width="920" height="108" rx="8" fill="#111"/>
+  <rect x="80" y="338" width="3" height="108" rx="2" fill="#ef4444"/>
+  <text x="112" y="386" font-family="'Arial Black', Arial, sans-serif" font-size="26" font-weight="900" fill="#ffffff" letter-spacing="-1">Copy-pasting 300 rows into a sheet.</text>
+  <text x="112" y="418" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#555">Name, email, responses — manually moved one by one.</text>
+
+  <!-- Row 3 -->
+  <rect x="80" y="460" width="920" height="108" rx="8" fill="#111"/>
+  <rect x="80" y="460" width="3" height="108" rx="2" fill="#ef4444"/>
+  <text x="112" y="508" font-family="'Arial Black', Arial, sans-serif" font-size="26" font-weight="900" fill="#ffffff" letter-spacing="-1">Scoring buried in a group chat.</text>
+  <text x="112" y="540" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#555">6 officers, 6 opinions, zero structure. Good luck deciding.</text>
+
+  <!-- Row 4 -->
+  <rect x="80" y="582" width="920" height="108" rx="8" fill="#111"/>
+  <rect x="80" y="582" width="3" height="108" rx="2" fill="#ef4444"/>
+  <text x="112" y="630" font-family="'Arial Black', Arial, sans-serif" font-size="26" font-weight="900" fill="#ffffff" letter-spacing="-1">"Who came to info night?"</text>
+  <text x="112" y="662" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#555">Sign-in sheet. 80 names. No match to applications. Every time.</text>
+
+  <!-- Row 5 -->
+  <rect x="80" y="704" width="920" height="108" rx="8" fill="#111"/>
+  <rect x="80" y="704" width="3" height="108" rx="2" fill="#ef4444"/>
+  <text x="112" y="752" font-family="'Arial Black', Arial, sans-serif" font-size="26" font-weight="900" fill="#ffffff" letter-spacing="-1">Rebuilding all of it next quarter.</text>
+  <text x="112" y="784" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#555">Nothing saves. New officers start from zero. Every cycle.</text>
+
+  <!-- Bottom line -->
+  <rect x="80" y="844" width="920" height="1" fill="#ffffff" opacity="0.07"/>
+
+  <text x="80" y="920" font-family="'Arial Black', Arial, sans-serif" font-size="58" font-weight="900" fill="#ffffff" letter-spacing="-2">This is 30+ hours</text>
+  <text x="80" y="990" font-family="'Arial Black', Arial, sans-serif" font-size="58" font-weight="900" fill="#C9A84C" letter-spacing="-2">every single quarter.</text>
+
+  <text x="80" y="1048" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#C9A84C" letter-spacing="2" opacity="0.5">UNICIRCLE</text>
+</svg>

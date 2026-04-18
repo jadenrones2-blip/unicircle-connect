@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Venmo Matching</title>
+
+  <!-- Light background — breaks the feed, totally different from other posts -->
+  <rect width="1080" height="1080" fill="#F5F0E8"/>
+
+  <!-- Gold top bar -->
+  <rect x="0" y="0" width="1080" height="8" fill="#C9A84C"/>
+
+  <!-- Label -->
+  <text x="80" y="90" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#999" letter-spacing="4">THINGS WE HEARD IN OUR RESEARCH</text>
+
+  <!-- Detection box aesthetic — like the crosswalk image -->
+  <!-- Box around the absurd process -->
+  <rect x="80" y="120" width="920" height="480" rx="4" fill="none" stroke="#0A0A0A" stroke-width="2"/>
+
+  <!-- Corner markers — surveillance/detection feel -->
+  <rect x="80" y="120" width="30" height="4" fill="#0A0A0A"/>
+  <rect x="80" y="120" width="4" height="30" fill="#0A0A0A"/>
+  <rect x="970" y="120" width="30" height="4" fill="#0A0A0A"/>
+  <rect x="966" y="120" width="4" height="30" fill="#0A0A0A"/>
+  <rect x="80" y="596" width="30" height="4" fill="#0A0A0A"/>
+  <rect x="80" y="570" width="4" height="30" fill="#0A0A0A"/>
+  <rect x="970" y="596" width="30" height="4" fill="#0A0A0A"/>
+  <rect x="966" y="570" width="4" height="30" fill="#0A0A0A"/>
+
+  <!-- Detection label -->
+  <rect x="80" y="108" width="220" height="26" fill="#0A0A0A"/>
+  <text x="90" y="126" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="2">ACTUAL PROCESS DETECTED</text>
+
+  <!-- The quote — center of the box -->
+  <text x="540" y="260" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#0A0A0A" text-anchor="middle" letter-spacing="-3">Matching 300</text>
+  <text x="540" y="344" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#0A0A0A" text-anchor="middle" letter-spacing="-3">applicant names</text>
+  <text x="540" y="428" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="-3">to Venmo</text>
+  <text x="540" y="512" font-family="'Arial Black', Arial, sans-serif" font-size="72" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="-3">transactions.</text>
+
+  <!-- Confidence score — like a detection label -->
+  <rect x="820" y="570" width="180" height="32" fill="#C9A84C"/>
+  <text x="910" y="591" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0A0A0A" text-anchor="middle" letter-spacing="1">BY HAND. 100%</text>
+
+  <!-- The follow-up — below the box, dark on light -->
+  <text x="80" y="680" font-family="'Arial Black', Arial, sans-serif" font-size="52" font-weight="900" fill="#0A0A0A" letter-spacing="-2">Every quarter.</text>
+  <text x="80" y="744" font-family="'Arial Black', Arial, sans-serif" font-size="52" font-weight="900" fill="#0A0A0A" letter-spacing="-2">Without fail.</text>
+
+  <rect x="80" y="790" width="920" height="1" fill="#0A0A0A" opacity="0.1"/>
+
+  <text x="80" y="860" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" fill="#888">This is a real thing real clubs do.</text>
+  <text x="80" y="900" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="28" fill="#888">We built UniCircle because it shouldn't be.</text>
+
+  <rect x="80" y="960" width="300" height="60" rx="30" fill="#0A0A0A"/>
+  <text x="230" y="997" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="1">unicircle.app</text>
+</svg>

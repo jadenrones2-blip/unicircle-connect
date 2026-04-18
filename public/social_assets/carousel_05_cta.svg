@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Carousel Slide 5 — CTA</title>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0A0A0A"/>
+      <stop offset="100%" style="stop-color:#0f0f0f"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#C9A84C;stop-opacity:0.10"/>
+      <stop offset="100%" style="stop-color:#C9A84C;stop-opacity:0"/>
+    </radialGradient>
+    <linearGradient id="btnGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C9A84C"/>
+      <stop offset="100%" style="stop-color:#E8C96B"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+  <!-- Ambient glow -->
+  <ellipse cx="540" cy="490" rx="420" ry="380" fill="url(#glow)"/>
+
+  <!-- Slide number -->
+  <text x="72" y="80" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4">05 / 05</text>
+
+  <!-- Centered CTA -->
+  <text x="540" y="310" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="4">YOUR CLUB IS OUT THERE.</text>
+
+  <text x="540" y="450" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="118" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">Let's make</text>
+  <text x="540" y="575" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="118" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-5">it easier</text>
+  <text x="540" y="700" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="118" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="-5">to find.</text>
+
+  <!-- CTA Button -->
+  <rect x="290" y="756" width="500" height="86" rx="43" fill="url(#btnGold)"/>
+  <text x="540" y="810" font-family="'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="800" fill="#0A0A0A" text-anchor="middle" letter-spacing="1">unicircle.app</text>
+
+  <!-- Sub CTA -->
+  <text x="540" y="900" font-family="'Helvetica Neue', Arial, sans-serif" font-size="24" fill="#555" text-anchor="middle">Free for students. Always.</text>
+
+  <!-- Tag line -->
+  <text x="540" y="955" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" fill="#333" text-anchor="middle">Link in bio ↑</text>
+
+  <text x="540" y="1040" font-family="'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="800" fill="#ffffff" opacity="0.3" letter-spacing="2" text-anchor="middle">UNICIRCLE</text>
+</svg>

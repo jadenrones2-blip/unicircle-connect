@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ':*)",
+      "Bash(curl -s \"https://calendar.ucsd.edu/api/2/events?days=30&pp=10&page=1\")",
+      "Bash(curl -s \"https://calendar.ucsd.edu/api/2/events?days=30&pp=5&page=1\")",
+      "Bash(node scripts/scrape_events.mjs)",
+      "Bash(git rm:*)"
+    ]
+  }
+}

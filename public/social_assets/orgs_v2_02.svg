@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>The Receipt</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <text x="80" y="88" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4">02 / 05</text>
+
+  <!-- Receipt paper -->
+  <rect x="240" y="110" width="600" height="820" fill="#F5F0E8"/>
+
+  <!-- Torn top edge -->
+  <path d="M240,110 Q270,98 300,108 Q330,118 360,106 Q390,96 420,110 Q450,120 480,108 Q510,98 540,110 Q570,120 600,106 Q630,96 660,108 Q690,118 720,106 Q750,96 780,110 Q810,120 840,110" fill="none" stroke="#F5F0E8" stroke-width="12"/>
+  <path d="M240,116 Q270,104 300,114 Q330,124 360,112 Q390,102 420,116 Q450,126 480,114 Q510,104 540,116 Q570,126 600,112 Q630,102 660,114 Q690,124 720,112 Q750,102 780,114 Q810,124 840,116" fill="#F5F0E8"/>
+
+  <!-- Receipt header -->
+  <text x="540" y="172" font-family="'Arial Black', Arial, sans-serif" font-size="18" font-weight="900" fill="#1a1a1a" text-anchor="middle" letter-spacing="4">QUARTERLY RECRUITMENT</text>
+  <text x="540" y="196" font-family="'Arial Black', Arial, sans-serif" font-size="18" font-weight="900" fill="#1a1a1a" text-anchor="middle" letter-spacing="4">TIME REPORT</text>
+  <text x="540" y="218" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" fill="#888" text-anchor="middle">UCSD · Q4 2025 · CLUB RECRUITMENT</text>
+
+  <!-- Divider dashes -->
+  <text x="540" y="242" font-family="'Courier New', monospace" font-size="14" fill="#bbb" text-anchor="middle">- - - - - - - - - - - - - - - - - - - - - - -</text>
+
+  <!-- Line items -->
+  <text x="272" y="278" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" fill="#1a1a1a">Build Google Form (again)</text>
+  <text x="808" y="278" font-family="'Arial Black', Arial, sans-serif" font-size="17" fill="#1a1a1a" text-anchor="end">3 hrs</text>
+
+  <text x="272" y="314" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" fill="#1a1a1a">Copy responses into sheet</text>
+  <text x="808" y="314" font-family="'Arial Black', Arial, sans-serif" font-size="17" fill="#1a1a1a" text-anchor="end">4 hrs</text>
+
+  <text x="272" y="350" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" fill="#1a1a1a">Score applicants in group chat</text>
+  <text x="808" y="350" font-family="'Arial Black', Arial, sans-serif" font-size="17" fill="#1a1a1a" text-anchor="end">6 hrs</text>
+
+  <text x="272" y="386" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" fill="#1a1a1a">Match sign-in sheet to apps</text>
+  <text x="808" y="386" font-family="'Arial Black', Arial, sans-serif" font-size="17" fill="#1a1a1a" text-anchor="end">3 hrs</text>
+
+  <text x="272" y="422" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" fill="#1a1a1a">Email applicants manually</text>
+  <text x="808" y="422" font-family="'Arial Black', Arial, sans-serif" font-size="17" fill="#1a1a1a" text-anchor="end">4 hrs</text>
+
+  <text x="272" y="458" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" fill="#1a1a1a">Rebuild everything next quarter</text>
+  <text x="808" y="458" font-family="'Arial Black', Arial, sans-serif" font-size="17" fill="#1a1a1a" text-anchor="end">8 hrs</text>
+
+  <text x="272" y="494" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" fill="#1a1a1a">Meetings to align officers</text>
+  <text x="808" y="494" font-family="'Arial Black', Arial, sans-serif" font-size="17" fill="#1a1a1a" text-anchor="end">5 hrs</text>
+
+  <!-- Divider dashes -->
+  <text x="540" y="522" font-family="'Courier New', monospace" font-size="14" fill="#bbb" text-anchor="middle">- - - - - - - - - - - - - - - - - - - - - - -</text>
+
+  <!-- Subtotal -->
+  <text x="272" y="562" font-family="'Arial Black', Arial, sans-serif" font-size="20" font-weight="900" fill="#1a1a1a">SUBTOTAL</text>
+  <text x="808" y="562" font-family="'Arial Black', Arial, sans-serif" font-size="20" font-weight="900" fill="#1a1a1a" text-anchor="end">33 hrs</text>
+
+  <!-- Tax line (humor) -->
+  <text x="272" y="594" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15" fill="#aaa">Officer burnout (est.)</text>
+  <text x="808" y="594" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15" fill="#aaa" text-anchor="end">priceless</text>
+
+  <!-- Total -->
+  <rect x="256" y="610" width="568" height="50" fill="#1a1a1a"/>
+  <text x="280" y="643" font-family="'Arial Black', Arial, sans-serif" font-size="22" font-weight="900" fill="#F5F0E8">TOTAL WASTED / QUARTER</text>
+  <text x="792" y="643" font-family="'Arial Black', Arial, sans-serif" font-size="22" font-weight="900" fill="#C9A84C" text-anchor="end">33 HRS</text>
+
+  <!-- Torn bottom edge -->
+  <text x="540" y="690" font-family="'Courier New', monospace" font-size="14" fill="#bbb" text-anchor="middle">- - - - - - - - - - - - - - - - - - - - - - -</text>
+  <text x="540" y="716" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15" fill="#888" text-anchor="middle">THERE IS A BETTER WAY.</text>
+  <text x="540" y="740" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#C9A84C" text-anchor="middle">unicircle.app</text>
+
+  <!-- Torn bottom -->
+  <path d="M240,890 Q270,878 300,888 Q330,898 360,886 Q390,876 420,890 Q450,900 480,888 Q510,878 540,890 Q570,900 600,886 Q630,876 660,888 Q690,898 720,886 Q750,876 780,888 Q810,898 840,890" fill="#F5F0E8"/>
+
+  <!-- Below receipt -->
+  <text x="80" y="1000" font-family="'Arial Black', Arial, sans-serif" font-size="40" font-weight="900" fill="#ffffff" letter-spacing="-1">This happens every quarter.</text>
+
+  <text x="80" y="1048" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" letter-spacing="3" opacity="0.4">UNICIRCLE</text>
+</svg>

@@ -90,40 +90,27 @@ export default function AcceptInvite() {
         return;
       }
 
-      // Mark invite as used
-      const { error: inviteErr, data: updatedInvite } = await (supabase as any)
-        .from('club_invites')
-        .update({
-          used_by: user.id,
-          used_at: new Date().toISOString()
-        })
-        .eq('id', invite.id)
-        .is('used_by', null)
-        .select()
-        .single();
+      // Use SECURITY DEFINER RPC so the accept runs as the DB owner,
+      // bypassing RLS on club_invites + club_officers and any trigger-touched tables.
+      // Direct table writes from the frontend were failing with:
+      //   "new row violates row-level security policy for table 'club_invites'"
+      // even after RLS was disabled — likely a trigger firing on club_invites that
+      // touches another table (e.g. notifications) that still has RLS enabled.
+      const { data, error } = await (supabase as any).rpc('accept_club_invite', {
+        p_invite_id: invite.id,
+        p_user_id: user.id,
+        p_email: user.email ?? null,
+      });
 
-      if (inviteErr) {
-        console.error('❌ Invite update failed:', inviteErr);
-        throw inviteErr;
+      if (error) throw error;
+
+      if ((data as any)?.error === 'invite_not_found') {
+        setPageState('already_used');
+        return;
       }
-
-      console.log('✅ Invite marked as used', updatedInvite);
-
-      // Insert into club_officers
-      const { error: officerErr } = await (supabase as any)
-        .from('club_officers')
-        .insert({
-          club_id: invite.club_id,
-          club_name: invite.club_name,
-          user_id: user.id,
-          invited_by: invite.created_by,
-          role: invite.role,
-          email: user.email ?? null,
-        });
-
-      if (officerErr) {
-        console.error('❌ Officer insert failed:', officerErr);
-        throw officerErr;
+      if ((data as any)?.error === 'expired') {
+        setPageState('expired');
+        return;
       }
 
       console.log('✅ Officer row inserted successfully');

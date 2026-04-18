@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>The One Liner</title>
+  <rect width="1080" height="1080" fill="#0A0A0A"/>
+
+  <!-- Subtle gold top bar -->
+  <rect x="0" y="0" width="1080" height="6" fill="#C9A84C"/>
+
+  <!-- Slide number -->
+  <text x="80" y="88" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#C9A84C" letter-spacing="4">04 / 05</text>
+
+  <!-- The statement — everything centered, massive -->
+  <text x="540" y="330" font-family="'Arial Black', Arial, sans-serif" font-size="102" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-4">Your best</text>
+  <text x="540" y="444" font-family="'Arial Black', Arial, sans-serif" font-size="102" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-4">applicant is sitting</text>
+  <text x="540" y="558" font-family="'Arial Black', Arial, sans-serif" font-size="102" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-4">in a Google Sheet</text>
+  <text x="540" y="672" font-family="'Arial Black', Arial, sans-serif" font-size="102" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="-4">you forgot</text>
+  <text x="540" y="786" font-family="'Arial Black', Arial, sans-serif" font-size="102" font-weight="900" fill="#C9A84C" text-anchor="middle" letter-spacing="-4">to check.</text>
+
+  <!-- Subtle bottom rule -->
+  <rect x="340" y="860" width="400" height="1" fill="#C9A84C" opacity="0.3"/>
+
+  <text x="540" y="920" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" fill="#555" text-anchor="middle">Don't lose them to a broken process.</text>
+
+  <text x="540" y="1000" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#C9A84C" text-anchor="middle" letter-spacing="2">unicircle.app</text>
+
+  <text x="540" y="1048" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#C9A84C" letter-spacing="3" opacity="0.4" text-anchor="middle">UNICIRCLE</text>
+</svg>
