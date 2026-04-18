@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 import AnimatedWords from "./AnimatedWords";
+import TiltCard from "./TiltCard";
 import { 
   Users, Star, MoreHorizontal, ArrowRight, Check, X, 
   Mail, FileText, GripVertical, BarChart3, Clock, ChevronRight,
@@ -323,7 +324,7 @@ const ProductShowcase = () => {
   const { playClick } = useSoundEffects();
 
   return (
-    <section className="py-16 md:py-24 border-t border-white/[0.07]">
+    <section className="py-32 md:py-48 border-t border-white/[0.07]">
 
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
         <div className="mb-8 md:mb-10">
@@ -381,16 +382,18 @@ const ProductShowcase = () => {
         </motion.p>
 
         {/* Mockup */}
-        <motion.div
-          key={`mockup-${activeTab}`}
-          initial={{ opacity: 0, y: 20, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {activeTab === "pipeline" && <KanbanMockup />}
-          {activeTab === "analytics" && <AnalyticsMockup />}
-          {activeTab === "applicant" && <ApplicantViewMockup />}
-        </motion.div>
+        <TiltCard>
+          <motion.div
+            key={`mockup-${activeTab}`}
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            {activeTab === "pipeline" && <KanbanMockup />}
+            {activeTab === "analytics" && <AnalyticsMockup />}
+            {activeTab === "applicant" && <ApplicantViewMockup />}
+          </motion.div>
+        </TiltCard>
 
       </div>
     </section>

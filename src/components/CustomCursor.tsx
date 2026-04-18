@@ -66,7 +66,7 @@ export default function CustomCursor() {
           width: 40,
           height: 40,
           borderRadius: '50%',
-          border: `1.5px solid ${hovering ? 'hsl(43 74% 56%)' : 'rgba(201,168,76,0.6)'}`,
+          border: `1.5px solid ${hovering ? 'hsl(47 95% 62%)' : 'rgba(201,168,76,0.6)'}`,
           transition: 'width 0.3s, height 0.3s, border-color 0.3s, opacity 0.3s',
           opacity: clicking ? 0.4 : 1,
           transform: hovering ? 'scale(1.6)' : 'scale(1)',
@@ -81,7 +81,7 @@ export default function CustomCursor() {
           width: 8,
           height: 8,
           borderRadius: '50%',
-          background: 'hsl(43 74% 56%)',
+          background: 'hsl(47 95% 62%)',
           transition: 'background 0.2s, transform 0.15s',
           transform: clicking ? 'scale(0.6)' : 'scale(1)',
         }}
