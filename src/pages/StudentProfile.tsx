@@ -400,23 +400,53 @@ export default function StudentProfile() {
           </div>
 
           {profile.resume_url ? (
-            <div className="flex items-center justify-between border border-white/8 bg-white/5 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <FileText className="w-6 h-6 text-gold" />
-                <div className="flex flex-col">
-                  <a href={profile.resume_url} target="_blank" rel="noreferrer" className="text-sm font-medium text-white hover:text-gold transition-colors">
-                    View Current Resume
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border border-white/8 bg-white/5 rounded-xl p-4">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <FileText className="w-6 h-6 text-gold flex-shrink-0" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium text-white truncate">
+                      Resume.pdf
+                    </span>
+                    <span className="text-xs text-zinc-500">PDF Document</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={profile.resume_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-gold hover:text-gold/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-gold/10"
+                  >
+                    View
                   </a>
-                  <span className="text-xs text-zinc-500">PDF Document</span>
+                  <Button
+                    variant="ghost"
+                    onClick={() => !uploadingResume && resumeInputRef.current?.click()}
+                    disabled={uploadingResume}
+                    className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 px-3"
+                  >
+                    {uploadingResume ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Replace'
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={handleRemoveResume}
+                    disabled={uploadingResume}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-400/10 px-3"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                onClick={handleRemoveResume}
-                className="text-red-400 hover:text-red-300 hover:bg-red-400/10 px-3"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              {uploadingResume && (
+                <div className="text-center text-sm text-gold">
+                  Uploading new resume...
+                </div>
+              )}
             </div>
           ) : (
             <div
