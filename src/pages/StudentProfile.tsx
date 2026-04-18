@@ -15,59 +15,59 @@ import { toast } from 'sonner';
 
 const INTEREST_OPTIONS: { category: string; label: string; value: string; emoji: string }[] = [
   // Goals
-  { category: 'superpower', value: 'network',     label: 'Networking', emoji: '🚪' },
-  { category: 'superpower', value: 'skills',      label: 'Skill Building', emoji: '⚡' },
-  { category: 'superpower', value: 'squad',       label: 'Finding Community', emoji: '👯' },
-  { category: 'superpower', value: 'confidence',  label: 'Leadership', emoji: '🦁' },
-  { category: 'superpower', value: 'purpose',     label: 'Social Impact', emoji: '🔥' },
-  { category: 'superpower', value: 'fun',         label: 'Just for Fun', emoji: '✨' },
-  { category: 'superpower', value: 'resume',      label: 'Resume Building', emoji: '📄' },
-  { category: 'superpower', value: 'mentorship',  label: 'Mentorship', emoji: '🤝' },
+  { category: 'superpower', value: 'network', label: 'Networking', emoji: '🚪' },
+  { category: 'superpower', value: 'skills', label: 'Skill Building', emoji: '⚡' },
+  { category: 'superpower', value: 'squad', label: 'Finding Community', emoji: '👯' },
+  { category: 'superpower', value: 'confidence', label: 'Leadership', emoji: '🦁' },
+  { category: 'superpower', value: 'purpose', label: 'Social Impact', emoji: '🔥' },
+  { category: 'superpower', value: 'fun', label: 'Just for Fun', emoji: '✨' },
+  { category: 'superpower', value: 'resume', label: 'Resume Building', emoji: '📄' },
+  { category: 'superpower', value: 'mentorship', label: 'Mentorship', emoji: '🤝' },
   // Career
-  { category: 'career', value: 'tech_career',        label: 'Tech', emoji: '💻' },
-  { category: 'career', value: 'finance_career',     label: 'Finance', emoji: '📊' },
-  { category: 'career', value: 'startup_career',     label: 'Startups', emoji: '🚀' },
-  { category: 'career', value: 'consulting_career',  label: 'Consulting', emoji: '🎯' },
-  { category: 'career', value: 'healthcare_career',  label: 'Healthcare', emoji: '🩺' },
-  { category: 'career', value: 'research_career',    label: 'Research', emoji: '🔬' },
-  { category: 'career', value: 'creative_career',    label: 'Creative & Media', emoji: '🎬' },
-  { category: 'career', value: 'nonprofit_career',   label: 'Nonprofit', emoji: '🌍' },
-  { category: 'career', value: 'law_career',         label: 'Law', emoji: '⚖️' },
-  { category: 'career', value: 'realestate_career',  label: 'Real Estate', emoji: '🏠' },
-  { category: 'career', value: 'marketing_career',   label: 'Marketing & PR', emoji: '📣' },
-  { category: 'career', value: 'education_career',   label: 'Education', emoji: '🎓' },
-  { category: 'career', value: 'government_career',  label: 'Government & Policy', emoji: '🏛️' },
-  { category: 'career', value: 'undecided_career',   label: 'Still Figuring It Out', emoji: '🤷' },
+  { category: 'career', value: 'tech_career', label: 'Tech', emoji: '💻' },
+  { category: 'career', value: 'finance_career', label: 'Finance', emoji: '📊' },
+  { category: 'career', value: 'startup_career', label: 'Startups', emoji: '🚀' },
+  { category: 'career', value: 'consulting_career', label: 'Consulting', emoji: '🎯' },
+  { category: 'career', value: 'healthcare_career', label: 'Healthcare', emoji: '🩺' },
+  { category: 'career', value: 'research_career', label: 'Research', emoji: '🔬' },
+  { category: 'career', value: 'creative_career', label: 'Creative & Media', emoji: '🎬' },
+  { category: 'career', value: 'nonprofit_career', label: 'Nonprofit', emoji: '🌍' },
+  { category: 'career', value: 'law_career', label: 'Law', emoji: '⚖️' },
+  { category: 'career', value: 'realestate_career', label: 'Real Estate', emoji: '🏠' },
+  { category: 'career', value: 'marketing_career', label: 'Marketing & PR', emoji: '📣' },
+  { category: 'career', value: 'education_career', label: 'Education', emoji: '🎓' },
+  { category: 'career', value: 'government_career', label: 'Government & Policy', emoji: '🏛️' },
+  { category: 'career', value: 'undecided_career', label: 'Still Figuring It Out', emoji: '🤷' },
   // Topics / Hobbies
-  { category: 'interests', value: 'tech',          label: 'Coding', emoji: '🛠️' },
-  { category: 'interests', value: 'business',      label: 'Business', emoji: '💡' },
-  { category: 'interests', value: 'arts',          label: 'Art & Design', emoji: '🎨' },
-  { category: 'interests', value: 'music',         label: 'Music', emoji: '🎵' },
-  { category: 'interests', value: 'science',       label: 'Science', emoji: '🧬' },
-  { category: 'interests', value: 'culture',       label: 'Culture & Identity', emoji: '🎭' },
-  { category: 'interests', value: 'fitness',       label: 'Sports & Fitness', emoji: '🏋️' },
+  { category: 'interests', value: 'tech', label: 'Coding', emoji: '🛠️' },
+  { category: 'interests', value: 'business', label: 'Business', emoji: '💡' },
+  { category: 'interests', value: 'arts', label: 'Art & Design', emoji: '🎨' },
+  { category: 'interests', value: 'music', label: 'Music', emoji: '🎵' },
+  { category: 'interests', value: 'science', label: 'Science', emoji: '🧬' },
+  { category: 'interests', value: 'culture', label: 'Culture & Identity', emoji: '🎭' },
+  { category: 'interests', value: 'fitness', label: 'Sports & Fitness', emoji: '🏋️' },
   { category: 'interests', value: 'social_impact', label: 'Activism', emoji: '✊' },
-  { category: 'interests', value: 'gaming',        label: 'Gaming', emoji: '🎮' },
-  { category: 'interests', value: 'writing',       label: 'Writing & Journalism', emoji: '✍️' },
-  { category: 'interests', value: 'film',          label: 'Film & Photography', emoji: '🎥' },
-  { category: 'interests', value: 'travel',        label: 'Travel & Languages', emoji: '🌐' },
-  { category: 'interests', value: 'food',          label: 'Food & Cooking', emoji: '🍜' },
+  { category: 'interests', value: 'gaming', label: 'Gaming', emoji: '🎮' },
+  { category: 'interests', value: 'writing', label: 'Writing & Journalism', emoji: '✍️' },
+  { category: 'interests', value: 'film', label: 'Film & Photography', emoji: '🎥' },
+  { category: 'interests', value: 'travel', label: 'Travel & Languages', emoji: '🌐' },
+  { category: 'interests', value: 'food', label: 'Food & Cooking', emoji: '🍜' },
   { category: 'interests', value: 'sustainability', label: 'Sustainability', emoji: '🌱' },
-  { category: 'interests', value: 'investing',     label: 'Investing', emoji: '📈' },
-  { category: 'interests', value: 'dance',         label: 'Dance', emoji: '💃' },
-  { category: 'interests', value: 'ai',            label: 'AI & Data Science', emoji: '🤖' },
-  { category: 'interests', value: 'fashion',       label: 'Fashion', emoji: '👗' },
+  { category: 'interests', value: 'investing', label: 'Investing', emoji: '📈' },
+  { category: 'interests', value: 'dance', label: 'Dance', emoji: '💃' },
+  { category: 'interests', value: 'ai', label: 'AI & Data Science', emoji: '🤖' },
+  { category: 'interests', value: 'fashion', label: 'Fashion', emoji: '👗' },
   // Vibe
-  { category: 'vibe', value: 'competitive',    label: 'High-achieving', emoji: '🏆' },
-  { category: 'vibe', value: 'chill',          label: 'Low-key', emoji: '🧘' },
-  { category: 'vibe', value: 'party',          label: 'Social', emoji: '🦋' },
-  { category: 'vibe', value: 'professional',   label: 'Professional', emoji: '👔' },
-  { category: 'vibe', value: 'creative_vibe',  label: 'Creative', emoji: '🎪' },
-  { category: 'vibe', value: 'inclusive',      label: 'Welcoming', emoji: '🤗' },
+  { category: 'vibe', value: 'competitive', label: 'High-achieving', emoji: '🏆' },
+  { category: 'vibe', value: 'chill', label: 'Low-key', emoji: '🧘' },
+  { category: 'vibe', value: 'party', label: 'Social', emoji: '🦋' },
+  { category: 'vibe', value: 'professional', label: 'Professional', emoji: '👔' },
+  { category: 'vibe', value: 'creative_vibe', label: 'Creative', emoji: '🎪' },
+  { category: 'vibe', value: 'inclusive', label: 'Welcoming', emoji: '🤗' },
   // Commitment
-  { category: 'energy', value: 'explorer',   label: 'Casual', emoji: '🌊' },
-  { category: 'energy', value: 'committed',  label: 'Committed', emoji: '💪' },
-  { category: 'energy', value: 'all_in',     label: 'All In', emoji: '👑' },
+  { category: 'energy', value: 'explorer', label: 'Casual', emoji: '🌊' },
+  { category: 'energy', value: 'committed', label: 'Committed', emoji: '💪' },
+  { category: 'energy', value: 'all_in', label: 'All In', emoji: '👑' },
 ];
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -397,13 +397,84 @@ export default function StudentProfile() {
         <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 mb-3 space-y-4">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-semibold text-zinc-300">Resume</h2>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#C9A84C]/10 text-[#C9A84C] border border-[#C9A84C]/20">Coming soon</span>
           </div>
-          <div className="flex flex-col items-center justify-center gap-2 border border-dashed border-white/8 rounded-xl py-8 opacity-50 cursor-not-allowed">
-            <FileText className="w-5 h-5 text-zinc-600" />
-            <span className="text-sm text-zinc-500">Resume upload coming soon</span>
-            <span className="text-xs text-zinc-700">We're working on it</span>
-          </div>
+
+          {profile.resume_url ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between border border-white/8 bg-white/5 rounded-xl p-4">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <FileText className="w-6 h-6 text-gold flex-shrink-0" />
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium text-white truncate">
+                      Resume.pdf
+                    </span>
+                    <span className="text-xs text-zinc-500">PDF Document</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={profile.resume_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-gold hover:text-gold/80 transition-colors px-3 py-1.5 rounded-lg hover:bg-gold/10"
+                  >
+                    View
+                  </a>
+                  <Button
+                    variant="ghost"
+                    onClick={() => !uploadingResume && resumeInputRef.current?.click()}
+                    disabled={uploadingResume}
+                    className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 px-3"
+                  >
+                    {uploadingResume ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Replace'
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={handleRemoveResume}
+                    disabled={uploadingResume}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-400/10 px-3"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              {uploadingResume && (
+                <div className="text-center text-sm text-gold">
+                  Uploading new resume...
+                </div>
+              )}
+            </div>
+          ) : (
+            <div
+              onClick={() => !uploadingResume && resumeInputRef.current?.click()}
+              className={`flex flex-col items-center justify-center gap-2 border border-dashed border-white/20 rounded-xl py-8 transition-colors ${uploadingResume ? 'opacity-50 cursor-not-allowed' : 'hover:border-gold/50 hover:bg-gold/5 cursor-pointer'
+                }`}
+            >
+              {uploadingResume ? (
+                <Loader2 className="w-6 h-6 text-gold animate-spin" />
+              ) : (
+                <Upload className="w-6 h-6 text-zinc-400" />
+              )}
+              <div className="flex flex-col items-center">
+                <span className="text-sm text-zinc-300 font-medium">
+                  {uploadingResume ? 'Uploading...' : 'Click to upload resume'}
+                </span>
+                <span className="text-xs text-zinc-500">PDF files up to 10MB</span>
+              </div>
+            </div>
+          )}
+          <input
+            ref={resumeInputRef}
+            type="file"
+            accept=".pdf"
+            className="hidden"
+            onChange={handleResumeChange}
+            disabled={uploadingResume}
+          />
         </div>
 
         {/* ── Interests ───────────────────────────────────────────────── */}
@@ -430,11 +501,10 @@ export default function StudentProfile() {
                       <button
                         key={key}
                         onClick={() => toggleInterest(key)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                          active
-                            ? 'border-gold/50 text-gold'
-                            : 'border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
-                        }`}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${active
+                          ? 'border-gold/50 text-gold'
+                          : 'border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
+                          }`}
                         style={active ? { background: 'rgba(180,135,11,0.1)' } : { background: 'rgba(255,255,255,0.03)' }}
                       >
                         <span>{opt.emoji}</span>
