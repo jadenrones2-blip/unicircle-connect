@@ -74,8 +74,6 @@ export default function AcceptInvite() {
     setPageState('claiming');
 
     try {
-      console.log('🔄 Claiming invite...', { inviteId: invite.id, userId: user.id, clubId: invite.club_id });
-
       // Check if already an officer
       const { data: existing } = await (supabase as any)
         .from('club_officers')
@@ -85,7 +83,6 @@ export default function AcceptInvite() {
         .maybeSingle();
 
       if (existing) {
-        console.log('✅ Already an officer');
         setPageState('already_member');
         return;
       }
@@ -113,14 +110,11 @@ export default function AcceptInvite() {
         return;
       }
 
-      console.log('✅ Officer row inserted successfully');
       setPageState('done');
       toast.success(`Welcome to ${invite.club_name}!`);
 
     } catch (err: any) {
-      console.error('💥 Full claim error:', err);
-      const msg = err?.message || String(err);
-      console.error('Error message:', msg);
+      const msg = (err as any)?.message || String(err);
 
       if (msg.includes('23505') || msg.includes('unique') || msg.includes('already')) {
         setPageState('already_member');

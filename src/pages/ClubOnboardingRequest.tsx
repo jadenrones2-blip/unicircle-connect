@@ -91,9 +91,7 @@ export default function ClubOnboardingRequest() {
             proofLink: proofLink.trim() || undefined,
           },
         });
-      } catch (notifyErr) {
-        console.warn('Admin notification failed (non-fatal):', notifyErr);
-      }
+      } catch { /* non-fatal — admin notification email failed */ }
 
       setSubmitted(true);
     } catch (err) {

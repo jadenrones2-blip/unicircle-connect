@@ -177,8 +177,8 @@ export default function ClubAdminMembers() {
         .eq('club_id', clubId)
         .order('date', { ascending: false });
       setSessions((data ?? []) as AttendanceSession[]);
-    } catch (err) {
-      console.warn('Attendance sessions not available (run migration):', err);
+    } catch {
+      // attendance_sessions table may not exist yet — run supabase/migrations/20260323_member_ops.sql
     }
   }, [clubId]);
 
@@ -190,8 +190,8 @@ export default function ClubAdminMembers() {
         .select('*')
         .eq('session_id', sessionId);
       setAttendanceRecords((data ?? []) as AttendanceRecord[]);
-    } catch (err) {
-      console.warn('Attendance records not available:', err);
+    } catch {
+      // non-fatal — table may not exist yet
     } finally {
       setLoadingAttendance(false);
     }
@@ -207,8 +207,8 @@ export default function ClubAdminMembers() {
         .order('created_at', { ascending: false })
         .limit(50);
       setPointTransactions((data ?? []) as PointTransaction[]);
-    } catch (err) {
-      console.warn('Point transactions not available (run migration):', err);
+    } catch {
+      // non-fatal — table may not exist yet
     }
   }, [clubId]);
 

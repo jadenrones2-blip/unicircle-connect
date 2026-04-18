@@ -64,7 +64,6 @@ export function useEvents(clubs: Club[]): UseExternalDBResult<Event> {
       if (dbError) {
         // Gracefully handle missing table
         if (dbError.code === 'PGRST205' || dbError.message?.includes('does not exist')) {
-          console.log("Events table not available - returning empty");
           setData([]);
           return;
         }

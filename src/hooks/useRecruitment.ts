@@ -127,20 +127,20 @@ export function useRecruitment(clubId: string | undefined) {
     setApplicants(typedApplicants);
   }, [clubId, user]);
 
+  // Effect 1: initial data load
   useEffect(() => {
-    const loadData = async () => {
-      if (!clubId || !user) {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      await Promise.all([fetchSettings(), fetchStages(), fetchApplicants()]);
+    if (!clubId || !user) {
       setLoading(false);
-    };
+      return;
+    }
+    setLoading(true);
+    Promise.all([fetchSettings(), fetchStages(), fetchApplicants()]).then(() => {
+      setLoading(false);
+    });
+  }, [clubId, user, fetchSettings, fetchStages, fetchApplicants]);
 
-    loadData();
-
+  // Effect 2: realtime subscription (separate concern from data loading)
+  useEffect(() => {
     if (!clubId || !user) return;
 
     const channel = supabase
@@ -184,7 +184,7 @@ export function useRecruitment(clubId: string | undefined) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [clubId, user, fetchSettings, fetchStages, fetchApplicants]);
+  }, [clubId, user]);
 
   const enableRecruitment = async () => {
     if (!clubId || !user) return false;
@@ -366,9 +366,7 @@ export function useRecruitment(clubId: string | undefined) {
             clubId: clubId,
           },
         });
-      } catch (notifyError) {
-        console.error('Failed to send stage notification:', notifyError);
-      }
+      } catch { /* non-fatal — stage advance email failed */ }
     }
 
     setApplicants(prev => 
@@ -459,9 +457,7 @@ export function useRecruitment(clubId: string | undefined) {
               finalDecision: decision,
             },
           });
-        } catch (notifyErr) {
-          console.warn('Final decision notification failed (non-fatal):', notifyErr);
-        }
+        } catch { /* non-fatal — final decision email failed */ }
       }
     }
 

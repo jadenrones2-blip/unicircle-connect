@@ -131,9 +131,7 @@ export default function AdminRequestsPanel() {
             reviewerNotes: approveNote.trim() || undefined,
           },
         });
-      } catch (notifyErr) {
-        console.warn('Approval notification failed:', notifyErr);
-      }
+      } catch { /* non-fatal — approval email failed */ }
 
       setRequests((prev) =>
         prev.map((r) =>
@@ -180,9 +178,7 @@ export default function AdminRequestsPanel() {
             rejectionReason: rejectReason.trim(),
           },
         });
-      } catch (notifyErr) {
-        console.warn('Rejection notification failed:', notifyErr);
-      }
+      } catch { /* non-fatal — rejection email failed */ }
 
       setRequests((prev) =>
         prev.map((r) =>

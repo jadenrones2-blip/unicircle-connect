@@ -420,10 +420,8 @@ export default function ClubApply() {
           const { error: fnErr } = await supabase.functions.invoke('upload-applicant-resume', {
             body: fd,
           });
-          if (fnErr) console.warn('Resume upload failed:', fnErr.message);
-        } catch (uploadErr) {
-          console.warn('Resume upload failed (non-fatal):', uploadErr);
-        }
+          if (fnErr) { /* non-fatal — resume upload failed */ }
+        } catch { /* non-fatal */ }
       }
 
       // Upload video answers and patch metadata with public URLs
@@ -445,9 +443,7 @@ export default function ClubApply() {
                 .getPublicUrl(uploadData.path);
               videoUpdates[q.id] = publicUrl;
             }
-          } catch (vidErr) {
-            console.warn(`Video upload failed for question ${q.id} (non-fatal):`, vidErr);
-          }
+          } catch { /* non-fatal */ }
         }
         // Patch applicant metadata with video URLs if any uploaded
         if (Object.keys(videoUpdates).length > 0) {
@@ -456,9 +452,7 @@ export default function ClubApply() {
               .from('applicants')
               .update({ metadata: { ...metadata, ...videoUpdates } })
               .eq('id', applicant.id);
-          } catch (patchErr) {
-            console.warn('Metadata patch failed (non-fatal):', patchErr);
-          }
+          } catch { /* non-fatal */ }
         }
       }
 
@@ -476,9 +470,7 @@ export default function ClubApply() {
           }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
         ]);
-      } catch (notifyErr) {
-        console.warn('Application received notification failed (non-fatal):', notifyErr);
-      }
+      } catch { /* non-fatal */ }
 
       setSubmitted(true);
     } catch (err) {
