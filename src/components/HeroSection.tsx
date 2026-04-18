@@ -129,17 +129,8 @@ const HeroSection = () => {
             className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.0] tracking-tight text-white mb-5"
           >
             Find your people.<br />
-            <span className="text-[#F5C842]">Build your team.</span>
+            Build your team.
           </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25, duration: 0.5 }}
-            className="text-zinc-500 text-lg max-w-lg mx-auto mb-8"
-          >
-            Club discovery and recruitment for UCSD — built for students and orgs.
-          </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}

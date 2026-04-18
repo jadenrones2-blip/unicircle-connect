@@ -34,7 +34,6 @@ const ProblemSection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <div className="text-xs tracking-[0.2em] uppercase text-zinc-500 font-semibold mb-6">For students</div>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white leading-[1.1] tracking-tight mb-8">
               The community you want<br />
               <span className="text-[#F5C842]">is out there. You just can't find it.</span>
@@ -63,7 +62,6 @@ const ProblemSection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <div className="text-xs tracking-[0.2em] uppercase text-zinc-500 font-semibold mb-6">For orgs</div>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white leading-[1.1] tracking-tight mb-8">
               Recruitment has always<br />
               <span className="text-[#F5C842]">been run on spreadsheets and prayer.</span>
@@ -87,20 +85,6 @@ const ProblemSection = () => {
 
         </div>
 
-        {/* Divider quote */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-          className="mt-20 border-t border-white/[0.06] pt-16"
-        >
-          <p className="font-display text-2xl sm:text-3xl font-bold text-white/80 max-w-2xl leading-snug">
-            "The most important thing about college isn't the GPA.{" "}
-            <span className="text-[#F5C842]">It's who you're surrounded by."</span>
-          </p>
-          <p className="text-zinc-600 text-sm mt-4">— Jaden Rones, Founder · UCSD transfer student</p>
-        </motion.div>
 
       </div>
     </section>
