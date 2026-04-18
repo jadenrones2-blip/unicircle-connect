@@ -7,6 +7,8 @@ export default {
   theme: {
   	container: {
   		center: true,
+
+
   		padding: '1.5rem',
   		screens: {
   			'2xl': '1200px'
@@ -15,7 +17,7 @@ export default {
   	extend: {
   		fontFamily: {
   			display: [
-  				'Outfit',
+  				'Space Grotesk',
   				'sans-serif'
   			],
   			body: [
@@ -27,6 +29,8 @@ export default {
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
+
+				
   				'BlinkMacSystemFont',
   				'Segoe UI',
   				'Roboto',

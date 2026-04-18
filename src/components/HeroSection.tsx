@@ -4,67 +4,57 @@ import { Link } from "react-router-dom";
 import MagneticButton from "./MagneticButton";
 import { useSoundEffects } from "@/hooks/useSoundEffects";
 
-const clubs = [
-  { name: "Brain Hub", category: "Science" },
-  { name: "AMSA", category: "Pre-Med" },
-  { name: "Rotaract", category: "Service" },
-  { name: "SIC", category: "Entrepreneurship" },
-  { name: "Business Leaders Assoc.", category: "Business" },
-  { name: "Engineers for Social Good", category: "Changemaking" },
-  { name: "Design Co", category: "Design" },
-  { name: "Triton Consulting", category: "Consulting" },
-  { name: "Data Science Society", category: "Technology" },
-  { name: "Philosophy Club", category: "Humanities" },
-  { name: "Prelaw Society", category: "Law" },
-  { name: "Concrete Canoe", category: "Engineering" },
+const leftItems = [
+  "Brain Hub",
+  "AMSA",
+  "Rotaract",
+  "SIC",
+  "Business Leaders Assoc.",
+  "Engineers for Social Good",
+  "Design Co",
+  "Triton Consulting",
+  "Data Science Society",
+  "Philosophy Club",
+  "Prelaw Society",
+  "Concrete Canoe",
 ];
 
-const pipeline = [
-  { name: "Sarah Chen", stage: "Interview", color: "text-gold bg-gold/10" },
-  { name: "James Park", stage: "Applied", color: "text-blue-400 bg-blue-400/10" },
-  { name: "Maya Patel", stage: "Under Review", color: "text-purple-400 bg-purple-400/10" },
-  { name: "Alex Kim", stage: "Accepted", color: "text-emerald-400 bg-emerald-400/10" },
-  { name: "Emily Rodriguez", stage: "Interview", color: "text-gold bg-gold/10" },
-  { name: "Jordan Lee", stage: "Applied", color: "text-blue-400 bg-blue-400/10" },
-  { name: "Taylor Nguyen", stage: "Accepted", color: "text-emerald-400 bg-emerald-400/10" },
-  { name: "Chris Wang", stage: "Under Review", color: "text-purple-400 bg-purple-400/10" },
-  { name: "Priya Sharma", stage: "Interview", color: "text-gold bg-gold/10" },
-  { name: "Marcus Johnson", stage: "Applied", color: "text-blue-400 bg-blue-400/10" },
+const rightItems = [
+  { label: "Applied", color: "text-blue-400 border-blue-400/20" },
+  { label: "Under Review", color: "text-purple-400 border-purple-400/20" },
+  { label: "Interview", color: "text-gold border-gold/20" },
+  { label: "Accepted", color: "text-emerald-400 border-emerald-400/20" },
+  { label: "Applied", color: "text-blue-400 border-blue-400/20" },
+  { label: "Interview", color: "text-gold border-gold/20" },
+  { label: "Under Review", color: "text-purple-400 border-purple-400/20" },
+  { label: "Accepted", color: "text-emerald-400 border-emerald-400/20" },
+  { label: "Applied", color: "text-blue-400 border-blue-400/20" },
+  { label: "Interview", color: "text-gold border-gold/20" },
 ];
 
-const ClubCard = ({ name, category }: { name: string; category: string }) => (
-  <div className="mb-3 px-3 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.07] w-44 backdrop-blur-sm">
-    <div className="text-[11px] font-semibold text-white/70 truncate">{name}</div>
-    <div className="text-[9px] text-white/30 mt-0.5">{category}</div>
-  </div>
-);
-
-const PipelineCard = ({ name, stage, color }: { name: string; stage: string; color: string }) => (
-  <div className="mb-3 px-3 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.07] w-44 backdrop-blur-sm">
-    <div className="text-[11px] font-semibold text-white/70 truncate">{name}</div>
-    <div className={`text-[9px] mt-1 px-1.5 py-0.5 rounded font-medium inline-block ${color}`}>{stage}</div>
-  </div>
-);
-
-const ScrollColumn = ({
-  children,
+const ScrollTrack = ({
+  items,
   direction = "down",
-  duration = 30,
+  duration = 32,
+  renderItem,
 }: {
-  children: React.ReactNode;
+  items: string[] | { label: string; color: string }[];
   direction?: "up" | "down";
   duration?: number;
+  renderItem: (item: any, i: number) => React.ReactNode;
 }) => {
   const y = direction === "down" ? ["0%", "-50%"] : ["-50%", "0%"];
   return (
-    <div className="relative overflow-hidden h-full">
+    <div
+      className="h-full overflow-hidden"
+      style={{ maskImage: "linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%)" }}
+    >
       <motion.div
         animate={{ y }}
         transition={{ duration, repeat: Infinity, ease: "linear" }}
-        className="flex flex-col"
+        className="flex flex-col gap-2.5"
       >
-        {children}
-        {children}
+        {[...items, ...items].map((item, i) => renderItem(item, i))}
       </motion.div>
     </div>
   );
@@ -74,27 +64,53 @@ const HeroSection = () => {
   const { playClick, playHover } = useSoundEffects();
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center pt-20 pb-16 relative overflow-hidden" style={{ background: '#0D0D0D' }}>
-
+    <section
+      className="min-h-screen flex flex-col items-center justify-center pt-20 pb-16 relative overflow-hidden"
+      style={{ background: "#0D0D0D" }}
+    >
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#C9A84C]/[0.04] rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[#C9A84C]/[0.035] rounded-full blur-[140px]" />
       </div>
 
-      {/* Scrolling columns — left and right */}
-      <div className="absolute inset-0 flex justify-between px-6 md:px-16 pointer-events-none">
-        {/* Left column — clubs, scrolling down */}
-        <div className="hidden md:block h-full w-48 opacity-60" style={{ maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)' }}>
-          <ScrollColumn direction="down" duration={35}>
-            {clubs.map((c) => <ClubCard key={c.name} {...c} />)}
-          </ScrollColumn>
+      {/* Scrolling columns */}
+      <div className="absolute inset-0 flex justify-between px-8 lg:px-20 pointer-events-none">
+        {/* Left — club names */}
+        <div className="hidden lg:block h-full w-52 pt-16">
+          <ScrollTrack
+            items={leftItems}
+            direction="down"
+            duration={38}
+            renderItem={(name, i) => (
+              <div
+                key={i}
+                className="px-3.5 py-2 rounded-lg border border-white/[0.06] bg-white/[0.02] w-fit"
+              >
+                <span className="text-[11px] font-medium text-white/35 whitespace-nowrap tracking-wide">
+                  {name}
+                </span>
+              </div>
+            )}
+          />
         </div>
 
-        {/* Right column — pipeline, scrolling up */}
-        <div className="hidden md:block h-full w-48 opacity-60" style={{ maskImage: 'linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)' }}>
-          <ScrollColumn direction="up" duration={28}>
-            {pipeline.map((p) => <PipelineCard key={p.name} {...p} />)}
-          </ScrollColumn>
+        {/* Right — stage pills */}
+        <div className="hidden lg:block h-full w-44 pt-16">
+          <ScrollTrack
+            items={rightItems}
+            direction="up"
+            duration={30}
+            renderItem={(item, i) => (
+              <div
+                key={i}
+                className={`px-3.5 py-2 rounded-lg border bg-white/[0.02] w-fit ${item.color}`}
+              >
+                <span className="text-[11px] font-medium whitespace-nowrap tracking-wide opacity-50">
+                  {item.label}
+                </span>
+              </div>
+            )}
+          />
         </div>
       </div>
 
@@ -105,7 +121,7 @@ const HeroSection = () => {
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5 }}
+            transition={{ delay: 0.1, duration: 0.6 }}
             className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] tracking-tight text-white mb-6"
           >
             Find your people.<br />
@@ -169,15 +185,14 @@ const HeroSection = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1, duration: 0.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          className="w-px h-8 bg-gradient-to-b from-[#C9A84C]/40 to-transparent"
+          className="w-px h-8 bg-gradient-to-b from-[#C9A84C]/40 to-transparent mx-auto"
         />
       </motion.div>
-
     </section>
   );
 };
