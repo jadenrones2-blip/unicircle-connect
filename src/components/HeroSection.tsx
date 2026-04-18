@@ -70,7 +70,7 @@ const HeroSection = () => {
     >
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[#C9A84C]/[0.035] rounded-full blur-[140px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[#F5C842]/[0.035] rounded-full blur-[140px]" />
       </div>
 
       {/* Scrolling columns */}
@@ -125,7 +125,7 @@ const HeroSection = () => {
             className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[1.0] tracking-tight text-white mb-6"
           >
             Find your people.<br />
-            <span className="text-[#C9A84C]">Build your team.</span>
+            <span className="text-[#F5C842]">Build your team.</span>
           </motion.h1>
 
           <motion.p
@@ -147,7 +147,7 @@ const HeroSection = () => {
             <MagneticButton>
               <Link
                 to="/clubs"
-                className="inline-flex items-center gap-2 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-zinc-900 font-bold px-8 py-3.5 rounded-xl text-sm transition-colors w-full sm:w-auto justify-center"
+                className="inline-flex items-center gap-2 bg-[#F5C842] hover:bg-[#F5C842]/90 text-zinc-900 font-bold px-8 py-3.5 rounded-xl text-sm transition-colors w-full sm:w-auto justify-center"
                 onMouseEnter={playHover}
                 onClick={playClick}
               >
@@ -190,7 +190,7 @@ const HeroSection = () => {
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          className="w-px h-8 bg-gradient-to-b from-[#C9A84C]/40 to-transparent mx-auto"
+          className="w-px h-8 bg-gradient-to-b from-[#F5C842]/40 to-transparent mx-auto"
         />
       </motion.div>
     </section>

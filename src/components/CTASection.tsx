@@ -14,12 +14,12 @@ const CTASection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <p className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-8">
+            <p className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-8">
               Get started
             </p>
             <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.0] tracking-tight">
               The right room<br />
-              <span className="text-[#C9A84C]">is waiting.</span>
+              <span className="text-[#F5C842]">is waiting.</span>
             </h2>
           </motion.div>
 
@@ -37,7 +37,7 @@ const CTASection = () => {
             <div className="flex flex-col gap-3">
               <Link
                 to="/clubs"
-                className="inline-flex items-center gap-2 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-zinc-900 font-bold px-6 py-3 rounded-xl text-sm transition-colors w-fit"
+                className="inline-flex items-center gap-2 bg-[#F5C842] hover:bg-[#F5C842]/90 text-zinc-900 font-bold px-6 py-3 rounded-xl text-sm transition-colors w-fit"
               >
                 Explore clubs
                 <ArrowRight className="w-4 h-4" />

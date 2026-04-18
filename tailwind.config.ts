@@ -17,7 +17,7 @@ export default {
   	extend: {
   		fontFamily: {
   			display: [
-  				'Space Grotesk',
+  				'Roboto',
   				'sans-serif'
   			],
   			body: [

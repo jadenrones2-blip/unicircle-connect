@@ -23,7 +23,7 @@ const HowItWorksSection = () => {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-16"
+          className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-16"
         >
           How it works
         </motion.p>
@@ -54,7 +54,7 @@ const HowItWorksSection = () => {
                   transition={{ delay: i * 0.1 }}
                   className="flex gap-5"
                 >
-                  <div className="text-[#C9A84C] font-display font-bold text-4xl leading-none opacity-30 flex-shrink-0 w-8">
+                  <div className="text-[#F5C842] font-display font-bold text-4xl leading-none opacity-30 flex-shrink-0 w-8">
                     {s.step}
                   </div>
                   <div>
@@ -74,7 +74,7 @@ const HowItWorksSection = () => {
             >
               <Link
                 to="/clubs"
-                className="inline-flex items-center gap-2 text-[#C9A84C] text-sm font-semibold hover:gap-3 transition-all"
+                className="inline-flex items-center gap-2 text-[#F5C842] text-sm font-semibold hover:gap-3 transition-all"
               >
                 Browse clubs
                 <ArrowRight className="w-4 h-4" />
@@ -106,7 +106,7 @@ const HowItWorksSection = () => {
                   transition={{ delay: i * 0.1 }}
                   className="flex gap-5"
                 >
-                  <div className="text-[#C9A84C] font-display font-bold text-4xl leading-none opacity-30 flex-shrink-0 w-8">
+                  <div className="text-[#F5C842] font-display font-bold text-4xl leading-none opacity-30 flex-shrink-0 w-8">
                     {s.step}
                   </div>
                   <div>
@@ -126,7 +126,7 @@ const HowItWorksSection = () => {
             >
               <Link
                 to="/club-admin/request"
-                className="inline-flex items-center gap-2 text-[#C9A84C] text-sm font-semibold hover:gap-3 transition-all"
+                className="inline-flex items-center gap-2 text-[#F5C842] text-sm font-semibold hover:gap-3 transition-all"
               >
                 Get your org set up
                 <ArrowRight className="w-4 h-4" />

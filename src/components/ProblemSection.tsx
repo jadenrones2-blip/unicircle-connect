@@ -22,7 +22,7 @@ const ProblemSection = () => {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-16"
+          className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-16"
         >
           The problem — both sides
         </motion.p>
@@ -39,7 +39,7 @@ const ProblemSection = () => {
             <div className="text-xs tracking-[0.2em] uppercase text-zinc-500 font-semibold mb-6">For students</div>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white leading-[1.1] tracking-tight mb-8">
               The community you want<br />
-              <span className="text-[#C9A84C]">is out there. You just can't find it.</span>
+              <span className="text-[#F5C842]">is out there. You just can't find it.</span>
             </h2>
             <div className="space-y-5">
               {studentProblems.map((p, i) => (
@@ -51,7 +51,7 @@ const ProblemSection = () => {
                   transition={{ delay: i * 0.1, duration: 0.4 }}
                   className="flex gap-4 items-start"
                 >
-                  <div className="w-1 h-1 rounded-full bg-[#C9A84C] mt-2.5 flex-shrink-0" />
+                  <div className="w-1 h-1 rounded-full bg-[#F5C842] mt-2.5 flex-shrink-0" />
                   <p className="text-zinc-400 text-base leading-relaxed">{p.text}</p>
                 </motion.div>
               ))}
@@ -68,7 +68,7 @@ const ProblemSection = () => {
             <div className="text-xs tracking-[0.2em] uppercase text-zinc-500 font-semibold mb-6">For orgs</div>
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white leading-[1.1] tracking-tight mb-8">
               Recruitment has always<br />
-              <span className="text-[#C9A84C]">been run on spreadsheets and prayer.</span>
+              <span className="text-[#F5C842]">been run on spreadsheets and prayer.</span>
             </h2>
             <div className="space-y-5">
               {orgProblems.map((p, i) => (
@@ -80,7 +80,7 @@ const ProblemSection = () => {
                   transition={{ delay: i * 0.1, duration: 0.4 }}
                   className="flex gap-4 items-start"
                 >
-                  <div className="w-1 h-1 rounded-full bg-[#C9A84C] mt-2.5 flex-shrink-0" />
+                  <div className="w-1 h-1 rounded-full bg-[#F5C842] mt-2.5 flex-shrink-0" />
                   <p className="text-zinc-400 text-base leading-relaxed">{p.text}</p>
                 </motion.div>
               ))}
@@ -99,7 +99,7 @@ const ProblemSection = () => {
         >
           <p className="font-display text-2xl sm:text-3xl font-bold text-white/80 max-w-2xl leading-snug">
             "The most important thing about college isn't the GPA.{" "}
-            <span className="text-[#C9A84C]">It's who you're surrounded by."</span>
+            <span className="text-[#F5C842]">It's who you're surrounded by."</span>
           </p>
           <p className="text-zinc-600 text-sm mt-4">— Jaden Rones, Founder · UCSD transfer student</p>
         </motion.div>

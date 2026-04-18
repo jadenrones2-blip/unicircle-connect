@@ -56,7 +56,7 @@ function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPL
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden mb-10">
         {[
           { label: 'Applicants', value: '10',   icon: Users,       color: '#6366f1' },
-          { label: 'Avg Score',  value: '81.9', icon: Star,        color: '#C9A84C' },
+          { label: 'Avg Score',  value: '81.9', icon: Star,        color: '#F5C842' },
           { label: 'Accepted',   value: '20%',  icon: TrendingUp,  color: '#10b981' },
           { label: 'In Review',  value: '5',    icon: Eye,         color: '#8b5cf6' },
         ].map((s) => (
@@ -111,13 +111,13 @@ function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPL
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
-                          <Star className="w-3 h-3 fill-[#C9A84C] text-[#C9A84C]" />
+                          <Star className="w-3 h-3 fill-[#F5C842] text-[#F5C842]" />
                           <span className="text-[12px] font-bold text-white">{a.score}</span>
                         </div>
                         {a.tag && (
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
                             a.tag === 'Accepted' ? 'bg-emerald-500/15 text-emerald-400' :
-                            a.tag === 'Top Pick' ? 'bg-[#C9A84C]/15 text-[#C9A84C]' :
+                            a.tag === 'Top Pick' ? 'bg-[#F5C842]/15 text-[#F5C842]' :
                             'bg-blue-500/15 text-blue-400'
                           }`}>
                             {a.tag}
@@ -168,7 +168,7 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
               onClick={() => onSelect(a)}
               className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
                 selected.id === a.id
-                  ? 'border-[#C9A84C]/40 bg-[#C9A84C]/[0.05]'
+                  ? 'border-[#F5C842]/40 bg-[#F5C842]/[0.05]'
                   : 'border-white/[0.06] bg-white/[0.02] hover:border-white/[0.12]'
               }`}
             >
@@ -184,7 +184,7 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
                   <div className="text-[11px] text-white/35">{a.major}</div>
                 </div>
               </div>
-              <div className="text-[13px] font-bold text-[#C9A84C]">{a.score}</div>
+              <div className="text-[13px] font-bold text-[#F5C842]">{a.score}</div>
             </div>
           ))}
         </div>
@@ -206,7 +206,7 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
             </div>
           </div>
           <div className="text-right">
-            <div className="text-4xl font-bold text-[#C9A84C] leading-none">{compositeScore}</div>
+            <div className="text-4xl font-bold text-[#F5C842] leading-none">{compositeScore}</div>
             <div className="text-[11px] text-white/30 mt-1 tracking-wide">Composite</div>
           </div>
         </div>
@@ -247,7 +247,7 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
                     initial={{ width: 0 }}
                     animate={{ width: `${avg * 10}%` }}
                     transition={{ duration: 1, delay: i * 0.1, ease: 'easeOut' }}
-                    className="h-full rounded-full bg-gradient-to-r from-[#C9A84C] to-[#E8C96D]"
+                    className="h-full rounded-full bg-gradient-to-r from-[#F5C842] to-[#E8C96D]"
                   />
                 </div>
                 <div className="flex gap-4">
@@ -297,7 +297,7 @@ function ApplicantViewTab() {
     >
       <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-7">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-full bg-[#C9A84C]/15 border border-[#C9A84C]/25 flex items-center justify-center text-sm font-bold text-[#C9A84C]">
+          <div className="w-10 h-10 rounded-full bg-[#F5C842]/15 border border-[#F5C842]/25 flex items-center justify-center text-sm font-bold text-[#F5C842]">
             PP
           </div>
           <div>
@@ -310,7 +310,7 @@ function ApplicantViewTab() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-5">
             <span className="text-sm font-medium text-white">Application Status</span>
-            <span className="text-[11px] text-[#C9A84C] bg-[#C9A84C]/[0.08] px-2.5 py-1 rounded-full font-medium">
+            <span className="text-[11px] text-[#F5C842] bg-[#F5C842]/[0.08] px-2.5 py-1 rounded-full font-medium">
               Under Review
             </span>
           </div>
@@ -320,7 +320,7 @@ function ApplicantViewTab() {
               initial={{ width: 0 }}
               animate={{ width: `${(currentStage / (APPLICANT_STAGES.length - 1)) * 100}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
-              style={{ left: '1rem', top: '0.9375rem', position: 'absolute', height: '1px', backgroundColor: '#C9A84C' }}
+              style={{ left: '1rem', top: '0.9375rem', position: 'absolute', height: '1px', backgroundColor: '#F5C842' }}
             />
             <div className="relative flex justify-between">
               {APPLICANT_STAGES.map((stage, i) => {
@@ -334,7 +334,7 @@ function ApplicantViewTab() {
                     className="flex flex-col items-center gap-2.5"
                   >
                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-all ${
-                      done ? 'border-[#C9A84C] bg-[#C9A84C] text-zinc-900' : 'border-white/15 bg-[#0A0A0A] text-white/25'
+                      done ? 'border-[#F5C842] bg-[#F5C842] text-zinc-900' : 'border-white/15 bg-[#0A0A0A] text-white/25'
                     }`}>
                       {done ? <CheckCircle className="w-4 h-4" /> : <Clock className="w-3.5 h-3.5" />}
                     </div>
@@ -350,7 +350,7 @@ function ApplicantViewTab() {
 
         {/* Next date */}
         <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-6">
-          <Calendar className="w-4 h-4 text-[#C9A84C]" />
+          <Calendar className="w-4 h-4 text-[#F5C842]" />
           <span className="text-sm text-white/60">
             Interview slots open <span className="text-white font-medium">March 14–16</span>
           </span>
@@ -362,7 +362,7 @@ function ApplicantViewTab() {
           {[
             { icon: CheckCircle, color: 'text-emerald-400', label: 'Application received',         time: '2 days ago',      done: true },
             { icon: FileText,    color: 'text-blue-400',    label: 'Resume reviewed by the team',  time: '1 day ago',       done: true },
-            { icon: Users,       color: 'text-[#C9A84C]',   label: 'Moved to Screening round',     time: '18 hours ago',    done: true },
+            { icon: Users,       color: 'text-[#F5C842]',   label: 'Moved to Screening round',     time: '18 hours ago',    done: true },
             { icon: Calendar,    color: 'text-white/25',    label: 'Interview scheduling opens soon', time: 'Expected Mar 14', done: false },
           ].map((item, i) => (
             <motion.div
@@ -416,7 +416,7 @@ export default function Demo() {
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-8"
+            className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-8"
           >
             Interactive Demo
           </motion.p>
@@ -428,7 +428,7 @@ export default function Demo() {
             className="font-display text-6xl sm:text-7xl lg:text-[88px] font-bold text-white leading-[0.95] tracking-tight mb-8"
           >
             Recruitment<br />
-            <span className="text-[#C9A84C]">built for</span><br />
+            <span className="text-[#F5C842]">built for</span><br />
             campus.
           </motion.h1>
 
@@ -483,7 +483,7 @@ export default function Demo() {
               {activeTab === tab.id && (
                 <motion.div
                   layoutId="tab-underline"
-                  className="absolute bottom-0 left-0 right-10 h-px bg-[#C9A84C]"
+                  className="absolute bottom-0 left-0 right-10 h-px bg-[#F5C842]"
                   transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
                 />
               )}
@@ -509,7 +509,7 @@ export default function Demo() {
       <section className="border-t border-white/[0.06] py-28 px-6">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-end justify-between gap-10">
           <div>
-            <p className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-5">Early Access</p>
+            <p className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-5">Early Access</p>
             <h2 className="font-display text-4xl sm:text-5xl font-bold text-white leading-tight">
               Be a founding club.<br />
               <span className="text-white/35">Shape the product.</span>
@@ -517,7 +517,7 @@ export default function Demo() {
           </div>
           <Link
             to="/signup"
-            className="flex items-center gap-2.5 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-zinc-900 font-bold px-7 py-4 rounded-xl text-sm transition-colors whitespace-nowrap"
+            className="flex items-center gap-2.5 bg-[#F5C842] hover:bg-[#F5C842]/90 text-zinc-900 font-bold px-7 py-4 rounded-xl text-sm transition-colors whitespace-nowrap"
           >
             Get early access
             <ArrowRight className="w-4 h-4" />

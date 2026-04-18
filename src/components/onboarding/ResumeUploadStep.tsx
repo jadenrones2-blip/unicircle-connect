@@ -34,13 +34,13 @@ export default function ResumeUploadStep({ onSkip }: ResumeUploadStepProps) {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="border border-dashed border-[#C9A84C]/20 bg-[#C9A84C]/5 rounded-2xl p-10 text-center"
+        className="border border-dashed border-[#F5C842]/20 bg-[#F5C842]/5 rounded-2xl p-10 text-center"
       >
-        <div className="w-14 h-14 rounded-2xl bg-[#C9A84C]/10 flex items-center justify-center mx-auto mb-4">
-          <FileText className="h-7 w-7 text-[#C9A84C]" />
+        <div className="w-14 h-14 rounded-2xl bg-[#F5C842]/10 flex items-center justify-center mx-auto mb-4">
+          <FileText className="h-7 w-7 text-[#F5C842]" />
         </div>
         <p className="text-foreground font-semibold text-lg mb-1">Resume upload</p>
-        <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-[#C9A84C]/10 text-[#C9A84C] border border-[#C9A84C]/20 mb-3">
+        <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-[#F5C842]/10 text-[#F5C842] border border-[#F5C842]/20 mb-3">
           Coming soon
         </span>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto">
@@ -51,7 +51,7 @@ export default function ResumeUploadStep({ onSkip }: ResumeUploadStepProps) {
       <div className="flex justify-center pt-4">
         <Button
           onClick={onSkip}
-          className="bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-zinc-900 font-bold px-8"
+          className="bg-[#F5C842] hover:bg-[#F5C842]/90 text-zinc-900 font-bold px-8"
         >
           Continue
           <ArrowRight className="ml-2 h-4 w-4" />

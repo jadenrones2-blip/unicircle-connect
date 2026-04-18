@@ -14,7 +14,7 @@ export default function Founder() {
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-8"
+            className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-8"
           >
             Our Story
           </motion.p>
@@ -25,9 +25,9 @@ export default function Founder() {
             className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.0] tracking-tight mb-16"
           >
             I worked for years<br />
-            <span className="text-[#C9A84C]">to get to the right room.</span><br />
+            <span className="text-[#F5C842]">to get to the right room.</span><br />
             Then I walked into<br />
-            <span className="text-[#C9A84C]">the wrong one.</span>
+            <span className="text-[#F5C842]">the wrong one.</span>
           </motion.h1>
         </div>
       </section>
@@ -55,7 +55,7 @@ export default function Founder() {
               </div>
               <div className="mt-6 max-w-sm mx-auto lg:mx-0">
                 <div className="text-white font-semibold text-lg">Jaden Rones</div>
-                <div className="text-[#C9A84C] text-sm mt-1">Founder & CEO · UCSD</div>
+                <div className="text-[#F5C842] text-sm mt-1">Founder & CEO · UCSD</div>
                 <div className="text-zinc-500 text-sm mt-3 leading-relaxed">
                   Transfer student. Built UniCircle from scratch — design, frontend, backend, all of it.
                 </div>
@@ -97,7 +97,7 @@ export default function Founder() {
                 So I started talking to the people running those clubs. The recruitment chairs, the presidents. I asked how they managed everything. The answer was always the same: Google Form, spreadsheet, group chat. Deliberations running until 2 am. Matching hundreds of applicant names to Venmo transactions by hand, every quarter, starting from scratch.
               </p>
 
-              <div className="border-l-2 border-[#C9A84C] pl-6 py-2">
+              <div className="border-l-2 border-[#F5C842] pl-6 py-2">
                 <p className="text-zinc-200 italic text-lg">
                   "The most important thing about college isn't the GPA. It's who you're surrounded by."
                 </p>
@@ -114,7 +114,7 @@ export default function Founder() {
               <div className="pt-4 flex flex-col sm:flex-row gap-4">
                 <Link
                   to="/clubs"
-                  className="inline-flex items-center gap-2 bg-[#C9A84C] hover:bg-[#C9A84C]/90 text-zinc-900 font-bold px-6 py-3 rounded-xl text-sm transition-colors"
+                  className="inline-flex items-center gap-2 bg-[#F5C842] hover:bg-[#F5C842]/90 text-zinc-900 font-bold px-6 py-3 rounded-xl text-sm transition-colors"
                 >
                   Explore clubs
                   <ArrowRight className="w-4 h-4" />
@@ -135,7 +135,7 @@ export default function Founder() {
       {/* Founders */}
       <section className="border-t border-white/[0.06] px-6 py-16">
         <div className="max-w-5xl mx-auto">
-          <p className="text-xs tracking-[0.25em] uppercase text-[#C9A84C] font-semibold mb-10">The team</p>
+          <p className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-10">The team</p>
           <div className="grid grid-cols-2 sm:grid-cols-2 gap-8 max-w-lg">
             {[
               {
@@ -170,7 +170,7 @@ export default function Founder() {
                   <div className="absolute inset-0 rounded-xl ring-1 ring-white/10" />
                 </div>
                 <div className="text-white font-semibold">{person.name}</div>
-                <div className="text-[#C9A84C] text-sm mt-0.5">{person.title}</div>
+                <div className="text-[#F5C842] text-sm mt-0.5">{person.title}</div>
               </motion.div>
             ))}
           </div>
