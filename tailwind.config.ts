@@ -17,7 +17,7 @@ export default {
   	extend: {
   		fontFamily: {
   			display: [
-  				'Roboto',
+  				'Inter',
   				'sans-serif'
   			],
   			body: [
