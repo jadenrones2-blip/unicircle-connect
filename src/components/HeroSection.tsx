@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { getLenis } from "@/hooks/useLenis";
 
 // ── Exact easing functions from the HTML prototype ────────────
 function clamp(v: number, a: number, b: number) {
@@ -36,11 +35,9 @@ const HeroSection = () => {
     window.addEventListener("resize", measure);
 
     const loop = () => {
-      const lenis = getLenis();
-      const scrollY = lenis
-        ? (lenis as any).targetScroll ?? (lenis as any).scroll ?? 0
-        : window.scrollY;
-      p.set(clamp((scrollY - heroTop) / heroRange, 0, 1));
+      // Lenis calls window.scrollTo every frame with the lerped value,
+      // so window.scrollY is always the correct smoothed position.
+      p.set(clamp((window.scrollY - heroTop) / heroRange, 0, 1));
       rafId = requestAnimationFrame(loop);
     };
 
