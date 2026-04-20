@@ -24,7 +24,7 @@ const Index = () => {
   }, [user, loading, navigate]);
 
   return (
-    <main className="min-h-screen dark bg-[#0A0A0A] overflow-x-hidden">
+    <main className="min-h-screen dark bg-[#0A0A0A]">
       <Header />
       <HeroSection />
       <StatsSection />
