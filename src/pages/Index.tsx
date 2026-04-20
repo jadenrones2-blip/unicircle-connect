@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLenis } from "@/hooks/useLenis";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
@@ -13,7 +12,6 @@ import Footer from "@/components/Footer";
 import StatsSection from "@/components/StatsSection";
 
 const Index = () => {
-  useLenis();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 

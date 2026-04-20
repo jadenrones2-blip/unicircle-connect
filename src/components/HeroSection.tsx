@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { onLenisScroll } from "@/hooks/useLenis";
 
 function clamp(v: number, a: number, b: number) {
   return Math.min(Math.max(v, a), b);
@@ -16,69 +15,56 @@ function easeInOut(t: number) {
 }
 
 const HeroSection = () => {
-  const sentinelRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const p = useMotionValue(0);
 
   useEffect(() => {
-    let heroTop = 0;
-    let heroRange = 1;
+    let raf = 0;
 
-    const measure = () => {
-      const el = sentinelRef.current;
+    const tick = () => {
+      raf = 0;
+      const el = containerRef.current;
       if (!el) return;
-      heroTop = el.offsetTop;
-      heroRange = el.offsetHeight - window.innerHeight;
+      const scrollY = window.scrollY;
+      const top = el.offsetTop;
+      const range = el.offsetHeight - window.innerHeight;
+      p.set(clamp((scrollY - top) / range, 0, 1));
     };
 
-    measure();
-    window.addEventListener("resize", measure);
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
 
-    // onLenisScroll fires every frame from inside Lenis's own RAF —
-    // `scroll` is lenis.animatedScroll, the real lerped position.
-    const unsub = onLenisScroll((scroll) => {
-      p.set(clamp((scroll - heroTop) / heroRange, 0, 1));
-    });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    tick();
 
     return () => {
-      unsub();
-      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
     };
   }, [p]);
 
-  // S1: fading 0.25 → 0.55 (exact from prototype)
+  // S1: fading out 0.25 → 0.55
   const s1Progress = useTransform(p, (v) => easeOut(mapRange(v, 0.25, 0.55, 0, 1)));
   const s1Opacity  = useTransform(s1Progress, (v) => 1 - v);
   const s1Scale    = useTransform(s1Progress, (v) => 1 - 0.06 * v);
   const s1Y        = useTransform(s1Progress, (v) => -v * 20);
 
-  // Photo: fades in 0.2 → 0.6 (exact from prototype)
+  // Photo: fading in 0.2 → 0.6
   const photoProgress = useTransform(p, (v) => easeInOut(mapRange(v, 0.2, 0.6, 0, 1)));
   const photoOpacity  = useTransform(photoProgress, (v) => v);
   const photoYPct     = useTransform(photoProgress, (v) => `${(1 - v) * 1.5}%`);
 
-  // S2: fades in 0.45 → 0.82 (exact from prototype)
+  // S2: fading in 0.45 → 0.82
   const s2Progress = useTransform(p, (v) => easeOut(mapRange(v, 0.45, 0.82, 0, 1)));
   const s2Opacity  = useTransform(s2Progress, (v) => v);
   const s2Y        = useTransform(s2Progress, (v) => (1 - v) * 26);
 
-  const panelVisibility = useTransform(p, (v) => (v >= 1 ? "hidden" : "visible"));
-
   return (
-    <>
-      {/* 320vh scroll spacer */}
-      <div ref={sentinelRef} style={{ height: "320vh" }} />
+    <div ref={containerRef} style={{ height: "320vh" }}>
+      <div className="sticky top-0 h-screen overflow-hidden bg-black">
 
-      {/* Fixed full-viewport panel */}
-      <motion.div
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 40,
-          background: "#000",
-          visibility: panelVisibility,
-        }}
-      >
-        {/* Layer B — Photo */}
+        {/* Layer B — Photo z:1 */}
         <motion.div className="absolute inset-0" style={{ zIndex: 1, opacity: photoOpacity }}>
           <motion.img
             className="w-full h-full object-cover"
@@ -86,18 +72,14 @@ const HeroSection = () => {
             src="/crowd-park.png"
             alt=""
           />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,.05) 30%, rgba(0,0,0,.55) 65%, rgba(0,0,0,.92) 88%, #000 100%)",
-            }}
-          />
+          <div className="absolute inset-0" style={{
+            background: "radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,.05) 30%, rgba(0,0,0,.55) 65%, rgba(0,0,0,.92) 88%, #000 100%)",
+          }} />
           <div className="absolute top-0 left-0 right-0" style={{ height: "30%", background: "linear-gradient(to bottom, #000, transparent)" }} />
           <div className="absolute bottom-0 left-0 right-0" style={{ height: "35%", background: "linear-gradient(to top, #000, transparent)" }} />
         </motion.div>
 
-        {/* Layer A — S1 */}
+        {/* Layer A — S1 z:3 */}
         <motion.div
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
           style={{ zIndex: 3, opacity: s1Opacity, scale: s1Scale, y: s1Y }}
@@ -135,43 +117,31 @@ const HeroSection = () => {
           </motion.p>
         </motion.div>
 
-        {/* Layer C — S2 */}
+        {/* Layer C — S2 z:4 */}
         <motion.div
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
           style={{ zIndex: 4, opacity: s2Opacity, y: s2Y }}
         >
           <div
             className="inline-flex items-center gap-1.5 mb-7 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] border"
-            style={{
-              color: "hsl(47 95% 65%)",
-              background: "hsl(47 95% 58% / 0.1)",
-              borderColor: "hsl(47 95% 58% / 0.28)",
-            }}
+            style={{ color: "hsl(47 95% 65%)", background: "hsl(47 95% 58% / 0.1)", borderColor: "hsl(47 95% 58% / 0.28)" }}
           >
             <span className="rounded-full" style={{ width: 5, height: 5, background: "hsl(47 95% 65%)", flexShrink: 0 }} />
             For Students · For Orgs
           </div>
           <h2
             className="font-display font-black text-white"
-            style={{
-              fontSize: "clamp(44px, 5.5vw, 78px)",
-              letterSpacing: "-0.04em",
-              lineHeight: 1.05,
-              textShadow: "0 2px 32px rgba(0,0,0,.8), 0 0 80px rgba(0,0,0,.5)",
-            }}
+            style={{ fontSize: "clamp(44px, 5.5vw, 78px)", letterSpacing: "-0.04em", lineHeight: 1.05, textShadow: "0 2px 32px rgba(0,0,0,.8), 0 0 80px rgba(0,0,0,.5)" }}
           >
-            Finding your people<br />
-            shouldn't be this hard.
+            Finding your people<br />shouldn't be this hard.
           </h2>
-          <p
-            className="mt-5 text-white/50 tracking-[0.02em]"
-            style={{ fontSize: 14, textShadow: "0 1px 12px rgba(0,0,0,.9)" }}
-          >
+          <p className="mt-5 text-white/50 tracking-[0.02em]" style={{ fontSize: 14, textShadow: "0 1px 12px rgba(0,0,0,.9)" }}>
             Free for students. Always.
           </p>
         </motion.div>
-      </motion.div>
-    </>
+
+      </div>
+    </div>
   );
 };
 
