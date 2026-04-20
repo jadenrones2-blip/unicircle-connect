@@ -1,65 +1,69 @@
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const CTASection = () => {
-  return (
-    <section className="py-20 md:py-32 border-t border-white/[0.07]">
-      <div className="max-w-5xl mx-auto px-6">
+const CTASection = () => (
+  <section
+    style={{
+      background: "#000",
+      padding: "80px 48px 140px",
+      textAlign: "center",
+      borderTop: "1px solid rgba(255,255,255,0.05)",
+    }}
+  >
+    <h2
+      className="font-display font-black text-white mb-3.5"
+      style={{
+        fontSize: "clamp(30px, 3.8vw, 50px)",
+        letterSpacing: "-0.03em",
+      }}
+    >
+      Your club is out there.
+    </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-end">
+    <p
+      className="mb-[34px]"
+      style={{ fontSize: 15, color: "rgba(255,255,255,0.38)" }}
+    >
+      600+ organizations at UCSD. One place to find them.
+    </p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <p className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-8">
-              Get started
-            </p>
-            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.0] tracking-tight">
-              The right room<br />
-              <span className="text-[#F5C842]">is waiting.</span>
-            </h2>
-          </motion.div>
+    <div className="flex items-center justify-center gap-3 flex-wrap">
+      <Link
+        to="/clubs"
+        className="font-bold text-black"
+        style={{
+          fontSize: 14,
+          padding: "14px 32px",
+          borderRadius: 9999,
+          background: "hsl(47 95% 58%)",
+          boxShadow: "0 6px 28px hsl(47 95% 58% / 0.3)",
+          textDecoration: "none",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        Explore Clubs →
+      </Link>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.15 }}
-            className="space-y-6"
-          >
-            <p className="text-zinc-400 text-base leading-relaxed">
-              Whether you're a student looking for where you actually belong, or a club trying to run a real process — UniCircle is free and ready today.
-            </p>
-
-            <div className="flex flex-col gap-3">
-              <Link
-                to="/clubs"
-                className="inline-flex items-center gap-2 bg-[#F5C842] hover:bg-[#F5C842]/90 text-zinc-900 font-bold px-6 py-3 rounded-xl text-sm transition-colors w-fit"
-              >
-                Explore clubs
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                to="/club-admin/request"
-                className="inline-flex items-center gap-2 text-zinc-400 hover:text-white text-sm font-medium transition-colors group w-fit"
-              >
-                Get your org on UniCircle
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
-
-            <p className="text-zinc-600 text-xs pt-2">
-              Currently at UC San Diego. SDSU next.
-            </p>
-          </motion.div>
-
-        </div>
-      </div>
-    </section>
-  );
-};
+      <Link
+        to="/club-admin/request"
+        style={{
+          fontSize: 14,
+          fontWeight: 600,
+          padding: "14px 32px",
+          borderRadius: 9999,
+          background: "transparent",
+          color: "rgba(255,255,255,0.65)",
+          border: "1px solid rgba(255,255,255,0.18)",
+          textDecoration: "none",
+          display: "inline-flex",
+          alignItems: "center",
+        }}
+      >
+        Get Your Org on UniCircle
+      </Link>
+    </div>
+  </section>
+);
 
 export default CTASection;
