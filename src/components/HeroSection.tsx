@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { getLenis } from "@/hooks/useLenis";
 
+// ── Exact easing functions from the HTML prototype ────────────
 function clamp(v: number, a: number, b: number) {
   return Math.min(Math.max(v, a), b);
 }
@@ -9,25 +10,26 @@ function mapRange(v: number, a: number, b: number, c: number, d: number) {
   return c + (d - c) * clamp((v - a) / (b - a), 0, 1);
 }
 function easeOut(t: number) {
-  return 1 - Math.pow(1 - t, 2); // quadratic — snappier than cubic
+  return 1 - Math.pow(1 - t, 3); // cubic
 }
 function easeInOut(t: number) {
-  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // cubic in-out
 }
-
-const SCROLL_HEIGHT = "320vh";
 
 const HeroSection = () => {
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const p = useMotionValue(0); // 0–1 progress through the 320vh range
+  const p = useMotionValue(0);
 
   useEffect(() => {
     let rafId: number;
     let heroTop = 0;
+    let heroRange = 1;
 
     const measure = () => {
       const el = sentinelRef.current;
-      if (el) heroTop = el.offsetTop;
+      if (!el) return;
+      heroTop = el.offsetTop;
+      heroRange = el.offsetHeight - window.innerHeight;
     };
 
     measure();
@@ -35,13 +37,10 @@ const HeroSection = () => {
 
     const loop = () => {
       const lenis = getLenis();
-      // targetScroll is the raw un-lerped position — no lag
-      const scrollY = lenis ? (lenis as any).targetScroll ?? lenis.scroll : window.scrollY;
-      const el = sentinelRef.current;
-      if (el) {
-        const range = el.offsetHeight - window.innerHeight;
-        p.set(clamp((scrollY - heroTop) / range, 0, 1));
-      }
+      const scrollY = lenis
+        ? (lenis as any).targetScroll ?? (lenis as any).scroll ?? 0
+        : window.scrollY;
+      p.set(clamp((scrollY - heroTop) / heroRange, 0, 1));
       rafId = requestAnimationFrame(loop);
     };
 
@@ -52,47 +51,51 @@ const HeroSection = () => {
     };
   }, [p]);
 
-  // S1 — fades/scales out [tighter window]
-  const s1Opacity = useTransform(p, (v) => 1 - easeOut(mapRange(v, 0.18, 0.42, 0, 1)));
-  const s1Scale   = useTransform(p, (v) => 1 - 0.06 * easeOut(mapRange(v, 0.18, 0.42, 0, 1)));
-  const s1Y       = useTransform(p, (v) => -easeOut(mapRange(v, 0.18, 0.42, 0, 1)) * 20);
+  // ── Exact values from HTML prototype ──────────────────────────
 
-  // Photo — fades in [tighter window]
-  const photoOpacity = useTransform(p, (v) => easeInOut(mapRange(v, 0.15, 0.45, 0, 1)));
-  const photoYPct    = useTransform(p, (v) => `${(1 - easeInOut(mapRange(v, 0.15, 0.45, 0, 1))) * 1.5}%`);
+  // S1: fading 0.25 → 0.55
+  const s1Progress = useTransform(p, (v) => easeOut(mapRange(v, 0.25, 0.55, 0, 1)));
+  const s1Opacity  = useTransform(s1Progress, (v) => 1 - v);
+  const s1Scale    = useTransform(s1Progress, (v) => 1 - 0.06 * v);
+  const s1Y        = useTransform(s1Progress, (v) => -v * 20);
 
-  // S2 — fades in [tighter window]
-  const s2Opacity = useTransform(p, (v) => easeOut(mapRange(v, 0.38, 0.62, 0, 1)));
-  const s2Y       = useTransform(p, (v) => (1 - easeOut(mapRange(v, 0.38, 0.62, 0, 1))) * 26);
+  // Photo: fades in 0.2 → 0.6
+  const photoProgress = useTransform(p, (v) => easeInOut(mapRange(v, 0.2, 0.6, 0, 1)));
+  const photoOpacity  = useTransform(photoProgress, (v) => v);
+  const photoYPct     = useTransform(photoProgress, (v) => `${(1 - v) * 1.5}%`);
 
-  // Hide the fixed panel once we've scrolled past the hero range
-  const panelOpacity = useTransform(p, [0.98, 1], [1, 0]);
-  const panelPointer = useTransform(p, (v) => v >= 1 ? "none" : "auto");
+  // S2: fades in 0.45 → 0.82
+  const s2Progress = useTransform(p, (v) => easeOut(mapRange(v, 0.45, 0.82, 0, 1)));
+  const s2Opacity  = useTransform(s2Progress, (v) => v);
+  const s2Y        = useTransform(s2Progress, (v) => (1 - v) * 26);
+
+  // Hide fixed panel instantly once hero scroll range is done
+  const panelVisibility = useTransform(p, (v) => (v >= 1 ? "hidden" : "visible"));
 
   return (
     <>
-      {/* Scroll spacer — 320vh of scroll range */}
-      <div ref={sentinelRef} style={{ height: SCROLL_HEIGHT, position: "relative" }} />
+      {/* 320vh scroll spacer — holds the scroll range in document flow */}
+      <div ref={sentinelRef} style={{ height: "320vh" }} />
 
-      {/* Fixed viewport panel — avoids position:sticky / overflow:clip issues with Lenis */}
+      {/* Fixed full-viewport panel */}
       <motion.div
         style={{
           position: "fixed",
           inset: 0,
           zIndex: 40,
           background: "#000",
-          opacity: panelOpacity,
-          pointerEvents: panelPointer,
+          visibility: panelVisibility,
         }}
       >
-        {/* ── Layer B — Crowd Photo ─────────────────────────── */}
-        <motion.div className="absolute inset-0 z-10" style={{ opacity: photoOpacity }}>
+        {/* ── Layer B — Photo (z-index 1) ───────────────────── */}
+        <motion.div className="absolute inset-0" style={{ zIndex: 1, opacity: photoOpacity }}>
           <motion.img
             className="w-full h-full object-cover"
             style={{ scale: 1.05, y: photoYPct, objectPosition: "center 38%" }}
             src="/crowd-park.png"
             alt=""
           />
+          {/* Radial vignette */}
           <div
             className="absolute inset-0"
             style={{
@@ -100,14 +103,22 @@ const HeroSection = () => {
                 "radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,.05) 30%, rgba(0,0,0,.55) 65%, rgba(0,0,0,.92) 88%, #000 100%)",
             }}
           />
-          <div className="absolute top-0 left-0 right-0" style={{ height: "30%", background: "linear-gradient(to bottom, #000, transparent)" }} />
-          <div className="absolute bottom-0 left-0 right-0" style={{ height: "35%", background: "linear-gradient(to top, #000, transparent)" }} />
+          {/* Top fade */}
+          <div
+            className="absolute top-0 left-0 right-0"
+            style={{ height: "30%", background: "linear-gradient(to bottom, #000, transparent)" }}
+          />
+          {/* Bottom fade */}
+          <div
+            className="absolute bottom-0 left-0 right-0"
+            style={{ height: "35%", background: "linear-gradient(to top, #000, transparent)" }}
+          />
         </motion.div>
 
-        {/* ── Layer A — S1 Headline ─────────────────────────── */}
+        {/* ── Layer A — S1 (z-index 3) ──────────────────────── */}
         <motion.div
-          className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
-          style={{ opacity: s1Opacity, scale: s1Scale, y: s1Y }}
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
+          style={{ zIndex: 3, opacity: s1Opacity, scale: s1Scale, y: s1Y }}
         >
           <div style={{ overflow: "hidden" }}>
             <motion.span
@@ -142,10 +153,10 @@ const HeroSection = () => {
           </motion.p>
         </motion.div>
 
-        {/* ── Layer C — S2 Headline ─────────────────────────── */}
+        {/* ── Layer C — S2 (z-index 2) ──────────────────────── */}
         <motion.div
-          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
-          style={{ opacity: s2Opacity, y: s2Y }}
+          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
+          style={{ zIndex: 2, opacity: s2Opacity, y: s2Y }}
         >
           <div
             className="inline-flex items-center gap-1.5 mb-7 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] border"
@@ -155,7 +166,10 @@ const HeroSection = () => {
               borderColor: "hsl(47 95% 58% / 0.28)",
             }}
           >
-            <span className="rounded-full" style={{ width: 5, height: 5, background: "hsl(47 95% 65%)", flexShrink: 0 }} />
+            <span
+              className="rounded-full"
+              style={{ width: 5, height: 5, background: "hsl(47 95% 65%)", flexShrink: 0 }}
+            />
             For Students · For Orgs
           </div>
 
