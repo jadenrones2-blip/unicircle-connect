@@ -9,10 +9,10 @@ function mapRange(v: number, a: number, b: number, c: number, d: number) {
   return c + (d - c) * clamp((v - a) / (b - a), 0, 1);
 }
 function easeOut(t: number) {
-  return 1 - Math.pow(1 - t, 3);
+  return 1 - Math.pow(1 - t, 2); // quadratic — snappier than cubic
 }
 function easeInOut(t: number) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
 const SCROLL_HEIGHT = "320vh";
@@ -67,18 +67,18 @@ const HeroSection = () => {
     return () => { if (raf) cancelAnimationFrame(raf); };
   }, [p]);
 
-  // S1 — fades/scales out
-  const s1Opacity = useTransform(p, (v) => 1 - easeOut(mapRange(v, 0.25, 0.55, 0, 1)));
-  const s1Scale   = useTransform(p, (v) => 1 - 0.06 * easeOut(mapRange(v, 0.25, 0.55, 0, 1)));
-  const s1Y       = useTransform(p, (v) => -easeOut(mapRange(v, 0.25, 0.55, 0, 1)) * 20);
+  // S1 — fades/scales out [tighter window]
+  const s1Opacity = useTransform(p, (v) => 1 - easeOut(mapRange(v, 0.18, 0.42, 0, 1)));
+  const s1Scale   = useTransform(p, (v) => 1 - 0.06 * easeOut(mapRange(v, 0.18, 0.42, 0, 1)));
+  const s1Y       = useTransform(p, (v) => -easeOut(mapRange(v, 0.18, 0.42, 0, 1)) * 20);
 
-  // Photo — fades in
-  const photoOpacity = useTransform(p, (v) => easeInOut(mapRange(v, 0.2, 0.6, 0, 1)));
-  const photoYPct    = useTransform(p, (v) => `${(1 - easeInOut(mapRange(v, 0.2, 0.6, 0, 1))) * 1.5}%`);
+  // Photo — fades in [tighter window]
+  const photoOpacity = useTransform(p, (v) => easeInOut(mapRange(v, 0.15, 0.45, 0, 1)));
+  const photoYPct    = useTransform(p, (v) => `${(1 - easeInOut(mapRange(v, 0.15, 0.45, 0, 1))) * 1.5}%`);
 
-  // S2 — fades in
-  const s2Opacity = useTransform(p, (v) => easeOut(mapRange(v, 0.45, 0.82, 0, 1)));
-  const s2Y       = useTransform(p, (v) => (1 - easeOut(mapRange(v, 0.45, 0.82, 0, 1))) * 26);
+  // S2 — fades in [tighter window]
+  const s2Opacity = useTransform(p, (v) => easeOut(mapRange(v, 0.38, 0.62, 0, 1)));
+  const s2Y       = useTransform(p, (v) => (1 - easeOut(mapRange(v, 0.38, 0.62, 0, 1))) * 26);
 
   // Hide the fixed panel once we've scrolled past the hero range
   const panelOpacity = useTransform(p, [0.98, 1], [1, 0]);
