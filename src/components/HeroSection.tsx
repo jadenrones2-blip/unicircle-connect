@@ -153,10 +153,10 @@ const HeroSection = () => {
           </motion.p>
         </motion.div>
 
-        {/* ── Layer C — S2 (z-index 2) ──────────────────────── */}
+        {/* ── Layer C — S2 (z-index 4, above S1) ───────────── */}
         <motion.div
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
-          style={{ zIndex: 2, opacity: s2Opacity, y: s2Y }}
+          style={{ zIndex: 4, opacity: s2Opacity, y: s2Y }}
         >
           <div
             className="inline-flex items-center gap-1.5 mb-7 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] border"
