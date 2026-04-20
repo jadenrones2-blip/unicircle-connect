@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
+import { onLenisScroll } from "@/hooks/useLenis";
 
-// ── Exact easing functions from the HTML prototype ────────────
 function clamp(v: number, a: number, b: number) {
   return Math.min(Math.max(v, a), b);
 }
@@ -9,10 +9,10 @@ function mapRange(v: number, a: number, b: number, c: number, d: number) {
   return c + (d - c) * clamp((v - a) / (b - a), 0, 1);
 }
 function easeOut(t: number) {
-  return 1 - Math.pow(1 - t, 3); // cubic
+  return 1 - Math.pow(1 - t, 3);
 }
 function easeInOut(t: number) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // cubic in-out
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
 const HeroSection = () => {
@@ -20,7 +20,6 @@ const HeroSection = () => {
   const p = useMotionValue(0);
 
   useEffect(() => {
-    let rafId: number;
     let heroTop = 0;
     let heroRange = 1;
 
@@ -34,44 +33,39 @@ const HeroSection = () => {
     measure();
     window.addEventListener("resize", measure);
 
-    const loop = () => {
-      // Lenis calls window.scrollTo every frame with the lerped value,
-      // so window.scrollY is always the correct smoothed position.
-      p.set(clamp((window.scrollY - heroTop) / heroRange, 0, 1));
-      rafId = requestAnimationFrame(loop);
-    };
+    // onLenisScroll fires every frame from inside Lenis's own RAF —
+    // `scroll` is lenis.animatedScroll, the real lerped position.
+    const unsub = onLenisScroll((scroll) => {
+      p.set(clamp((scroll - heroTop) / heroRange, 0, 1));
+    });
 
-    rafId = requestAnimationFrame(loop);
     return () => {
-      cancelAnimationFrame(rafId);
+      unsub();
       window.removeEventListener("resize", measure);
     };
   }, [p]);
 
-  // ── Exact values from HTML prototype ──────────────────────────
-
-  // S1: fading 0.25 → 0.55
+  // S1: fading 0.25 → 0.55 (exact from prototype)
   const s1Progress = useTransform(p, (v) => easeOut(mapRange(v, 0.25, 0.55, 0, 1)));
   const s1Opacity  = useTransform(s1Progress, (v) => 1 - v);
   const s1Scale    = useTransform(s1Progress, (v) => 1 - 0.06 * v);
   const s1Y        = useTransform(s1Progress, (v) => -v * 20);
 
-  // Photo: fades in 0.2 → 0.6
+  // Photo: fades in 0.2 → 0.6 (exact from prototype)
   const photoProgress = useTransform(p, (v) => easeInOut(mapRange(v, 0.2, 0.6, 0, 1)));
   const photoOpacity  = useTransform(photoProgress, (v) => v);
   const photoYPct     = useTransform(photoProgress, (v) => `${(1 - v) * 1.5}%`);
 
-  // S2: fades in 0.45 → 0.82
+  // S2: fades in 0.45 → 0.82 (exact from prototype)
   const s2Progress = useTransform(p, (v) => easeOut(mapRange(v, 0.45, 0.82, 0, 1)));
   const s2Opacity  = useTransform(s2Progress, (v) => v);
   const s2Y        = useTransform(s2Progress, (v) => (1 - v) * 26);
 
-  // Hide fixed panel instantly once hero scroll range is done
   const panelVisibility = useTransform(p, (v) => (v >= 1 ? "hidden" : "visible"));
 
   return (
     <>
-      {/* 320vh scroll spacer — holds the scroll range in document flow */}
+      {/* 320vh scroll spacer */}
       <div ref={sentinelRef} style={{ height: "320vh" }} />
 
       {/* Fixed full-viewport panel */}
@@ -84,7 +78,7 @@ const HeroSection = () => {
           visibility: panelVisibility,
         }}
       >
-        {/* ── Layer B — Photo (z-index 1) ───────────────────── */}
+        {/* Layer B — Photo */}
         <motion.div className="absolute inset-0" style={{ zIndex: 1, opacity: photoOpacity }}>
           <motion.img
             className="w-full h-full object-cover"
@@ -92,7 +86,6 @@ const HeroSection = () => {
             src="/crowd-park.png"
             alt=""
           />
-          {/* Radial vignette */}
           <div
             className="absolute inset-0"
             style={{
@@ -100,19 +93,11 @@ const HeroSection = () => {
                 "radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,.05) 30%, rgba(0,0,0,.55) 65%, rgba(0,0,0,.92) 88%, #000 100%)",
             }}
           />
-          {/* Top fade */}
-          <div
-            className="absolute top-0 left-0 right-0"
-            style={{ height: "30%", background: "linear-gradient(to bottom, #000, transparent)" }}
-          />
-          {/* Bottom fade */}
-          <div
-            className="absolute bottom-0 left-0 right-0"
-            style={{ height: "35%", background: "linear-gradient(to top, #000, transparent)" }}
-          />
+          <div className="absolute top-0 left-0 right-0" style={{ height: "30%", background: "linear-gradient(to bottom, #000, transparent)" }} />
+          <div className="absolute bottom-0 left-0 right-0" style={{ height: "35%", background: "linear-gradient(to top, #000, transparent)" }} />
         </motion.div>
 
-        {/* ── Layer A — S1 (z-index 3) ──────────────────────── */}
+        {/* Layer A — S1 */}
         <motion.div
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
           style={{ zIndex: 3, opacity: s1Opacity, scale: s1Scale, y: s1Y }}
@@ -150,7 +135,7 @@ const HeroSection = () => {
           </motion.p>
         </motion.div>
 
-        {/* ── Layer C — S2 (z-index 4, above S1) ───────────── */}
+        {/* Layer C — S2 */}
         <motion.div
           className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
           style={{ zIndex: 4, opacity: s2Opacity, y: s2Y }}
@@ -163,13 +148,9 @@ const HeroSection = () => {
               borderColor: "hsl(47 95% 58% / 0.28)",
             }}
           >
-            <span
-              className="rounded-full"
-              style={{ width: 5, height: 5, background: "hsl(47 95% 65%)", flexShrink: 0 }}
-            />
+            <span className="rounded-full" style={{ width: 5, height: 5, background: "hsl(47 95% 65%)", flexShrink: 0 }} />
             For Students · For Orgs
           </div>
-
           <h2
             className="font-display font-black text-white"
             style={{
@@ -182,7 +163,6 @@ const HeroSection = () => {
             Finding your people<br />
             shouldn't be this hard.
           </h2>
-
           <p
             className="mt-5 text-white/50 tracking-[0.02em]"
             style={{ fontSize: 14, textShadow: "0 1px 12px rgba(0,0,0,.9)" }}

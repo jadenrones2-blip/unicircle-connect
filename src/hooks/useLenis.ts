@@ -2,9 +2,11 @@ import { useEffect } from 'react';
 import Lenis from 'lenis';
 
 let lenisInstance: Lenis | null = null;
+const scrollSubscribers = new Set<(scroll: number) => void>();
 
-export function getLenis() {
-  return lenisInstance;
+export function onLenisScroll(cb: (scroll: number) => void) {
+  scrollSubscribers.add(cb);
+  return () => scrollSubscribers.delete(cb);
 }
 
 export function useLenis() {
@@ -18,6 +20,10 @@ export function useLenis() {
     });
 
     lenisInstance = lenis;
+
+    lenis.on('scroll', ({ scroll }: { scroll: number }) => {
+      scrollSubscribers.forEach((cb) => cb(scroll));
+    });
 
     let raf: number;
     function animate(time: number) {
