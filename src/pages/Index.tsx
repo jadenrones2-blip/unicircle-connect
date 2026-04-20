@@ -10,6 +10,7 @@ import ProductShowcase from "@/components/ProductShowcase";
 import HowItWorksSection from "@/components/HowItWorksSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
+import StatsSection from "@/components/StatsSection";
 
 const Index = () => {
   useLenis();
@@ -26,6 +27,7 @@ const Index = () => {
     <main className="min-h-screen dark bg-[#0A0A0A] overflow-x-hidden">
       <Header />
       <HeroSection />
+      <StatsSection />
       <TextMarquee />
       <ProblemSection />
       <ProductShowcase />
