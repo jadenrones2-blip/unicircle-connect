@@ -1,9 +1,6 @@
 import { useEffect, useRef } from "react";
-import {
-  motion,
-  useMotionValue,
-  useTransform,
-} from "framer-motion";
+import { motion, useMotionValue, useTransform } from "framer-motion";
+import { getLenis } from "@/hooks/useLenis";
 
 function clamp(v: number, a: number, b: number) {
   return Math.min(Math.max(v, a), b);
@@ -18,67 +15,91 @@ function easeInOut(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
+const SCROLL_HEIGHT = "320vh";
+
 const HeroSection = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const p = useMotionValue(0); // scroll progress 0–1
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const p = useMotionValue(0); // 0–1 progress through the 320vh range
 
   useEffect(() => {
     let raf = 0;
 
-    const tick = () => {
-      raf = 0;
-      const el = containerRef.current;
+    const update = (scrollY: number) => {
+      const el = sentinelRef.current;
       if (!el) return;
-      const scrollY = window.scrollY;
-      const top = el.offsetTop;
+      const top = el.getBoundingClientRect().top + scrollY; // offsetTop
       const range = el.offsetHeight - window.innerHeight;
       p.set(clamp((scrollY - top) / range, 0, 1));
     };
 
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(tick);
+    // Try Lenis first — it gives the real lerped position
+    const tryLenis = () => {
+      const lenis = getLenis();
+      if (lenis) {
+        lenis.on("scroll", ({ scroll }: { scroll: number }) => {
+          if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(scroll); });
+        });
+        update(lenis.scroll ?? 0);
+        return true;
+      }
+      return false;
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    tick(); // seed on mount
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (raf) cancelAnimationFrame(raf);
+    // Fallback: native scroll
+    const onNativeScroll = () => {
+      if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(window.scrollY); });
     };
+
+    // Lenis may not be mounted yet — retry briefly
+    if (!tryLenis()) {
+      const id = setInterval(() => {
+        if (tryLenis()) clearInterval(id);
+      }, 50);
+      window.addEventListener("scroll", onNativeScroll, { passive: true });
+      update(window.scrollY);
+      return () => {
+        clearInterval(id);
+        window.removeEventListener("scroll", onNativeScroll);
+        if (raf) cancelAnimationFrame(raf);
+      };
+    }
+
+    return () => { if (raf) cancelAnimationFrame(raf); };
   }, [p]);
 
-  // S1 — easeOut fade/scale out
-  const s1Opacity = useTransform(p, (v) =>
-    1 - easeOut(mapRange(v, 0.25, 0.55, 0, 1))
-  );
-  const s1Scale = useTransform(p, (v) =>
-    1 - 0.06 * easeOut(mapRange(v, 0.25, 0.55, 0, 1))
-  );
-  const s1Y = useTransform(p, (v) =>
-    -easeOut(mapRange(v, 0.25, 0.55, 0, 1)) * 20
-  );
+  // S1 — fades/scales out
+  const s1Opacity = useTransform(p, (v) => 1 - easeOut(mapRange(v, 0.25, 0.55, 0, 1)));
+  const s1Scale   = useTransform(p, (v) => 1 - 0.06 * easeOut(mapRange(v, 0.25, 0.55, 0, 1)));
+  const s1Y       = useTransform(p, (v) => -easeOut(mapRange(v, 0.25, 0.55, 0, 1)) * 20);
 
-  // Photo — easeInOut fade in
-  const photoOpacity = useTransform(p, (v) =>
-    easeInOut(mapRange(v, 0.2, 0.6, 0, 1))
-  );
-  const photoYPct = useTransform(p, (v) => {
-    const op = easeInOut(mapRange(v, 0.2, 0.6, 0, 1));
-    return `${(1 - op) * 1.5}%`;
-  });
+  // Photo — fades in
+  const photoOpacity = useTransform(p, (v) => easeInOut(mapRange(v, 0.2, 0.6, 0, 1)));
+  const photoYPct    = useTransform(p, (v) => `${(1 - easeInOut(mapRange(v, 0.2, 0.6, 0, 1))) * 1.5}%`);
 
-  // S2 — easeOut fade in
-  const s2Opacity = useTransform(p, (v) =>
-    easeOut(mapRange(v, 0.45, 0.82, 0, 1))
-  );
-  const s2Y = useTransform(p, (v) =>
-    (1 - easeOut(mapRange(v, 0.45, 0.82, 0, 1))) * 26
-  );
+  // S2 — fades in
+  const s2Opacity = useTransform(p, (v) => easeOut(mapRange(v, 0.45, 0.82, 0, 1)));
+  const s2Y       = useTransform(p, (v) => (1 - easeOut(mapRange(v, 0.45, 0.82, 0, 1))) * 26);
+
+  // Hide the fixed panel once we've scrolled past the hero range
+  const panelOpacity = useTransform(p, [0.98, 1], [1, 0]);
+  const panelPointer = useTransform(p, (v) => v >= 1 ? "none" : "auto");
 
   return (
-    <div ref={containerRef} style={{ height: "320vh" }}>
-      <div className="sticky top-0 h-screen overflow-hidden bg-black">
+    <>
+      {/* Scroll spacer — 320vh of scroll range */}
+      <div ref={sentinelRef} style={{ height: SCROLL_HEIGHT, position: "relative" }} />
 
+      {/* Fixed viewport panel — avoids position:sticky / overflow:clip issues with Lenis */}
+      <motion.div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 40,
+          background: "#000",
+          opacity: panelOpacity,
+          pointerEvents: panelPointer,
+        }}
+      >
         {/* ── Layer B — Crowd Photo ─────────────────────────── */}
         <motion.div className="absolute inset-0 z-10" style={{ opacity: photoOpacity }}>
           <motion.img
@@ -94,14 +115,8 @@ const HeroSection = () => {
                 "radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,.05) 30%, rgba(0,0,0,.55) 65%, rgba(0,0,0,.92) 88%, #000 100%)",
             }}
           />
-          <div
-            className="absolute top-0 left-0 right-0"
-            style={{ height: "30%", background: "linear-gradient(to bottom, #000 0%, transparent 100%)" }}
-          />
-          <div
-            className="absolute bottom-0 left-0 right-0"
-            style={{ height: "35%", background: "linear-gradient(to top, #000 0%, transparent 100%)" }}
-          />
+          <div className="absolute top-0 left-0 right-0" style={{ height: "30%", background: "linear-gradient(to bottom, #000, transparent)" }} />
+          <div className="absolute bottom-0 left-0 right-0" style={{ height: "35%", background: "linear-gradient(to top, #000, transparent)" }} />
         </motion.div>
 
         {/* ── Layer A — S1 Headline ─────────────────────────── */}
@@ -155,10 +170,7 @@ const HeroSection = () => {
               borderColor: "hsl(47 95% 58% / 0.28)",
             }}
           >
-            <span
-              className="rounded-full"
-              style={{ width: 5, height: 5, background: "hsl(47 95% 65%)", flexShrink: 0 }}
-            />
+            <span className="rounded-full" style={{ width: 5, height: 5, background: "hsl(47 95% 65%)", flexShrink: 0 }} />
             For Students · For Orgs
           </div>
 
@@ -182,9 +194,8 @@ const HeroSection = () => {
             Free for students. Always.
           </p>
         </motion.div>
-
-      </div>
-    </div>
+      </motion.div>
+    </>
   );
 };
 
