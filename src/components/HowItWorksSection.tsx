@@ -83,7 +83,7 @@ const HowItWorksSection = () => {
               className="group flex items-start gap-8 md:gap-16 py-10 border-b border-white/[0.06] hover:border-white/[0.12] transition-colors duration-500 cursor-default"
             >
               {/* Number */}
-              <div className="font-display font-black text-5xl md:text-7xl text-white/[0.06] group-hover:text-[#F5C842]/20 transition-colors duration-500 leading-none flex-shrink-0 w-16 md:w-24 pt-1">
+              <div className="font-display font-black text-5xl md:text-7xl text-white group-hover:text-[#F5C842] transition-colors duration-500 leading-none flex-shrink-0 w-16 md:w-24 pt-1">
                 {s.num}
               </div>
 
