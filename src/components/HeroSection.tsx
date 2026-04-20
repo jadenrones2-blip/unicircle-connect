@@ -1,43 +1,92 @@
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useRef } from "react";
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
+
+function clamp(v: number, a: number, b: number) {
+  return Math.min(Math.max(v, a), b);
+}
+function mapRange(v: number, a: number, b: number, c: number, d: number) {
+  return c + (d - c) * clamp((v - a) / (b - a), 0, 1);
+}
+function easeOut(t: number) {
+  return 1 - Math.pow(1 - t, 3);
+}
+function easeInOut(t: number) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
 
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const p = useMotionValue(0); // scroll progress 0–1
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
+  useEffect(() => {
+    let raf = 0;
+
+    const tick = () => {
+      raf = 0;
+      const el = containerRef.current;
+      if (!el) return;
+      const scrollY = window.scrollY;
+      const top = el.offsetTop;
+      const range = el.offsetHeight - window.innerHeight;
+      p.set(clamp((scrollY - top) / range, 0, 1));
+    };
+
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    tick(); // seed on mount
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [p]);
+
+  // S1 — easeOut fade/scale out
+  const s1Opacity = useTransform(p, (v) =>
+    1 - easeOut(mapRange(v, 0.25, 0.55, 0, 1))
+  );
+  const s1Scale = useTransform(p, (v) =>
+    1 - 0.06 * easeOut(mapRange(v, 0.25, 0.55, 0, 1))
+  );
+  const s1Y = useTransform(p, (v) =>
+    -easeOut(mapRange(v, 0.25, 0.55, 0, 1)) * 20
+  );
+
+  // Photo — easeInOut fade in
+  const photoOpacity = useTransform(p, (v) =>
+    easeInOut(mapRange(v, 0.2, 0.6, 0, 1))
+  );
+  const photoYPct = useTransform(p, (v) => {
+    const op = easeInOut(mapRange(v, 0.2, 0.6, 0, 1));
+    return `${(1 - op) * 1.5}%`;
   });
 
-  // S1 — fades/scales out as user scrolls
-  const s1Opacity = useTransform(scrollYProgress, [0.25, 0.55], [1, 0]);
-  const s1Scale   = useTransform(scrollYProgress, [0.25, 0.55], [1, 0.94]);
-  const s1Y       = useTransform(scrollYProgress, [0.25, 0.55], [0, -20]);
-
-  // Photo layer — fades in from 0.2 → 0.6
-  const photoOpacity = useTransform(scrollYProgress, [0.2, 0.6], [0, 1]);
-  const photoY       = useTransform(scrollYProgress, [0.2, 0.6], ["1.5%", "0%"]);
-
-  // S2 — fades in from 0.45 → 0.82
-  const s2Opacity = useTransform(scrollYProgress, [0.45, 0.82], [0, 1]);
-  const s2Y       = useTransform(scrollYProgress, [0.45, 0.82], [26, 0]);
+  // S2 — easeOut fade in
+  const s2Opacity = useTransform(p, (v) =>
+    easeOut(mapRange(v, 0.45, 0.82, 0, 1))
+  );
+  const s2Y = useTransform(p, (v) =>
+    (1 - easeOut(mapRange(v, 0.45, 0.82, 0, 1))) * 26
+  );
 
   return (
     <div ref={containerRef} style={{ height: "320vh" }}>
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
 
-        {/* ── Layer B — Crowd Photo ────────────────────────── */}
-        <motion.div
-          className="absolute inset-0 z-10"
-          style={{ opacity: photoOpacity }}
-        >
+        {/* ── Layer B — Crowd Photo ─────────────────────────── */}
+        <motion.div className="absolute inset-0 z-10" style={{ opacity: photoOpacity }}>
           <motion.img
             className="w-full h-full object-cover"
-            style={{ scale: 1.05, y: photoY, objectPosition: "center 38%" }}
+            style={{ scale: 1.05, y: photoYPct, objectPosition: "center 38%" }}
             src="/crowd-park.png"
             alt=""
           />
-          {/* Radial vignette */}
           <div
             className="absolute inset-0"
             style={{
@@ -45,21 +94,13 @@ const HeroSection = () => {
                 "radial-gradient(ellipse 75% 65% at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,.05) 30%, rgba(0,0,0,.55) 65%, rgba(0,0,0,.92) 88%, #000 100%)",
             }}
           />
-          {/* Top fade */}
           <div
             className="absolute top-0 left-0 right-0"
-            style={{
-              height: "30%",
-              background: "linear-gradient(to bottom, #000 0%, transparent 100%)",
-            }}
+            style={{ height: "30%", background: "linear-gradient(to bottom, #000 0%, transparent 100%)" }}
           />
-          {/* Bottom fade */}
           <div
             className="absolute bottom-0 left-0 right-0"
-            style={{
-              height: "35%",
-              background: "linear-gradient(to top, #000 0%, transparent 100%)",
-            }}
+            style={{ height: "35%", background: "linear-gradient(to top, #000 0%, transparent 100%)" }}
           />
         </motion.div>
 
@@ -71,11 +112,7 @@ const HeroSection = () => {
           <div style={{ overflow: "hidden" }}>
             <motion.span
               className="block font-display font-black text-white"
-              style={{
-                fontSize: "clamp(56px, 7vw, 100px)",
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-              }}
+              style={{ fontSize: "clamp(56px, 7vw, 100px)", letterSpacing: "-0.04em", lineHeight: 1 }}
               initial={{ y: 32, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
@@ -86,11 +123,7 @@ const HeroSection = () => {
           <div style={{ overflow: "hidden" }}>
             <motion.span
               className="block font-display font-black text-white"
-              style={{
-                fontSize: "clamp(56px, 7vw, 100px)",
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-              }}
+              style={{ fontSize: "clamp(56px, 7vw, 100px)", letterSpacing: "-0.04em", lineHeight: 1 }}
               initial={{ y: 32, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
@@ -114,7 +147,6 @@ const HeroSection = () => {
           className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-6 pointer-events-none"
           style={{ opacity: s2Opacity, y: s2Y }}
         >
-          {/* Chip */}
           <div
             className="inline-flex items-center gap-1.5 mb-7 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] border"
             style={{
@@ -130,7 +162,6 @@ const HeroSection = () => {
             For Students · For Orgs
           </div>
 
-          {/* Headline */}
           <h2
             className="font-display font-black text-white"
             style={{
