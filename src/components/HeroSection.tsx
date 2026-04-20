@@ -22,49 +22,34 @@ const HeroSection = () => {
   const p = useMotionValue(0); // 0–1 progress through the 320vh range
 
   useEffect(() => {
-    let raf = 0;
+    let rafId: number;
+    let heroTop = 0;
 
-    const update = (scrollY: number) => {
+    const measure = () => {
       const el = sentinelRef.current;
-      if (!el) return;
-      const top = el.getBoundingClientRect().top + scrollY; // offsetTop
-      const range = el.offsetHeight - window.innerHeight;
-      p.set(clamp((scrollY - top) / range, 0, 1));
+      if (el) heroTop = el.offsetTop;
     };
 
-    // Try Lenis first — it gives the real lerped position
-    const tryLenis = () => {
+    measure();
+    window.addEventListener("resize", measure);
+
+    const loop = () => {
       const lenis = getLenis();
-      if (lenis) {
-        lenis.on("scroll", ({ scroll }: { scroll: number }) => {
-          if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(scroll); });
-        });
-        update(lenis.scroll ?? 0);
-        return true;
+      // targetScroll is the raw un-lerped position — no lag
+      const scrollY = lenis ? (lenis as any).targetScroll ?? lenis.scroll : window.scrollY;
+      const el = sentinelRef.current;
+      if (el) {
+        const range = el.offsetHeight - window.innerHeight;
+        p.set(clamp((scrollY - heroTop) / range, 0, 1));
       }
-      return false;
+      rafId = requestAnimationFrame(loop);
     };
 
-    // Fallback: native scroll
-    const onNativeScroll = () => {
-      if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(window.scrollY); });
+    rafId = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", measure);
     };
-
-    // Lenis may not be mounted yet — retry briefly
-    if (!tryLenis()) {
-      const id = setInterval(() => {
-        if (tryLenis()) clearInterval(id);
-      }, 50);
-      window.addEventListener("scroll", onNativeScroll, { passive: true });
-      update(window.scrollY);
-      return () => {
-        clearInterval(id);
-        window.removeEventListener("scroll", onNativeScroll);
-        if (raf) cancelAnimationFrame(raf);
-      };
-    }
-
-    return () => { if (raf) cancelAnimationFrame(raf); };
   }, [p]);
 
   // S1 — fades/scales out [tighter window]
