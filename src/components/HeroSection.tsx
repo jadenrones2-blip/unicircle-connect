@@ -130,8 +130,8 @@ const HeroSection = () => {
             For Students · For Orgs
           </div>
           <h2
-            className="font-display font-black text-white"
-            style={{ fontSize: "clamp(44px, 5.5vw, 78px)", letterSpacing: "-0.04em", lineHeight: 1.05, textShadow: "0 2px 32px rgba(0,0,0,.8), 0 0 80px rgba(0,0,0,.5)" }}
+            className="font-display font-black"
+            style={{ fontSize: "clamp(44px, 5.5vw, 78px)", letterSpacing: "-0.04em", lineHeight: 1.05, textShadow: "0 2px 32px rgba(0,0,0,.8), 0 0 80px rgba(0,0,0,.5)", color: "#ffffff" }}
           >
             Finding your people<br />shouldn't be this hard.
           </h2>
