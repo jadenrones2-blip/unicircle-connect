@@ -26,19 +26,16 @@ const HeroSection = () => {
     <div ref={containerRef} style={{ height: "320vh" }}>
       <div className="sticky top-0 h-screen overflow-hidden bg-black">
 
-        {/* ── Layer B — Video / Photo ────────────────────────── */}
+        {/* ── Layer B — Crowd Photo ────────────────────────── */}
         <motion.div
           className="absolute inset-0 z-10"
           style={{ opacity: photoOpacity }}
         >
-          <motion.video
+          <motion.img
             className="w-full h-full object-cover"
-            style={{ scale: 1.05, y: photoY }}
-            src="/hero-bg.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
+            style={{ scale: 1.05, y: photoY, objectPosition: "center 38%" }}
+            src="/crowd-park.png"
+            alt=""
           />
           {/* Radial vignette */}
           <div
