@@ -560,7 +560,7 @@ export function RecruitmentKanban({
                     officerScoreMap={officerScoreMap}
                     nextStageId={nextStage?.id}
                     nextStageLabel={nextStage?.label}
-                    isIntake={stage.order_index === 0}
+                    isIntake={stage.is_intake}
                     attendanceEvents={attendanceMap[stage.id]}
                     onDeleteApplicant={onDeleteApplicant}
                     onOpenDrawer={openDrawer}

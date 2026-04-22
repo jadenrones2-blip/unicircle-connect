@@ -5,6 +5,7 @@ import { ChevronRight, ChevronDown, ChevronUp, Loader2, Pencil, Trash2, Check, X
 import { ApplicantCard } from './ApplicantCard';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 import { getStageColor } from '@/lib/stageColors';
+import {Badge} from "@/components/ui/badge.tsx";
 
 interface AttendanceEvent {
   id: string;
@@ -62,7 +63,9 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
   };
 
   return (
-    <div className="flex flex-col w-72 shrink-0">
+      <div className={`flex flex-col w-72 shrink-0 ${
+          isIntake ? 'border-blue-500 pl-2' : ''
+      }`}>
       <div className="flex items-center justify-between mb-3 px-1 group">
         {editingStageId === stage.id ? (
           <div className="flex items-center gap-1 flex-1 mr-2">
@@ -82,7 +85,16 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
         ) : (
           <div className="flex items-center gap-1.5 flex-1 mr-2">
             <span style={{ background: stageColor }} className="w-2 h-2 rounded-full shrink-0" />
-            <h3 className="font-medium text-sm text-zinc-200">{stage.label}</h3>
+              <div className="flex items-center gap-2">
+                  <h3 className="font-medium text-sm text-zinc-200">
+                      {stage.label}
+                  </h3>
+                  {isIntake && (
+                      <Badge variant="outline" className="bg-blue-500/20 text-blue-400">
+                          Applied
+                      </Badge>
+                  )}
+              </div>
             {onRenameStage && (
               <button
                 onClick={() => { setEditingStageId?.(stage.id); setEditingStageLabel?.(stage.label); }}
