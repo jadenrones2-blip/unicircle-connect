@@ -375,6 +375,57 @@ export function useRecruitment(clubId: string | undefined) {
     return true;
   };
 
+  const bulkMoveApplicants = async (applicantIds: string[], newStageId: string, clubName?: string) => {
+    if (!user || applicantIds.length === 0) return false;
+
+    const stage = stages.find(s => s.id === newStageId);
+    const selectedApplicants = applicants.filter(a =>
+        applicantIds.includes(a.id)
+    );
+
+    const { error } = await supabase
+        .from('applicants')
+        .update({ stage_id: newStageId })
+        .in('id', applicantIds);
+
+    // Send notifications in batch
+    if (clubName && stage) {
+      await Promise.allSettled(
+          selectedApplicants.map(applicant =>
+              supabase.functions.invoke('notify-applicant-stage', {
+                body: {
+                  notificationType: 'stage_advance',
+                  applicantId: applicant.id,
+                  applicantEmail: applicant.email,
+                  applicantName: `${applicant.first_name} ${applicant.last_name}`,
+                  stageName: stage.label,
+                  clubName,
+                  clubId,
+                },
+              })
+          )
+      );
+    }
+
+    if (error) {
+      console.error('Error bulk moving applicants:', error);
+      toast.error('Failed to move applicants');
+      return false;
+    }
+
+    // Update local state (important for instant UI update)
+    setApplicants(prev =>
+        prev.map(a =>
+            applicantIds.includes(a.id)
+                ? { ...a, stage_id: newStageId }
+                : a
+        )
+    );
+
+    toast.success(`${applicantIds.length} applicants moved`);
+    return true;
+  };
+
   const fetchForm = async (): Promise<FormQuestion[]> => {
     if (!clubId) return [];
     try {
@@ -547,6 +598,7 @@ export function useRecruitment(clubId: string | undefined) {
     addApplicant,
     bulkAddApplicants,
     updateApplicantStage,
+    bulkMoveApplicants,
     deleteApplicant,
     updateStage,
     addStage,
