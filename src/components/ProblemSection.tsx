@@ -1,5 +1,4 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { motion } from "framer-motion";
 import TiltCard from "./TiltCard";
 
 const features = [
@@ -16,12 +15,8 @@ const features = [
 ];
 
 const ProblemSection = () => {
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [60, -60]);
-
   return (
-    <section ref={ref} className="py-32 md:py-48 border-t border-white/[0.07] overflow-hidden">
+    <section className="py-32 md:py-48 border-t border-white/[0.07] overflow-hidden">
       <div className="max-w-6xl mx-auto px-6">
 
         {/* Section label */}
@@ -69,40 +64,6 @@ const ProblemSection = () => {
             </motion.div>
           ))}
         </div>
-
-        {/* Parallax stat line */}
-        <motion.div
-          style={{ y }}
-          className="mt-24 grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/[0.07] border border-white/[0.07] rounded-2xl overflow-hidden"
-        >
-          {[
-            { num: "10,000+", label: "Total Organizations", sub: "Across the UC ecosystem", projected: false },
-            { num: "Multi-Campus", label: "Infrastructure", sub: "Currently deploying system-wide", projected: false },
-            { num: "500,000+", label: "Hours Projected Recovery", sub: "Annual admin efficiency potential", projected: true },
-          ].map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 + i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="px-8 py-10 flex flex-col gap-2"
-            >
-              <div className="font-display font-black text-3xl md:text-4xl text-white tracking-tight leading-none">
-                {s.num}
-              </div>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="text-zinc-300 text-sm font-medium">{s.label}</div>
-                {s.projected && (
-                  <span className="text-[10px] tracking-[0.15em] uppercase text-[#F5C842]/60 font-semibold border border-[#F5C842]/20 px-1.5 py-0.5 rounded">
-                    Projected
-                  </span>
-                )}
-              </div>
-              <div className="text-zinc-600 text-xs">{s.sub}</div>
-            </motion.div>
-          ))}
-        </motion.div>
 
       </div>
     </section>
