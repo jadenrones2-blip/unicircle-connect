@@ -33,6 +33,7 @@ export default function ClubAdminRecruitment() {
     addApplicant,
     bulkAddApplicants,
     updateApplicantStage,
+    bulkMoveApplicants,
     deleteApplicant,
     updateStage,
     addStage,
@@ -164,6 +165,7 @@ export default function ClubAdminRecruitment() {
                 onMoveApplicant={updateApplicantStage}
                 onAddApplicant={addApplicant}
                 onBulkAddApplicants={bulkAddApplicants}
+                onBulkMoveApplicants={bulkMoveApplicants}
                 onDeleteApplicant={deleteApplicant}
                 onUpdateStage={updateStage}
                 onAddStage={addStage}

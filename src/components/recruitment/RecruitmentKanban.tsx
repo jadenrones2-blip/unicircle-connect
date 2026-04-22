@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { dataClient } from '@/integrations/supabase/dataClient';
 import { getStageColor } from '@/lib/stageColors';
@@ -21,7 +21,6 @@ import {
 import { Settings2, LayoutGrid, Table, FileText, Download, Mail, Users, Pencil, Plus, Trash2, Check, X, BarChart2, FileDown } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StageColumn } from './StageColumn';
 import { ApplicantCard } from './ApplicantCard';
 import { AddApplicantDialog } from './AddApplicantDialog';
@@ -35,6 +34,12 @@ import { MessageComposer } from './MessageComposer';
 import { ApplicantDetailDrawer } from './ApplicantDetailDrawer';
 import { ApplicantRosterView } from './ApplicantRosterView';
 import type { RecruitmentStage, Applicant, RecruitmentSettings, FormQuestion } from '@/hooks/useRecruitment';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu.tsx";
 
 interface RecruitmentKanbanProps {
   clubId: string;
@@ -61,6 +66,7 @@ interface RecruitmentKanbanProps {
   }[]) => Promise<{ success: number; failed: number }>;
   onDeleteApplicant: (id: string) => Promise<boolean>;
   onUpdateStage: (stageId: string, label: string) => Promise<boolean>;
+  onBulkMoveApplicants: (ids: string[], stageId: string, clubName: string) => Promise<boolean>;
   onAddStage: (label: string) => Promise<boolean>;
   onDeleteStage: (stageId: string) => Promise<boolean>;
   onRefresh: () => Promise<void>;
@@ -81,6 +87,7 @@ export function RecruitmentKanban({
   onMoveApplicant,
   onAddApplicant,
   onBulkAddApplicants,
+  onBulkMoveApplicants,
   onDeleteApplicant,
   onUpdateStage,
   onAddStage,
@@ -464,6 +471,30 @@ export function RecruitmentKanban({
     }
   }, [jumpToForm]);
 
+  const [selectedApplicants, setSelectedApplicants] = useState<string[]>([]);
+
+  const toggleApplicantSelection = (id: string) => {
+    setSelectedApplicants(prev =>
+        prev.includes(id)
+            ? prev.filter(a => a !== id)
+            : [...prev, id]
+    );
+  };
+
+  const clearSelection = () => {
+    setSelectedApplicants([]);
+  };
+
+  const handleBulkMove = async (stageId: string) => {
+    if (selectedApplicants.length === 0) return;
+
+    const success = await onBulkMoveApplicants(selectedApplicants, stageId, clubName);
+
+    if (success) {
+      clearSelection();
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="flex flex-col gap-3 mb-6">
@@ -539,6 +570,47 @@ export function RecruitmentKanban({
         )}
       </div>
 
+      {selectedApplicants.length > 0 && (
+          <div className="flex items-center justify-between gap-3 px-4 py-2 mb-4 rounded-xl border border-blue-500/30 bg-blue-500/10">
+
+            {/* Left side */}
+            <span className="text-sm text-white">
+                {selectedApplicants.length} selected
+              </span>
+
+            {/* Right side */}
+            <div className="flex items-center gap-2">
+              {/* Bulk Move Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-gold border border-gold/30 h-auto py-1.5 capitalize rounded-lg hover:bg-gold/10">Move To</Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end">
+                  {stages.map(stage => (
+                      <DropdownMenuItem key={stage.id} onClick={() => handleBulkMove(stage.id)}>
+                        {stage.label}
+                      </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Clear */}
+              <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={clearSelection}
+                  className="text-zinc-400 hover:text-white border border-white/10 rounded-lg h-auto py-1.5 capitalize"
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+      )}
+
       {activeView === 'kanban' && (
         <ScrollArea className="flex-1 -mx-6 px-6">
           <DndContext
@@ -572,6 +644,8 @@ export function RecruitmentKanban({
                     editingStageLabel={editingStageLabel}
                     setEditingStageId={setEditingStageId}
                     setEditingStageLabel={setEditingStageLabel}
+                    selectedApplicants={selectedApplicants}
+                    onToggleSelect={toggleApplicantSelection}
                   />
                 );
               })}
