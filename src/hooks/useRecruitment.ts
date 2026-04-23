@@ -10,6 +10,7 @@ export interface RecruitmentStage {
   order_index: number;
   created_at: string;
   updated_at: string;
+  is_intake: boolean;
 }
 
 export interface Applicant {
