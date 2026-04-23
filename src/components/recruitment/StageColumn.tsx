@@ -32,9 +32,11 @@ interface StageColumnProps {
   editingStageLabel?: string;
   setEditingStageId?: (id: string | null) => void;
   setEditingStageLabel?: (label: string) => void;
+  selectedApplicants: string[];
+  onToggleSelect: (id: string) => void;
 }
 
-export function StageColumn({ stage, applicants, allStages, officerScoreMap, nextStageId, nextStageLabel, isIntake, attendanceEvents, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onMoveApplicant, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel }: StageColumnProps) {
+export function StageColumn({ stage, applicants, allStages, officerScoreMap, nextStageId, nextStageLabel, isIntake, attendanceEvents, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onMoveApplicant, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel, selectedApplicants, onToggleSelect }: StageColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
@@ -160,6 +162,8 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
                 currentStageId={stage.id}
                 onMove={onMoveApplicant}
                 officerScore={officerScoreMap?.[applicant.id] ?? null}
+                isSelected={selectedApplicants.includes(applicant.id)}
+                onSelect={onToggleSelect}
               />
             ))}
             {applicants.length === 0 && (
