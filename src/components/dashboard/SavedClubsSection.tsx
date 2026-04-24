@@ -1,4 +1,4 @@
-import { Heart, Bookmark, Sparkles, ArrowRight } from 'lucide-react';
+import { Heart, Bookmark, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -84,7 +84,6 @@ export default function SavedClubsSection({
       {recommendedClubs.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-gold" />
             <h3 className="font-display text-lg font-bold text-foreground tracking-tight">
               Similar Clubs You Might Like
             </h3>

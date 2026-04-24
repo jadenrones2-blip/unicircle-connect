@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, ArrowRight, Sparkles, Building2, Shield } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowRight, Building2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -144,7 +144,6 @@ export default function Login() {
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            <Sparkles className="h-4 w-4" />
             Student
           </button>
           <button
@@ -309,7 +308,6 @@ export default function Login() {
               </>
             ) : (
               <>
-                <Sparkles className="h-4 w-4 text-primary" />
                 Get personalized club recommendations
               </>
             )}

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ChevronRight, Check, Clock, UserPlus } from 'lucide-react';
+import { ChevronRight, Check, Clock, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Club } from '@/data/mockData';
@@ -36,7 +36,6 @@ export default function RecommendedClubCard({
         {/* Header badges */}
         <div className="flex items-center justify-between mb-3">
           <Badge className="bg-gold/10 text-gold border-0 text-[10px] tracking-wider uppercase font-semibold">
-            <Sparkles className="h-3 w-3 mr-1" />
             {score} {score === 1 ? 'match' : 'matches'}
           </Badge>
           {club.recruitingStatus === 'open' && (

@@ -1,4 +1,4 @@
-import { Users, Kanban, BarChart3, Sparkles } from 'lucide-react';
+import { Users, Kanban, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -29,9 +29,6 @@ export function RecruitmentIntro({ onEnable, loading }: RecruitmentIntroProps) {
   return (
     <div className="max-w-3xl mx-auto py-12 px-4">
       <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/10 mb-6">
-          <Sparkles className="w-8 h-8 text-gold" />
-        </div>
         <h1 className="text-3xl font-display font-bold text-foreground mb-4">
           Recruitment Tracking
         </h1>

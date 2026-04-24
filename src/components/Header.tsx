@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sparkles, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell, Settings, BookOpen } from "lucide-react";
+import { Menu, X, Home, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell, Settings, BookOpen } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
@@ -59,7 +59,7 @@ const Header = () => {
   };
 
   const navLinks = [
-    { href: "/", label: "Home", icon: Sparkles },
+    { href: "/", label: "Home", icon: Home },
     { href: "/clubs", label: "Clubs", icon: Users },
     { href: "/events", label: "Events", icon: Calendar },
     { href: "/demo", label: "Demo", icon: Play },

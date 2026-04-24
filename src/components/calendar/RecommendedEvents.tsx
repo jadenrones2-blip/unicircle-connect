@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Calendar, MapPin, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Clock, ArrowRight } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -66,7 +66,6 @@ export function RecommendedEvents() {
         <div className="premium-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-gold" />
               <h2 className="text-lg font-semibold text-foreground">Recommended for You</h2>
             </div>
             <Link to="/dashboard">

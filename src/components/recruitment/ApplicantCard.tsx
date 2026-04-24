@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Mail, MoreVertical, Trash2, Sparkles, Star, ChevronRight } from 'lucide-react';
+import { GripVertical, Mail, MoreVertical, Trash2, Star, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -100,7 +100,6 @@ export function ApplicantCard({ applicant, onDelete, onOpen, officerScore, stage
         <Tooltip>
           <TooltipTrigger asChild>
             <Badge variant={variant} className="text-xs gap-1">
-              <Sparkles className="w-3 h-3" />
               {score}
             </Badge>
           </TooltipTrigger>

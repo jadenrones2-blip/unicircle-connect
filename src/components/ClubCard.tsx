@@ -11,6 +11,7 @@ interface ClubCardProps {
   matchScore?: number;
   compareSelected?: boolean;
   onToggleCompare?: (clubId: string) => void;
+  reason?: string;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -34,7 +35,7 @@ function getCategoryColor(category: string): string {
   return CATEGORY_COLORS[key] ?? 'hsl(43 74% 56%)'; // default gold
 }
 
-const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, compareSelected, onToggleCompare }: ClubCardProps) => {
+const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, compareSelected, onToggleCompare, reason }: ClubCardProps) => {
   const categoryColor = getCategoryColor(club.categoryBucket || club.category || '');
 
   return (
@@ -115,8 +116,15 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, compareSel
             <div className="flex-1 mb-4" />
           )}
 
+          {/* Recommendation reason */}
+          {reason && (
+            <p className="text-[10px] text-gold/80 flex items-center gap-1 mb-3 mt-auto">
+              Because you&apos;re interested in {reason}
+            </p>
+          )}
+
           {/* Footer */}
-          <div className="flex items-center justify-between mt-auto">
+          <div className={`flex items-center justify-between ${reason ? '' : 'mt-auto'}`}>
             <span className="text-[11px] text-zinc-600">View club</span>
             <ArrowRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-[hsl(43_74%_56%)] group-hover:translate-x-1 transition-all" />
           </div>

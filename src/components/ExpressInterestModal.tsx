@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles } from "lucide-react";
+import { X } from "lucide-react";
 import ExpressInterestForm from "./ExpressInterestForm";
 import { clubs } from "@/data/mockData";
 
@@ -56,10 +56,8 @@ const ExpressInterestModal = ({ isOpen, onClose, clubName, clubId }: ExpressInte
                   <X className="w-5 h-5" />
                 </button>
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary-foreground/10 rounded-xl">
-                    <Sparkles className="w-6 h-6" />
-                  </div>
                   <div>
+                    <div>
                     <h2 className="text-xl font-display font-semibold">Express Interest</h2>
                     {clubName && (
                       <p className="text-sm text-primary-foreground/80">{clubName}</p>

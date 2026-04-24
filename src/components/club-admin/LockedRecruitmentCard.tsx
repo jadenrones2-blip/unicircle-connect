@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Sparkles } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { WaitlistModal } from './WaitlistModal';
 
 interface LockedRecruitmentCardProps {
@@ -33,7 +33,6 @@ export function LockedRecruitmentCard({ clubId }: LockedRecruitmentCardProps) {
         {/* Beta badge */}
         <div className="absolute top-4 right-4 z-20">
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-[0.15em] uppercase border border-gold/50 text-gold bg-gold/10">
-            <Sparkles className="w-2.5 h-2.5" />
             Beta
           </span>
         </div>

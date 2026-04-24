@@ -1,6 +1,6 @@
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ExpressInterestForm from "@/components/ExpressInterestForm";
@@ -24,7 +24,6 @@ const ExpressInterest = () => {
             className="text-center max-w-2xl mx-auto"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold/10 text-gold mb-6">
-              <Sparkles className="w-4 h-4" />
               <span className="text-sm font-medium">Express Your Interest</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">

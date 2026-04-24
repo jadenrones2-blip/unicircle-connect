@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, Brain, Settings2, Star } from 'lucide-react';
+import { Loader2, Brain, Settings2, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -152,7 +152,6 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
           size="sm"
           className="gap-2 border-white/15 text-zinc-300 hover:text-white hover:bg-white/5"
         >
-          <Sparkles className="h-4 w-4" />
           AI Screen
         </Button>
       </DialogTrigger>
@@ -160,7 +159,6 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
       <DialogContent className="sm:max-w-[460px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-gold" />
             Bulk AI Screening
           </DialogTitle>
         </DialogHeader>
@@ -350,7 +348,6 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" />
                 Run AI Screen — {targetApplicants.length} applicant{targetApplicants.length !== 1 ? 's' : ''}
               </>
             )}

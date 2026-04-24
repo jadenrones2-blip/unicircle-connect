@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Check, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
@@ -253,7 +253,6 @@ export default function Onboarding() {
                   {/* Step indicator */}
                   <div className="text-center mb-8">
                     <span className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
-                      <Sparkles className="h-3 w-3 text-primary" />
                       Question {currentStep + 1} of {quizQuestions.length}
                     </span>
                   </div>

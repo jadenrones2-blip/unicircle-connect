@@ -12,7 +12,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, User, Upload, Sparkles, ArrowRight } from 'lucide-react';
+import { Loader2, User, Upload, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Form,
@@ -157,7 +157,6 @@ export default function AdminOnboarding() {
           {/* Welcome Header */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold/10 border border-gold/20 text-gold mb-4">
-              <Sparkles className="w-4 h-4" />
               <span className="text-sm font-medium">Welcome, Admin!</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">

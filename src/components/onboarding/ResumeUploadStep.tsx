@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FileText, Sparkles, ArrowRight } from 'lucide-react';
+import { FileText, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ExtractedKeywords {
@@ -19,7 +19,6 @@ export default function ResumeUploadStep({ onSkip }: ResumeUploadStepProps) {
     <div className="space-y-6">
       <div className="text-center mb-8">
         <span className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
-          <Sparkles className="h-3 w-3 text-primary" />
           Optional: Boost your matches
         </span>
       </div>

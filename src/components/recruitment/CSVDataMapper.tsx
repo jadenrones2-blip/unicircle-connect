@@ -5,7 +5,6 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
   Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -527,7 +526,6 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
                           </Badge>
                         ) : mapping.autoDetected ? (
                           <Badge variant="secondary" className="text-xs gap-1 bg-gold/10 text-gold border-gold/20">
-                            <Sparkles className="w-3 h-3" />
                             Auto
                           </Badge>
                         ) : null}

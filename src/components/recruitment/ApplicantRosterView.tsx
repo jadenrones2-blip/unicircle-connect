@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, GraduationCap, Mail, Star, Sparkles } from 'lucide-react';
+import { Search, GraduationCap, Mail, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ApplicantAvatar } from './ApplicantCard';
@@ -168,7 +168,6 @@ export function ApplicantRosterView({ stages, applicants, onOpenDrawer }: Applic
                   </div>
                   {extended.fit_score !== undefined && extended.fit_score !== null && (
                     <span className="flex items-center gap-1 text-xs text-zinc-500">
-                      <Sparkles className="w-3 h-3" />
                       {extended.fit_score}
                     </span>
                   )}

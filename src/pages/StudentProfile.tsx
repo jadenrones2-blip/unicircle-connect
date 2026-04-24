@@ -190,6 +190,22 @@ export default function StudentProfile() {
       }
       setProfile(p => ({ ...p, resume_url: json.url }));
       toast.success('Resume uploaded');
+
+      // Fire parse-resume in background — extracts keywords for recommendations
+      const toastId = 'parse-resume';
+      toast.loading('Analyzing your resume…', { id: toastId });
+      fetch(`${supabaseUrl}/functions/v1/parse-resume`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+      }).then(async (r) => {
+        if (r.ok) {
+          const d = await r.json();
+          const count = d.signals?.length ?? 0;
+          toast.success(`Resume analyzed — ${count} keywords extracted`, { id: toastId });
+        } else {
+          toast.dismiss(toastId);
+        }
+      }).catch(() => toast.dismiss(toastId));
     } catch (err) {
       console.error('Resume upload exception:', err);
       toast.error('Upload failed — please try again');
@@ -202,7 +218,9 @@ export default function StudentProfile() {
   const handleRemoveResume = async () => {
     if (!user) return;
     await supabase.storage.from('resumes').remove([`${user.id}/resume.pdf`]);
-    const { error: profileErr } = await supabase.from('profiles' as any).update({ resume_url: null }).eq('user_id', user.id);
+    const { error: profileErr } = await supabase.from('profiles' as any)
+      .update({ resume_url: null, resume_signals: [] })
+      .eq('user_id', user.id);
     if (profileErr) {
       toast.error('Failed to remove resume');
       return;

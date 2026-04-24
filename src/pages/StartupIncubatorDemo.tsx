@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  Star, ChevronRight, ArrowRight, X, Sparkles,
+  Star, ChevronRight, ArrowRight, X,
   ThumbsUp, ThumbsDown, Minus, Rocket, Megaphone, Mail, Check, BookOpen,
 } from 'lucide-react';
 
@@ -301,7 +301,7 @@ export default function StartupIncubatorDemo() {
       <div className="px-6 pt-10 pb-8 max-w-6xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/20 text-xs font-medium mb-5 text-zinc-400">
-            <Sparkles className="w-3 h-3" /> AI-Powered Recruitment Pipeline
+            AI-Powered Recruitment Pipeline
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3 leading-tight">
             Turn your Problems<br />into Companies.
@@ -334,7 +334,7 @@ export default function StartupIncubatorDemo() {
         <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/8 w-fit mb-6">
           {[
             { id: 'pipeline', label: 'Pipeline', icon: Rocket },
-            { id: 'rubric',   label: 'AI Rubric', icon: Sparkles },
+            { id: 'rubric',   label: 'AI Rubric', icon: Star },
             { id: 'form',     label: 'Application Form', icon: BookOpen },
             { id: 'comms',    label: 'Comms', icon: Megaphone },
           ].map(tab => (
@@ -360,7 +360,6 @@ export default function StartupIncubatorDemo() {
               className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-white/8 bg-white/[0.02] mb-5 cursor-pointer select-none"
               onClick={() => setHintIndex(i => (i + 1) % HINTS.length)}
             >
-              <Sparkles className="w-3.5 h-3.5 flex-shrink-0" style={{ color: SI_COLOR }} />
               <p className="text-sm text-zinc-400">{HINTS[hintIndex]}</p>
               <ChevronRight className="w-3.5 h-3.5 text-zinc-600 ml-auto flex-shrink-0" />
             </div>

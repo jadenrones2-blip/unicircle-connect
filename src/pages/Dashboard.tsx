@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Sparkles,
   LogOut,
   RefreshCw,
   ExternalLink,
@@ -451,7 +450,6 @@ export default function Dashboard() {
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
             <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-gold" />
               <h2 className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight">
                 Recommended for You
               </h2>
@@ -485,7 +483,6 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="text-center py-16 bg-muted/30 rounded-xl">
-              <Sparkles className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 No matches yet
               </h3>

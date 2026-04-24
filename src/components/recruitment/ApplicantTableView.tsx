@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import {
-  Sparkles,
   Filter,
   ChevronDown,
   ChevronUp,
@@ -326,11 +325,7 @@ export function ApplicantTableView({
               onClick={runAIScreening}
               disabled={screening}
             >
-              {screening ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4 mr-2" />
-              )}
+              {screening && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Run AI Screening
             </Button>
 

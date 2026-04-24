@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Sparkles, Upload, Loader2, Check, X } from 'lucide-react';
+import { Upload, Loader2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -219,9 +219,6 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
             (disabled || extracting) && 'opacity-50 cursor-not-allowed'
           )}
         >
-          <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
-            <Sparkles className="w-6 h-6 text-gold" />
-          </div>
           <div className="text-left">
             <h4 className="font-medium text-foreground flex items-center gap-2">
               Auto-fill from Flyer

@@ -1,7 +1,7 @@
 import { useEffect, useDeferredValue, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Search, X, AlertCircle, Sparkles, Plus, Users } from "lucide-react";
+import { Loader2, Search, X, AlertCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
@@ -14,7 +14,7 @@ import { useClubs } from "@/hooks/useExternalDB";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
 import { useUserInterests } from "@/hooks/useUserInterests";
-import { calculateMatchScore } from "@/lib/clubRecommendations";
+import { calculateMatchScore, getTopMatchTerm } from "@/lib/clubRecommendations";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -73,8 +73,9 @@ const ClubsDirectory = () => {
   const { data: clubs, loading, error } = useClubs();
   const { user } = useAuth();
   const { savedClubs, fetchSavedClubs, saveClub, unsaveClub, isSaved } = useSavedClubs();
-  const { fetchInterests } = useUserInterests();
+  const { fetchInterests, fetchResumeSignals } = useUserInterests();
   const [interestValues, setInterestValues] = useState<string[]>([]);
+  const [resumeSignals, setResumeSignals] = useState<string[]>([]);
   const [compareIds, setCompareIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -82,12 +83,12 @@ const ClubsDirectory = () => {
   }, [user, fetchSavedClubs]);
 
   useEffect(() => {
-    if (user) {
-      fetchInterests(user.id).then((data) => {
-        if (data) setInterestValues(data.map((i) => i.interest_value));
-      });
-    }
-  }, [user, fetchInterests]);
+    if (!user) return;
+    fetchInterests(user.id).then((data) => {
+      if (data) setInterestValues(data.map((i) => i.interest_value));
+    });
+    fetchResumeSignals(user.id).then((signals) => setResumeSignals(signals));
+  }, [user, fetchInterests, fetchResumeSignals]);
 
   const handleToggleSave = async (clubId: string) => {
     if (!user) {
@@ -166,16 +167,30 @@ const ClubsDirectory = () => {
 
   const hasActiveFilters = searchText || selectedCategory !== "All" || recruitingOnly;
 
-  // Match scores per club (only computed when user has interests)
+  // Match scores per club — blended if resume signals present
   const matchScores = useMemo(() => {
-    if (!interestValues.length) return {} as Record<string, number>;
+    if (!interestValues.length && !resumeSignals.length) return {} as Record<string, number>;
     const scores: Record<string, number> = {};
     for (const club of filteredClubs) {
-      const score = calculateMatchScore(club, interestValues);
+      const score = calculateMatchScore(club, interestValues, resumeSignals);
       if (score > 0) scores[club.id] = score;
     }
     return scores;
-  }, [filteredClubs, interestValues]);
+  }, [filteredClubs, interestValues, resumeSignals]);
+
+  // Top 5 recommended clubs with blended score ≥ 60, shown in the shelf above the list
+  const recommendedClubs = useMemo(() => {
+    if (!user || (!interestValues.length && !resumeSignals.length)) return [];
+    return clubs
+      .map((club) => ({
+        club,
+        score: calculateMatchScore(club, interestValues, resumeSignals),
+        reason: getTopMatchTerm(club, interestValues, resumeSignals),
+      }))
+      .filter(({ score }) => score >= 60)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+  }, [clubs, interestValues, resumeSignals, user]);
 
   // Club names map for CompareBar
   const compareClubNames = useMemo(() => {
@@ -311,6 +326,32 @@ const ClubsDirectory = () => {
           </div>
         </div>
       </section>
+
+      {/* Recommended shelf — only shown to authenticated users with signals and qualifying matches */}
+      {recommendedClubs.length > 0 && (
+        <section className="pb-6 px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-sm font-semibold text-white">Recommended for You</h2>
+            </div>
+            <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
+              {recommendedClubs.map(({ club, reason }) => (
+                <div key={club.id} className="shrink-0 w-72">
+                  <ClubCard
+                    club={club}
+                    isSaved={isSaved(club.id)}
+                    onToggleSave={handleToggleSave}
+                    matchScore={matchScores[club.id]}
+                    reason={reason ?? undefined}
+                    compareSelected={compareIds.includes(club.id)}
+                    onToggleCompare={handleToggleCompare}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Results */}
       <section className="pb-20 px-4">

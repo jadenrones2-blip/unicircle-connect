@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ThumbsUp, ThumbsDown, Minus, Sparkles, Loader2, Check, Star, Download, ClipboardList, ArrowRight, Mail } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Minus, Loader2, Check, Star, Download, ClipboardList, ArrowRight, Mail } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -67,7 +67,6 @@ function FitScoreBadge({ score }: { score: number | null }) {
 
   return (
     <Badge className={`gap-1.5 ${color}`}>
-      <Sparkles className="w-3 h-3" />
       {score} AI Score
     </Badge>
   );
@@ -352,11 +351,7 @@ export function ApplicantDetailDrawer({
                   disabled={aiRunning}
                   className="border-white/10 text-zinc-400"
                 >
-                  {aiRunning ? (
-                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                  )}
+                  {aiRunning && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
                   Run AI Screen
                 </Button>
               </div>

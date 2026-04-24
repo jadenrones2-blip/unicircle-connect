@@ -177,12 +177,48 @@ export const INTEREST_TERM_MAP: Record<string, string[]> = {
   creative_vibe: ['creative', 'arts', 'experimental'],
 };
 
-/** Score a club against a list of user interest values (0–100) */
-export function calculateMatchScore(
-  club: Club,
-  interestValues: string[]
-): number {
-  if (!interestValues.length) return 0;
+// Human-readable labels for interest values (used in recommendation reasons)
+const INTEREST_DISPLAY_MAP: Record<string, string> = {
+  tech: 'Tech & Coding',
+  tech_career: 'Tech',
+  business: 'Business',
+  finance_career: 'Finance',
+  startup_career: 'Startups',
+  consulting_career: 'Consulting',
+  healthcare_career: 'Healthcare',
+  research_career: 'Research',
+  creative_career: 'Creative & Media',
+  nonprofit_career: 'Nonprofit',
+  law_career: 'Law',
+  marketing_career: 'Marketing',
+  education_career: 'Education',
+  government_career: 'Government & Policy',
+  arts: 'Art & Design',
+  music: 'Music',
+  science: 'Science',
+  culture: 'Culture & Identity',
+  fitness: 'Sports & Fitness',
+  social_impact: 'Activism',
+  gaming: 'Gaming',
+  network: 'Networking',
+  skills: 'Skill Building',
+  squad: 'Community',
+  confidence: 'Leadership',
+  purpose: 'Social Impact',
+  sustainability: 'Sustainability',
+  dance: 'Dance',
+  writing: 'Writing',
+  investing: 'Investing',
+  ai: 'AI & Data Science',
+  film: 'Film & Photography',
+  food: 'Food & Cooking',
+  travel: 'Travel & Languages',
+  competitive: 'Competitive Activities',
+  professional: 'Professional Development',
+  creative_vibe: 'Creative Projects',
+};
+
+function calcInterestScore(club: Club, interestValues: string[]): number {
   const clubText = [club.name, club.category, club.categoryBucket, club.description, ...(club.tags || [])]
     .filter(Boolean).join(' ').toLowerCase();
 
@@ -196,7 +232,72 @@ export function calculateMatchScore(
     }
   }
   if (total === 0) return 0;
-  return Math.min(100, Math.round((hits / total) * 100 * 2.5)); // scale up so useful clubs show 50-90%
+  return Math.min(100, Math.round((hits / total) * 100 * 2.5));
+}
+
+function calcResumeScore(club: Club, resumeKeywords: string[]): number {
+  const clubText = [club.name, club.category, club.categoryBucket, club.description, ...(club.tags || [])]
+    .filter(Boolean).join(' ').toLowerCase();
+  const clubKeywords = extractClubKeywords(club);
+
+  let hits = 0;
+  for (const kw of resumeKeywords) {
+    const lower = kw.toLowerCase().trim();
+    if (clubText.includes(lower)) { hits++; continue; }
+    const cluster = keywordToCluster.get(lower);
+    if (cluster && clubKeywords.has(cluster)) hits++;
+  }
+  return Math.min(100, Math.round((hits / resumeKeywords.length) * 100 * 4));
+}
+
+/** Score a club against user interest values and optional resume keywords (0–100).
+ *  Weighted 60% interests / 40% resume when both are present. */
+export function calculateMatchScore(
+  club: Club,
+  interestValues: string[],
+  resumeKeywords: string[] = []
+): number {
+  const hasInterests = interestValues.length > 0;
+  const hasResume = resumeKeywords.length > 0;
+
+  if (!hasInterests && !hasResume) return 0;
+
+  const interestScore = hasInterests ? calcInterestScore(club, interestValues) : 0;
+  const resumeScore = hasResume ? calcResumeScore(club, resumeKeywords) : 0;
+
+  if (hasInterests && !hasResume) return interestScore;
+  if (!hasInterests && hasResume) return resumeScore;
+  return Math.round(interestScore * 0.6 + resumeScore * 0.4);
+}
+
+/** Return the top human-readable term explaining why a club matches.
+ *  Checks interests first, then resume keywords. */
+export function getTopMatchTerm(
+  club: Club,
+  interestValues: string[],
+  resumeKeywords: string[] = []
+): string | null {
+  const clubText = [club.name, club.category, club.categoryBucket, club.description, ...(club.tags || [])]
+    .filter(Boolean).join(' ').toLowerCase();
+  const clubKeywords = extractClubKeywords(club);
+
+  for (const val of interestValues) {
+    const terms = INTEREST_TERM_MAP[val] || [val];
+    for (const term of terms) {
+      if (clubText.includes(term.toLowerCase())) {
+        return INTEREST_DISPLAY_MAP[val] || val.replace(/_/g, ' ');
+      }
+    }
+  }
+
+  for (const kw of resumeKeywords) {
+    const lower = kw.toLowerCase().trim();
+    if (clubText.includes(lower)) return kw;
+    const cluster = keywordToCluster.get(lower);
+    if (cluster && clubKeywords.has(cluster)) return kw;
+  }
+
+  return null;
 }
 
 /** Get recommended clubs based on a set of saved clubs + user interests */
