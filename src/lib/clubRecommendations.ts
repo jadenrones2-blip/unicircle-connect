@@ -238,16 +238,19 @@ function calcInterestScore(club: Club, interestValues: string[]): number {
 function calcResumeScore(club: Club, resumeKeywords: string[]): number {
   const clubText = [club.name, club.category, club.categoryBucket, club.description, ...(club.tags || [])]
     .filter(Boolean).join(' ').toLowerCase();
-  const clubKeywords = extractClubKeywords(club);
 
+  // Direct text match only — cluster matching is too broad for specific resume terms
   let hits = 0;
   for (const kw of resumeKeywords) {
-    const lower = kw.toLowerCase().trim();
-    if (clubText.includes(lower)) { hits++; continue; }
-    const cluster = keywordToCluster.get(lower);
-    if (cluster && clubKeywords.has(cluster)) hits++;
+    if (clubText.includes(kw.toLowerCase().trim())) hits++;
   }
-  return Math.min(100, Math.round((hits / resumeKeywords.length) * 100 * 4));
+  return Math.min(100, Math.round((hits / resumeKeywords.length) * 100 * 2.5));
+}
+
+export function resumeHitsClub(club: Club, resumeKeywords: string[]): boolean {
+  const clubText = [club.name, club.category, club.categoryBucket, club.description, ...(club.tags || [])]
+    .filter(Boolean).join(' ').toLowerCase();
+  return resumeKeywords.some(kw => clubText.includes(kw.toLowerCase().trim()));
 }
 
 /** Score a club against user interest values and optional resume keywords (0–100).

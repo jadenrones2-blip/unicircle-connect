@@ -14,7 +14,7 @@ import { useClubs } from "@/hooks/useExternalDB";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
 import { useUserInterests } from "@/hooks/useUserInterests";
-import { calculateMatchScore, getTopMatchTerm } from "@/lib/clubRecommendations";
+import { calculateMatchScore, getTopMatchTerm, resumeHitsClub } from "@/lib/clubRecommendations";
 import { toast } from "sonner";
 
 const CATEGORIES = [
@@ -187,7 +187,11 @@ const ClubsDirectory = () => {
         score: calculateMatchScore(club, interestValues, resumeSignals),
         reason: getTopMatchTerm(club, interestValues, resumeSignals),
       }))
-      .filter(({ score }) => score >= 60)
+      .filter(({ score, club }) =>
+        score >= 60 &&
+        // When resume signals exist, at least one must directly match the club
+        (resumeSignals.length === 0 || resumeHitsClub(club, resumeSignals))
+      )
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
   }, [clubs, interestValues, resumeSignals, user]);
