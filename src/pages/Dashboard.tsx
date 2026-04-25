@@ -34,6 +34,7 @@ import { dataClient } from '@/integrations/supabase/dataClient';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from '@/components/calendar/EventDetailModal';
 import { formatEventDateTimeShort } from '@/lib/formatters';
+import { useUCSDEvents } from '@/hooks/useUCSDEvents';
 
 // Mapping from quiz answers to club categories/tags
 const interestToClubMapping: Record<string, string[]> = {
@@ -147,6 +148,8 @@ export default function Dashboard() {
   
   const [interests, setInterests] = useState<{ category: string; value: string }[]>([]);
   const [interestsLoading, setInterestsLoading] = useState(true);
+  const interestValues = useMemo(() => interests.map(i => i.value), [interests]);
+  const { events: ucsdEvents, loading: ucsdEventsLoading } = useUCSDEvents(interestValues, 6);
   const [applyingClubId, setApplyingClubId] = useState<string | null>(null);
   const [upcomingEvents, setUpcomingEvents] = useState<ExternalEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
@@ -386,6 +389,82 @@ export default function Dashboard() {
             />
           </TabsContent>
         </Tabs>
+
+        {/* Personalized UCSD Events Feed */}
+        {(ucsdEvents.length > 0 || ucsdEventsLoading) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="mb-8 sm:mb-10"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-gold" />
+                <h2 className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                  Events For You
+                </h2>
+              </div>
+              <a
+                href="https://calendar.ucsd.edu"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-zinc-500 hover:text-gold transition-colors flex items-center gap-1"
+              >
+                UCSD Calendar <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            {ucsdEventsLoading ? (
+              <div className="flex items-center gap-2 py-4 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Finding events for you...</span>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {ucsdEvents.map((event) => (
+                  <a
+                    key={event.id}
+                    href={event.url || `https://calendar.ucsd.edu/event/${event.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col gap-2 p-4 rounded-xl border border-white/8 bg-zinc-900/60 hover:border-gold/30 hover:bg-zinc-900 transition-all"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-medium text-white text-sm leading-snug line-clamp-2 flex-1">{event.title}</p>
+                      {event.free && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">Free</span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
+                      {event.date && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {new Date(event.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      )}
+                      {event.location && (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate max-w-[140px]">{event.location}</span>
+                        </span>
+                      )}
+                    </div>
+                    {event.matchReason && (
+                      <p className="text-[11px] text-gold/80">✦ {event.matchReason}</p>
+                    )}
+                    {event.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {event.tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-600 border border-white/6">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                  </a>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Upcoming Events from Saved Clubs */}
         {(upcomingEvents.length > 0 || eventsLoading) && (
