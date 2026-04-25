@@ -297,11 +297,17 @@ export function getTopMatchTerm(
     }
   }
 
-  // Fall back to interest-based reasons
+  // Fall back to interest-based reasons — use the matched term for specificity
   for (const val of interestValues) {
     const terms = INTEREST_TERM_MAP[val] || [val];
     for (const term of terms) {
-      if (clubText.includes(term.toLowerCase())) {
+      const lower = term.toLowerCase();
+      if (clubText.includes(lower)) {
+        // Prefer the matched term itself if it's meaningful, else fall back to display label
+        const isGeneric = ['tech', 'business', 'arts', 'science', 'fitness', 'social'].includes(lower);
+        if (!isGeneric && lower.length > 4) {
+          return `Matches your interest in ${term}`;
+        }
         const display = INTEREST_DISPLAY_MAP[val] || val.replace(/_/g, ' ');
         return `Matches your interest in ${display}`;
       }
