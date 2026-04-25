@@ -297,14 +297,15 @@ export function getTopMatchTerm(
     }
   }
 
-  // Fall back to interest-based reasons — use the matched term for specificity
+  // Fall back to interest-based reasons — skip meaningless values, use matched term for specificity
+  const SKIP_VALUES = new Set(['fun', 'chill', 'squad', 'skills', 'network', 'confidence', 'purpose', 'competitive', 'creative_vibe', 'professional']);
   for (const val of interestValues) {
+    if (SKIP_VALUES.has(val)) continue;
     const terms = INTEREST_TERM_MAP[val] || [val];
     for (const term of terms) {
       const lower = term.toLowerCase();
       if (clubText.includes(lower)) {
-        // Prefer the matched term itself if it's meaningful, else fall back to display label
-        const isGeneric = ['tech', 'business', 'arts', 'science', 'fitness', 'social'].includes(lower);
+        const isGeneric = ['tech', 'business', 'arts', 'science', 'fitness', 'social', 'research', 'career'].includes(lower);
         if (!isGeneric && lower.length > 4) {
           return `Matches your interest in ${term}`;
         }
