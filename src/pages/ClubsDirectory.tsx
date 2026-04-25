@@ -10,6 +10,7 @@ import RecommendationChat from "@/components/RecommendationChat";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClubs } from "@/hooks/useExternalDB";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
 import { useUserInterests } from "@/hooks/useUserInterests";
@@ -75,6 +76,7 @@ const ClubsDirectory = () => {
   const { fetchInterests, fetchResumeSignals } = useUserInterests();
   const [interestValues, setInterestValues] = useState<string[]>([]);
   const [resumeSignals, setResumeSignals] = useState<string[]>([]);
+  const [appliedClubIds, setAppliedClubIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) fetchSavedClubs(user.id);
@@ -86,6 +88,16 @@ const ClubsDirectory = () => {
       if (data) setInterestValues(data.map((i) => i.interest_value));
     });
     fetchResumeSignals(user.id).then((signals) => setResumeSignals(signals));
+    // Fetch clubs the user has already applied to so we can exclude them from recommendations
+    if (user.email) {
+      supabase
+        .from('applicants')
+        .select('club_id')
+        .eq('email', user.email)
+        .then(({ data }) => {
+          if (data) setAppliedClubIds(new Set(data.map((r: any) => r.club_id)));
+        });
+    }
   }, [user, fetchInterests, fetchResumeSignals]);
 
   const handleToggleSave = async (clubId: string) => {
@@ -187,6 +199,8 @@ const ClubsDirectory = () => {
       }))
       .filter(({ score, club }) =>
         score >= 60 &&
+        // Exclude clubs the student has already applied to
+        !appliedClubIds.has(club.id) &&
         // When resume signals exist, at least one must directly match the club
         (resumeSignals.length === 0 || resumeHitsClub(club, resumeSignals))
       )

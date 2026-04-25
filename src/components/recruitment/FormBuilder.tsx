@@ -11,7 +11,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   GripVertical, Plus, Trash2, Eye, Save, Loader2,
   AlignLeft, AlignJustify, ListChecks, Copy, Upload, X, Video,
-  ChevronDown, Check,
+  ChevronDown, Check, Wand2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -681,6 +681,155 @@ function NewFormDialog({
   );
 }
 
+// ─── AI Suggest Questions Modal ──────────────────────────────────────────────
+
+function AISuggestModal({
+  open,
+  onClose,
+  onImport,
+  clubId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onImport: (questions: FormQuestion[]) => void;
+  clubId: string;
+}) {
+  const [lookingFor, setLookingFor] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [suggested, setSuggested] = useState<FormQuestion[]>([]);
+
+  const handleGenerate = async () => {
+    if (!lookingFor.trim()) return;
+    setLoading(true);
+    setSuggested([]);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) { toast.error('Please log in'); return; }
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/suggest-form-questions`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ club_id: clubId, looking_for: lookingFor }),
+        }
+      );
+
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        toast.error(json.error || 'Failed to generate questions');
+        return;
+      }
+
+      const questions: FormQuestion[] = (json.questions || []).map((q: any) => ({
+        id: crypto.randomUUID(),
+        type: q.type === 'long' ? 'long' : 'short',
+        label: q.label || '',
+        required: false,
+        options: [],
+      }));
+
+      setSuggested(questions);
+    } catch {
+      toast.error('Failed to generate questions');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = () => {
+    onImport(suggested);
+    setSuggested([]);
+    setLookingFor('');
+    onClose();
+  };
+
+  const handleClose = () => {
+    setSuggested([]);
+    setLookingFor('');
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-xl bg-zinc-950 border-white/10 text-white max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="font-display flex items-center gap-2">
+            <Wand2 className="w-4 h-4 text-gold" />
+            AI Suggest Questions
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+          <div className="space-y-2">
+            <Label className="text-zinc-300">What are you looking for in applicants?</Label>
+            <Textarea
+              value={lookingFor}
+              onChange={(e) => { setLookingFor(e.target.value); setSuggested([]); }}
+              placeholder="e.g. Students passionate about machine learning who have done projects, can commit 5 hours/week, and want to learn from peers in a collaborative setting"
+              rows={4}
+              className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 text-sm resize-none"
+            />
+          </div>
+
+          {!suggested.length && (
+            <Button
+              onClick={handleGenerate}
+              disabled={loading || !lookingFor.trim()}
+              className="w-full bg-gold text-zinc-900 font-semibold hover:bg-gold/90 disabled:opacity-40"
+            >
+              {loading ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</>
+              ) : (
+                <><Wand2 className="w-4 h-4 mr-2" />Generate Questions</>
+              )}
+            </Button>
+          )}
+
+          {suggested.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-zinc-400">
+                {suggested.length} questions generated — review before adding
+              </p>
+              <div className="space-y-2">
+                {suggested.map((q) => (
+                  <InlineQuestionCard
+                    key={q.id}
+                    question={q}
+                    onChange={(id, updates) =>
+                      setSuggested((prev) => prev.map((s) => s.id === id ? { ...s, ...updates } : s))
+                    }
+                    onDelete={(id) =>
+                      setSuggested((prev) => prev.filter((s) => s.id !== id))
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className="pt-4 border-t border-white/10 mt-2 shrink-0">
+          <Button variant="outline" onClick={handleClose} className="border-white/20 text-white hover:bg-white/10">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAdd}
+            disabled={suggested.length === 0}
+            className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90 disabled:opacity-40"
+          >
+            Add {suggested.length > 0 ? suggested.length : ''} question{suggested.length !== 1 ? 's' : ''}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── FormBuilder (main) ───────────────────────────────────────────────────────
 
 export function FormBuilder({ clubId }: FormBuilderProps) {
@@ -694,6 +843,7 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [newFormOpen, setNewFormOpen] = useState(false);
+  const [aiSuggestOpen, setAiSuggestOpen] = useState(false);
   const [focusId, setFocusId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -1005,6 +1155,15 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setAiSuggestOpen(true)}
+            className="border-gold/30 text-gold hover:bg-gold/10"
+          >
+            <Wand2 className="w-4 h-4 mr-1.5" />
+            AI Suggest
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setImportOpen(true)}
             className="border-white/10 text-zinc-400 hover:text-white"
           >
@@ -1073,6 +1232,12 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
         Add Question
       </button>
 
+      <AISuggestModal
+        open={aiSuggestOpen}
+        onClose={() => setAiSuggestOpen(false)}
+        onImport={handleImport}
+        clubId={clubId}
+      />
       <ImportQuestionsModal
         open={importOpen}
         onClose={() => setImportOpen(false)}

@@ -273,8 +273,8 @@ export function calculateMatchScore(
   return Math.round(interestScore * 0.6 + resumeScore * 0.4);
 }
 
-/** Return the top human-readable term explaining why a club matches.
- *  Checks interests first, then resume keywords. */
+/** Return a human-readable sentence explaining why a club matches.
+ *  Checks resume keywords first (more specific), then interests. */
 export function getTopMatchTerm(
   club: Club,
   interestValues: string[],
@@ -284,20 +284,28 @@ export function getTopMatchTerm(
     .filter(Boolean).join(' ').toLowerCase();
   const clubKeywords = extractClubKeywords(club);
 
+  // Resume keywords first — they're the most specific signal
+  for (const kw of resumeKeywords) {
+    const lower = kw.toLowerCase().trim();
+    if (lower.length < 3) continue;
+    if (clubText.includes(lower)) {
+      return `Matches your ${kw} background`;
+    }
+    const cluster = keywordToCluster.get(lower);
+    if (cluster && clubKeywords.has(cluster)) {
+      return `Aligns with your ${kw} skills`;
+    }
+  }
+
+  // Fall back to interest-based reasons
   for (const val of interestValues) {
     const terms = INTEREST_TERM_MAP[val] || [val];
     for (const term of terms) {
       if (clubText.includes(term.toLowerCase())) {
-        return INTEREST_DISPLAY_MAP[val] || val.replace(/_/g, ' ');
+        const display = INTEREST_DISPLAY_MAP[val] || val.replace(/_/g, ' ');
+        return `Matches your interest in ${display}`;
       }
     }
-  }
-
-  for (const kw of resumeKeywords) {
-    const lower = kw.toLowerCase().trim();
-    if (clubText.includes(lower)) return kw;
-    const cluster = keywordToCluster.get(lower);
-    if (cluster && clubKeywords.has(cluster)) return kw;
   }
 
   return null;

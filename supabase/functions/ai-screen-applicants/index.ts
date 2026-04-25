@@ -167,15 +167,20 @@ serve(async (req) => {
           })
           .join("\n\n");
 
-        const criteriaText = aiCriteria
-          .map((c) => {
-            const val = c.value as { description: string; weight?: number };
-            const weight = val.weight ? ` (weight: ${val.weight}/5)` : "";
-            return `- ${val.description}${weight}`;
-          })
+        const criteriaWithIds = aiCriteria.map((c, i) => {
+          const val = c.value as { description: string; weight?: number };
+          return { index: i + 1, description: val.description, weight: val.weight ?? 3 };
+        });
+
+        const criteriaText = criteriaWithIds
+          .map((c) => `${c.index}. ${c.description} [weight: ${c.weight}/5]`)
           .join("\n");
 
-        const prompt = `You are an objective recruitment screening assistant. Analyze this candidate for this club based on the club's evaluation criteria.
+        const criteriaScoreFields = criteriaWithIds
+          .map((c) => `  "criterion_${c.index}": <integer 1-10>`)
+          .join(",\n");
+
+        const prompt = `You are an objective recruitment screening assistant. Score this candidate against each criterion individually, then we will compute the weighted total.
 
 CANDIDATE:
 Name: ${applicant.first_name} ${applicant.last_name}
@@ -186,30 +191,22 @@ GPA: ${applicant.gpa ?? "Not specified"}
 FORM RESPONSES:
 ${qaPairs}
 
-EVALUATION CRITERIA:
+EVALUATION CRITERIA (score each 1-10):
 ${criteriaText}
 
 INSTRUCTIONS:
-- Score holistically based on how well the candidate's responses align with each criterion.
-- Weight higher-priority criteria more heavily.
+- Score each criterion independently on a 1-10 scale based only on evidence in the responses.
 - Be factual and specific. Do NOT make a hiring decision.
-- Keep summary to 2-3 sentences.
+- Write a 2-3 sentence summary focused on the strongest signals — positive or negative.
+- Set is_standout to true ONLY for candidates who demonstrate something genuinely exceptional. Expect ~10-15% to be standouts.
 
 Respond ONLY with valid JSON in exactly this format:
 {
-  "fit_score": <integer 1-100>,
+${criteriaScoreFields},
   "summary": "<2-3 sentence factual summary>",
   "recommendation": "<Accept | Waitlist | Reject>",
   "is_standout": <true | false>
-}
-
-Set is_standout to true ONLY for candidates who demonstrate something genuinely exceptional — a rare combination of qualities, unusually strong and specific responses, noteworthy experience, or clear passion that stands out well above a typical applicant for this type of club. Expect roughly 10-15% of candidates to be standouts. Be selective — if most people are standouts, none of them are.
-
-Scoring guide:
-80-100: Strong alignment with most criteria
-60-79: Moderate alignment
-40-59: Limited alignment
-1-39: Poor alignment or insufficient information`;
+}`;
 
         try {
           const aiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -232,7 +229,25 @@ Scoring guide:
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const parsed = JSON.parse(jsonMatch[0]) as ClaudeResponse;
-              fitScore = Math.max(1, Math.min(100, parsed.fit_score || fitScore));
+
+              // Compute weighted score from per-criterion scores
+              let weightedSum = 0;
+              let totalWeight = 0;
+              for (const c of criteriaWithIds) {
+                const rawScore = (parsed as any)[`criterion_${c.index}`];
+                if (typeof rawScore === "number") {
+                  weightedSum += rawScore * c.weight;
+                  totalWeight += c.weight;
+                }
+              }
+
+              if (totalWeight > 0) {
+                // Convert weighted average (1-10 scale) to 1-100
+                fitScore = Math.max(1, Math.min(100, Math.round((weightedSum / totalWeight) * 10)));
+              } else if (typeof parsed.fit_score === "number") {
+                fitScore = Math.max(1, Math.min(100, parsed.fit_score));
+              }
+
               aiSummary = parsed.recommendation
                 ? `[${parsed.recommendation}] ${parsed.summary}`
                 : parsed.summary || "";
