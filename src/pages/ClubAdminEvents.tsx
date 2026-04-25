@@ -33,6 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EventEditModal } from '@/components/club-admin/EventEditModal';
 import { EventFilters, StatusFilter } from '@/components/club-admin/EventFilters';
 import { AdminBreadcrumb } from '@/components/club-admin/AdminBreadcrumb';
+import { PostEventModal } from '@/components/club-admin/PostEventModal';
 
 export default function ClubAdminEvents() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -45,6 +46,7 @@ export default function ClubAdminEvents() {
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [editingEvent, setEditingEvent] = useState<ExternalEvent | null>(null);
+  const [postEventOpen, setPostEventOpen] = useState(false);
 
   // Filter state
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -245,12 +247,18 @@ export default function ClubAdminEvents() {
                 <p className="text-xs text-muted-foreground tracking-wide uppercase font-medium">Event Management</p>
               </div>
             </div>
-            <Button variant="gold" asChild>
-              <Link to={`/submit-event?club=${clubId}`}>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="gold"
+                onClick={() => setPostEventOpen(true)}
+              >
                 <Plus className="w-4 h-4 mr-2" />
-                New Event
-              </Link>
-            </Button>
+                Post Event
+              </Button>
+              <Button variant="outline" size="sm" asChild className="border-white/10 text-zinc-400 hover:text-white text-xs">
+                <Link to={`/submit-event?club=${clubId}`}>Advanced</Link>
+              </Button>
+            </div>
           </header>
 
           <div className="p-6">
@@ -446,6 +454,14 @@ export default function ClubAdminEvents() {
         isOpen={!!editingEvent}
         onClose={() => setEditingEvent(null)}
         onSaved={fetchClubEvents}
+      />
+
+      <PostEventModal
+        open={postEventOpen}
+        onClose={() => setPostEventOpen(false)}
+        clubId={clubId ?? ''}
+        clubName={club.clubName}
+        onPosted={fetchClubEvents}
       />
     </SidebarProvider>
   );

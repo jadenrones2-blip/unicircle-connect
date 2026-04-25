@@ -35,6 +35,7 @@ import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from '@/components/calendar/EventDetailModal';
 import { formatEventDateTimeShort } from '@/lib/formatters';
 import { useUCSDEvents } from '@/hooks/useUCSDEvents';
+import { useClubMatchedEvents } from '@/hooks/useClubMatchedEvents';
 
 // Mapping from quiz answers to club categories/tags
 const interestToClubMapping: Record<string, string[]> = {
@@ -149,7 +150,9 @@ export default function Dashboard() {
   const [interests, setInterests] = useState<{ category: string; value: string }[]>([]);
   const [interestsLoading, setInterestsLoading] = useState(true);
   const interestValues = useMemo(() => interests.map(i => i.value), [interests]);
+  const resumeSignalValues = useMemo(() => interests.filter(i => i.category.startsWith('resume')).map(i => i.value), [interests]);
   const { events: ucsdEvents, loading: ucsdEventsLoading } = useUCSDEvents(interestValues, 6);
+  const { events: clubEvents, loading: clubEventsLoading } = useClubMatchedEvents(clubs, interestValues, resumeSignalValues, 6);
   const [applyingClubId, setApplyingClubId] = useState<string | null>(null);
   const [upcomingEvents, setUpcomingEvents] = useState<ExternalEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
@@ -389,6 +392,69 @@ export default function Dashboard() {
             />
           </TabsContent>
         </Tabs>
+
+        {/* Club Events Feed — from clubs matching student interests */}
+        {(clubEvents.length > 0 || clubEventsLoading) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.02 }}
+            className="mb-8 sm:mb-10"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-gold" />
+                <h2 className="font-display text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                  Club Events For You
+                </h2>
+              </div>
+            </div>
+            {clubEventsLoading ? (
+              <div className="flex items-center gap-2 py-4 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Finding club events…</span>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {clubEvents.map(event => {
+                  const title = event.title;
+                  const dateStr = event.start_time
+                    ? new Date(event.start_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+                    : null;
+                  return (
+                    <div
+                      key={event.id}
+                      className="flex flex-col gap-2 p-4 rounded-xl border border-white/8 bg-zinc-900/60 hover:border-gold/30 hover:bg-zinc-900 transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-medium text-white text-sm leading-snug line-clamp-2 flex-1">{title}</p>
+                        {event.isNative && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20 shrink-0">Posted</span>
+                        )}
+                      </div>
+                      {event.club_name && (
+                        <p className="text-[11px] text-zinc-500">{event.club_name}</p>
+                      )}
+                      <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
+                        {dateStr && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />{dateStr}
+                          </span>
+                        )}
+                        {event.location && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            <span className="truncate max-w-[140px]">{event.location}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* Personalized UCSD Events Feed */}
         {(ucsdEvents.length > 0 || ucsdEventsLoading) && (
