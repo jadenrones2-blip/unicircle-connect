@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { dataClient } from '@/integrations/supabase/dataClient';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface StudentApplication {
@@ -9,6 +10,9 @@ export interface StudentApplication {
   first_name: string;
   last_name: string;
   email: string;
+  major: string | null;
+  year: string | null;
+  is_quick_interest: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +39,7 @@ export interface StudentRecruitmentData {
   currentStageIndex: number;
   totalStages: number;
   progressPercent: number;
+  clubName: string;
 }
 
 export function useStudentRecruitment() {
@@ -49,11 +54,11 @@ export function useStudentRecruitment() {
     }
 
     try {
-      // Fetch applicant records for this user's email
       const { data: applicantData, error: applicantError } = await supabase
         .from('applicants')
-        .select('id, club_id, stage_id, first_name, last_name, email, major, year, metadata, created_at, updated_at')
-        .eq('email', user.email);
+        .select('id, club_id, stage_id, first_name, last_name, email, major, year, is_quick_interest, created_at, updated_at')
+        .eq('email', user.email)
+        .order('created_at', { ascending: false });
 
       if (applicantError) {
         console.error('Error fetching applicant data:', applicantError);
@@ -67,18 +72,27 @@ export function useStudentRecruitment() {
         return;
       }
 
-      // For each application, fetch stages and settings
+      // Batch fetch club names from external DB
+      const clubIds = [...new Set(applicantData.map((a: any) => a.club_id))];
+      const { data: clubRows } = await dataClient
+        .from('clubs')
+        .select('id, name')
+        .in('id', clubIds as string[]);
+
+      const clubNameMap: Record<string, string> = {};
+      for (const c of clubRows ?? []) {
+        clubNameMap[(c as any).id] = (c as any).name;
+      }
+
       const enrichedApplications: StudentRecruitmentData[] = [];
 
       for (const app of applicantData) {
-        // Fetch stages for this club
         const { data: stagesData } = await supabase
           .from('recruitment_stages')
           .select('*')
           .eq('club_id', app.club_id)
           .order('order_index', { ascending: true });
 
-        // Fetch settings for this club
         const { data: settingsData } = await supabase
           .from('recruitment_settings')
           .select('*')
@@ -86,21 +100,25 @@ export function useStudentRecruitment() {
           .maybeSingle();
 
         const stages = stagesData || [];
-        const currentStageIndex = app.stage_id 
-          ? stages.findIndex(s => s.id === app.stage_id)
+        const currentStageIndex = app.stage_id
+          ? stages.findIndex((s: any) => s.id === app.stage_id)
           : 0;
         const totalStages = stages.length;
-        const progressPercent = totalStages > 0 
+        const progressPercent = totalStages > 0
           ? Math.round(((currentStageIndex + 1) / totalStages) * 100)
           : 0;
 
         enrichedApplications.push({
-          application: app,
-          stages,
+          application: {
+            ...app,
+            is_quick_interest: (app as any).is_quick_interest ?? false,
+          } as StudentApplication,
+          stages: stages as RecruitmentStage[],
           settings: settingsData as ClubRecruitmentSettings | null,
           currentStageIndex: currentStageIndex >= 0 ? currentStageIndex : 0,
           totalStages,
           progressPercent,
+          clubName: clubNameMap[app.club_id] ?? 'Club',
         });
       }
 
@@ -116,9 +134,5 @@ export function useStudentRecruitment() {
     fetchApplications();
   }, [fetchApplications]);
 
-  return {
-    applications,
-    loading,
-    refetch: fetchApplications,
-  };
+  return { applications, loading, refetch: fetchApplications };
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link2, Copy, Plus, Pencil, Trash2, Check, X, Loader2 } from 'lucide-react';
+import { Link2, Copy, Plus, Pencil, Trash2, Check, X, Loader2, Download, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RequirementsBuilder } from '../RequirementsBuilder';
@@ -68,8 +68,8 @@ export function SettingsView({
     <div className="flex flex-col gap-5 max-w-2xl">
 
       {/* Apply Link */}
-      <Section title="Apply Link" subtitle="Share this URL with students to collect applications">
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-zinc-900 border border-white/8">
+      <Section title="Apply Link & QR Code" subtitle="Share with students at tables, on Instagram, or anywhere">
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-zinc-900 border border-white/8 mb-4">
           <Link2 className="w-4 h-4 text-gold shrink-0" />
           <span className="flex-1 text-sm text-zinc-300 font-mono truncate">{applyUrl}</span>
           <button
@@ -79,7 +79,38 @@ export function SettingsView({
             <Copy className="w-3 h-3" /> Copy
           </button>
         </div>
-        <p className="text-xs text-zinc-600 mt-2">
+
+        {/* QR Code */}
+        <div className="flex flex-col sm:flex-row items-start gap-5">
+          <div className="p-3 rounded-xl bg-white shrink-0">
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(applyUrl + '?source=qr')}&bgcolor=ffffff&color=000000&margin=0`}
+              alt="Apply QR Code"
+              width={160}
+              height={160}
+              className="block"
+            />
+          </div>
+          <div className="flex flex-col gap-3">
+            <div>
+              <div className="flex items-center gap-1.5 mb-1">
+                <QrCode className="w-3.5 h-3.5 text-gold" />
+                <p className="text-sm font-medium text-white">QR Code for Tabling</p>
+              </div>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Show this at your table. Students scan to instantly express interest — no form filling required at the table. They complete the full application later from their dashboard.
+              </p>
+            </div>
+            <button
+              onClick={() => window.open(`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(applyUrl + '?source=qr')}&bgcolor=ffffff&color=000000&margin=10`, '_blank')}
+              className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors w-fit"
+            >
+              <Download className="w-3 h-3" /> Download QR
+            </button>
+          </div>
+        </div>
+
+        <p className="text-xs text-zinc-600 mt-3">
           Build your form in the <span className="text-zinc-400">Form</span> tab before sharing this link.
         </p>
       </Section>

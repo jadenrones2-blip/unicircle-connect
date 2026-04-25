@@ -1,53 +1,53 @@
 import { motion } from 'framer-motion';
-import { Briefcase, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useStudentRecruitment } from '@/hooks/useStudentRecruitment';
 import RecruitmentTrackerCard from './RecruitmentTrackerCard';
 
 export default function RecruitmentTrackerSection() {
   const { applications, loading } = useStudentRecruitment();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (applications.length === 0) {
-    return null; // Don't show section if no recruitment applications
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="mb-10"
+      className="mb-8 sm:mb-10"
     >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 rounded-lg bg-amber-500/10">
-          <Briefcase className="h-5 w-5 text-amber-500" />
-        </div>
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-semibold text-foreground">
-            Recruitment Tracker
+          <h2 className="font-display text-lg sm:text-xl font-bold text-white tracking-tight">
+            My Applications
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Track your progress in club recruitment processes
-          </p>
+          <p className="text-sm text-zinc-500">Track where you stand</p>
         </div>
+        <Link
+          to="/clubs"
+          className="text-xs text-zinc-500 hover:text-gold transition-colors"
+        >
+          Browse clubs →
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {applications.map((data, index) => (
-          <RecruitmentTrackerCard
-            key={data.application.id}
-            data={data}
-            index={index}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex items-center gap-2 py-6 text-zinc-500">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="text-sm">Loading applications…</span>
+        </div>
+      ) : applications.length === 0 ? (
+        <div className="text-center py-10 border border-dashed border-white/10 rounded-xl">
+          <p className="text-sm text-zinc-500 mb-1">No applications yet.</p>
+          <Link to="/clubs" className="text-xs text-gold hover:underline">
+            Browse clubs to get started →
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {applications.map((data) => (
+            <RecruitmentTrackerCard key={data.application.id} data={data} />
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 }

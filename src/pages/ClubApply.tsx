@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Zap } from 'lucide-react';
 import { ArrowLeft, Loader2, CheckCircle2, Upload, Video, StopCircle, RotateCcw, Download, Camera } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
@@ -281,6 +282,11 @@ export default function ClubApply() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  // Quick interest state
+  const [quickSubmitting, setQuickSubmitting] = useState(false);
+  const [quickSubmitted, setQuickSubmitted] = useState(false);
+  const [alreadyApplied, setAlreadyApplied] = useState(false);
+
   useEffect(() => {
     if (!clubId) return;
 
@@ -338,6 +344,64 @@ export default function ClubApply() {
 
   const handleAnswer = (questionId: string, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  };
+
+  const handleQuickInterest = async () => {
+    if (!clubId || !user?.email) return;
+    setQuickSubmitting(true);
+    try {
+      // Check for duplicate
+      const { data: existing } = await supabase
+        .from('applicants')
+        .select('id')
+        .eq('club_id', clubId.trim().toLowerCase())
+        .eq('email', user.email)
+        .maybeSingle();
+
+      if (existing) {
+        setAlreadyApplied(true);
+        toast.error('You have already applied or expressed interest in this club.');
+        setQuickSubmitting(false);
+        return;
+      }
+
+      // Fetch user profile
+      const { data: profile } = await (supabase as any)
+        .from('profiles')
+        .select('first_name, last_name, email')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const fullName = user.user_metadata?.full_name ?? '';
+      const nameParts = fullName.split(' ');
+      const fName = profile?.first_name || nameParts[0] || '';
+      const lName = profile?.last_name || nameParts.slice(1).join(' ') || '';
+      const emailAddr = profile?.email || user.email || '';
+
+      const { error } = await supabase
+        .from('applicants')
+        .insert({
+          club_id: clubId.trim().toLowerCase(),
+          stage_id: firstStageId,
+          first_name: fName,
+          last_name: lName,
+          email: emailAddr,
+          major: null,
+          year: null,
+          gpa: null,
+          metadata: {},
+          is_quick_interest: true,
+        } as any);
+
+      if (error) throw error;
+
+      setQuickSubmitted(true);
+      toast.success('Interest registered! Complete your full application anytime from your dashboard.');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to express interest. Please try again.');
+    } finally {
+      setQuickSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -561,6 +625,48 @@ export default function ClubApply() {
             <span className="text-red-400">*</span> are required.
           </p>
         </div>
+
+        {/* Quick Interest Banner — logged-in users only */}
+        {user && !alreadyApplied && firstStageId && (
+          <div className="mb-6 rounded-xl border border-gold/25 bg-gold/5 p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-gold/15 flex items-center justify-center shrink-0 mt-0.5">
+                <Zap className="w-4 h-4 text-gold" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-white text-sm mb-0.5">Express interest in one tap</p>
+                <p className="text-xs text-zinc-400 mb-3">
+                  Scanning at the org fair? Tap below — your profile is sent instantly. You can fill out the full application anytime from your dashboard.
+                </p>
+                {quickSubmitted ? (
+                  <div className="flex items-center gap-2 text-sm text-emerald-400">
+                    <span className="w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center text-[10px]">✓</span>
+                    Interest registered! Check your dashboard to complete the application.
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleQuickInterest}
+                    disabled={quickSubmitting}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gold text-zinc-900 text-sm font-semibold hover:bg-gold/90 transition-colors disabled:opacity-60"
+                  >
+                    {quickSubmitting ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Zap className="w-3.5 h-3.5" />
+                    )}
+                    {quickSubmitting ? 'Registering…' : "I'm Interested"}
+                  </button>
+                )}
+              </div>
+            </div>
+            {!quickSubmitted && (
+              <p className="text-[11px] text-zinc-600 mt-3 pl-11">
+                Want to fill out the full application? Continue below ↓
+              </p>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile Photo (optional) */}

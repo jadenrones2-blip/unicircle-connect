@@ -1,130 +1,117 @@
-import { motion } from 'framer-motion';
-import { CheckCircle2, Circle, Clock, MessageSquare } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import type { StudentRecruitmentData } from '@/hooks/useStudentRecruitment';
-import { useClubs } from '@/hooks/useExternalDB';
 
 interface RecruitmentTrackerCardProps {
   data: StudentRecruitmentData;
-  index: number;
 }
 
-export default function RecruitmentTrackerCard({ data, index }: RecruitmentTrackerCardProps) {
-  const { application, stages, settings, currentStageIndex, progressPercent } = data;
-  const { data: clubs } = useClubs();
-  
-  // Find club name from external DB
-  const club = clubs.find(c => c.id === application.club_id);
-  const clubName = club?.name || 'Club';
+export default function RecruitmentTrackerCard({ data }: RecruitmentTrackerCardProps) {
+  const { application, stages, settings, currentStageIndex, progressPercent, clubName } = data;
 
-  const showStageNames = settings?.show_stage_names ?? false;
+  const isQuickInterest = application.is_quick_interest;
+  const isComplete = !isQuickInterest && currentStageIndex === stages.length - 1 && stages.length > 0;
+
   const showProgressBar = settings?.show_progress_bar ?? true;
-  const showTimeline = settings?.show_timeline ?? false;
+  const showStageNames = settings?.show_stage_names ?? false;
   const customMessage = settings?.student_visible_message;
 
-  const currentStage = stages[currentStageIndex];
-  const isComplete = currentStageIndex === stages.length - 1;
+  const formattedDate = new Date(application.created_at).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric',
+  });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-    >
-      <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:border-amber-500/30 transition-colors">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold">{clubName}</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Applied {new Date(application.created_at).toLocaleDateString()}
-              </p>
-            </div>
-            <Badge 
-              variant={isComplete ? "default" : "secondary"}
-              className={isComplete ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}
-            >
-              {isComplete ? "Complete" : "In Progress"}
-            </Badge>
+    <div className="rounded-xl border border-white/10 bg-zinc-900 p-5 space-y-4 hover:border-white/20 transition-colors">
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-display font-semibold text-white text-base truncate">{clubName}</p>
+          <p className="text-xs text-zinc-500 mt-0.5">
+            {isQuickInterest ? 'Expressed interest' : 'Applied'} · {formattedDate}
+          </p>
+        </div>
+        {isQuickInterest ? (
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-white/10 shrink-0">
+            Interested
+          </span>
+        ) : isComplete ? (
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 shrink-0">
+            Complete
+          </span>
+        ) : (
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20 shrink-0">
+            In Review
+          </span>
+        )}
+      </div>
+
+      {/* Quick interest — complete application CTA */}
+      {isQuickInterest && (
+        <Link
+          to={`/clubs/${application.club_id}/apply`}
+          className="flex items-center justify-between w-full px-3 py-2.5 rounded-lg border border-gold/30 bg-gold/8 hover:bg-gold/15 transition-colors group"
+        >
+          <div>
+            <p className="text-sm font-medium text-gold">Complete your application</p>
+            <p className="text-xs text-zinc-500">Fill out the full form to be considered</p>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Progress Bar */}
-          {showProgressBar && stages.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Progress</span>
-                <span className="font-medium text-foreground">{progressPercent}%</span>
-              </div>
-              <Progress value={progressPercent} className="h-2" />
-            </div>
-          )}
+          <ArrowRight className="w-4 h-4 text-gold group-hover:translate-x-0.5 transition-transform" />
+        </Link>
+      )}
 
-          {/* Current Stage Display */}
-          {showStageNames && currentStage && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
-              <Clock className="h-4 w-4 text-amber-500" />
-              <span className="text-sm font-medium">Current Stage:</span>
-              <span className="text-sm text-muted-foreground">{currentStage.label}</span>
-            </div>
-          )}
+      {/* Progress bar — full applications only */}
+      {!isQuickInterest && showProgressBar && stages.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs">
+            <span className="text-zinc-500">Progress</span>
+            <span className="text-zinc-300 font-medium">{progressPercent}%</span>
+          </div>
+          <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gold rounded-full transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      )}
 
-          {/* Timeline View */}
-          {showTimeline && stages.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Timeline</p>
-              <div className="flex items-center gap-1">
-                {stages.map((stage, idx) => (
-                  <div key={stage.id} className="flex items-center">
-                    <div className="flex flex-col items-center">
-                      {idx < currentStageIndex ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      ) : idx === currentStageIndex ? (
-                        <div className="h-5 w-5 rounded-full border-2 border-amber-500 bg-amber-500/20 flex items-center justify-center">
-                          <div className="h-2 w-2 rounded-full bg-amber-500" />
-                        </div>
-                      ) : (
-                        <Circle className="h-5 w-5 text-muted-foreground/50" />
-                      )}
-                      {showStageNames && (
-                        <span className="text-xs text-muted-foreground mt-1 max-w-[60px] truncate text-center">
-                          {stage.label}
-                        </span>
-                      )}
-                    </div>
-                    {idx < stages.length - 1 && (
-                      <div 
-                        className={`h-0.5 w-6 mx-1 ${
-                          idx < currentStageIndex 
-                            ? 'bg-green-500' 
-                            : 'bg-muted-foreground/30'
-                        }`}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
+      {/* Stage dots */}
+      {!isQuickInterest && stages.length > 0 && (
+        <div className="flex items-center gap-1 flex-wrap">
+          {stages.map((stage, idx) => (
+            <div key={stage.id} className="flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full shrink-0 ${
+                idx < currentStageIndex ? 'bg-emerald-400' :
+                idx === currentStageIndex ? 'bg-gold' :
+                'bg-zinc-700'
+              }`} />
+              {showStageNames && (
+                <span className={`text-[10px] ${
+                  idx === currentStageIndex ? 'text-zinc-300' : 'text-zinc-600'
+                }`}>
+                  {stage.label}
+                </span>
+              )}
+              {idx < stages.length - 1 && (
+                <div className={`h-px w-3 ${idx < currentStageIndex ? 'bg-emerald-400/60' : 'bg-zinc-700'}`} />
+              )}
             </div>
-          )}
+          ))}
+        </div>
+      )}
 
-          {/* Custom Message from Club */}
-          {customMessage && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
-              <MessageSquare className="h-4 w-4 text-primary mt-0.5" />
-              <p className="text-sm text-muted-foreground">{customMessage}</p>
-            </div>
-          )}
+      {/* Custom message from club */}
+      {customMessage && (
+        <div className="px-3 py-2.5 rounded-lg bg-white/5 border border-white/8">
+          <p className="text-xs text-zinc-400 leading-relaxed">{customMessage}</p>
+        </div>
+      )}
 
-          {/* Minimal view if nothing is enabled */}
-          {!showProgressBar && !showStageNames && !showTimeline && !customMessage && (
-            <p className="text-sm text-muted-foreground">
-              Your application is being reviewed. Check back for updates.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    </motion.div>
+      {/* Minimal fallback */}
+      {!isQuickInterest && !showProgressBar && stages.length === 0 && !customMessage && (
+        <p className="text-xs text-zinc-500">Your application is being reviewed.</p>
+      )}
+    </div>
   );
 }
