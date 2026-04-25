@@ -9,8 +9,7 @@ import { RecruitmentIntro } from '@/components/recruitment/RecruitmentIntro';
 import { RecruitmentSetupWizard } from '@/components/recruitment/RecruitmentSetupWizard';
 import { RecruitmentKanban } from '@/components/recruitment/RecruitmentKanban';
 import { useRecruitment } from '@/hooks/useRecruitment';
-import { Loader2, Link2, Copy, FileText, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
+import { Loader2, AlertTriangle } from 'lucide-react';
 
 export default function ClubAdminRecruitment() {
   const navigate = useNavigate();
@@ -19,7 +18,6 @@ export default function ClubAdminRecruitment() {
   const { isOwnerOf, isOfficerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
   const [enabling, setEnabling] = useState(false);
   const [creatingStages, setCreatingStages] = useState(false);
-  const [jumpToForm, setJumpToForm] = useState(false);
 
   const {
     settings,
@@ -30,8 +28,6 @@ export default function ClubAdminRecruitment() {
     hasStages,
     enableRecruitment,
     createStages,
-    addApplicant,
-    bulkAddApplicants,
     updateApplicantStage,
     bulkMoveApplicants,
     deleteApplicant,
@@ -39,7 +35,6 @@ export default function ClubAdminRecruitment() {
     addStage,
     deleteStage,
     fetchForm,
-    saveForm,
     updateFinalDecision,
     updateNotes,
     refetch,
@@ -55,7 +50,6 @@ export default function ClubAdminRecruitment() {
   }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, isOfficerOf, navigate]);
 
   const clubName = ownedClubs.find(c => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase())?.clubName || 'Club';
-  const applyUrl = `${window.location.origin}/clubs/${clubId}/apply`;
 
   const handleEnable = async () => {
     setEnabling(true);
@@ -69,7 +63,6 @@ export default function ClubAdminRecruitment() {
     setCreatingStages(false);
   };
 
-  // Auto-create the "Applied" intake stage if recruitment is enabled but no stages exist yet
   useEffect(() => {
     if (!recruitmentLoading && isEnabled && !hasStages && !creatingStages) {
       handleCreateStages([]);
@@ -103,51 +96,12 @@ export default function ClubAdminRecruitment() {
           </header>
 
           <div className="flex-1 flex flex-col p-5 sm:p-7 min-h-0">
-            {/* Email verification warning */}
             {user && !user.email_confirmed_at && (
               <div className="mb-3 flex items-center gap-3 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5">
                 <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
                 <p className="text-sm text-amber-300">
                   Please verify your email address — check your inbox for a confirmation link.
                 </p>
-              </div>
-            )}
-
-            {/* Apply link banner — shown once recruitment is live */}
-            {isEnabled && hasStages && (
-              <div className="mb-3 flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-2.5 rounded-xl border border-white/8 bg-white/[0.02]">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <Link2 className="w-4 h-4 text-gold flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[11px] text-zinc-600 uppercase tracking-wide mb-0.5">Your Apply Link</p>
-                    <span className="text-sm text-zinc-400 font-mono truncate block">{applyUrl}</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(applyUrl); toast.success('Apply link copied!'); }}
-                  className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors self-start sm:self-auto shrink-0"
-                >
-                  <Copy className="w-3 h-3" /> Copy
-                </button>
-              </div>
-            )}
-
-            {/* Form builder callout */}
-            {isEnabled && hasStages && (
-              <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 rounded-xl border border-gold/20 bg-gold/5">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <FileText className="w-4 h-4 text-gold flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-white">Customize your application form</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">Add your own questions before sharing the apply link</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setJumpToForm(true)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-gold border border-gold/30 rounded-lg px-3 py-1.5 hover:bg-gold/10 transition-colors self-start sm:self-auto shrink-0"
-                >
-                  Build Form →
-                </button>
               </div>
             )}
 
@@ -163,8 +117,6 @@ export default function ClubAdminRecruitment() {
                 applicants={applicants}
                 settings={settings}
                 onMoveApplicant={updateApplicantStage}
-                onAddApplicant={addApplicant}
-                onBulkAddApplicants={bulkAddApplicants}
                 onBulkMoveApplicants={bulkMoveApplicants}
                 onDeleteApplicant={deleteApplicant}
                 onUpdateStage={updateStage}
@@ -172,11 +124,8 @@ export default function ClubAdminRecruitment() {
                 onDeleteStage={deleteStage}
                 onRefresh={refetch}
                 fetchForm={fetchForm}
-                saveForm={saveForm}
                 onUpdateFinalDecision={updateFinalDecision}
                 onUpdateNotes={updateNotes}
-                jumpToForm={jumpToForm}
-                onJumpToFormHandled={() => setJumpToForm(false)}
               />
             )}
           </div>
