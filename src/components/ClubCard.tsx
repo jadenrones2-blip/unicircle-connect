@@ -116,6 +116,13 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, compareSel
             <div className="flex-1 mb-4" />
           )}
 
+          {/* Reason tag — only shown on recommended shelf */}
+          {reason && (
+            <p className="text-[11px] text-gold/80 mb-3 leading-snug">
+              ✦ {reason}
+            </p>
+          )}
+
           {/* Footer */}
           <div className="flex items-center justify-between mt-auto">
             <span className="text-[11px] text-zinc-600">View club</span>
