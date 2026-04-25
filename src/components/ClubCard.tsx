@@ -9,8 +9,6 @@ interface ClubCardProps {
   isSaved?: boolean;
   onToggleSave?: (clubId: string) => void;
   matchScore?: number;
-  compareSelected?: boolean;
-  onToggleCompare?: (clubId: string) => void;
   reason?: string;
 }
 
@@ -35,7 +33,7 @@ function getCategoryColor(category: string): string {
   return CATEGORY_COLORS[key] ?? 'hsl(43 74% 56%)'; // default gold
 }
 
-const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, compareSelected, onToggleCompare, reason }: ClubCardProps) => {
+const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: ClubCardProps) => {
   const categoryColor = getCategoryColor(club.categoryBucket || club.category || '');
 
   return (
@@ -88,15 +86,6 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, compareSel
                   <Heart
                     className={`w-3.5 h-3.5 ${isSaved ? 'fill-red-500 text-red-500' : 'text-zinc-600 hover:text-zinc-300'}`}
                   />
-                </button>
-              )}
-              {onToggleCompare && (
-                <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleCompare(club.id); }}
-                  className={`text-[10px] font-medium px-1.5 py-0.5 rounded border transition-colors ${compareSelected ? 'bg-white/10 text-white border-white/30' : 'text-zinc-600 border-zinc-700 hover:text-zinc-300 hover:border-zinc-500'}`}
-                  aria-label={compareSelected ? "Remove from compare" : "Add to compare"}
-                >
-                  {compareSelected ? '✓ Compare' : '+ Compare'}
                 </button>
               )}
             </div>

@@ -29,7 +29,6 @@ import ClubAdminEdit from "./pages/ClubAdminEdit";
 import ClubAdminRecruitment from "./pages/ClubAdminRecruitment";
 import ClubAdminAnalytics from "./pages/ClubAdminAnalytics";
 import ClubAdminMembers from "./pages/ClubAdminMembers";
-import ClubCompare from "./pages/ClubCompare";
 import ClubApply from "./pages/ClubApply";
 import Opportunities from "./pages/Opportunities";
 import AdminOnboarding from "./pages/AdminOnboarding";
@@ -79,7 +78,6 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<StudentProfile />} />
           <Route path="/clubs" element={<ClubsDirectory />} />
-          <Route path="/clubs/compare" element={<ClubCompare />} />
           <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/clubs/:id" element={<ClubDetail />} />
           <Route path="/clubs/:id/apply" element={<ClubApply />} />

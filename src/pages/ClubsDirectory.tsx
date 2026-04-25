@@ -6,7 +6,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
 import RequestNewClubModal from "@/components/RequestNewClubModal";
-import CompareBar from "@/components/CompareBar";
 import RecommendationChat from "@/components/RecommendationChat";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -76,7 +75,6 @@ const ClubsDirectory = () => {
   const { fetchInterests, fetchResumeSignals } = useUserInterests();
   const [interestValues, setInterestValues] = useState<string[]>([]);
   const [resumeSignals, setResumeSignals] = useState<string[]>([]);
-  const [compareIds, setCompareIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) fetchSavedClubs(user.id);
@@ -196,26 +194,6 @@ const ClubsDirectory = () => {
       .slice(0, 5);
   }, [clubs, interestValues, resumeSignals, user]);
 
-  // Club names map for CompareBar
-  const compareClubNames = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const id of compareIds) {
-      const club = clubs.find((c) => c.id === id);
-      if (club) map[id] = club.name;
-    }
-    return map;
-  }, [compareIds, clubs]);
-
-  const handleToggleCompare = (clubId: string) => {
-    setCompareIds((prev) => {
-      if (prev.includes(clubId)) return prev.filter((id) => id !== clubId);
-      if (prev.length >= 4) {
-        toast.error('You can compare up to 4 clubs at a time');
-        return prev;
-      }
-      return [...prev, clubId];
-    });
-  };
 
   return (
     <main className="min-h-screen bg-[#0A0A0A] dark">
@@ -347,8 +325,7 @@ const ClubsDirectory = () => {
                     onToggleSave={handleToggleSave}
                     matchScore={matchScores[club.id]}
                     reason={reason ?? undefined}
-                    compareSelected={compareIds.includes(club.id)}
-                    onToggleCompare={handleToggleCompare}
+
                   />
                 </div>
               ))}
@@ -408,8 +385,7 @@ const ClubsDirectory = () => {
                           isSaved={isSaved(club.id)}
                           onToggleSave={handleToggleSave}
                           matchScore={matchScores[club.id]}
-                          compareSelected={compareIds.includes(club.id)}
-                          onToggleCompare={handleToggleCompare}
+
                         />
                       </motion.div>
                     ))}
@@ -448,12 +424,6 @@ const ClubsDirectory = () => {
 
       <Footer />
 
-      <CompareBar
-        selectedIds={compareIds}
-        clubNames={compareClubNames}
-        onRemove={handleToggleCompare}
-        onClear={() => setCompareIds([])}
-      />
 
       <RecommendationChat clubs={clubs} />
     </main>
