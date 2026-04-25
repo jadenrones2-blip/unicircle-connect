@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   DndContext, DragEndEvent, closestCenter,
   PointerSensor, TouchSensor, useSensor, useSensors,
@@ -683,6 +683,13 @@ function NewFormDialog({
 
 // ─── AI Suggest Questions Modal ──────────────────────────────────────────────
 
+interface ClubInfo {
+  name: string;
+  description: string;
+  category: string;
+  tags: string[];
+}
+
 function AISuggestModal({
   open,
   onClose,
@@ -696,10 +703,35 @@ function AISuggestModal({
 }) {
   const [lookingFor, setLookingFor] = useState('');
   const [loading, setLoading] = useState(false);
+  const [clubLoading, setClubLoading] = useState(false);
+  const [clubInfo, setClubInfo] = useState<ClubInfo | null>(null);
   const [suggested, setSuggested] = useState<FormQuestion[]>([]);
 
+  // Fetch club info from external DB when modal opens
+  useEffect(() => {
+    if (!open || !clubId) return;
+    setClubLoading(true);
+    import('@/integrations/supabase/dataClient').then(({ dataClient }) => {
+      dataClient
+        .from('clubs')
+        .select('name, description, category, tags')
+        .eq('id', clubId.trim().toLowerCase())
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setClubInfo({
+              name: data.name || '',
+              description: data.description || '',
+              category: data.category || '',
+              tags: Array.isArray(data.tags) ? data.tags : [],
+            });
+          }
+          setClubLoading(false);
+        });
+    });
+  }, [open, clubId]);
+
   const handleGenerate = async () => {
-    if (!lookingFor.trim()) return;
     setLoading(true);
     setSuggested([]);
     try {
@@ -715,7 +747,14 @@ function AISuggestModal({
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ club_id: clubId, looking_for: lookingFor }),
+          body: JSON.stringify({
+            club_id: clubId,
+            club_name: clubInfo?.name || '',
+            description: clubInfo?.description || '',
+            category: clubInfo?.category || '',
+            tags: clubInfo?.tags || [],
+            looking_for: lookingFor,
+          }),
         }
       );
 
@@ -751,6 +790,7 @@ function AISuggestModal({
   const handleClose = () => {
     setSuggested([]);
     setLookingFor('');
+    setClubInfo(null);
     onClose();
   };
 
@@ -765,13 +805,44 @@ function AISuggestModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+
+          {/* Club context card */}
+          {clubLoading ? (
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/5 border border-white/8">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
+              <span className="text-xs text-zinc-500">Looking up club info…</span>
+            </div>
+          ) : clubInfo?.name ? (
+            <div className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5 space-y-1">
+              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Club context loaded</p>
+              <p className="text-sm font-medium text-white">{clubInfo.name}</p>
+              {clubInfo.description && (
+                <p className="text-xs text-zinc-500 line-clamp-2">{clubInfo.description}</p>
+              )}
+              {clubInfo.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 pt-0.5">
+                  {clubInfo.tags.slice(0, 5).map(tag => (
+                    <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/8 text-zinc-500 border border-white/8">{tag}</span>
+                  ))}
+                </div>
+              )}
+              <p className="text-[10px] text-zinc-600 pt-0.5">Claude will use this to generate relevant questions automatically.</p>
+            </div>
+          ) : (
+            <div className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5">
+              <p className="text-xs text-zinc-500">No club profile found — questions will be based on what you describe below.</p>
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label className="text-zinc-300">What are you looking for in applicants?</Label>
+            <Label className="text-zinc-300">
+              Anything specific you're looking for? <span className="text-zinc-500 font-normal">(optional)</span>
+            </Label>
             <Textarea
               value={lookingFor}
               onChange={(e) => { setLookingFor(e.target.value); setSuggested([]); }}
-              placeholder="e.g. Students passionate about machine learning who have done projects, can commit 5 hours/week, and want to learn from peers in a collaborative setting"
-              rows={4}
+              placeholder="e.g. Strong commitment, previous project experience, interest in competing nationally — leave blank to generate based on club profile alone"
+              rows={3}
               className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 text-sm resize-none"
             />
           </div>
@@ -779,7 +850,7 @@ function AISuggestModal({
           {!suggested.length && (
             <Button
               onClick={handleGenerate}
-              disabled={loading || !lookingFor.trim()}
+              disabled={loading || clubLoading || (!clubInfo?.name && !lookingFor.trim())}
               className="w-full bg-gold text-zinc-900 font-semibold hover:bg-gold/90 disabled:opacity-40"
             >
               {loading ? (

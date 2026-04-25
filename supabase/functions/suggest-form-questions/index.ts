@@ -28,24 +28,38 @@ serve(async (req) => {
       });
     }
 
-    const { club_name, description, looking_for } = await req.json();
+    const { club_name, description, category, tags, looking_for } = await req.json();
 
-    if (!looking_for) {
-      return new Response(JSON.stringify({ error: "looking_for is required" }), {
+    const hasClubContext = club_name || description;
+    if (!hasClubContext && !looking_for) {
+      return new Response(JSON.stringify({ error: "At least club context or looking_for is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const prompt = `You are helping a UCSD student club create application form questions.
+    const tagList = Array.isArray(tags) && tags.length > 0
+      ? `Tags: ${tags.join(", ")}`
+      : "";
 
-Club name: ${club_name || "Unknown Club"}
+    const clubContext = hasClubContext
+      ? `Club name: ${club_name || "Unknown Club"}
+Club category: ${category || "Student Organization"}
 Club description: ${description || "A UCSD student organization"}
-What the club is looking for in applicants: ${looking_for}
+${tagList}`
+      : "Club: A UCSD student organization";
 
-Generate exactly 5 application questions that will help this club evaluate candidates based on what they are looking for. Mix question types — include both short answer and long answer questions. Do NOT include basic info questions (name, email, major, year, GPA) as those are already collected.
+    const additionalContext = looking_for
+      ? `\nWhat the officer is specifically looking for: ${looking_for}`
+      : "";
 
-Make questions specific and meaningful — avoid generic questions like "why do you want to join?" unless that genuinely fits the club's stated goals.
+    const prompt = `You are helping a UCSD student club create application form questions. You have been given the club's actual profile — use it to generate questions that are highly specific and relevant to what this club actually does.
+
+${clubContext}${additionalContext}
+
+Generate exactly 5 application questions that will help this club identify the best candidates. Mix short answer and long answer types. Do NOT include basic info questions (name, email, major, year, GPA) — those are already collected automatically.
+
+Be specific to this club's actual focus. Do not ask generic questions unless they are genuinely relevant. A question like "What experience do you have with X?" should reference something real about this club's work.
 
 Return ONLY a JSON array in exactly this format:
 [
