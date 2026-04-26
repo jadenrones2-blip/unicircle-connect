@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, User, Users, BarChart2, BookUser, UserCircle2, Kanban, Trophy, Link2 } from 'lucide-react';
+import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, User, Users, BarChart2, BookUser, UserCircle2, Kanban, Trophy, Link2, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
@@ -38,6 +38,19 @@ export function ClubAdminSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarContent>
+        {/* Portal indicator */}
+        <div className={cn(
+          "flex items-center gap-2 px-4 py-3 border-b border-border bg-gold/5",
+          collapsed ? "justify-center px-2" : ""
+        )}>
+          <div className="w-2 h-2 rounded-full bg-gold shrink-0" />
+          {!collapsed && (
+            <span className="text-[11px] font-bold text-gold uppercase tracking-widest">
+              Club Admin Portal
+            </span>
+          )}
+        </div>
+
         {/* Admin Profile Header */}
         {profile && (
           <div className={cn(
@@ -285,11 +298,11 @@ export function ClubAdminSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link
-                to="/"
+                to="/dashboard"
                 className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted transition-colors text-muted-foreground"
               >
-                <ArrowLeft className="w-4 h-4" />
-                {!collapsed && <span>Back to Site</span>}
+                <LayoutDashboard className="w-4 h-4" />
+                {!collapsed && <span>Student View</span>}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

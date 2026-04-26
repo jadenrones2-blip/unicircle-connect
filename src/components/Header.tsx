@@ -187,6 +187,17 @@ const Header = () => {
                 </PopoverContent>
               </Popover>
 
+              {/* Admin portal switcher — visible for club owners */}
+              {isClubOwner && (
+                <Link
+                  to="/club-admin"
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gold/30 bg-gold/8 text-gold text-xs font-semibold hover:bg-gold/15 transition-colors"
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-gold" />
+                  Admin Portal
+                </Link>
+              )}
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
