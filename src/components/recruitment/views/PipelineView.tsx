@@ -6,7 +6,7 @@ import {
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
-import { Star, Brain } from 'lucide-react';
+import { Star, BarChart2 } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { BulkAIScreen } from '../BulkAIScreen';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
@@ -96,7 +96,7 @@ function CompactCard({ applicant, officerScore, onClick }: CompactCardProps) {
         )}
         {officerScore !== undefined && (
           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded border text-zinc-400 bg-zinc-800 border-zinc-700">
-            <Brain className="w-2.5 h-2.5 inline mr-0.5" />{officerScore}
+            <BarChart2 className="w-2.5 h-2.5 inline mr-0.5" />{officerScore}
           </span>
         )}
       </div>

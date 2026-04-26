@@ -11,7 +11,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   GripVertical, Plus, Trash2, Eye, Save, Loader2,
   AlignLeft, AlignJustify, ListChecks, Copy, Upload, X, Video,
-  ChevronDown, Check, Wand2,
+  ChevronDown, Check, Lightbulb,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -799,7 +799,7 @@ function AISuggestModal({
       <DialogContent className="max-w-xl bg-zinc-950 border-white/10 text-white max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2">
-            <Wand2 className="w-4 h-4 text-gold" />
+            <Lightbulb className="w-4 h-4 text-gold" />
             AI Suggest Questions
           </DialogTitle>
         </DialogHeader>
@@ -856,7 +856,7 @@ function AISuggestModal({
               {loading ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</>
               ) : (
-                <><Wand2 className="w-4 h-4 mr-2" />Generate Questions</>
+                <><Lightbulb className="w-4 h-4 mr-2" />Generate Questions</>
               )}
             </Button>
           )}
@@ -1229,7 +1229,7 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
             onClick={() => setAiSuggestOpen(true)}
             className="border-gold/30 text-gold hover:bg-gold/10"
           >
-            <Wand2 className="w-4 h-4 mr-1.5" />
+            <Lightbulb className="w-4 h-4 mr-1.5" />
             AI Suggest
           </Button>
           <Button

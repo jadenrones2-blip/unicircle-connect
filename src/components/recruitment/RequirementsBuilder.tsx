@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import type { Json } from '@/integrations/supabase/types';
-import { Plus, Trash2, Settings2, Brain, GraduationCap, Calendar, BookOpen, Upload, Loader2, X, Check } from 'lucide-react';
+import { Plus, Trash2, Settings2, BarChart2, GraduationCap, Calendar, BookOpen, Upload, Loader2, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -476,7 +476,7 @@ export function RequirementsBuilder({ clubId }: RequirementsBuilderProps) {
       <div className="flex border border-white/15 rounded-lg overflow-hidden">
         {([
           { key: 'strict', label: 'Strict Filters', icon: <Settings2 className="w-4 h-4" /> },
-          { key: 'ai', label: 'AI Criteria', icon: <Brain className="w-4 h-4" /> },
+          { key: 'ai', label: 'AI Criteria', icon: <BarChart2 className="w-4 h-4" /> },
         ] as const).map(({ key, label, icon }) => (
           <button
             key={key}
@@ -683,7 +683,7 @@ export function RequirementsBuilder({ clubId }: RequirementsBuilderProps) {
                   >
                     <div className="flex items-start gap-3 flex-1 min-w-0">
                       <div className="p-2 rounded-md bg-gold/10 text-gold mt-0.5 shrink-0">
-                        <Brain className="w-4 h-4" />
+                        <BarChart2 className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm text-zinc-200">{val.description}</p>

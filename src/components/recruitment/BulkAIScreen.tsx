@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2, Brain, Settings2, Star } from 'lucide-react';
+import { Loader2, Settings2, Star, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -227,7 +227,7 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
                         const val = c.value as { description: string; weight?: number };
                         return (
                           <div key={c.id} className="flex items-start gap-1.5">
-                            <Brain className="w-3 h-3 text-gold mt-0.5 shrink-0" />
+                            <BarChart2 className="w-3 h-3 text-gold mt-0.5 shrink-0" />
                             <p className="text-xs text-zinc-500 line-clamp-1">{val.description}</p>
                           </div>
                         );
