@@ -40,6 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
+    if (!email.toLowerCase().endsWith('@ucsd.edu')) {
+      return { data: null, error: new Error('UniCircle is only available to UCSD students and staff. Please use your @ucsd.edu email address.') };
+    }
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

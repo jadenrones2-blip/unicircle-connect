@@ -49,8 +49,8 @@ export default function Signup() {
       return;
     }
 
-    if (mode === 'student' && !email.toLowerCase().endsWith('@ucsd.edu')) {
-      toast.error('Students must use a UCSD email address (@ucsd.edu)');
+    if (!email.toLowerCase().endsWith('@ucsd.edu')) {
+      toast.error('UniCircle is only available for UCSD accounts. Use your @ucsd.edu email.');
       return;
     }
 
@@ -93,6 +93,7 @@ export default function Signup() {
               ? 'Create an account to claim and manage your club'
               : 'Create an account to discover your perfect clubs'}
           </p>
+          <p className="text-xs text-muted-foreground/60 mt-1">UCSD accounts only (@ucsd.edu)</p>
         </div>
 
         {/* Mode Toggle */}
