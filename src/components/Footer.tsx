@@ -51,10 +51,6 @@ const Footer = () => {
             ))}
           </nav>
 
-          <p className="text-sm text-muted-foreground/50">
-            Made with <span className="text-gold">precision</span>
-          </p>
-
         </div>
 
         <div className="mt-10 pt-8 border-t border-border/20 flex flex-col sm:flex-row items-center justify-between gap-4">

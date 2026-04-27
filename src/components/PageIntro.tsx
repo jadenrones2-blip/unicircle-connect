@@ -13,7 +13,7 @@ export default function PageIntro() {
     const t = setTimeout(() => {
       setVisible(false);
       sessionStorage.setItem('intro_shown', '1');
-    }, 1800);
+    }, 1100);
     return () => clearTimeout(t);
   }, [visible]);
 

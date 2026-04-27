@@ -6,8 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ClubOwnershipProvider } from "@/contexts/ClubOwnershipContext";
 import { ClubsProvider } from "@/contexts/ClubsContext";
-import CustomCursor from "./components/CustomCursor";
-import ScrollProgress from "./components/ScrollProgress";
 import PageIntro from "./components/PageIntro";
 import Index from "./pages/Index";
 import ClubsDirectory from "./pages/ClubsDirectory";
@@ -52,6 +50,8 @@ import StartupIncubatorDemo from "./pages/StartupIncubatorDemo";
 import AcceptInvite from "./pages/AcceptInvite";
 import Founder from "./pages/Founder";
 import ClubAdminTeam from "./pages/ClubAdminTeam";
+import ClubSurvey from "./pages/ClubSurvey";
+import PlatformSurvey from "./pages/PlatformSurvey";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,8 +63,6 @@ const App = () => (
       <ClubsProvider>
     <TooltipProvider>
       <PageIntro />
-      <CustomCursor />
-      <ScrollProgress />
       <Toaster />
       <Sonner />
       <BrowserRouter>
@@ -81,6 +79,8 @@ const App = () => (
           <Route path="/opportunities" element={<Opportunities />} />
           <Route path="/clubs/:id" element={<ClubDetail />} />
           <Route path="/clubs/:id/apply" element={<ClubApply />} />
+          <Route path="/clubs/:id/survey" element={<ClubSurvey />} />
+          <Route path="/survey" element={<PlatformSurvey />} />
           <Route path="/apply/:slug" element={<ApplyBySlug />} />
           <Route path="/events" element={<CalendarApp />} />
           <Route path="/calendar" element={<CalendarApp />} />
