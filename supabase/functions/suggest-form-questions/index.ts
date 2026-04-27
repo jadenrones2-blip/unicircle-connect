@@ -28,7 +28,7 @@ serve(async (req) => {
       });
     }
 
-    const { club_name, description, category, tags, looking_for } = await req.json();
+    const { club_name, description, category, tags, website, instagram, looking_for } = await req.json();
 
     const hasClubContext = club_name || description;
     if (!hasClubContext && !looking_for) {
@@ -42,18 +42,22 @@ serve(async (req) => {
       ? `Tags: ${tags.join(", ")}`
       : "";
 
+    const websiteLine = website ? `Club website: ${website}` : "";
+    const instagramLine = instagram ? `Club Instagram: ${instagram}` : "";
+    const socialLines = [websiteLine, instagramLine].filter(Boolean).join("\n");
+
     const clubContext = hasClubContext
       ? `Club name: ${club_name || "Unknown Club"}
 Club category: ${category || "Student Organization"}
 Club description: ${description || "A UCSD student organization"}
-${tagList}`
+${tagList}${socialLines ? "\n" + socialLines : ""}`
       : "Club: A UCSD student organization";
 
     const additionalContext = looking_for
       ? `\nWhat the officer is specifically looking for: ${looking_for}`
       : "";
 
-    const prompt = `You are helping a UCSD student club create application form questions. You have been given the club's actual profile — use it to generate questions that are highly specific and relevant to what this club actually does.
+    const prompt = `You are helping a UCSD student club create application form questions. You have been given the club's actual profile including their description and website — use all of it to generate questions that are highly specific and relevant to what this club actually does.
 
 ${clubContext}${additionalContext}
 

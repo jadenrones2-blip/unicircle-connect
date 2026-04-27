@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   DndContext, DragEndEvent, closestCenter,
   PointerSensor, TouchSensor, useSensor, useSensors,
@@ -11,7 +11,7 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   GripVertical, Plus, Trash2, Eye, Save, Loader2,
   AlignLeft, AlignJustify, ListChecks, Copy, Upload, X, Video,
-  ChevronDown, Check, Lightbulb,
+  ChevronDown, Check, Lightbulb, ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -688,6 +688,8 @@ interface ClubInfo {
   description: string;
   category: string;
   tags: string[];
+  website: string;
+  instagram: string;
 }
 
 function AISuggestModal({
@@ -714,7 +716,7 @@ function AISuggestModal({
     import('@/integrations/supabase/dataClient').then(({ dataClient }) => {
       dataClient
         .from('clubs')
-        .select('name, description, category, tags')
+        .select('name, description, category, tags, website, instagram')
         .eq('id', clubId.trim().toLowerCase())
         .maybeSingle()
         .then(({ data }) => {
@@ -724,6 +726,8 @@ function AISuggestModal({
               description: data.description || '',
               category: data.category || '',
               tags: Array.isArray(data.tags) ? data.tags : [],
+              website: data.website || '',
+              instagram: data.instagram || '',
             });
           }
           setClubLoading(false);
@@ -753,6 +757,8 @@ function AISuggestModal({
             description: clubInfo?.description || '',
             category: clubInfo?.category || '',
             tags: clubInfo?.tags || [],
+            website: clubInfo?.website || '',
+            instagram: clubInfo?.instagram || '',
             looking_for: lookingFor,
           }),
         }
@@ -813,11 +819,37 @@ function AISuggestModal({
               <span className="text-xs text-zinc-500">Looking up club info…</span>
             </div>
           ) : clubInfo?.name ? (
-            <div className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5 space-y-1">
+            <div className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5 space-y-1.5">
               <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Club context loaded</p>
               <p className="text-sm font-medium text-white">{clubInfo.name}</p>
               {clubInfo.description && (
-                <p className="text-xs text-zinc-500 line-clamp-2">{clubInfo.description}</p>
+                <p className="text-xs text-zinc-400 line-clamp-3">{clubInfo.description}</p>
+              )}
+              {(clubInfo.website || clubInfo.instagram) && (
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  {clubInfo.website && (
+                    <a
+                      href={clubInfo.website.startsWith('http') ? clubInfo.website : `https://${clubInfo.website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-[11px] text-gold hover:text-gold/80 underline underline-offset-2"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      {clubInfo.website.replace(/^https?:\/\//, '')}
+                    </a>
+                  )}
+                  {clubInfo.instagram && (
+                    <a
+                      href={clubInfo.instagram.startsWith('http') ? clubInfo.instagram : `https://instagram.com/${clubInfo.instagram.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-300 underline underline-offset-2"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Instagram
+                    </a>
+                  )}
+                </div>
               )}
               {clubInfo.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 pt-0.5">
@@ -826,7 +858,7 @@ function AISuggestModal({
                   ))}
                 </div>
               )}
-              <p className="text-[10px] text-zinc-600 pt-0.5">Claude will use this to generate relevant questions automatically.</p>
+              <p className="text-[10px] text-zinc-600 pt-0.5">Claude will use this profile to generate relevant questions automatically.</p>
             </div>
           ) : (
             <div className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5">
