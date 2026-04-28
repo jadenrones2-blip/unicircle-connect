@@ -30,6 +30,7 @@ import { useClubOwnership } from "@/hooks/useClubOwnership";
 import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
 import { dataClient, dataClient as supabase } from "@/integrations/supabase/dataClient";
+import { supabase as mainSupabase } from "@/integrations/supabase/client";
 import { ExternalEvent } from "@/hooks/useExternalEvents";
 import { EventDetailModal } from "@/components/calendar/EventDetailModal";
 import { formatEventDate, formatEventTime } from "@/lib/formatters";
@@ -84,6 +85,20 @@ const ClubDetail = () => {
 
   const [clubEvents, setClubEvents] = useState<ExternalEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
+
+  // Whether this club has an active application form set up
+  const [hasActiveForm, setHasActiveForm] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    (mainSupabase as any)
+      .from('application_forms')
+      .select('id')
+      .eq('club_id', id.trim().toLowerCase())
+      .eq('is_active', true)
+      .maybeSingle()
+      .then(({ data }: { data: any }) => setHasActiveForm(!!data));
+  }, [id]);
 
   // Reviews state
   const [reviews, setReviews] = useState<ClubReview[]>([]);
@@ -398,8 +413,8 @@ const ClubDetail = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 w-full md:min-w-[200px] md:w-auto">
-                {/* Apply Now — only when actively recruiting */}
-                {club.recruitingStatus === 'open' && (
+                {/* Apply Now — only when actively recruiting AND club has set up their form */}
+                {club.recruitingStatus === 'open' && hasActiveForm && (
                   <Button variant="gold" size="lg" className="w-full" asChild>
                     <Link to={`/clubs/${id}/apply`}>
                       Apply Now
