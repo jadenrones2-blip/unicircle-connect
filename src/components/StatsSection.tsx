@@ -180,7 +180,7 @@ const StatsSection = () => (
         className="grid grid-cols-1 sm:grid-cols-3"
         style={{ gap: 1, background: "rgba(255,255,255,0.05)" }}
       >
-        <NumberCard target={10000} label="Total Organizations" delay={0} />
+        <NumberCard target={10000} label="Organizations Across California" delay={0} />
         <TextCard lines={["Multi-", "Campus"]} label="System-Wide Infrastructure" delay={0.1} />
         <NumberCard target={500000} label="Annual Projected Hours Recovered" delay={0.2} />
       </div>
