@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   return (
@@ -36,6 +37,49 @@ const HeroSection = () => {
         >
           Club discovery and recruitment for UCSD.
         </motion.p>
+
+        {/* CTAs — visible immediately, no scrolling required */}
+        <motion.div
+          className="flex flex-col sm:flex-row items-center gap-3 mt-10"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.52, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <Link
+            to="/clubs"
+            className="font-bold text-black"
+            style={{
+              fontSize: 15,
+              padding: "14px 36px",
+              borderRadius: 9999,
+              background: "hsl(47 95% 58%)",
+              boxShadow: "0 6px 28px hsl(47 95% 58% / 0.35)",
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            Explore Clubs →
+          </Link>
+          <Link
+            to="/signup"
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              padding: "14px 32px",
+              borderRadius: 9999,
+              background: "transparent",
+              color: "rgba(255,255,255,0.6)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              textDecoration: "none",
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            Sign up free
+          </Link>
+        </motion.div>
       </section>
 
       {/* ── Section 2 — Photo + S2 headline ─────────────────── */}
