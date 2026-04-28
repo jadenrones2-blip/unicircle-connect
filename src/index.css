@@ -6,7 +6,6 @@
 @tailwind components;
 @tailwind utilities;
 
-*:not(input):not(textarea):not([contenteditable]) { cursor: none !important; }
 body { overflow-x: hidden; }
 
 @layer base {
