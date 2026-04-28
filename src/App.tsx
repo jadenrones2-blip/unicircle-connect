@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ClubOwnershipProvider } from "@/contexts/ClubOwnershipContext";
 import { ClubsProvider } from "@/contexts/ClubsContext";
 import PageIntro from "./components/PageIntro";
+import SurveyBanner from "./components/SurveyBanner";
 import Index from "./pages/Index";
 import ClubsDirectory from "./pages/ClubsDirectory";
 import ClubDetail from "./pages/ClubDetail";
@@ -62,6 +63,7 @@ const App = () => (
       <ClubOwnershipProvider>
       <ClubsProvider>
     <TooltipProvider>
+      <SurveyBanner />
       <PageIntro />
       <Toaster />
       <Sonner />
