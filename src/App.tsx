@@ -63,11 +63,11 @@ const App = () => (
       <ClubOwnershipProvider>
       <ClubsProvider>
     <TooltipProvider>
-      <SurveyBanner />
       <PageIntro />
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <SurveyBanner />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
