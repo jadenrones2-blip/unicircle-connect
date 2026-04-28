@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell, Settings, BookOpen } from "lucide-react";
+import { Menu, X, Home, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell, Settings, BookOpen, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
@@ -38,6 +38,14 @@ const Header = () => {
   const { notifications, unreadCount, fetchNotifications, markAllRead } = useNotifications();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(
+    () => localStorage.getItem('survey-banner-dismissed') === '1'
+  );
+
+  const dismissBanner = () => {
+    localStorage.setItem('survey-banner-dismissed', '1');
+    setBannerDismissed(true);
+  };
 
   const isClubOwner = ownedClubs.length > 0;
 
@@ -72,8 +80,30 @@ const Header = () => {
   };
 
   return (
+    <>
+    {!bannerDismissed && (
+      <div className="fixed top-0 left-0 right-0 z-[60] flex items-center justify-center gap-3 px-4 py-2 text-xs font-medium"
+        style={{ background: 'hsl(43 74% 56%)', color: '#111' }}>
+        <span className="font-semibold tracking-wide">We're building this for you.</span>
+        <Link
+          to="/survey"
+          className="inline-flex items-center gap-1 font-bold underline underline-offset-2 hover:opacity-80 transition-opacity"
+        >
+          Take the 3-min survey <ArrowRight className="w-3 h-3" />
+        </Link>
+        <button
+          onClick={dismissBanner}
+          className="ml-2 opacity-60 hover:opacity-100 transition-opacity"
+          aria-label="Dismiss"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    )}
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed left-0 right-0 z-50 transition-all duration-300 ${
+        bannerDismissed ? 'top-0' : 'top-[36px]'
+      } ${
         isScrolled 
           ? "bg-background/60 backdrop-blur-xl border-b border-border/50 py-2 shadow-sm" 
           : "bg-transparent backdrop-blur-sm py-4"
@@ -398,6 +428,7 @@ const Header = () => {
         )}
       </AnimatePresence>
     </header>
+    </>
   );
 };
 
