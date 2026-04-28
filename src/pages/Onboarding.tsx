@@ -219,11 +219,18 @@ export default function Onboarding() {
       .then(({ data }) => {
         const rows = data || [];
         setClubs(rows);
-        const areas: AreaOption[] = BROAD_AREAS.map((area) => ({
+        const computed: AreaOption[] = BROAD_AREAS.map((area) => ({
           ...area,
           count: rows.filter(c => matchesArea(c, area.value)).length,
-        })).filter(a => a.count > 0);
-        setAreaOptions(areas);
+        }));
+        // Fall back to static list (count 0 hidden) if nothing matched
+        const withCounts = computed.filter(a => a.count > 0);
+        setAreaOptions(withCounts.length > 0 ? withCounts : computed.map(a => ({ ...a, count: 0 })));
+        setClubsLoading(false);
+      })
+      .catch(() => {
+        // Show static list on fetch failure
+        setAreaOptions(BROAD_AREAS.map(a => ({ ...a, count: 0 })));
         setClubsLoading(false);
       });
   }, []);
@@ -452,7 +459,7 @@ export default function Onboarding() {
                             )}
                             <span className="text-2xl">{area.emoji}</span>
                             <p className={cn('text-sm font-medium', selected ? 'text-white' : 'text-zinc-300')}>{area.label}</p>
-                            <p className="text-xs text-zinc-600">{area.count} clubs</p>
+                            {area.count > 0 && <p className="text-xs text-zinc-600">{area.count} clubs</p>}
                           </button>
                         );
                       })}
