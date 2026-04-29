@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -137,8 +137,15 @@ export function useRecruitmentRequirements(clubId: string | undefined) {
     return true;
   };
 
-  const strictFilters = requirements.filter((r) => r.type === 'strict');
-  const aiCriteria = requirements.filter((r) => r.type === 'ai');
+  const strictFilters = useMemo(
+      () => requirements.filter((r) => r.type === 'strict'),
+      [requirements]
+  );
+
+  const aiCriteria = useMemo(
+      () => requirements.filter((r) => r.type === 'ai'),
+      [requirements]
+  );
 
   return {
     requirements,
