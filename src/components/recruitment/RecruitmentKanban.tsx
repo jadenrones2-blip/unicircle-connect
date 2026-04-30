@@ -326,15 +326,15 @@ export function RecruitmentKanban({
           applicant={drawerApplicant}
           stages={stages}
           clubId={clubId}
-          clubName={clubName}
+          // clubName={clubName} // not used in drawer, can be removed
           formQuestions={formQuestions}
-          voteData={voteMap[drawerApplicant.id]}
-          attendanceData={attendanceMap[drawerApplicant.stage_id ?? ''] ?? []}
-          onMove={handleMoveFromDrawer}
-          onFinalDecision={onUpdateFinalDecision}
-          onNotes={onUpdateNotes}
-          onRunAI={handleRunAISingle}
-          onDelete={async (id) => { await onDeleteApplicant(id); closeDrawer(); await onRefresh(); }}
+          // voteData={voteMap[drawerApplicant.id]} // not used in drawer, can be removed
+          // attendanceData={attendanceMap[drawerApplicant.stage_id ?? ''] ?? []} // not used in drawer, can be removed
+          onMoveApplicant={handleMoveFromDrawer}
+          onUpdateFinalDecision={onUpdateFinalDecision}
+          onUpdateNotes={onUpdateNotes}
+          onRunAIScreen={handleRunAISingle}
+          // onDelete={async (id) => { await onDeleteApplicant(id); closeDrawer(); await onRefresh(); }} // not used in drawer, can be removed
         />
       )}
 
