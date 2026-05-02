@@ -48,27 +48,17 @@ const normalizeText = (value: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
-// Maps each canonical filter bucket (normalized) to DB keywords that should resolve to it.
-// Checked in order \u2014 more specific entries first to avoid false positives.
-const CATEGORY_KEYWORD_MAP: Array<[bucket: string, keywords: string[]]> = [
-  ["fraternity",  ["fraternity", "ifg", "ifc"]],
-  ["sorority",    ["sorority", "npc"]],
-  ["tech stem",   ["technology", "engineering", "computer science", "computer", "software", "stem", "robotics", "data science", "coding", "biotech", "cybersecurity", "machine learning", "artificial intelligence"]],
-  ["spiritual",   ["spiritual", "religious", "faith", "christian", "jewish", "muslim", "hindu", "buddhist", "catholic", "interfaith", "ministry", "gospel", "church", "theology"]],
-  ["service",     ["service", "volunteer", "community service", "outreach", "philanthropy", "nonprofit", "civic"]],
-  ["professional",["professional", "career", "business", "finance", "marketing", "consulting", "pre professional", "pre-professional", "entrepreneurship", "accounting", "management", "pre law", "law"]],
-  ["cultural",    ["cultural", "culture", "multicultural", "international", "heritage", "ethnic", "diversity", "asian", "latin", "african", "middle eastern", "indigenous"]],
-  ["sports",      ["sport", "athletic", "fitness", "recreation", "martial arts", "swimming", "running", "soccer", "basketball", "volleyball", "tennis", "triathlon", "cycling", "esport", "climbing"]],
-  ["social",      ["social", "lifestyle", "hobby", "gaming", "arts", "music", "film", "media", "photography", "comedy", "creative", "anime", "food", "dance"]],
-  ["academic",    ["academic", "education", "research", "premed", "pre med", "honor", "neuroscience", "psychology", "biology", "chemistry", "physics", "mathematics", "math", "linguistics", "environmental", "science"]],
-];
-
-function resolveCanonicalBucket(categoryBucket: string, category: string): string {
-  const combined = `${normalizeText(categoryBucket)} ${normalizeText(category)}`;
-  for (const [bucket, keywords] of CATEGORY_KEYWORD_MAP) {
-    if (keywords.some((kw) => combined.includes(normalizeText(kw)))) return bucket;
-  }
-  return normalizeText(categoryBucket) || normalizeText(category);
+// Maps each club to the canonical filter bucket label (normalized) based on real DB values.
+// category_bucket is reliable except for Fraternity, Sorority, Interfraternity (bucketed as "Social")
+// and Spiritual (bucketed as "Cultural") \u2014 those are overridden by the category field.
+function getFilterBucket(rawBucket: string, rawCategory: string): string {
+  const cat = rawCategory.trim().toLowerCase();
+  if (cat === 'fraternity' || cat === 'interfraternity') return 'fraternity';
+  if (cat === 'sorority' || cat === 'sororit') return 'sorority';
+  if (cat === 'spiritual') return 'spiritual';
+  const bucket = rawBucket.trim().toLowerCase();
+  if (bucket === 'tech / stem') return 'tech stem';
+  return bucket; // academic, cultural, professional, service, sports, social \u2192 direct match
 }
 
 const LS_KEY = 'clubs_filters';
@@ -150,8 +140,7 @@ const ClubsDirectory = () => {
     return sorted.map((club) => {
       const categoryBucketKey = normalizeText(club.categoryBucket || "");
       const categoryKey = normalizeText(club.category || "");
-      // Derived bucket: maps raw DB values (e.g. "Technology") to canonical filter labels (e.g. "tech stem")
-      const resolvedBucket = resolveCanonicalBucket(club.categoryBucket || "", club.category || "");
+      const resolvedBucket = getFilterBucket(club.categoryBucket || "", club.category || "");
       const searchParts = [club.name, club.description].filter(
         (v): v is string => Boolean(v)
       );
@@ -178,11 +167,7 @@ const ClubsDirectory = () => {
             (term) => categoryBucketKey.includes(term) || categoryKey.includes(term)
           );
         } else {
-          // Match on exact bucket/category OR via the keyword resolver (handles DB naming variants)
-          matchesCategory =
-            categoryBucketKey === selectedCategoryKey ||
-            categoryKey === selectedCategoryKey ||
-            resolvedBucket === selectedCategoryKey;
+          matchesCategory = resolvedBucket === selectedCategoryKey;
         }
 
         // Search filter: name OR description contains query
@@ -215,7 +200,7 @@ const ClubsDirectory = () => {
         const isGl = cat.label === 'Greek Life';
         const matches = isGl
           ? GREEK_LIFE_TERMS.some((t) => categoryBucketKey.includes(t) || categoryKey.includes(t))
-          : categoryBucketKey === catKey || categoryKey === catKey || resolvedBucket === catKey;
+          : resolvedBucket === catKey;
         if (matches) counts[cat.label] = (counts[cat.label] ?? 0) + 1;
       }
     }
