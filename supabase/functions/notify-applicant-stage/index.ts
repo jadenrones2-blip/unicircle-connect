@@ -141,6 +141,7 @@ function getStageAdvanceEmail(stageName: string, applicantName: string, clubName
               <p style="margin: 12px 0 0 0;">The club will contact you with more details about next steps. Keep an eye on your email!</p>
             </div>
             <p>Best of luck! 🍀</p>
+            <a href="https://unicircle.app/dashboard" style="display:inline-block;margin-top:8px;padding:12px 24px;background:linear-gradient(135deg,#b8860b,#daa520);color:#1a1a1a;font-weight:700;border-radius:8px;text-decoration:none;font-size:14px;">Track your application →</a>
           </div>
           <div class="footer"><p>This notification was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
         </div>
@@ -220,6 +221,7 @@ function getFinalDecisionEmail(applicantName: string, clubName: string, decision
                 <p style="margin: 0;">The club will be reaching out soon with details on next steps, meetings, and how to get involved.</p>
               </div>
               <p>Can't wait to have you with us!</p>
+              <a href="https://unicircle.app/dashboard" style="display:inline-block;margin-top:8px;padding:12px 24px;background:#fff;color:#1a5f1a;font-weight:700;border-radius:8px;text-decoration:none;font-size:14px;">View your dashboard →</a>
             </div>
             <div class="footer"><p>This notification was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
           </div>
@@ -337,16 +339,14 @@ const handler = async (req: Request): Promise<Response> => {
         });
       }
 
-      // Verify club ownership if clubId provided
+      // Verify caller is an owner or officer of the club
       if (clubId) {
-        const { data: ownership } = await authSupabase
-          .from("club_owners")
-          .select("id")
-          .eq("club_id", clubId)
-          .eq("user_id", user.id)
-          .maybeSingle();
+        const [{ data: ownerRow }, { data: officerRow }] = await Promise.all([
+          authSupabase.from("club_owners").select("id").eq("club_id", clubId).eq("user_id", user.id).maybeSingle(),
+          (authSupabase as any).from("club_officers").select("id").eq("club_id", clubId).eq("user_id", user.id).maybeSingle(),
+        ]);
 
-        if (!ownership) {
+        if (!ownerRow && !officerRow) {
           return new Response(
             JSON.stringify({ error: "Not authorized for this club" }),
             { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
