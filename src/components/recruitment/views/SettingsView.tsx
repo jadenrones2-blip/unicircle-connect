@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RequirementsBuilder } from '../RequirementsBuilder';
 import { StudentVisibilitySettings } from '../StudentVisibilitySettings';
+import { InterviewScheduler } from '../InterviewScheduler';
 import { toast } from 'sonner';
 import type { RecruitmentStage, RecruitmentSettings } from '@/hooks/useRecruitment';
 
@@ -190,6 +191,11 @@ export function SettingsView({
             </button>
           )}
         </div>
+      </Section>
+
+      {/* Interview Scheduling */}
+      <Section title="Interview Scheduling" subtitle="Create time slots — students book directly from their stage advance email">
+        <InterviewScheduler clubId={clubId} clubName={clubName} />
       </Section>
 
       {/* Screening Rubric */}

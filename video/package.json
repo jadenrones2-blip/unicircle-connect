@@ -1,0 +1,22 @@
+{
+  "name": "unicircle-video",
+  "version": "1.0.0",
+  "description": "UniCircle promo videos built with Remotion",
+  "scripts": {
+    "dev": "npx remotion studio",
+    "render": "npx remotion render src/index.tsx UniCirclePromo out/promo.mp4",
+    "render:short": "npx remotion render src/index.tsx UniCircleShort out/short.mp4",
+    "render:club": "npx remotion render src/index.tsx ClubLeaderHook out/club-leader-hook.mp4"
+  },
+  "dependencies": {
+    "remotion": "^4.0.0",
+    "@remotion/cli": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.8.0"
+  }
+}

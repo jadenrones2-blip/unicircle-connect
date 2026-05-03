@@ -230,6 +230,10 @@ export default function PlatformSurvey() {
       toast.error('Drop your email so we can follow up.');
       return;
     }
+    if (!email.trim().toLowerCase().endsWith('.edu')) {
+      toast.error('Please use a school email address (.edu).');
+      return;
+    }
     const missing = QUESTIONS.filter(q => q.required && !answers[q.id]?.trim());
     if (missing.length > 0) {
       toast.error(`${missing.length} question${missing.length > 1 ? 's' : ''} still need${missing.length === 1 ? 's' : ''} an answer.`);
@@ -330,7 +334,7 @@ export default function PlatformSurvey() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="you@ucsd.edu"
+              placeholder="you@school.edu"
               className="bg-zinc-800 border-white/10 text-white placeholder:text-zinc-600"
             />
             <p className="text-[11px] text-zinc-600">Never shared or spammed. We'll follow up as the platform grows.</p>

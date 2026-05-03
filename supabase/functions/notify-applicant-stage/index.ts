@@ -70,8 +70,12 @@ function buildCustomHtml(body: string, clubName: string): string {
   `;
 }
 
-function getStageAdvanceEmail(stageName: string, applicantName: string, clubName: string): { subject: string; html: string } {
+function getStageAdvanceEmail(stageName: string, applicantName: string, clubName: string, clubId?: string): { subject: string; html: string } {
   const lowerStage = stageName.toLowerCase();
+  const isInterview = lowerStage.includes('interview');
+  const interviewCta = isInterview && clubId
+    ? `<a href="https://unicircle.app/interview/${clubId}" style="display:inline-block;margin-top:12px;padding:12px 24px;background:#b8860b;color:#1a1a1a;font-weight:700;border-radius:8px;text-decoration:none;font-size:14px;">Book your interview time →</a>`
+    : '';
 
   if (lowerStage.includes('accepted') || lowerStage.includes('offer')) {
     return {
@@ -141,6 +145,7 @@ function getStageAdvanceEmail(stageName: string, applicantName: string, clubName
               <p style="margin: 12px 0 0 0;">The club will contact you with more details about next steps. Keep an eye on your email!</p>
             </div>
             <p>Best of luck! 🍀</p>
+            ${interviewCta}
             <a href="https://unicircle.app/dashboard" style="display:inline-block;margin-top:8px;padding:12px 24px;background:linear-gradient(135deg,#b8860b,#daa520);color:#1a1a1a;font-weight:700;border-radius:8px;text-decoration:none;font-size:14px;">Track your application →</a>
           </div>
           <div class="footer"><p>This notification was sent via Unicircle on behalf of ${esc(clubName)}.</p></div>
@@ -362,7 +367,7 @@ const handler = async (req: Request): Promise<Response> => {
     } else if (notificationType === 'final_decision' && finalDecision) {
       emailContent = getFinalDecisionEmail(applicantName, clubName, finalDecision);
     } else if (notificationType === 'stage_advance' && stageName) {
-      emailContent = getStageAdvanceEmail(stageName, applicantName, clubName);
+      emailContent = getStageAdvanceEmail(stageName, applicantName, clubName, clubId);
     } else if (notificationType === 'custom' && customSubject && customBody) {
       const nameParts = applicantName.trim().split(/\s+/);
       const vars: Record<string, string> = {

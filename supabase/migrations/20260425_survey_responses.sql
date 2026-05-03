@@ -1,11 +1,11 @@
 -- Survey responses table — for club-hosted surveys independent of recruitment
--- Run manually in: https://supabase.com/dashboard/project/xvaoxmqmnmhbnpwobpmm/sql/new
+-- Run manually in the Supabase dashboard SQL editor
 
 CREATE TABLE IF NOT EXISTS public.survey_responses (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   club_id     text NOT NULL,
   responses   jsonb DEFAULT '{}',
-  email       text,
+  email       text CHECK (email LIKE '%.edu'),
   created_at  timestamptz DEFAULT now()
 );
 
