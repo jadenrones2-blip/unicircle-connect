@@ -1,12 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { dataClient } from '@/integrations/supabase/dataClient';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 export interface StudentApplication {
   id: string;
   club_id: string;
   stage_id: string | null;
+  final_decision: string | null;
   first_name: string;
   last_name: string;
   email: string;
@@ -46,17 +48,20 @@ export function useStudentRecruitment() {
   const { user } = useAuth();
   const [applications, setApplications] = useState<StudentRecruitmentData[]>([]);
   const [loading, setLoading] = useState(true);
+  // Track previous state so we can detect meaningful changes for notifications
+  const prevApplicationsRef = useRef<StudentRecruitmentData[]>([]);
 
-  const fetchApplications = useCallback(async () => {
+  const fetchApplications = useCallback(async (silent = false) => {
     if (!user?.email) {
       setLoading(false);
       return;
     }
+    if (!silent) setLoading(true);
 
     try {
       const { data: applicantData, error: applicantError } = await supabase
         .from('applicants')
-        .select('id, club_id, stage_id, first_name, last_name, email, major, year, is_quick_interest, created_at, updated_at')
+        .select('id, club_id, stage_id, final_decision, first_name, last_name, email, major, year, is_quick_interest, created_at, updated_at')
         .eq('email', user.email)
         .order('created_at', { ascending: false });
 
@@ -111,6 +116,7 @@ export function useStudentRecruitment() {
         enrichedApplications.push({
           application: {
             ...app,
+            final_decision: (app as any).final_decision ?? null,
             is_quick_interest: (app as any).is_quick_interest ?? false,
           } as StudentApplication,
           stages: stages as RecruitmentStage[],
@@ -122,6 +128,33 @@ export function useStudentRecruitment() {
         });
       }
 
+      // Diff against previous state to fire notifications
+      if (prevApplicationsRef.current.length > 0) {
+        for (const next of enrichedApplications) {
+          const prev = prevApplicationsRef.current.find(p => p.application.id === next.application.id);
+          if (!prev) continue;
+
+          const stageMoved = prev.application.stage_id !== next.application.stage_id;
+          const decisionPosted = !prev.application.final_decision && next.application.final_decision;
+
+          if (decisionPosted) {
+            if (next.application.final_decision === 'accepted') {
+              toast.success(`You've been accepted to ${next.clubName}! 🎉`);
+            } else if (next.application.final_decision === 'rejected') {
+              toast.info(`A decision has been posted for your ${next.clubName} application.`);
+            }
+          } else if (stageMoved) {
+            const stageName = next.stages[next.currentStageIndex]?.label;
+            toast.success(
+              stageName
+                ? `Your ${next.clubName} application moved to "${stageName}"`
+                : `Your ${next.clubName} application status was updated`
+            );
+          }
+        }
+      }
+
+      prevApplicationsRef.current = enrichedApplications;
       setApplications(enrichedApplications);
     } catch (error) {
       console.error('Error in fetchApplications:', error);
@@ -130,9 +163,30 @@ export function useStudentRecruitment() {
     }
   }, [user?.email]);
 
+  // Initial fetch
   useEffect(() => {
     fetchApplications();
   }, [fetchApplications]);
+
+  // Realtime subscription — fires whenever an applicant row with this email is updated
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const channel = supabase
+      .channel(`student-applications-${user.email}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'applicants' },
+        (payload) => {
+          if ((payload.new as any)?.email === user.email) {
+            fetchApplications(true);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.email, fetchApplications]);
 
   return { applications, loading, refetch: fetchApplications };
 }
