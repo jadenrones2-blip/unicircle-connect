@@ -6,8 +6,9 @@ import {
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
-import { Star, BarChart2 } from 'lucide-react';
+import { Star, BarChart2, X } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { BulkAIScreen } from '../BulkAIScreen';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 
@@ -17,11 +18,13 @@ interface PipelineViewProps {
   stages: RecruitmentStage[];
   applicants: Applicant[];
   officerScoreMap: Record<string, number>;
+  voteMap: Record<string, { yes: number; no: number; maybe: number }>;
   onMoveApplicant: (id: string, stageId: string, clubName?: string) => Promise<boolean>;
   onDeleteApplicant: (id: string) => Promise<boolean>;
   onOpenDrawer: (applicant: Applicant) => void;
   onRefresh: () => Promise<void>;
   onConfigureRubric: () => void;
+  onBulkMove: (ids: string[], stageId: string) => Promise<void>;
 }
 
 function scoreColor(score: number): string {
@@ -34,27 +37,27 @@ function initials(first: string, last: string): string {
   return `${first?.[0] ?? ''}${last?.[0] ?? ''}`.toUpperCase();
 }
 
-// ── Compact draggable card ──────────────────────────────────────────────────
+// ── Compact draggable card ────────────────────────────────────────────────────
 
 interface CompactCardProps {
   applicant: Applicant;
   officerScore?: number;
+  vote?: { yes: number; no: number; maybe: number };
+  isSelected: boolean;
+  onSelect: (id: string) => void;
   onClick: () => void;
 }
 
-function CompactCard({ applicant, officerScore, onClick }: CompactCardProps) {
+function CompactCard({ applicant, officerScore, vote, isSelected, onSelect, onClick }: CompactCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: applicant.id,
   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 };
 
   const isStandout = (applicant as any).is_standout;
   const fitScore = (applicant as any).fit_score as number | null;
+  const hasVotes = vote && (vote.yes > 0 || vote.no > 0 || vote.maybe > 0);
 
   return (
     <div
@@ -63,8 +66,22 @@ function CompactCard({ applicant, officerScore, onClick }: CompactCardProps) {
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className="group flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-white/6 bg-zinc-900 hover:border-gold/30 hover:bg-zinc-800/80 transition-all cursor-pointer select-none"
+      className={`group flex items-center gap-2.5 px-3 py-2.5 rounded-lg border bg-zinc-900 hover:border-gold/30 hover:bg-zinc-800/80 transition-all cursor-pointer select-none ${
+        isSelected ? 'border-blue-500/50 bg-zinc-800/60' : 'border-white/6'
+      }`}
     >
+      {/* Checkbox — stop pointer so clicks here don't start a drag */}
+      <div
+        className="shrink-0"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); onSelect(applicant.id); }}
+      >
+        <Checkbox
+          checked={isSelected}
+          className="border-zinc-600 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+        />
+      </div>
+
       {/* Avatar */}
       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
         isStandout ? 'bg-gold text-zinc-900' : 'bg-zinc-700 text-zinc-300'
@@ -87,7 +104,7 @@ function CompactCard({ applicant, officerScore, onClick }: CompactCardProps) {
         )}
       </div>
 
-      {/* Scores */}
+      {/* Scores + vote tally */}
       <div className="flex items-center gap-1.5 shrink-0">
         {fitScore !== null && fitScore !== undefined && (
           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${scoreColor(fitScore)}`}>
@@ -99,12 +116,19 @@ function CompactCard({ applicant, officerScore, onClick }: CompactCardProps) {
             <BarChart2 className="w-2.5 h-2.5 inline mr-0.5" />{officerScore}
           </span>
         )}
+        {hasVotes && (
+          <span className="flex items-center gap-0.5 text-[10px] font-bold">
+            {vote!.yes > 0 && <span className="text-emerald-400">{vote!.yes}✓</span>}
+            {vote!.no > 0 && <span className="text-red-400">{vote!.no}✗</span>}
+            {vote!.maybe > 0 && <span className="text-yellow-400">{vote!.maybe}~</span>}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 
-// Overlay card when dragging
+// Overlay card shown while dragging
 function DragCard({ applicant }: { applicant: Applicant }) {
   return (
     <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-gold/40 bg-zinc-800 shadow-xl cursor-grabbing w-64">
@@ -118,17 +142,22 @@ function DragCard({ applicant }: { applicant: Applicant }) {
   );
 }
 
-// ── Stage column ─────────────────────────────────────────────────────────────
+// ── Stage column ──────────────────────────────────────────────────────────────
 
 interface StageColProps {
   stage: RecruitmentStage;
   applicants: Applicant[];
   officerScoreMap: Record<string, number>;
+  voteMap: Record<string, { yes: number; no: number; maybe: number }>;
+  selectedIds: Set<string>;
+  onSelect: (id: string) => void;
+  onSelectAll: (applicantIds: string[], select: boolean) => void;
   onOpenDrawer: (a: Applicant) => void;
 }
 
-function StageCol({ stage, applicants, officerScoreMap, onOpenDrawer }: StageColProps) {
+function StageCol({ stage, applicants, officerScoreMap, voteMap, selectedIds, onSelect, onSelectAll, onOpenDrawer }: StageColProps) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
+  const allSelected = applicants.length > 0 && applicants.every(a => selectedIds.has(a.id));
 
   return (
     <div
@@ -138,8 +167,21 @@ function StageCol({ stage, applicants, officerScoreMap, onOpenDrawer }: StageCol
       }`}
     >
       {/* Column header */}
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/6">
-        <span className="text-xs font-semibold text-zinc-300 truncate">{stage.label}</span>
+      <div className="flex items-center gap-2 px-3 py-2.5 border-b border-white/6">
+        {/* Select-all checkbox for this column */}
+        <div
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelectAll(applicants.map(a => a.id), !allSelected);
+          }}
+        >
+          <Checkbox
+            checked={allSelected}
+            className="border-zinc-600 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+          />
+        </div>
+        <span className="text-xs font-semibold text-zinc-300 truncate flex-1">{stage.label}</span>
         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-white/8 text-zinc-500 shrink-0">
           {applicants.length}
         </span>
@@ -153,6 +195,9 @@ function StageCol({ stage, applicants, officerScoreMap, onOpenDrawer }: StageCol
               key={applicant.id}
               applicant={applicant}
               officerScore={officerScoreMap[applicant.id]}
+              vote={voteMap[applicant.id]}
+              isSelected={selectedIds.has(applicant.id)}
+              onSelect={onSelect}
               onClick={() => onOpenDrawer(applicant)}
             />
           ))}
@@ -170,10 +215,12 @@ function StageCol({ stage, applicants, officerScoreMap, onOpenDrawer }: StageCol
 // ── Pipeline view ─────────────────────────────────────────────────────────────
 
 export function PipelineView({
-  clubId, clubName, stages, applicants, officerScoreMap,
-  onMoveApplicant, onDeleteApplicant, onOpenDrawer, onRefresh, onConfigureRubric,
+  clubId, clubName, stages, applicants, officerScoreMap, voteMap,
+  onMoveApplicant, onDeleteApplicant, onOpenDrawer, onRefresh, onConfigureRubric, onBulkMove,
 }: PipelineViewProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkMoving, setBulkMoving] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -188,10 +235,8 @@ export function PipelineView({
     const { active, over } = e;
     setActiveId(null);
     if (!over) return;
-
     const applicantId = active.id as string;
     const overId = over.id as string;
-
     const targetStage = stages.find(s => s.id === overId);
     if (targetStage) {
       const applicant = applicants.find(a => a.id === applicantId);
@@ -200,7 +245,6 @@ export function PipelineView({
       }
       return;
     }
-
     const targetApplicant = applicants.find(a => a.id === overId);
     if (targetApplicant?.stage_id) {
       const applicant = applicants.find(a => a.id === applicantId);
@@ -211,6 +255,30 @@ export function PipelineView({
   };
 
   const handleDragOver = (_e: DragOverEvent) => {};
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSelectAll = (ids: string[], select: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      ids.forEach(id => select ? next.add(id) : next.delete(id));
+      return next;
+    });
+  };
+
+  const handleBulkMove = async (stageId: string) => {
+    if (!selectedIds.size || bulkMoving) return;
+    setBulkMoving(true);
+    await onBulkMove([...selectedIds], stageId);
+    setSelectedIds(new Set());
+    setBulkMoving(false);
+  };
 
   return (
     <div className="flex flex-col gap-4 h-full">
@@ -230,10 +298,16 @@ export function PipelineView({
 
       {/* Legend */}
       <div className="flex items-center gap-4 text-[11px] text-zinc-600 shrink-0">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> AI score ≥75</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> AI ≥75</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> 50–74</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> &lt;50</span>
         <span className="flex items-center gap-1"><Star className="w-3 h-3 text-gold fill-gold" /> Standout</span>
+        <span className="flex items-center gap-1">
+          <span className="text-emerald-400 font-bold">✓</span>
+          <span className="text-red-400 font-bold">✗</span>
+          <span className="text-yellow-400 font-bold ml-0.5">~</span>
+          Officer votes
+        </span>
       </div>
 
       {/* Kanban board */}
@@ -252,6 +326,10 @@ export function PipelineView({
                 stage={stage}
                 applicants={applicants.filter(a => a.stage_id === stage.id)}
                 officerScoreMap={officerScoreMap}
+                voteMap={voteMap}
+                selectedIds={selectedIds}
+                onSelect={toggleSelect}
+                onSelectAll={handleSelectAll}
                 onOpenDrawer={onOpenDrawer}
               />
             ))}
@@ -262,6 +340,35 @@ export function PipelineView({
         </DndContext>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
+
+      {/* Bulk action bar — appears when anything is selected */}
+      {selectedIds.size > 0 && (
+        <div className="shrink-0 flex items-center gap-3 px-4 py-3 bg-zinc-900 border border-blue-500/30 rounded-xl animate-in slide-in-from-bottom-2 duration-150">
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-sm font-semibold text-white">{selectedIds.size} selected</span>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="flex items-center gap-1 text-xs text-zinc-500 hover:text-white transition-colors"
+            >
+              <X className="w-3 h-3" /> Clear
+            </button>
+          </div>
+          <div className="w-px h-5 bg-white/10 shrink-0" />
+          <span className="text-xs text-zinc-500 shrink-0">Move to →</span>
+          <div className="flex items-center gap-1.5 flex-wrap flex-1">
+            {stages.map(stage => (
+              <button
+                key={stage.id}
+                disabled={bulkMoving}
+                onClick={() => handleBulkMove(stage.id)}
+                className="text-xs px-3 py-1.5 rounded-lg border border-white/10 text-zinc-300 hover:border-blue-400/40 hover:text-white hover:bg-blue-500/10 transition-all disabled:opacity-40"
+              >
+                {stage.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

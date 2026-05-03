@@ -267,11 +267,13 @@ export function RecruitmentKanban({
             stages={stages}
             applicants={applicants}
             officerScoreMap={officerScoreMap}
+            voteMap={voteMap}
             onMoveApplicant={onMoveApplicant}
             onDeleteApplicant={onDeleteApplicant}
             onOpenDrawer={openDrawer}
             onRefresh={onRefresh}
             onConfigureRubric={() => setActiveView('settings')}
+            onBulkMove={handleBulkMove}
           />
         )}
 
