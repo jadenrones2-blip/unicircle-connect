@@ -55,6 +55,7 @@ import ClubSurvey from "./pages/ClubSurvey";
 import PlatformSurvey from "./pages/PlatformSurvey";
 import NotFound from "./pages/NotFound";
 import InterviewBooking from "./pages/InterviewBooking";
+import Discover from "./pages/Discover";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,7 @@ const App = () => (
           <Route path="/club-admin/request" element={<ClubOnboardingRequest />} />
           <Route path="/admin-onboarding" element={<AdminOnboarding />} />
           <Route path="/interview/:clubId" element={<InterviewBooking />} />
+          <Route path="/discover" element={<Discover />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/invite/:token" element={<AcceptInvite />} />
           <Route path="/terms" element={<TermsOfService />} />

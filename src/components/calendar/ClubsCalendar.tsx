@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
-import { Loader2, Calendar, MapPin, Search, X } from 'lucide-react';
+import { Loader2, Calendar, MapPin, Search, X, Users, BookOpen, Briefcase, Music, UtensilsCrossed, LayoutGrid } from 'lucide-react';
 import { dataClient } from '@/integrations/supabase/dataClient';
 import { formatEventDate, formatEventTime } from '@/lib/formatters';
 import { toast } from 'sonner';
@@ -50,6 +50,27 @@ function getDisplayTitle(event: ExternalEvent): string {
   return event.title;
 }
 
+const EVENT_TYPES = [
+  { label: 'All',         icon: LayoutGrid,      color: 'hsl(43 74% 56%)',  keywords: [] },
+  { label: 'Social',      icon: Users,            color: '#f472b6',          keywords: ['social', 'mixer', 'hangout', 'party', 'game night', 'trivia', 'karaoke', 'bonding', 'picnic', 'gathering'] },
+  { label: 'Food',        icon: UtensilsCrossed,  color: '#fb923c',          keywords: ['food', 'pizza', 'lunch', 'dinner', 'potluck', 'free food', 'snacks', 'boba', 'brunch', 'eat', 'taco', 'bbq'] },
+  { label: 'Workshop',    icon: BookOpen,         color: '#60a5fa',          keywords: ['workshop', 'training', 'seminar', 'lecture', 'info session', 'webinar', 'panel', 'talk', 'speaker', 'learn'] },
+  { label: 'Recruitment', icon: Briefcase,        color: '#818cf8',          keywords: ['recruitment', 'rush', 'apply', 'applications', 'interest meeting', 'info night', 'recruiting'] },
+  { label: 'Performance', icon: Music,            color: '#2dd4bf',          keywords: ['concert', 'performance', 'show', 'showcase', 'exhibit', 'demo', 'film', 'screening', 'recital'] },
+] as const;
+
+type EventTypeLabel = typeof EVENT_TYPES[number]['label'];
+
+function inferEventType(event: ExternalEvent): EventTypeLabel {
+  const text = [(event.corrected_title || event.title || ''), (event.caption || ''), (event.description || '')]
+    .join(' ').toLowerCase();
+  for (const t of EVENT_TYPES) {
+    if (t.label === 'All') continue;
+    if (t.keywords.some(kw => text.includes(kw))) return t.label;
+  }
+  return 'All';
+}
+
 export default function ClubsCalendar() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [rawEvents, setRawEvents] = useState<ExternalEvent[]>([]);
@@ -57,6 +78,7 @@ export default function ClubsCalendar() {
   const [selectedEvent, setSelectedEvent] = useState<ExternalEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [selectedType, setSelectedType] = useState<EventTypeLabel>('All');
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -157,25 +179,28 @@ export default function ClubsCalendar() {
   const normalizeQ = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
 
   const filteredEvents = useMemo(() => {
-    if (!searchText.trim()) return rawEvents;
     const q = normalizeQ(searchText);
     return rawEvents.filter((e) => {
       const title = (e.corrected_title || e.title || '').toLowerCase();
       const handle = (e.club_handle || '').toLowerCase();
       const location = (e.corrected_location || e.location || '').toLowerCase();
-      return title.includes(q) || handle.includes(q) || location.includes(q);
+      const matchesSearch = !q || title.includes(q) || handle.includes(q) || location.includes(q);
+      const matchesType = selectedType === 'All' || inferEventType(e) === selectedType;
+      return matchesSearch && matchesType;
     });
-  }, [rawEvents, searchText]);
+  }, [rawEvents, searchText, selectedType]);
 
   const filteredCalendarEvents = useMemo(() => {
-    if (!searchText.trim()) return events;
     const q = normalizeQ(searchText);
     return events.filter((e) => {
       const title = (e.title || '').toLowerCase();
       const handle = (e.extendedProps.clubHandle || '').toLowerCase();
-      return title.includes(q) || handle.includes(q);
+      const matchesSearch = !q || title.includes(q) || handle.includes(q);
+      const raw = rawEvents.find(r => r.id === e.id);
+      const matchesType = selectedType === 'All' || !raw || inferEventType(raw) === selectedType;
+      return matchesSearch && matchesType;
     });
-  }, [events, searchText]);
+  }, [events, searchText, selectedType, rawEvents]);
 
   if (loading && events.length === 0) {
     return (
@@ -205,6 +230,27 @@ export default function ClubsCalendar() {
             <X className="w-4 h-4" />
           </button>
         )}
+      </div>
+
+      {/* Event type filter pills */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {EVENT_TYPES.map((t) => {
+          const isActive = selectedType === t.label;
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.label}
+              onClick={() => setSelectedType(t.label)}
+              style={isActive ? { background: t.color, color: '#000', borderColor: t.color } : {}}
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
+                isActive ? 'border-transparent' : 'bg-transparent text-zinc-500 border-white/10 hover:text-white hover:border-white/20'
+              }`}
+            >
+              <Icon className="w-3 h-3" />
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       <FullCalendar

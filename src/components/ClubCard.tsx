@@ -57,20 +57,34 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
         className="group flex flex-col h-full rounded-2xl overflow-hidden relative"
         style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}
       >
-        {/* Club photo or category gradient header */}
+        {/* Club photo or colorful gradient header */}
         {photo ? (
-          <div className="h-32 w-full shrink-0 overflow-hidden">
+          <div className="h-32 w-full shrink-0 overflow-hidden relative">
             <img
               src={photo}
               alt={club.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(to bottom, transparent 50%, rgba(17,17,17,0.7) 100%)' }}
+            />
           </div>
         ) : (
           <div
-            className="h-[3px] w-full shrink-0"
-            style={{ background: categoryColor }}
-          />
+            className="h-20 w-full shrink-0 flex items-end px-5 pb-3"
+            style={{
+              background: `linear-gradient(135deg, ${categoryColor}25 0%, ${categoryColor}08 60%, transparent 100%)`,
+              borderBottom: `1px solid ${categoryColor}18`,
+            }}
+          >
+            <span
+              className="text-4xl font-black leading-none select-none"
+              style={{ color: `${categoryColor}45` }}
+            >
+              {club.name[0]}
+            </span>
+          </div>
         )}
 
         <div className="flex flex-col flex-1 p-5">
