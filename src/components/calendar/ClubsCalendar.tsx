@@ -8,6 +8,7 @@ import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
 import { Loader2, Calendar, MapPin, Search, X, Users, BookOpen, Briefcase, Music, UtensilsCrossed, LayoutGrid } from 'lucide-react';
 import { dataClient } from '@/integrations/supabase/dataClient';
+import { supabase } from '@/integrations/supabase/client';
 import { formatEventDate, formatEventTime } from '@/lib/formatters';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
@@ -61,7 +62,9 @@ const EVENT_TYPES = [
 
 type EventTypeLabel = typeof EVENT_TYPES[number]['label'];
 
-function inferEventType(event: ExternalEvent): EventTypeLabel {
+function inferEventType(event: ExternalEvent, foodFlagIds?: Set<string>): EventTypeLabel {
+  // AI-classified food flag takes priority over keyword matching
+  if (foodFlagIds?.has(String(event.id))) return 'Food';
   const text = [(event.corrected_title || event.title || ''), (event.caption || ''), (event.description || '')]
     .join(' ').toLowerCase();
   for (const t of EVENT_TYPES) {
@@ -79,6 +82,19 @@ export default function ClubsCalendar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedType, setSelectedType] = useState<EventTypeLabel>('All');
+  const [foodFlags, setFoodFlags] = useState<Set<string>>(new Set());
+
+  // Fetch Claude-classified food flags from main DB
+  useEffect(() => {
+    (supabase as any)
+      .from('event_food_flags')
+      .select('event_id')
+      .eq('has_food', true)
+      .then(({ data }: any) => {
+        if (data) setFoodFlags(new Set(data.map((r: any) => r.event_id)));
+      })
+      .catch(() => {}); // non-critical
+  }, []);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -185,10 +201,10 @@ export default function ClubsCalendar() {
       const handle = (e.club_handle || '').toLowerCase();
       const location = (e.corrected_location || e.location || '').toLowerCase();
       const matchesSearch = !q || title.includes(q) || handle.includes(q) || location.includes(q);
-      const matchesType = selectedType === 'All' || inferEventType(e) === selectedType;
+      const matchesType = selectedType === 'All' || inferEventType(e, foodFlags) === selectedType;
       return matchesSearch && matchesType;
     });
-  }, [rawEvents, searchText, selectedType]);
+  }, [rawEvents, searchText, selectedType, foodFlags]);
 
   const filteredCalendarEvents = useMemo(() => {
     const q = normalizeQ(searchText);
@@ -197,10 +213,10 @@ export default function ClubsCalendar() {
       const handle = (e.extendedProps.clubHandle || '').toLowerCase();
       const matchesSearch = !q || title.includes(q) || handle.includes(q);
       const raw = rawEvents.find(r => r.id === e.id);
-      const matchesType = selectedType === 'All' || !raw || inferEventType(raw) === selectedType;
+      const matchesType = selectedType === 'All' || !raw || inferEventType(raw, foodFlags) === selectedType;
       return matchesSearch && matchesType;
     });
-  }, [events, searchText, selectedType, rawEvents]);
+  }, [events, searchText, selectedType, rawEvents, foodFlags]);
 
   if (loading && events.length === 0) {
     return (
