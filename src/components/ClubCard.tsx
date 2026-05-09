@@ -1,8 +1,9 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Heart } from "lucide-react";
+import { ArrowRight, Heart, Clock } from "lucide-react";
 import type { Club, RecruitingStatus } from "@/data/mockData";
+import { useClubEnrichment } from "@/contexts/ClubsContext";
 
 interface ClubCardProps {
   club: Club;
@@ -33,8 +34,17 @@ function getCategoryColor(category: string): string {
   return CATEGORY_COLORS[key] ?? 'hsl(43 74% 56%)'; // default gold
 }
 
+const TIME_COLORS: Record<string, string> = {
+  Light: '#4ade80',
+  Medium: '#facc15',
+  Heavy: '#f87171',
+};
+
 const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: ClubCardProps) => {
   const categoryColor = getCategoryColor(club.categoryBucket || club.category || '');
+  const enrichment = useClubEnrichment(club.id);
+  const photo = enrichment?.instagram_photo_url || (club as any).cover_image;
+  const description = enrichment?.one_liner || club.description;
 
   return (
     <motion.div
@@ -47,8 +57,21 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
         className="group flex flex-col h-full rounded-2xl overflow-hidden relative"
         style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}
       >
-        {/* Top color accent line */}
-        <div className="h-[2px] w-full shrink-0" style={{ background: categoryColor }} />
+        {/* Club photo or category gradient header */}
+        {photo ? (
+          <div className="h-32 w-full shrink-0 overflow-hidden">
+            <img
+              src={photo}
+              alt={club.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+        ) : (
+          <div
+            className="h-[3px] w-full shrink-0"
+            style={{ background: categoryColor }}
+          />
+        )}
 
         <div className="flex flex-col flex-1 p-5">
           {/* Category + status row */}
@@ -63,6 +86,15 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
               {matchScore !== undefined && matchScore > 0 && (
                 <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20">
                   {matchScore}% match
+                </span>
+              )}
+              {enrichment?.time_commitment && (
+                <span
+                  className="text-[10px] font-semibold flex items-center gap-0.5"
+                  style={{ color: TIME_COLORS[enrichment.time_commitment] ?? '#71717a' }}
+                >
+                  <Clock className="w-2.5 h-2.5" />
+                  {enrichment.time_commitment}
                 </span>
               )}
               {club.recruitingStatus === 'open' && (
@@ -96,13 +128,32 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
             {club.name}
           </h3>
 
-          {/* Description */}
-          {club.description ? (
-            <p className="text-xs text-zinc-500 line-clamp-3 flex-1 mb-4 leading-relaxed">
-              {club.description}
+          {/* One-liner or description */}
+          {description ? (
+            <p className="text-xs text-zinc-500 line-clamp-3 flex-1 mb-3 leading-relaxed">
+              {description}
             </p>
           ) : (
-            <div className="flex-1 mb-4" />
+            <div className="flex-1 mb-3" />
+          )}
+
+          {/* Vibe tags from enrichment */}
+          {enrichment?.vibe && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {enrichment.vibe.split(',').map(v => v.trim()).filter(Boolean).map((v, i) => (
+                <span
+                  key={i}
+                  className="text-[10px] px-2 py-0.5 rounded-full"
+                  style={{
+                    background: `${categoryColor}15`,
+                    color: categoryColor,
+                    border: `1px solid ${categoryColor}30`,
+                  }}
+                >
+                  {v}
+                </span>
+              ))}
+            </div>
           )}
 
           {/* Reason tag — only shown on recommended shelf */}

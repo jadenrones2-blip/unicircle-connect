@@ -2,6 +2,7 @@ import { Composition } from "remotion";
 import { UniCirclePromo } from "./compositions/UniCirclePromo";
 import { UniCircleShort } from "./compositions/UniCircleShort";
 import { ClubLeaderHook } from "./compositions/ClubLeaderHook";
+import { UniCirclePitchDemo } from "./compositions/UniCirclePitchDemo";
 
 export const Root: React.FC = () => {
   return (
@@ -32,6 +33,15 @@ export const Root: React.FC = () => {
         fps={30}
         width={1080}
         height={1920}
+      />
+      {/* 45s landscape — investor + LinkedIn pitch demo */}
+      <Composition
+        id="UniCirclePitchDemo"
+        component={UniCirclePitchDemo}
+        durationInFrames={1350}
+        fps={30}
+        width={1920}
+        height={1080}
       />
     </>
   );

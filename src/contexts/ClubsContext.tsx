@@ -45,15 +45,31 @@ const transformClub = (record: Record<string, unknown>): Club => {
   } as Club & { cover_image: string | null };
 };
 
+// ── Enrichment type ───────────────────────────────────────────────────────────
+
+export interface ClubEnrichment {
+  club_id: string;
+  one_liner: string | null;
+  what_they_do: string | null;
+  who_should_join: string | null;
+  vibe: string | null;
+  time_commitment: string | null;
+  highlights: string[] | null;
+  tags: string[] | null;
+  instagram_photo_url: string | null;
+}
+
 // ── cache (survives re-renders, cleared only on hard reload) ─────────────────
 
 let _cache: Club[] | null = null;
 let _fetchPromise: Promise<Club[]> | null = null;
+let _enrichmentCache: Record<string, ClubEnrichment> | null = null;
 
 // ── context ──────────────────────────────────────────────────────────────────
 
 interface ClubsContextValue {
   clubs: Club[];
+  enrichments: Record<string, ClubEnrichment>;
   loading: boolean;
   error: string | null;
   refetch: () => void;
@@ -63,17 +79,38 @@ const ClubsContext = createContext<ClubsContextValue | null>(null);
 
 export function ClubsProvider({ children }: { children: ReactNode }) {
   const [clubs, setClubs] = useState<Club[]>(_cache || []);
+  const [enrichments, setEnrichments] = useState<Record<string, ClubEnrichment>>(_enrichmentCache || {});
   const [loading, setLoading] = useState(_cache === null);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchEnrichments = useCallback(async (clubIds: string[]) => {
+    if (_enrichmentCache) {
+      setEnrichments(_enrichmentCache);
+      return;
+    }
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data } = await (supabase as any)
+        .from('club_enrichments')
+        .select('*')
+        .in('club_id', clubIds.slice(0, 500));
+      if (data) {
+        const map: Record<string, ClubEnrichment> = {};
+        for (const row of data) map[row.club_id] = row;
+        _enrichmentCache = map;
+        setEnrichments(map);
+      }
+    } catch { /* enrichments are non-critical — fail silently */ }
+  }, []);
 
   const fetchClubs = useCallback(async (force = false) => {
     if (_cache && !force) {
       setClubs(_cache);
       setLoading(false);
+      fetchEnrichments(_cache.map(c => c.id));
       return;
     }
 
-    // Deduplicate concurrent fetches — if one is already in-flight, wait for it
     if (!_fetchPromise || force) {
       _fetchPromise = (async () => {
         const { data: records, error: dbError } = await dataClient
@@ -95,20 +132,21 @@ export function ClubsProvider({ children }: { children: ReactNode }) {
     try {
       const result = await _fetchPromise!;
       setClubs(result);
+      fetchEnrichments(result.map(c => c.id));
     } catch (err) {
       console.error('Error fetching clubs:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch clubs');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchEnrichments]);
 
   useEffect(() => {
     fetchClubs();
   }, [fetchClubs]);
 
   return (
-    <ClubsContext.Provider value={{ clubs, loading, error, refetch: () => fetchClubs(true) }}>
+    <ClubsContext.Provider value={{ clubs, enrichments, loading, error, refetch: () => fetchClubs(true) }}>
       {children}
     </ClubsContext.Provider>
   );
@@ -118,4 +156,9 @@ export function useClubsContext(): ClubsContextValue {
   const ctx = useContext(ClubsContext);
   if (!ctx) throw new Error('useClubsContext must be inside ClubsProvider');
   return ctx;
+}
+
+export function useClubEnrichment(clubId: string): ClubEnrichment | null {
+  const { enrichments } = useClubsContext();
+  return enrichments[clubId] ?? null;
 }
