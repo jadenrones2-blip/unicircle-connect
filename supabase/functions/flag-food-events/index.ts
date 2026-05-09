@@ -78,7 +78,7 @@ serve(async (req) => {
 
     // Fetch events with captions from external DB
     const eventsRes = await fetch(
-      `${EXTERNAL_URL}/rest/v1/events?select=id,title,caption,description&verified=eq.true&order=start_time.desc&limit=${limit}&offset=${offset}`,
+      `${EXTERNAL_URL}/rest/v1/events?select=id,title,caption,description&order=start_time.desc&limit=${limit}&offset=${offset}`,
       { headers: { apikey: EXTERNAL_KEY, Authorization: `Bearer ${EXTERNAL_KEY}` } }
     );
     const events: any[] = await eventsRes.json();
