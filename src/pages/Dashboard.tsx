@@ -28,6 +28,7 @@ import ApplicationsSection from '@/components/dashboard/ApplicationsSection';
 import SavedClubsSection from '@/components/dashboard/SavedClubsSection';
 import RecommendedClubCard from '@/components/dashboard/RecommendedClubCard';
 import RecruitmentTrackerSection from '@/components/dashboard/RecruitmentTrackerSection';
+import ActivityFeed from '@/components/dashboard/ActivityFeed';
 import { getRecommendationsFromSaved, extractClubKeywords } from '@/lib/clubRecommendations';
 import type { Club } from '@/data/mockData';
 import { dataClient } from '@/integrations/supabase/dataClient';
@@ -353,8 +354,12 @@ export default function Dashboard() {
         <RecruitmentTrackerSection />
 
         {/* Tabs for My Clubs / Applications */}
-        <Tabs defaultValue="my-clubs" className="mb-8 sm:mb-10">
-          <TabsList className="mb-4 sm:mb-6 w-full sm:w-auto grid grid-cols-3 sm:flex">
+        <Tabs defaultValue="feed" className="mb-8 sm:mb-10">
+          <TabsList className="mb-4 sm:mb-6 w-full sm:w-auto grid grid-cols-4 sm:flex">
+            <TabsTrigger value="feed" className="gap-1 sm:gap-2 text-xs sm:text-sm tracking-wide uppercase font-semibold">
+              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              Feed
+            </TabsTrigger>
             <TabsTrigger value="my-clubs" className="gap-1 sm:gap-2 text-xs sm:text-sm tracking-wide uppercase font-semibold">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">My </span>Clubs ({memberships.length})
@@ -369,8 +374,12 @@ export default function Dashboard() {
             </TabsTrigger>
           </TabsList>
           
+          <TabsContent value="feed">
+            <ActivityFeed clubs={clubs} />
+          </TabsContent>
+
           <TabsContent value="my-clubs">
-            <MyClubsSection 
+            <MyClubsSection
               memberships={memberships} 
               onRemoveMembership={handleRemoveMembership}
             />
