@@ -6,20 +6,12 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
-import { Loader2, Calendar, MapPin, Search, X, Users, BookOpen, Briefcase, Music, UtensilsCrossed, LayoutGrid } from 'lucide-react';
+import { Loader2, Calendar, MapPin, Search, X, Users, BookOpen, Briefcase, Music, UtensilsCrossed, LayoutGrid, Clock, ChevronRight } from 'lucide-react';
 import { dataClient } from '@/integrations/supabase/dataClient';
 import { supabase } from '@/integrations/supabase/client';
 import { formatEventDate, formatEventTime } from '@/lib/formatters';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 
 interface CalendarEvent {
   id: string;
@@ -218,6 +210,25 @@ export default function ClubsCalendar() {
     });
   }, [events, searchText, selectedType, rawEvents, foodFlags]);
 
+  const [view, setView] = useState<'browse' | 'calendar'>('browse');
+
+  // Events grouped by category for the "All" browse view
+  const eventsByCategory = useMemo(() => {
+    const q = normalizeQ(searchText);
+    return EVENT_TYPES.filter(t => t.label !== 'All').map(t => ({
+      ...t,
+      events: rawEvents.filter(e => {
+        const title = (e.corrected_title || e.title || '').toLowerCase();
+        const handle = (e.club_handle || '').toLowerCase();
+        const loc = (e.corrected_location || e.location || '').toLowerCase();
+        const matchesSearch = !q || title.includes(q) || handle.includes(q) || loc.includes(q);
+        return matchesSearch && inferEventType(e, foodFlags) === t.label;
+      }),
+    })).filter(t => t.events.length > 0);
+  }, [rawEvents, searchText, foodFlags]);
+
+  const openEvent = (e: ExternalEvent) => { setSelectedEvent(e); setIsModalOpen(true); };
+
   if (loading && events.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -227,28 +238,44 @@ export default function ClubsCalendar() {
   }
 
   return (
-    <div className="clubs-calendar space-y-8">
-      {/* Search Bar */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-        <Input
-          type="text"
-          placeholder="Search events, clubs..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="pl-9 pr-9 h-10 bg-white/5 border-white/10 text-foreground placeholder:text-muted-foreground focus:border-gold/50 rounded-xl"
-        />
-        {searchText && (
+    <div className="clubs-calendar space-y-6">
+
+      {/* ── Top bar: search + view toggle ── */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <Input
+            type="text"
+            placeholder="Search events, clubs..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="pl-9 pr-9 h-10 bg-white/5 border-white/10 text-foreground placeholder:text-muted-foreground focus:border-gold/50 rounded-xl"
+          />
+          {searchText && (
+            <button onClick={() => setSearchText('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* View toggle */}
+        <div className="flex items-center bg-white/5 border border-white/10 rounded-xl p-1 gap-1 shrink-0">
           <button
-            onClick={() => setSearchText('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setView('browse')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'browse' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
           >
-            <X className="w-4 h-4" />
+            Browse
           </button>
-        )}
+          <button
+            onClick={() => setView('calendar')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${view === 'calendar' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+          >
+            <Calendar className="w-3 h-3" /> Calendar
+          </button>
+        </div>
       </div>
 
-      {/* Event type filter pills */}
+      {/* ── Category pills ── */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {EVENT_TYPES.map((t) => {
           const isActive = selectedType === t.label;
@@ -269,121 +296,135 @@ export default function ClubsCalendar() {
         })}
       </div>
 
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        }}
-        events={filteredCalendarEvents}
-        eventClick={handleEventClick}
-        height="auto"
-        eventDisplay="block"
-        dayMaxEvents={3}
-        moreLinkClick="popover"
-        displayEventTime={false}
-      />
+      {/* ── Calendar view ── */}
+      {view === 'calendar' && (
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
+          events={filteredCalendarEvents}
+          eventClick={handleEventClick}
+          height="auto"
+          eventDisplay="block"
+          dayMaxEvents={3}
+          moreLinkClick="popover"
+          displayEventTime={false}
+        />
+      )}
 
-      {/* Events List View */}
-      <div className="p-4 md:p-6 rounded-lg border border-white/10 bg-white/5">
-        <h3 className="text-lg md:text-xl font-display font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-gold" />
-          {searchText ? `Results (${filteredEvents.length})` : 'All Events'}
-        </h3>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 text-gold animate-spin" />
-          </div>
-        ) : filteredEvents.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">
-            {searchText ? `No events match "${searchText}"` : 'No events found'}
-          </p>
-        ) : (
-          <>
-            {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-white/10">
-                    <TableHead className="text-white/50">Event</TableHead>
-                    <TableHead className="text-white/50">Club</TableHead>
-                    <TableHead className="text-white/50">Date</TableHead>
-                    <TableHead className="text-right text-white/50">Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredEvents.map((event) => (
-                    <TableRow
-                      key={event.id}
-                      className="cursor-pointer border-white/10 hover:bg-white/5"
-                      onClick={() => {
-                        setSelectedEvent(event);
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      <TableCell className="font-medium text-white">{getDisplayTitle(event)}</TableCell>
-                      <TableCell>
-                        {event.club_handle ? (
-                          <span className="text-gold">@{event.club_handle}</span>
-                        ) : (
-                          <span className="text-white/30">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-white/80">{formatEventDate(event.start_time)}</TableCell>
-                      <TableCell className="text-right text-white/50">{formatEventTime(event.start_time)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+      {/* ── Browse view ── */}
+      {view === 'browse' && (
+        <div className="space-y-10">
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-6 h-6 text-gold animate-spin" />
             </div>
-
-            {/* Mobile Card View */}
-            <div className="flex flex-col gap-3 md:hidden">
-              {filteredEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="p-4 bg-white/5 border border-gold/20 rounded-lg active:scale-[0.98] transition-all hover:border-gold/50 hover:bg-white/10"
-                  onClick={() => {
-                    setSelectedEvent(event);
-                    setIsModalOpen(true);
-                  }}
-                >
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <h4 className="font-semibold text-foreground line-clamp-1">{getDisplayTitle(event)}</h4>
-                    <span className="text-xs font-medium text-gold whitespace-nowrap">
-                      {formatEventTime(event.start_time)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      {event.club_handle && <span>@{event.club_handle}</span>}
+          ) : filteredEvents.length === 0 ? (
+            <p className="text-muted-foreground text-center py-16">
+              {searchText ? `No events match "${searchText}"` : 'No events found'}
+            </p>
+          ) : selectedType === 'All' ? (
+            /* ── Grouped by category ── */
+            eventsByCategory.map(({ label, color, icon: Icon, events: catEvents }) => (
+              <div key={label}>
+                {/* Section header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}20`, border: `1px solid ${color}40` }}>
+                      <Icon className="w-3.5 h-3.5" style={{ color }} />
                     </div>
-                    <span>{formatEventDate(event.start_time)}</span>
+                    <h3 className="font-display font-semibold text-white text-base">{label}</h3>
+                    <span className="text-xs text-zinc-600 font-medium">{catEvents.length}</span>
                   </div>
-                  {event.location && (
-                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-                      <MapPin className="w-3 h-3 text-gold/60" />
-                      <span className="line-clamp-1">{event.location}</span>
-                    </div>
-                  )}
+                  <button
+                    onClick={() => setSelectedType(label as EventTypeLabel)}
+                    className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                  >
+                    See all <ChevronRight className="w-3 h-3" />
+                  </button>
                 </div>
-              ))}
+
+                {/* Horizontal scroll row */}
+                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+                  {catEvents.slice(0, 10).map(e => (
+                    <EventBrowseCard key={e.id} event={e} color={color} onClick={() => openEvent(e)} />
+                  ))}
+                </div>
+              </div>
+            ))
+          ) : (
+            /* ── Filtered grid ── */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredEvents.map(e => {
+                const cat = EVENT_TYPES.find(t => t.label === selectedType);
+                return (
+                  <EventBrowseCard key={e.id} event={e} color={cat?.color ?? 'hsl(43 74% 56%)'} onClick={() => openEvent(e)} />
+                );
+              })}
             </div>
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       <EventDetailModal
         event={selectedEvent}
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedEvent(null);
-        }}
+        onClose={() => { setIsModalOpen(false); setSelectedEvent(null); }}
       />
     </div>
+  );
+}
+
+/* ── Eventbrite-style event card ── */
+function EventBrowseCard({ event, color, onClick }: { event: ExternalEvent; color: string; onClick: () => void }) {
+  const date = event.corrected_start_time || event.start_time;
+  const d = date ? new Date(date) : null;
+  const dayNum  = d ? d.toLocaleDateString('en-US', { day: '2-digit' }) : '—';
+  const dayName = d ? d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase() : '';
+  const month   = d ? d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '';
+  const time    = date ? formatEventTime(date) : '';
+  const loc     = event.corrected_location || event.location;
+  const title   = event.corrected_title || event.title || 'Event';
+
+  return (
+    <button
+      onClick={onClick}
+      className="shrink-0 w-56 text-left bg-zinc-900 border border-white/[0.07] rounded-2xl overflow-hidden hover:border-white/20 hover:bg-zinc-800 transition-all group"
+    >
+      {/* Color banner with date */}
+      <div className="h-20 relative flex items-end px-4 pb-3" style={{ background: `linear-gradient(135deg, ${color}30, ${color}10)`, borderBottom: `1px solid ${color}20` }}>
+        <div className="absolute top-3 left-4 flex items-baseline gap-1.5">
+          <span className="text-2xl font-black leading-none" style={{ color }}>{dayNum}</span>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold" style={{ color, opacity: 0.8 }}>{month}</span>
+            <span className="text-[10px] font-bold text-zinc-500">{dayName}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <p className="text-sm font-semibold text-zinc-100 line-clamp-2 leading-snug mb-2 group-hover:text-white transition-colors">
+          {title}
+        </p>
+        {event.club_handle && (
+          <p className="text-xs font-medium mb-2" style={{ color }}>@{event.club_handle}</p>
+        )}
+        <div className="flex flex-col gap-1">
+          {time && (
+            <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+              <Clock className="w-3 h-3 shrink-0" />
+              <span>{time}</span>
+            </div>
+          )}
+          {loc && (
+            <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+              <MapPin className="w-3 h-3 shrink-0" />
+              <span className="line-clamp-1">{loc}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </button>
   );
 }
