@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>UniCircle × SIC — The Campus Is Unfinished.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold:    hsl(43, 74%, 56%);
+      --purple:  #7C3AED;
+      --purple-soft: #A78BFA;
+      --ink:     #0A0A0A;
+      --z50:     #09090b;
+      --z100:    #f4f4f5;
+      --z200:    #e4e4e7;
+      --z400:    #a1a1aa;
+      --z500:    #71717a;
+      --z600:    #52525b;
+      --z700:    #3f3f46;
+      --z800:    #27272a;
+      --z900:    #18181b;
+    }
+
+    body {
+      width: 1080px;
+      height: 1350px;
+      background: var(--ink);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ─── Ambience ─── */
+    .glow-1 {
+      position: absolute;
+      top: -160px; right: -100px;
+      width: 560px; height: 560px;
+      background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    .glow-2 {
+      position: absolute;
+      bottom: 40px; left: -100px;
+      width: 480px; height: 480px;
+      background: radial-gradient(circle, rgba(196,150,28,0.13) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    .grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 80px 80px;
+      pointer-events: none;
+    }
+    /* subtle noise texture */
+    .noise {
+      position: absolute; inset: 0;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+
+    /* ─── Top accent bar ─── */
+    .topbar {
+      height: 4px;
+      background: linear-gradient(90deg, var(--purple) 0%, var(--gold) 55%, var(--purple) 100%);
+    }
+
+    /* ─── Main layout ─── */
+    .wrap {
+      position: relative; z-index: 10;
+      padding: 52px 72px 0;
+      height: calc(100% - 4px);
+      display: flex; flex-direction: column;
+    }
+
+    /* ─── Club row ─── */
+    .clubs {
+      display: flex; align-items: center; gap: 18px;
+      margin-bottom: 56px;
+    }
+    .chip {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 100px;
+      padding: 10px 18px;
+    }
+    .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-p { background: var(--purple-soft); }
+    .dot-g { background: var(--gold); }
+    .chip span { font-size: 14px; font-weight: 600; color: var(--z400); letter-spacing: 0.01em; }
+    .x { font-size: 18px; font-weight: 700; color: var(--z700); }
+
+    /* ─── Eyebrow tag ─── */
+    .tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(124,58,237,0.12);
+      border: 1px solid rgba(124,58,237,0.28);
+      border-radius: 100px;
+      padding: 6px 15px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--purple-soft);
+      margin-bottom: 24px; width: fit-content;
+    }
+    .tag-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--purple-soft); }
+
+    /* ─── Hero headline ─── */
+    .hero {
+      font-family: 'Bebas Neue', sans-serif;
+      line-height: 0.9;
+      letter-spacing: 0.01em;
+      margin-bottom: 30px;
+    }
+    .hero-l1 { font-size: 116px; color: #fff; display: block; }
+    .hero-l2 { font-size: 116px; color: var(--purple-soft); display: block; }
+    .hero-l3 { font-size: 80px; color: var(--z600); display: block; letter-spacing: 0.06em; }
+
+    /* ─── Subcopy ─── */
+    .sub {
+      font-size: 19px; font-weight: 400; color: var(--z500);
+      line-height: 1.65; max-width: 580px;
+      margin-bottom: 44px;
+    }
+    .sub strong { color: var(--z200); font-weight: 600; }
+
+    /* ─── Building prompts ─── */
+    .prompts-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--z700);
+      margin-bottom: 14px;
+    }
+    .prompts {
+      display: flex; flex-direction: column; gap: 10px;
+      margin-bottom: 44px;
+    }
+    .prompt-row {
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .prompt-num {
+      font-size: 10px; font-weight: 700; color: var(--purple);
+      background: rgba(124,58,237,0.12);
+      border: 1px solid rgba(124,58,237,0.22);
+      border-radius: 6px;
+      padding: 3px 8px;
+      flex-shrink: 0; margin-top: 2px;
+      letter-spacing: 0.05em;
+    }
+    .prompt-text {
+      font-size: 16px; font-weight: 500; color: var(--z400);
+      line-height: 1.5;
+    }
+
+    /* ─── Divider ─── */
+    .hr {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(124,58,237,0.3), rgba(196,150,28,0.2), transparent);
+      margin-bottom: 32px;
+    }
+
+    /* ─── Details row ─── */
+    .details {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 30px;
+    }
+    .dcard {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px; padding: 20px 22px;
+    }
+    .dcard.hl {
+      border-color: rgba(124,58,237,0.22);
+      background: rgba(124,58,237,0.06);
+    }
+    .dcard .dlabel {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--z700); margin-bottom: 8px;
+    }
+    .dcard .dval {
+      font-size: 20px; font-weight: 700; color: var(--z100); margin-bottom: 3px;
+    }
+    .dcard.hl .dval { color: var(--purple-soft); }
+    .dcard .dsub { font-size: 12px; color: var(--z600); }
+
+    /* ─── CTA ─── */
+    .cta {
+      background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(196,150,28,0.07));
+      border: 1px solid rgba(124,58,237,0.2);
+      border-radius: 20px; padding: 28px 36px;
+      display: flex; align-items: center; gap: 28px;
+    }
+    .qr-block { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+    .qr-wrap {
+      background: #0A0A0A;
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qr-label { font-size: 11px; font-weight: 700; color: var(--purple-soft); letter-spacing: 0.06em; text-transform: uppercase; }
+    .qr-url   { font-size: 10px; color: var(--z600); letter-spacing: 0.04em; }
+    .cta-right { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .cta-left h3 { font-size: 20px; font-weight: 700; color: var(--z100); margin-bottom: 5px; }
+    .cta-left p  { font-size: 13px; color: var(--z500); }
+    .cta-sub { font-size: 11px !important; color: var(--z700) !important; margin-top: 4px; }
+    .cta-btn {
+      align-self: flex-start;
+      background: var(--purple); border-radius: 100px;
+      padding: 12px 28px; font-size: 14px; font-weight: 700;
+      color: #fff; letter-spacing: 0.02em; white-space: nowrap;
+    }
+
+    /* ─── Value prop ribbon ─── */
+    .vp {
+      background: rgba(255,255,255,0.02);
+      border-left: 3px solid var(--gold);
+      padding: 16px 20px; margin-bottom: 28px;
+      border-radius: 0 10px 10px 0;
+    }
+    .vp p {
+      font-size: 13px; font-weight: 400; color: var(--z500); line-height: 1.65;
+      font-style: italic;
+    }
+    .vp p strong { color: var(--z300, #d4d4d8); font-style: normal; font-weight: 600; }
+
+    /* ─── Footer ─── */
+    .footer {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      border-top: 1px solid rgba(255,255,255,0.045);
+      padding: 22px 72px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .f-left { display: flex; align-items: center; gap: 8px; }
+    .f-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+    .f-left span { font-size: 13px; font-weight: 700; color: var(--z700); letter-spacing: 0.08em; }
+    .f-right { font-size: 13px; color: var(--z700); letter-spacing: 0.04em; }
+    .f-kw {
+      display: flex; gap: 20px; align-items: center;
+    }
+    .f-kw span {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--z700);
+    }
+    .f-kw .sep { color: var(--z800); }
+
+    /* ─── Download toolbar (outside flyer, hidden on capture) ─── */
+    .toolbar {
+      position: fixed; bottom: 32px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 12px; align-items: center;
+      background: rgba(15,15,15,0.92);
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 100px;
+      padding: 12px 20px;
+      z-index: 9999;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    .toolbar-btn {
+      display: flex; align-items: center; gap: 8px;
+      border: none; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; font-weight: 600;
+      border-radius: 100px; padding: 10px 22px;
+      transition: opacity 0.15s;
+    }
+    .toolbar-btn:hover { opacity: 0.85; }
+    .btn-png  { background: var(--purple); color: #fff; }
+    .btn-pdf  { background: rgba(255,255,255,0.07); color: var(--z200); border: 1px solid rgba(255,255,255,0.1); }
+    .toolbar-label { font-size: 12px; color: var(--z600); padding: 0 4px; }
+    .toolbar.loading .btn-png { opacity: 0.5; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+  <div class="grid"></div>
+  <div class="noise"></div>
+  <div class="topbar"></div>
+
+  <div class="wrap">
+
+    <!-- Club chips -->
+    <div class="clubs">
+      <div class="chip">
+        <div class="chip-dot dot-p"></div>
+        <span>Startup Incubator Club</span>
+      </div>
+      <span class="x">×</span>
+      <div class="chip">
+        <div class="chip-dot dot-g"></div>
+        <span>UniCircle</span>
+      </div>
+      <div style="margin-left: auto;">
+        <div class="tag"><div class="tag-dot"></div>Free Lovable AI Credits</div>
+      </div>
+    </div>
+
+    <!-- Hero headline -->
+    <div class="hero">
+      <span class="hero-l1">THE CAMPUS</span>
+      <span class="hero-l2">IS UNFINISHED.</span>
+      <span class="hero-l3">Find your circle. Ship what's missing.</span>
+    </div>
+
+    <!-- Value prop ribbon -->
+    <div class="vp">
+      <p>We're not handing out credits. We're equipping <strong>campus architects</strong> — org leaders, builders, community designers — with production-grade AI tools to ship real solutions for real problems. <strong>Starting with yours.</strong></p>
+    </div>
+
+    <!-- Building prompts -->
+    <div class="prompts-label">Building Prompts — Stop and Think</div>
+    <div class="prompts">
+      <div class="prompt-row">
+        <span class="prompt-num">01</span>
+        <span class="prompt-text">What would you automate if you had an engineer for one day?</span>
+      </div>
+      <div class="prompt-row">
+        <span class="prompt-num">02</span>
+        <span class="prompt-text">What's one thing your org runs on a Google Form that should be a product?</span>
+      </div>
+      <div class="prompt-row">
+        <span class="prompt-num">03</span>
+        <span class="prompt-text">Who on your e-board spends hours on tasks a 10-line prompt could replace?</span>
+      </div>
+      <div class="prompt-row">
+        <span class="prompt-num">04</span>
+        <span class="prompt-text">If you could ship one campus tool today — what does it solve?</span>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <!-- Event details -->
+    <div class="details">
+      <div class="dcard hl">
+        <div class="dlabel">Day</div>
+        <div class="dval">Wednesday</div>
+        <div class="dsub">May 14, 2026</div>
+      </div>
+      <div class="dcard hl">
+        <div class="dlabel">Time</div>
+        <div class="dval">2:00 PM</div>
+        <div class="dsub">Come anytime</div>
+      </div>
+      <div class="dcard">
+        <div class="dlabel">Location</div>
+        <div class="dval">Library Walk</div>
+        <div class="dsub">UCSD</div>
+      </div>
+    </div>
+
+    <!-- CTA + QR -->
+    <div class="cta">
+      <!-- QR code block -->
+      <div class="qr-block">
+        <div class="qr-wrap">
+          <img
+            src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Funicircle.app%2Ftabling&bgcolor=0A0A0A&color=7C3AED&format=png&margin=8&qzone=1"
+            width="120" height="120"
+            alt="Scan to register"
+            style="border-radius:10px; display:block;"
+          />
+        </div>
+        <p class="qr-label">Scan to register</p>
+        <p class="qr-url">unicircle.app/tabling</p>
+      </div>
+
+      <!-- Text + button -->
+      <div class="cta-right">
+        <div class="cta-left">
+          <h3>Scan to Claim Credits</h3>
+          <p>See the event · Create your UniCircle account</p>
+          <p class="cta-sub">Free Lovable AI credits — just sign up</p>
+        </div>
+        <div class="cta-btn">Get Started Free →</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="f-left">
+      <div class="f-dot"></div>
+      <span>UNICIRCLE.APP</span>
+    </div>
+    <div class="f-kw">
+      <span>Vibe Coding</span><span class="sep">·</span>
+      <span>Intentional Community</span><span class="sep">·</span>
+      <span>Ship in Minutes</span>
+    </div>
+    <div class="f-right">@unicircle.ucsd · @ucsd.sic</div>
+  </div>
+
+  <!-- Download toolbar -->
+  <div class="toolbar" id="toolbar">
+    <span class="toolbar-label">Export flyer</span>
+    <button class="toolbar-btn btn-pdf" onclick="printFlyer()">Print / PDF</button>
+    <button class="toolbar-btn btn-png" id="dlBtn" onclick="downloadPNG()">⬇ Download PNG</button>
+  </div>
+
+  <!-- html2canvas from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    async function downloadPNG() {
+      const toolbar = document.getElementById('toolbar');
+      const btn     = document.getElementById('dlBtn');
+      toolbar.classList.add('loading');
+      btn.textContent = 'Capturing…';
+
+      // Capture only the body (1080×1350), not the toolbar
+      const canvas = await html2canvas(document.body, {
+        width: 1080,
+        height: 1350,
+        scale: 2,           // 2× for retina-quality output
+        useCORS: true,
+        ignoreElements: el => el.id === 'toolbar',
+        backgroundColor: '#0A0A0A',
+      });
+
+      const link = document.createElement('a');
+      link.download = 'unicircle-sic-flyer.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+
+      toolbar.classList.remove('loading');
+      btn.textContent = '⬇ Download PNG';
+    }
+
+    function printFlyer() {
+      document.getElementById('toolbar').style.display = 'none';
+      window.print();
+      document.getElementById('toolbar').style.display = '';
+    }
+  </script>
+
+  <style>
+    @media print {
+      .toolbar { display: none !important; }
+      body { width: 1080px; height: 1350px; }
+    }
+  </style>
+
+</body>
+</html>

@@ -26,7 +26,7 @@ async function classifyBatch(events: { id: string; text: string }[]): Promise<an
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1500,
+      max_tokens: 2048,
       messages: [{
         role: 'user',
         content: `You are analyzing Instagram event posts from UCSD student clubs to detect if they mention free food being provided at the event.
@@ -78,23 +78,25 @@ serve(async (req) => {
 
     // Fetch events with captions from external DB
     const eventsRes = await fetch(
-      `${EXTERNAL_URL}/rest/v1/events?select=id,title,caption,description&order=start_time.desc&limit=${limit}&offset=${offset}`,
+      `${EXTERNAL_URL}/rest/v1/events?select=id,title,caption&limit=${limit}&offset=${offset}`,
       { headers: { apikey: EXTERNAL_KEY, Authorization: `Bearer ${EXTERNAL_KEY}` } }
     );
-    const events: any[] = await eventsRes.json();
+    const eventsRaw = await eventsRes.json();
 
-    if (!events?.length) {
-      return new Response(JSON.stringify({ processed: 0, done: true }), {
+    // Guard against error responses (non-array)
+    if (!Array.isArray(eventsRaw) || eventsRaw.length === 0) {
+      return new Response(JSON.stringify({ processed: 0, done: true, debug: eventsRaw }), {
         headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     }
+    const events: any[] = eventsRaw;
 
     // Only process events that have actual caption/description text
     const withText = events
-      .filter(e => (e.caption || e.description || e.title)?.trim())
+      .filter(e => (e.caption || e.title)?.trim())
       .map(e => ({
         id: String(e.id),
-        text: [e.title, e.caption, e.description].filter(Boolean).join(' '),
+        text: [e.title, e.caption].filter(Boolean).join(' '),
       }));
 
     if (!withText.length) {
@@ -103,18 +105,34 @@ serve(async (req) => {
       });
     }
 
-    // Process in batches of 20
-    const BATCH = 20;
-    const allResults: any[] = [];
+    // Debug: test Claude with just the first event
+    const testEvent = withText[0];
+    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 100,
+        messages: [{ role: 'user', content: `Does this event mention free food? Reply with just YES or NO.\n\n${testEvent?.text?.slice(0, 300)}` }],
+      }),
+    });
+    const claudeData = await claudeRes.json();
 
-    for (let i = 0; i < withText.length; i += BATCH) {
-      const batch = withText.slice(i, i + BATCH);
-      const results = await classifyBatch(batch);
-      allResults.push(...results);
-      if (i + BATCH < withText.length) {
-        await new Promise(r => setTimeout(r, 300));
-      }
-    }
+    return new Response(JSON.stringify({
+      withTextCount: withText.length,
+      firstEvent: testEvent,
+      claudeStatus: claudeRes.status,
+      claudeResponse: claudeData,
+      anthropicKeySet: !!ANTHROPIC_KEY,
+    }), { headers: { ...CORS, 'Content-Type': 'application/json' } });
+
+    // Process in batches of 5 to stay well within token limits
+    const BATCH = 5;
+    const allResults: any[] = [];
 
     // Upsert to main DB
     if (allResults.length) {
