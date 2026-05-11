@@ -56,7 +56,7 @@ export default function ClubAdminTeam() {
             />
           </header>
 
-          <div className="flex-1 p-6 sm:p-10 max-w-xl">
+          <div className="flex-1 p-6 sm:p-10 max-w-3xl">
             <InviteTeamPanel clubId={clubId} clubName={clubName} isOwner={isOwner} />
           </div>
         </main>
