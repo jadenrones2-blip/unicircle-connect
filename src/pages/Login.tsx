@@ -26,7 +26,11 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<LoginMode>(
-    showAdmin ? 'admin' : redirectTo?.includes('club-admin') ? 'club-owner' : 'student'
+    showAdmin || redirectTo?.includes('/admin/')
+      ? 'admin'
+      : redirectTo?.includes('club-admin')
+        ? 'club-owner'
+        : 'student'
   );
 
   useEffect(() => {
@@ -77,6 +81,17 @@ export default function Login() {
             toast.error('This account does not have platform admin access.', { duration: 5000 });
           }
         } else {
+          // Always check admin role first — catches admins who land on wrong mode
+          const { data: hasAdminRole } = await supabase.rpc('has_role', {
+            _user_id: userId,
+            _role: 'admin',
+          });
+          if (hasAdminRole) {
+            navigate(redirectTo?.includes('/admin/') ? redirectTo : '/admin/events');
+            toast.success('Welcome, Admin!');
+            return;
+          }
+
           // Run club ownership + onboarding checks in parallel
           const [ownedClubsResult, completedOnboarding] = await Promise.all([
             supabase.from('club_owners').select('id').eq('user_id', userId).limit(1),

@@ -57,6 +57,7 @@ import NotFound from "./pages/NotFound";
 import InterviewBooking from "./pages/InterviewBooking";
 import Discover from "./pages/Discover";
 import TablingLanding from "./pages/TablingLanding";
+import ApprovalPending from "./pages/ApprovalPending";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +122,7 @@ const App = () => (
           <Route path="/reach" element={<ReachDemo />} />
           <Route path="/startup-incubator" element={<StartupIncubatorDemo />} />
           <Route path="/tabling" element={<TablingLanding />} />
+          <Route path="/approval-pending" element={<ApprovalPending />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
