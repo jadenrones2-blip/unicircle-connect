@@ -29,6 +29,7 @@ import SavedClubsSection from '@/components/dashboard/SavedClubsSection';
 import RecommendedClubCard from '@/components/dashboard/RecommendedClubCard';
 import RecruitmentTrackerSection from '@/components/dashboard/RecruitmentTrackerSection';
 import ActivityFeed from '@/components/dashboard/ActivityFeed';
+import SpotlightCarousel from '@/components/dashboard/SpotlightCarousel';
 import { getRecommendationsFromSaved, extractClubKeywords } from '@/lib/clubRecommendations';
 import type { Club } from '@/data/mockData';
 import { dataClient } from '@/integrations/supabase/dataClient';
@@ -375,6 +376,7 @@ export default function Dashboard() {
           </TabsList>
           
           <TabsContent value="feed">
+            <SpotlightCarousel />
             <ActivityFeed clubs={clubs} />
           </TabsContent>
 

@@ -58,6 +58,7 @@ import InterviewBooking from "./pages/InterviewBooking";
 import Discover from "./pages/Discover";
 import TablingLanding from "./pages/TablingLanding";
 import ApprovalPending from "./pages/ApprovalPending";
+import ClubSpotlightCreator from "./pages/ClubSpotlightCreator";
 
 const queryClient = new QueryClient();
 
@@ -123,6 +124,7 @@ const App = () => (
           <Route path="/startup-incubator" element={<StartupIncubatorDemo />} />
           <Route path="/tabling" element={<TablingLanding />} />
           <Route path="/approval-pending" element={<ApprovalPending />} />
+          <Route path="/club-admin/clubs/:clubId/spotlight" element={<ClubSpotlightCreator />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

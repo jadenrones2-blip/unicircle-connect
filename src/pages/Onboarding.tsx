@@ -9,6 +9,7 @@ import { dataClient } from '@/integrations/supabase/dataClient';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import ResumeUploadStep from '@/components/onboarding/ResumeUploadStep';
+import SwipeStep from '@/components/onboarding/SwipeStep';
 
 interface ExtractedKeywords {
   career_goals: string[];
@@ -177,7 +178,7 @@ function matchesArea(club: { categoryBucket?: string; category?: string }, areaV
 
 // ─── Steps ───────────────────────────────────────────────────────────────────
 
-const STEPS = ['goal', 'vibe', 'areas', 'specifics', 'resume'] as const;
+const STEPS = ['goal', 'vibe', 'areas', 'specifics', 'resume', 'swipe'] as const;
 type Step = typeof STEPS[number];
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -277,8 +278,7 @@ export default function Onboarding() {
 
     const result = await saveInterests(user.id, interests);
     if (result.success) {
-      toast.success('Profile complete! Here are your recommendations.');
-      navigate(redirectTo || '/dashboard');
+      setStep('swipe');
     } else {
       toast.error('Failed to save preferences. Please try again.');
     }
@@ -550,6 +550,14 @@ export default function Onboarding() {
                 <ResumeUploadStep
                   onKeywordsExtracted={async (kw) => { setResumeKeywords(kw); await saveAndNavigate(kw); }}
                   onSkip={() => saveAndNavigate()}
+                />
+              )}
+
+              {/* ── STEP 6: SWIPE ── */}
+              {step === 'swipe' && (
+                <SwipeStep
+                  interests={[...goals, ...selectedVibe, ...selectedAreas, ...selectedSpecifics]}
+                  onDone={() => navigate(redirectTo || '/dashboard')}
                 />
               )}
 

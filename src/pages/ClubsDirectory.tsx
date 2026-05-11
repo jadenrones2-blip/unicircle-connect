@@ -12,6 +12,7 @@ import Footer from "@/components/Footer";
 import ClubCard from "@/components/ClubCard";
 import RequestNewClubModal from "@/components/RequestNewClubModal";
 import RecommendationChat from "@/components/RecommendationChat";
+import CampusSearch from "@/components/CampusSearch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useClubs } from "@/hooks/useExternalDB";
@@ -301,6 +302,13 @@ const ClubsDirectory = () => {
               </button>
             }
           />
+        </div>
+      </section>
+
+      {/* Campus Social Search */}
+      <section className="px-4 pb-2">
+        <div className="max-w-6xl mx-auto">
+          <CampusSearch clubs={clubs} events={[]} />
         </div>
       </section>
 
