@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, X, ArrowUp, Undo2, Loader2, CheckCircle } from 'lucide-react';
@@ -222,7 +222,11 @@ export default function Discover() {
   const navigate = useNavigate();
   const { data: clubs, loading } = useClubs();
   const { enrichments } = useClubsContext();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/login?redirect=/discover');
+  }, [user, authLoading, navigate]);
   const { savedClubs, saveClub, unsaveClub, isSaved, fetchSavedClubs } = useSavedClubs();
   const { fetchInterests } = useUserInterests();
   const [interestValues, setInterestValues] = useState<string[]>([]);
