@@ -346,7 +346,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-5 sm:py-8">
+      <main className="container mx-auto px-4 py-5 sm:py-8 pb-24 sm:pb-8">
         {/* Personalized welcome hero */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}

@@ -59,6 +59,8 @@ import Discover from "./pages/Discover";
 import TablingLanding from "./pages/TablingLanding";
 import ApprovalPending from "./pages/ApprovalPending";
 import ClubSpotlightCreator from "./pages/ClubSpotlightCreator";
+import ClubAdminInbox from "./pages/ClubAdminInbox";
+import MobileNav from "./components/MobileNav";
 
 const queryClient = new QueryClient();
 
@@ -125,8 +127,10 @@ const App = () => (
           <Route path="/tabling" element={<TablingLanding />} />
           <Route path="/approval-pending" element={<ApprovalPending />} />
           <Route path="/club-admin/clubs/:clubId/spotlight" element={<ClubSpotlightCreator />} />
+          <Route path="/club-admin/clubs/:clubId/inbox" element={<ClubAdminInbox />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <MobileNav />
       </BrowserRouter>
     </TooltipProvider>
       </ClubsProvider>

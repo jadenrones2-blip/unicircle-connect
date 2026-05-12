@@ -21,6 +21,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ClaimClubModal from "@/components/ClaimClubModal";
 import SaveClubButton from "@/components/SaveClubButton";
+import ClubMessageButton from "@/components/ClubMessageButton";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -421,21 +422,7 @@ const ClubDetail = () => {
                     </Link>
                   </Button>
                 )}
-                <Button
-                  variant={club.recruitingStatus === 'open' ? 'outline' : 'gold'}
-                  size="lg"
-                  className="w-full"
-                  onClick={() => {
-                    if (club.email) {
-                      window.location.href = `mailto:${club.email}?subject=Interest in ${encodeURIComponent(club.name)}`;
-                    } else {
-                      toast.info("No email available for this club yet. Check their social links or try again later.");
-                    }
-                  }}
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  Express Interest
-                </Button>
+                <ClubMessageButton clubId={club.id} clubName={club.name} />
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <SaveClubButton
