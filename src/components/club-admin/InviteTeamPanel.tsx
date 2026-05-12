@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link2, Copy, Check, Trash2, Loader2, Users, ShieldCheck, Clock, UserPlus } from 'lucide-react';
+import { Link2, Copy, Check, Trash2, Loader2, Users, ShieldCheck, Clock, UserPlus, Mail, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 
 interface ClubInvite {
   id: string;
   token: string;
   club_id: string;
+  invited_email: string | null;
   used_by: string | null;
   used_at: string | null;
   expires_at: string;
@@ -55,6 +57,8 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -74,8 +78,13 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const generateInvite = async () => {
+  const generateInvite = async (email: string) => {
     if (!user) return;
+    const emailLower = email.trim().toLowerCase();
+    if (!emailLower || !/\S+@\S+\.\S+/.test(emailLower)) {
+      toast.error('Enter a valid email address');
+      return;
+    }
     setGenerating(true);
     try {
       const token = Array.from(crypto.getRandomValues(new Uint8Array(24)))
@@ -88,6 +97,7 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
           created_by: user.id,
           role: 'officer',
           token,
+          invited_email: emailLower,
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         })
         .select()
@@ -95,7 +105,9 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
       if (error) throw error;
       setInvites((prev) => [data, ...prev]);
       copyLink(data.token);
-      toast.success('Invite link generated and copied!');
+      setShowEmailForm(false);
+      setInviteEmail('');
+      toast.success(`Invite sent to ${email} — link copied!`);
     } catch {
       toast.error('Failed to generate invite link');
     } finally {
@@ -158,16 +170,46 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
           </p>
         </div>
         {isOwner && (
-          <button
-            onClick={generateInvite}
-            disabled={generating}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] border border-white/10 text-zinc-200 text-sm font-semibold hover:bg-white/10 hover:border-white/20 transition-all disabled:opacity-50 shrink-0"
-          >
-            {generating
-              ? <Loader2 className="w-4 h-4 animate-spin" />
-              : <UserPlus className="w-4 h-4" />}
-            Invite Member
-          </button>
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            {!showEmailForm ? (
+              <button
+                onClick={() => setShowEmailForm(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] border border-white/10 text-zinc-200 text-sm font-semibold hover:bg-white/10 hover:border-white/20 transition-all shrink-0"
+              >
+                <UserPlus className="w-4 h-4" />
+                Invite Member
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none" />
+                  <Input
+                    type="email"
+                    placeholder="their@email.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && generateInvite(inviteEmail)}
+                    className="pl-9 pr-3 h-9 w-52 bg-zinc-900 border-white/10 text-white text-sm placeholder:text-zinc-600 focus:border-white/30"
+                    autoFocus
+                  />
+                </div>
+                <button
+                  onClick={() => generateInvite(inviteEmail)}
+                  disabled={generating}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gold/15 border border-gold/30 text-gold text-sm font-semibold hover:bg-gold/25 transition-all disabled:opacity-50"
+                >
+                  {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
+                  Generate
+                </button>
+                <button
+                  onClick={() => { setShowEmailForm(false); setInviteEmail(''); }}
+                  className="p-2 text-zinc-600 hover:text-zinc-400 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -194,17 +236,19 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
           Members · {officers.length + 1}
         </h2>
 
-        {/* Owner row */}
+        {/* Current user row */}
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/[0.07] bg-zinc-900/40">
-          <div className="w-8 h-8 rounded-full bg-gold/15 border border-gold/20 flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-3.5 h-3.5 text-gold" />
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isOwner ? 'bg-gold/15 border border-gold/20' : 'bg-zinc-800 border border-white/[0.07]'}`}>
+            <ShieldCheck className={`w-3.5 h-3.5 ${isOwner ? 'text-gold' : 'text-zinc-400'}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">You (Club Owner)</p>
-            <p className="text-xs text-zinc-600">Full access · cannot be removed</p>
+            <p className="text-sm font-semibold text-white">You</p>
+            <p className="text-xs text-zinc-600">
+              {isOwner ? 'Full access · cannot be removed' : 'Officer access'}
+            </p>
           </div>
-          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-gold/10 text-gold border border-gold/20 tracking-wide uppercase">
-            Owner
+          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wide uppercase ${isOwner ? 'bg-gold/10 text-gold border border-gold/20' : 'bg-white/[0.05] text-zinc-400 border border-white/[0.08]'}`}>
+            {isOwner ? 'Owner' : 'Officer'}
           </span>
         </div>
 
@@ -271,7 +315,10 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
                   <Link2 className="w-3.5 h-3.5 text-zinc-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-zinc-400 font-mono truncate">{truncateUrl(url)}</p>
+                  {invite.invited_email && (
+                    <p className="text-xs text-zinc-300 font-medium truncate">{invite.invited_email}</p>
+                  )}
+                  <p className="text-[11px] text-zinc-600 font-mono truncate">{truncateUrl(url)}</p>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <Clock className="w-3 h-3 text-zinc-700" />
                     <span className={`text-[11px] font-medium ${isExpiringSoon ? 'text-amber-400' : 'text-zinc-600'}`}>

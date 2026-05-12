@@ -228,7 +228,7 @@ const ClubsDirectory = () => {
     return scores;
   }, [filteredClubs, interestValues, resumeSignals]);
 
-  // Top 5 recommended clubs with blended score ≥ 60, shown in the shelf above the list
+  // Top 10 recommended clubs ranked by blended match score
   const recommendedClubs = useMemo(() => {
     if (!user || (!interestValues.length && !resumeSignals.length)) return [];
     return clubs
@@ -238,19 +238,19 @@ const ClubsDirectory = () => {
         reason: getTopMatchTerm(club, interestValues, resumeSignals),
       }))
       .filter(({ score, club }) =>
-        score >= 60 &&
-        // Exclude clubs the student has already applied to
+        score >= 40 &&
         !appliedClubIds.has(club.id) &&
-        // When resume signals exist, at least one must directly match the club
         (resumeSignals.length === 0 || resumeHitsClub(club, resumeSignals))
       )
       .sort((a, b) => b.score - a.score)
-      .slice(0, 5);
+      .slice(0, 10);
   }, [clubs, interestValues, resumeSignals, user]);
+
+  const [showAllRanked, setShowAllRanked] = useState(false);
 
 
   return (
-    <main className="min-h-screen bg-[#0A0A0A] dark">
+    <main className="min-h-screen bg-background">
       <Helmet>
         <title>Discover University Clubs | UniCircle</title>
         <meta name="description" content="Explore hundreds of student clubs and organizations. Find the perfect club for your interests at UniCircle." />
@@ -367,25 +367,57 @@ const ClubsDirectory = () => {
         </div>
       </section>
 
-      {/* Recommended shelf — only shown to authenticated users with signals and qualifying matches */}
-      {recommendedClubs.length > 0 && (
+      {/* Top 10 ranked matches — shown when user has interest/resume signals */}
+      {recommendedClubs.length > 0 && !hasActiveFilters && (
         <section className="pb-6 px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-sm font-semibold text-white">Recommended for You</h2>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="text-sm font-semibold text-white">Your Top Matches</h2>
+                <p className="text-[11px] text-zinc-600 mt-0.5">Ranked by how well each club fits your interests</p>
+              </div>
+              {recommendedClubs.length > 5 && (
+                <button
+                  onClick={() => setShowAllRanked(v => !v)}
+                  className="text-xs text-gold hover:text-gold/80 transition-colors"
+                >
+                  {showAllRanked ? 'Show less' : `See all ${recommendedClubs.length}`}
+                </button>
+              )}
             </div>
-            <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
-              {recommendedClubs.map(({ club, reason }) => (
-                <div key={club.id} className="shrink-0 w-72">
-                  <ClubCard
-                    club={club}
-                    isSaved={isSaved(club.id)}
-                    onToggleSave={handleToggleSave}
-                    matchScore={matchScores[club.id]}
-                    reason={reason ?? undefined}
-
-                  />
-                </div>
+            <div className="space-y-2">
+              {(showAllRanked ? recommendedClubs : recommendedClubs.slice(0, 5)).map(({ club, score, reason }, i) => (
+                <a
+                  key={club.id}
+                  href={`/clubs/${club.id}`}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/[0.07] bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors group"
+                >
+                  {/* Rank */}
+                  <span className="w-7 shrink-0 text-center text-sm font-bold text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                    {i + 1}
+                  </span>
+                  {/* Club info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-zinc-100 truncate">{club.name}</p>
+                    {reason ? (
+                      <p className="text-[11px] text-gold/80 truncate mt-0.5">{reason}</p>
+                    ) : (
+                      <p className="text-[11px] text-zinc-600 truncate mt-0.5">{club.categoryBucket || club.category}</p>
+                    )}
+                  </div>
+                  {/* Match score bar */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="w-20 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gold/70"
+                        style={{ width: `${score}%` }}
+                      />
+                    </div>
+                    <span className="text-[11px] font-semibold text-zinc-400 w-8 text-right tabular-nums">
+                      {score}%
+                    </span>
+                  </div>
+                </a>
               ))}
             </div>
           </div>

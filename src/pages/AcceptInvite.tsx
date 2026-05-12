@@ -16,6 +16,7 @@ interface InviteInfo {
   expires_at: string;
   used_by: string | null;
   created_by: string;
+  invited_email: string | null;
 }
 
 type PageState = 'loading' | 'invalid' | 'expired' | 'already_used' | 'already_member' | 'ready' | 'signing_in' | 'awaiting_confirmation' | 'claiming' | 'done';
@@ -43,7 +44,7 @@ export default function AcceptInvite() {
     (async () => {
       const { data, error } = await (supabase as any)
         .from('club_invites')
-        .select('id, token, club_id, club_name, role, expires_at, used_by, created_by')
+        .select('id, token, club_id, club_name, role, expires_at, used_by, created_by, invited_email')
         .eq('token', token)
         .maybeSingle();
 
@@ -71,6 +72,15 @@ export default function AcceptInvite() {
 
   const claimInvite = async () => {
     if (!invite || !user) return;
+
+    // Email gate — if the invite was sent to a specific address, enforce it
+    if (invite.invited_email && user.email?.toLowerCase() !== invite.invited_email.toLowerCase()) {
+      toast.error(`This invite was sent to ${invite.invited_email}. Sign in with that account to accept.`);
+      setPageState('ready');
+      claimAttempted.current = false;
+      return;
+    }
+
     setPageState('claiming');
 
     try {

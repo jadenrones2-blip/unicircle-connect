@@ -195,33 +195,33 @@ const EventsCalendar = () => {
           ) : viewMode === 'list' ? (
             // List View
             sortedDates.length > 0 ? (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {sortedDates.map((date) => (
                   <div key={date}>
                     {/* Date Header */}
-                    <div className="flex items-center gap-4 mb-4">
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-gold" />
-                        <h3 className="font-display font-semibold text-foreground">
-                          {new Date(date).toLocaleDateString('en-US', { 
+                        <Calendar className="w-4 h-4 text-gold" />
+                        <h3 className="font-display font-semibold text-foreground text-sm">
+                          {new Date(date).toLocaleDateString('en-US', {
                             weekday: 'long',
-                            month: 'long', 
-                            day: 'numeric' 
+                            month: 'long',
+                            day: 'numeric'
                           })}
                         </h3>
                       </div>
                       <div className="flex-1 h-px bg-border" />
-                      <Badge variant="secondary">
+                      <Badge variant="secondary" className="text-xs">
                         {eventsByDate[date].length} event{eventsByDate[date].length !== 1 ? 's' : ''}
                       </Badge>
                     </div>
 
                     {/* Events for this date */}
-                    <div className={`grid gap-4 ${eventsByDate[date].length === 1 ? 'md:grid-cols-1 max-w-md' : eventsByDate[date].length === 2 ? 'md:grid-cols-2 max-w-2xl' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {eventsByDate[date].map((event, index) => (
-                        <EventCard 
-                          key={event.id} 
-                          event={event} 
+                        <EventCard
+                          key={event.id}
+                          event={event}
                           index={index}
                         />
                       ))}
