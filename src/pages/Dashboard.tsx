@@ -33,6 +33,7 @@ import SpotlightCarousel from '@/components/dashboard/SpotlightCarousel';
 import { getRecommendationsFromSaved, extractClubKeywords } from '@/lib/clubRecommendations';
 import type { Club } from '@/data/mockData';
 import { dataClient } from '@/integrations/supabase/dataClient';
+import { supabase } from '@/integrations/supabase/client';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from '@/components/calendar/EventDetailModal';
 import { formatEventDateTimeShort } from '@/lib/formatters';
@@ -149,6 +150,7 @@ export default function Dashboard() {
     isSaved: isClubSaved,
   } = useSavedClubs();
   
+  const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
   const [interests, setInterests] = useState<{ category: string; value: string }[]>([]);
   const [interestsLoading, setInterestsLoading] = useState(true);
   const interestValues = useMemo(() => interests.map(i => i.value), [interests]);
@@ -166,6 +168,17 @@ export default function Dashboard() {
       navigate('/login');
     }
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      (supabase as any)
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }: any) => setProfile(data ?? null));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -334,21 +347,77 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-5 sm:py-8">
-        {/* Welcome section */}
+        {/* Personalized welcome hero */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 sm:mb-8"
+          className="relative rounded-2xl overflow-hidden mb-6 sm:mb-8 p-6 sm:p-8"
+          style={{ background: 'linear-gradient(135deg, rgba(196,150,28,0.08) 0%, rgba(124,58,237,0.06) 100%)', border: '1px solid rgba(255,255,255,0.07)' }}
         >
-          <div className="flex items-center gap-3 mb-1 sm:mb-2">
-            <UserCircle className="h-5 w-5 sm:h-6 sm:w-6 text-gold" />
-            <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-              Your Dashboard
-            </h1>
+          {/* Glow */}
+          <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 rounded-full opacity-30"
+            style={{ background: 'radial-gradient(circle, rgba(196,150,28,0.25) 0%, transparent 70%)', transform: 'translate(30%, -30%)' }} />
+
+          <div className="relative z-10 flex items-center gap-5">
+            {/* Avatar */}
+            <div className="shrink-0">
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt="Profile"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover ring-2 ring-gold/30"
+                />
+              ) : (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center text-2xl sm:text-3xl font-black text-gold">
+                  {(profile?.display_name?.[0] ?? user?.email?.[0] ?? '?').toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-bold tracking-[0.18em] uppercase text-zinc-600 mb-1">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </p>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
+                {(() => {
+                  const h = new Date().getHours();
+                  const name = profile?.display_name?.split(' ')[0] ?? user?.email?.split('@')[0] ?? '';
+                  const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+                  return name ? `${greeting}, ${name} 👋` : `${greeting} 👋`;
+                })()}
+              </h1>
+              <p className="text-sm text-zinc-500 mt-1">Here's what's happening on campus today.</p>
+            </div>
+
+            {/* Quick stats */}
+            <div className="hidden sm:flex flex-col gap-2 shrink-0 text-right">
+              <div>
+                <p className="text-2xl font-black text-white leading-none">{savedClubs.length}</p>
+                <p className="text-[10px] text-zinc-600 font-semibold uppercase tracking-wider">Saved</p>
+              </div>
+              <div>
+                <p className="text-2xl font-black text-white leading-none">{applications.filter(a => a.status !== 'withdrawn').length}</p>
+                <p className="text-[10px] text-zinc-600 font-semibold uppercase tracking-wider">Applied</p>
+              </div>
+            </div>
           </div>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Manage your clubs, track applications, and discover new communities.
-          </p>
+
+          {/* Quick actions */}
+          <div className="relative z-10 flex gap-2 mt-5 flex-wrap">
+            <Link to="/clubs" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs font-semibold text-zinc-400 hover:text-white hover:border-white/20 transition-all">
+              <Users className="w-3 h-3" /> Browse Clubs
+            </Link>
+            <Link to="/events" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs font-semibold text-zinc-400 hover:text-white hover:border-white/20 transition-all">
+              <Calendar className="w-3 h-3" /> Events
+            </Link>
+            <Link to="/discover" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gold/10 border border-gold/20 text-xs font-semibold text-gold hover:bg-gold/20 transition-all">
+              <Heart className="w-3 h-3" /> Discover
+            </Link>
+            <Link to="/profile" className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-xs font-semibold text-zinc-400 hover:text-white hover:border-white/20 transition-all">
+              <UserCircle className="w-3 h-3" /> Edit Profile
+            </Link>
+          </div>
         </motion.div>
 
         {/* Recruitment Tracker Section */}
