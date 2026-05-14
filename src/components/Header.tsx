@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Home, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell, Settings, BookOpen, Zap, Sun, Moon } from "lucide-react";
+import { Menu, X, Home, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell, Settings, BookOpen, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
 import { useNotifications } from "@/hooks/useNotifications";
-import { useTheme } from "@/contexts/ThemeContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +36,6 @@ const Header = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
   const { notifications, unreadCount, fetchNotifications, markAllRead } = useNotifications();
-  const { theme, toggleTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -122,17 +120,6 @@ const Header = () => {
 
         {/* Auth Section */}
         <div className="hidden md:flex items-center gap-2">
-          {/* Theme toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </Button>
-
           {authLoading || ownershipLoading ? (
             <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
           ) : user ? (
@@ -341,22 +328,6 @@ const Header = () => {
                   </motion.div>
                 ))}
                 
-                {/* Theme toggle in mobile menu */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.22 }}
-                >
-                  <button
-                    onClick={toggleTheme}
-                    className="w-full flex items-center text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 tracking-[0.1em] uppercase"
-                  >
-                    {theme === 'dark'
-                      ? <><Sun className="w-4 h-4 inline-block mr-2 opacity-70" />Light Mode</>
-                      : <><Moon className="w-4 h-4 inline-block mr-2 opacity-70" />Dark Mode</>}
-                  </button>
-                </motion.div>
-
                 {user ? (
                   <>
                     <motion.div
