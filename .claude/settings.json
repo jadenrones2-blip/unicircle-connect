@@ -7,7 +7,9 @@
       "Bash(node scripts/scrape_events.mjs)",
       "Bash(git rm:*)",
       "Bash(curl -s 'https://xvaoxmqmnmhbnpwobpmm.supabase.co/rest/v1/club_spotlights?limit=1' -H 'apikey: __CMDSUB_OUTPUT__')",
-      "Bash(curl -s 'https://xvaoxmqmnmhbnpwobpmm.supabase.co/rest/v1/club_spotlights?limit=1' -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2YW94bXFtbm1oYm5wd29icG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzM1MzAsImV4cCI6MjA5MDIwOTUzMH0.5Kl50m0a8xnyCQwDszZCgYbx7PR3JDeXBfGrZqlcTFY' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2YW94bXFtbm1oYm5wd29icG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzM1MzAsImV4cCI6MjA5MDIwOTUzMH0.5Kl50m0a8xnyCQwDszZCgYbx7PR3JDeXBfGrZqlcTFY')"
+      "Bash(curl -s 'https://xvaoxmqmnmhbnpwobpmm.supabase.co/rest/v1/club_spotlights?limit=1' -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2YW94bXFtbm1oYm5wd29icG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzM1MzAsImV4cCI6MjA5MDIwOTUzMH0.5Kl50m0a8xnyCQwDszZCgYbx7PR3JDeXBfGrZqlcTFY' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2YW94bXFtbm1oYm5wd29icG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzM1MzAsImV4cCI6MjA5MDIwOTUzMH0.5Kl50m0a8xnyCQwDszZCgYbx7PR3JDeXBfGrZqlcTFY')",
+      "Bash(open /Users/jadenrones/Desktop/unicircle-connect/docs/weekly-kpi-may11.html)",
+      "Bash(open /Users/jadenrones/Desktop/unicircle-flyer.html)"
     ]
   }
 }

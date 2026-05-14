@@ -89,11 +89,22 @@ export default function AuthCallback() {
         .eq('user_id', userId)
         .limit(1);
 
+      // Read any pending join-event context set by /join/:clubId before OAuth
+      const joinCtxRaw = localStorage.getItem('unicircle_join_context');
+      let joinClubId: string | null = null;
+      try {
+        if (joinCtxRaw) joinClubId = JSON.parse(joinCtxRaw).clubId ?? null;
+      } catch {}
+
       if (interests && interests.length > 0) {
-        toast.success('Welcome back!');
-        navigate('/dashboard');
+        if (joinClubId) {
+          navigate(`/join/${joinClubId}/done`);
+        } else {
+          toast.success('Welcome back!');
+          navigate('/dashboard');
+        }
       } else {
-        navigate('/onboarding');
+        navigate(joinClubId ? `/onboarding?redirect=/join/${joinClubId}/done` : '/onboarding');
       }
     };
 

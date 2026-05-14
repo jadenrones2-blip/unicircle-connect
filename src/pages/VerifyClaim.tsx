@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { useClubOwnership } from '@/hooks/useClubOwnership';
 
 type VerificationStatus = 'loading' | 'success' | 'error';
 
@@ -27,7 +28,8 @@ export default function VerifyClaim() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
-  
+  const { refresh } = useClubOwnership();
+
   const [status, setStatus] = useState<VerificationStatus>('loading');
   const [result, setResult] = useState<VerificationResult>({});
 
@@ -78,6 +80,9 @@ export default function VerifyClaim() {
           trustLevel: data.trustLevel,
           restrictions: data.restrictions,
         });
+        // Force context to re-fetch so the new club_owners row is picked up
+        // before the user navigates to /club-admin
+        refresh();
       } catch (err: any) {
         setStatus('error');
         setResult({ errorMessage: err.message || 'An unexpected error occurred' });

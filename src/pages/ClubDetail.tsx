@@ -90,6 +90,9 @@ const ClubDetail = () => {
   // Whether this club has an active application form set up
   const [hasActiveForm, setHasActiveForm] = useState(false);
 
+  // Whether this club already has an owner (anyone — not just the current user)
+  const [isClubClaimed, setIsClubClaimed] = useState(false);
+
   useEffect(() => {
     if (!id) return;
     (mainSupabase as any)
@@ -99,6 +102,16 @@ const ClubDetail = () => {
       .eq('is_active', true)
       .maybeSingle()
       .then(({ data }: { data: any }) => setHasActiveForm(!!data));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    mainSupabase
+      .from('club_owners')
+      .select('id')
+      .eq('club_id', id.trim().toLowerCase())
+      .maybeSingle()
+      .then(({ data }) => setIsClubClaimed(!!data));
   }, [id]);
 
   // Reviews state
@@ -446,10 +459,10 @@ const ClubDetail = () => {
                     <Share2 className="w-4 h-4" />
                   </Button>
                 </div>
-                {/* Claim Club Button - only show if not owner */}
-                {!ownershipLoading && !isOwner && (
-                  <Button 
-                    variant="ghost" 
+                {/* Claim Club Button - only show if no one has claimed this club yet */}
+                {!ownershipLoading && !isOwner && !isClubClaimed && (
+                  <Button
+                    variant="ghost"
                     size="sm"
                     className="text-muted-foreground hover:text-foreground"
                     onClick={() => setIsClaimModalOpen(true)}
@@ -507,14 +520,16 @@ const ClubDetail = () => {
                     <p className="text-muted-foreground leading-relaxed mb-4">
                       This club profile is community-maintained and doesn't have detailed information yet.
                     </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setIsClaimModalOpen(true)}
-                    >
-                      <Shield className="w-4 h-4 mr-2" />
-                      Are you a leader? Claim to update
-                    </Button>
+                    {!isOwner && !isClubClaimed && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsClaimModalOpen(true)}
+                      >
+                        <Shield className="w-4 h-4 mr-2" />
+                        Are you a leader? Claim to update
+                      </Button>
+                    )}
                   </div>
                 )}
                 <div className="premium-card p-6">

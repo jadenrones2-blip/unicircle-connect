@@ -57,6 +57,8 @@ import NotFound from "./pages/NotFound";
 import InterviewBooking from "./pages/InterviewBooking";
 import Discover from "./pages/Discover";
 import TablingLanding from "./pages/TablingLanding";
+import JoinEvent from "./pages/JoinEvent";
+import JoinComplete from "./pages/JoinComplete";
 import ApprovalPending from "./pages/ApprovalPending";
 import ClubSpotlightCreator from "./pages/ClubSpotlightCreator";
 import ClubAdminInbox from "./pages/ClubAdminInbox";
@@ -125,6 +127,8 @@ const App = () => (
           <Route path="/reach" element={<ReachDemo />} />
           <Route path="/startup-incubator" element={<StartupIncubatorDemo />} />
           <Route path="/tabling" element={<TablingLanding />} />
+          <Route path="/join/:clubId" element={<JoinEvent />} />
+          <Route path="/join/:clubId/done" element={<JoinComplete />} />
           <Route path="/approval-pending" element={<ApprovalPending />} />
           <Route path="/club-admin/clubs/:clubId/spotlight" element={<ClubSpotlightCreator />} />
           <Route path="/club-admin/clubs/:clubId/inbox" element={<ClubAdminInbox />} />

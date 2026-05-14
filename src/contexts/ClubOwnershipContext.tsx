@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 
@@ -42,6 +42,7 @@ interface ClubOwnershipContextValue {
   hasProvisionalClub: boolean;
   hasVerifiedClub: boolean;
   checkOwnershipByEmail: (email: string, clubId: string) => Promise<boolean>;
+  refresh: () => void;
 }
 
 const ClubOwnershipContext = createContext<ClubOwnershipContextValue | null>(null);
@@ -52,6 +53,8 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const [ownedClubs, setOwnedClubs] = useState<ClubOwnership[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshTick, setRefreshTick] = useState(0);
+  const refresh = useCallback(() => setRefreshTick((t) => t + 1), []);
 
   useEffect(() => {
     let isMounted = true;
@@ -119,7 +122,7 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
 
     fetch();
     return () => { isMounted = false; };
-  }, [user, authLoading]);
+  }, [user, authLoading, refreshTick]);
 
   const isOwnerOf = (clubId: string) => {
     const t = normalize(clubId);
@@ -171,6 +174,7 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
     hasProvisionalClub: ownedClubs.some((c) => c.verificationState === 'provisional'),
     hasVerifiedClub: ownedClubs.some((c) => c.verificationState === 'verified'),
     checkOwnershipByEmail,
+    refresh,
   };
 
   return <ClubOwnershipContext.Provider value={value}>{children}</ClubOwnershipContext.Provider>;
