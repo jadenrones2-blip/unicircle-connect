@@ -12,7 +12,7 @@ const CalendarApp = () => {
   const { ownedClubs } = useClubOwnership();
   const isClubOwner = ownedClubs.length > 0;
   return (
-    <main className="min-h-screen bg-black dark">
+    <main className="min-h-screen bg-zinc-950">
       <Header />
 
       {/* Hero Section */}

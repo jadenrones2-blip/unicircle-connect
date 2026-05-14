@@ -65,7 +65,7 @@ const Opportunities = () => {
   }, [opportunities, selectedType]);
 
   return (
-    <main className="min-h-screen bg-[#0A0A0A] dark">
+    <main className="min-h-screen bg-[#0A0A0A]">
       <Header />
 
       {/* Hero */}
