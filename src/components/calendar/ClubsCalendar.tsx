@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
-import { Loader2, Calendar, MapPin, Search, X, Users, BookOpen, Briefcase, Music, UtensilsCrossed, LayoutGrid, Clock, ChevronRight } from 'lucide-react';
+import { Loader2, Calendar, MapPin, Search, X, Users, BookOpen, Briefcase, Music, UtensilsCrossed, LayoutGrid, Clock, ChevronRight, type LucideIcon } from 'lucide-react';
 import { dataClient } from '@/integrations/supabase/dataClient';
 import { supabase } from '@/integrations/supabase/client';
 import { formatEventDate, formatEventTime } from '@/lib/formatters';
@@ -347,7 +347,7 @@ export default function ClubsCalendar() {
                 {/* Horizontal scroll row */}
                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
                   {catEvents.slice(0, 10).map(e => (
-                    <EventBrowseCard key={e.id} event={e} color={color} onClick={() => openEvent(e)} />
+                    <EventBrowseCard key={e.id} event={e} color={color} icon={Icon} onClick={() => openEvent(e)} />
                   ))}
                 </div>
               </div>
@@ -358,7 +358,7 @@ export default function ClubsCalendar() {
               {filteredEvents.map(e => {
                 const cat = EVENT_TYPES.find(t => t.label === selectedType);
                 return (
-                  <EventBrowseCard key={e.id} event={e} color={cat?.color ?? 'hsl(43 74% 56%)'} onClick={() => openEvent(e)} />
+                  <EventBrowseCard key={e.id} event={e} color={cat?.color ?? 'hsl(43 74% 56%)'} icon={cat?.icon} onClick={() => openEvent(e)} />
                 );
               })}
             </div>
@@ -376,7 +376,7 @@ export default function ClubsCalendar() {
 }
 
 /* ── Eventbrite-style event card ── */
-function EventBrowseCard({ event, color, onClick }: { event: ExternalEvent; color: string; onClick: () => void }) {
+function EventBrowseCard({ event, color, icon: Icon, onClick }: { event: ExternalEvent; color: string; icon?: LucideIcon; onClick: () => void }) {
   const date = event.corrected_start_time || event.start_time;
   const d = date ? new Date(date) : null;
   const dayNum  = d ? d.toLocaleDateString('en-US', { day: '2-digit' }) : '—';
@@ -392,7 +392,7 @@ function EventBrowseCard({ event, color, onClick }: { event: ExternalEvent; colo
       className="shrink-0 w-56 text-left bg-zinc-900 border border-white/[0.07] rounded-2xl overflow-hidden hover:border-white/20 hover:bg-zinc-800 transition-all group"
     >
       {/* Color banner with date */}
-      <div className="h-20 relative flex items-end px-4 pb-3" style={{ background: `linear-gradient(135deg, ${color}30, ${color}10)`, borderBottom: `1px solid ${color}20` }}>
+      <div className="h-20 relative flex items-end px-4 pb-3" style={{ background: `radial-gradient(ellipse at 90% -30%, ${color}45, transparent 60%), linear-gradient(135deg, ${color}25, ${color}08)`, borderBottom: `1px solid ${color}25` }}>
         <div className="absolute top-3 left-4 flex items-baseline gap-1.5">
           <span className="text-2xl font-black leading-none" style={{ color }}>{dayNum}</span>
           <div className="flex flex-col">
@@ -400,6 +400,14 @@ function EventBrowseCard({ event, color, onClick }: { event: ExternalEvent; colo
             <span className="text-[10px] font-bold text-zinc-500">{dayName}</span>
           </div>
         </div>
+        {Icon && (
+          <div
+            className="absolute top-3 right-3 w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{ background: `${color}20`, border: `1px solid ${color}40` }}
+          >
+            <Icon className="w-3.5 h-3.5" style={{ color }} />
+          </div>
+        )}
       </div>
 
       {/* Content */}

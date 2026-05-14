@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Heart, Clock } from "lucide-react";
+import { ArrowRight, Heart, Clock, GraduationCap, Globe, Building, Briefcase, Users, Star, Trophy, Cpu, Crown, Music, Palette, Dumbbell, type LucideIcon } from "lucide-react";
 import type { Club, RecruitingStatus } from "@/data/mockData";
 import { useClubEnrichment } from "@/contexts/ClubsContext";
 
@@ -11,6 +11,30 @@ interface ClubCardProps {
   onToggleSave?: (clubId: string) => void;
   matchScore?: number;
   reason?: string;
+}
+
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  academic: GraduationCap,
+  cultural: Globe,
+  fraternity: Building,
+  'greek life': Building,
+  professional: Briefcase,
+  service: Heart,
+  social: Users,
+  sorority: Crown,
+  spiritual: Star,
+  sports: Trophy,
+  'tech / stem': Cpu,
+  tech: Cpu,
+  stem: Cpu,
+  music: Music,
+  arts: Palette,
+  fitness: Dumbbell,
+};
+
+function getCategoryIcon(category: string): LucideIcon {
+  const key = category.toLowerCase().trim();
+  return CATEGORY_ICONS[key] ?? Users;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -42,6 +66,7 @@ const TIME_COLORS: Record<string, string> = {
 
 const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: ClubCardProps) => {
   const categoryColor = getCategoryColor(club.categoryBucket || club.category || '');
+  const CategoryIcon = getCategoryIcon(club.categoryBucket || club.category || '');
   const enrichment = useClubEnrichment(club.id);
   const photo = enrichment?.instagram_photo_url || (club as any).cover_image;
   const description = enrichment?.one_liner || club.description;
@@ -72,18 +97,28 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
           </div>
         ) : (
           <div
-            className="h-20 w-full shrink-0 flex items-end px-5 pb-3"
+            className="h-32 w-full shrink-0 relative overflow-hidden flex items-end px-5 pb-4"
             style={{
-              background: `linear-gradient(135deg, ${categoryColor}25 0%, ${categoryColor}08 60%, transparent 100%)`,
-              borderBottom: `1px solid ${categoryColor}18`,
+              background: `radial-gradient(ellipse at 85% -20%, ${categoryColor}40, transparent 55%), radial-gradient(ellipse at 10% 120%, ${categoryColor}20, transparent 50%), linear-gradient(160deg, ${categoryColor}18 0%, transparent 70%)`,
+              borderBottom: `1px solid ${categoryColor}22`,
             }}
           >
-            <span
-              className="text-4xl font-black leading-none select-none"
-              style={{ color: `${categoryColor}45` }}
+            {/* Large watermark icon */}
+            <CategoryIcon
+              className="absolute -right-3 -top-3 w-28 h-28 pointer-events-none"
+              style={{ color: `${categoryColor}22`, strokeWidth: 1 }}
+            />
+            {/* Small accent dot */}
+            <div className="absolute top-5 right-[4.5rem] w-1.5 h-1.5 rounded-full" style={{ background: `${categoryColor}50` }} />
+            {/* Club initial badge */}
+            <div
+              className="relative z-10 w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: `${categoryColor}22`, border: `1px solid ${categoryColor}45` }}
             >
-              {club.name[0]}
-            </span>
+              <span className="text-lg font-black leading-none select-none" style={{ color: categoryColor }}>
+                {club.name[0]}
+              </span>
+            </div>
           </div>
         )}
 
