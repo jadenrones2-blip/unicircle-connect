@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ClubOwnershipProvider } from "@/contexts/ClubOwnershipContext";
 import { ClubsProvider } from "@/contexts/ClubsContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import PageIntro from "./components/PageIntro";
 import SurveyBanner from "./components/SurveyBanner";
 import Index from "./pages/Index";
@@ -77,6 +78,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <SurveyBanner />
+        <ErrorBoundary>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
@@ -134,6 +136,7 @@ const App = () => (
           <Route path="/club-admin/clubs/:clubId/inbox" element={<ClubAdminInbox />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </ErrorBoundary>
         <MobileNav />
       </BrowserRouter>
     </TooltipProvider>

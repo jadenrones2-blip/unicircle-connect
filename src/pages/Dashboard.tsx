@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  LogOut, RefreshCw, Calendar, Users, Loader2, UserCircle, ChevronRight,
+  LogOut, RefreshCw, Calendar, Users, Loader2, UserCircle, ChevronRight, X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -88,6 +88,30 @@ export default function Dashboard() {
       .limit(6)
       .then(({ data }) => setUpcomingEvents((data || []) as ExternalEvent[]));
   }, [savedClubs]);
+
+  // Realtime: re-fetch applications when the applicants table changes for this user
+  // (club admins move stages / set final decisions on the applicants table)
+  const refreshApplications = useCallback(() => {
+    if (user) fetchApplications(user.id);
+  }, [user, fetchApplications]);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    const channel = supabase
+      .channel(`applicant-status-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'applicants',
+          filter: `email=eq.${user.email}`,
+        },
+        () => refreshApplications()
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, refreshApplications]);
 
   // ── Top 10: proper 60/40 interest+resume scoring ──
   const topMatches = useMemo(() => {
@@ -383,19 +407,30 @@ export default function Dashboard() {
               {activeApplications.map((app: any) => (
                 <div
                   key={app.id}
-                  className="flex items-center justify-between p-4 rounded-xl bg-zinc-900 border border-white/[0.07]"
+                  className="flex items-center justify-between p-4 rounded-xl bg-zinc-900 border border-white/[0.07] group"
                 >
-                  <div>
-                    <p className="text-sm font-semibold text-white">{app.club_name || app.club_id}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-white truncate">{app.club_name || app.club_id}</p>
                     <p className="text-[11px] text-zinc-500 mt-0.5 capitalize">{app.stage || app.status}</p>
                   </div>
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                    app.status === 'accepted' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                    app.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                    'bg-gold/10 text-gold border-gold/20'
-                  }`}>
-                    {app.status === 'pending' ? 'Under Review' : (app.status as string).charAt(0).toUpperCase() + (app.status as string).slice(1)}
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0 ml-3">
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                      app.status === 'accepted' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                      app.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                      'bg-gold/10 text-gold border-gold/20'
+                    }`}>
+                      {app.status === 'pending' ? 'Under Review' : (app.status as string).charAt(0).toUpperCase() + (app.status as string).slice(1)}
+                    </span>
+                    {app.status === 'pending' && (
+                      <button
+                        onClick={() => handleWithdraw(app.id)}
+                        title="Withdraw application"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-white/5 text-zinc-600 hover:text-red-400"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
