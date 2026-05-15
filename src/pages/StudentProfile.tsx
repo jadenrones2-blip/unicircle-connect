@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Camera, Loader2, Check, X, FileText, Upload, Trash2 } from 'lucide-react';
+import { ArrowLeft, Camera, Loader2, Check, X, FileText, Upload, Trash2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 const INTEREST_OPTIONS: { category: string; label: string; value: string; emoji: string }[] = [
@@ -340,6 +340,13 @@ export default function StudentProfile() {
                 {[profile.major, profile.year].filter(Boolean).join(' · ')}
               </p>
             )}
+            <Link
+              to="/onboarding?retake=true"
+              className="inline-flex items-center gap-1.5 mt-2 text-xs text-zinc-500 hover:text-gold transition-colors"
+            >
+              <RefreshCw className="w-3 h-3" />
+              Update interests quiz
+            </Link>
           </div>
 
           <button
