@@ -217,18 +217,17 @@ const Header = () => {
                   )}
                 </div>
                 <DropdownMenuSeparator />
-                {isClubOwner ? (
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard" className="cursor-pointer">
+                    <User className="w-4 h-4 mr-2" />
+                    Student Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                {isClubOwner && (
                   <DropdownMenuItem asChild>
                     <Link to="/club-admin" className="cursor-pointer">
                       <LayoutDashboard className="w-4 h-4 mr-2" />
                       Club Admin Portal
-                    </Link>
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard" className="cursor-pointer">
-                      <User className="w-4 h-4 mr-2" />
-                      Dashboard
                     </Link>
                   </DropdownMenuItem>
                 )}
@@ -336,13 +335,23 @@ const Header = () => {
                       transition={{ delay: 0.24 }}
                     >
                       <Link
-                        to={isClubOwner ? "/club-admin" : "/dashboard"}
+                        to="/dashboard"
                         className="block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 tracking-[0.1em] uppercase"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <LayoutDashboard className="w-4 h-4 inline-block mr-2 opacity-70" />
-                        {isClubOwner ? "Club Admin" : "Dashboard"}
+                        <User className="w-4 h-4 inline-block mr-2 opacity-70" />
+                        Student Portal
                       </Link>
+                      {isClubOwner && (
+                        <Link
+                          to="/club-admin"
+                          className="block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 tracking-[0.1em] uppercase"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <LayoutDashboard className="w-4 h-4 inline-block mr-2 opacity-70" />
+                          Club Admin Portal
+                        </Link>
+                      )}
                     </motion.div>
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
