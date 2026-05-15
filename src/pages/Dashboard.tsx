@@ -131,7 +131,7 @@ export default function Dashboard() {
   const combinedEvents = useMemo(() => {
     const seen = new Set<string | number>();
     const all: ExternalEvent[] = [];
-    for (const e of [...clubEvents, ...upcomingEvents]) {
+    for (const e of [...(clubEvents as unknown as ExternalEvent[]), ...upcomingEvents]) {
       if (!seen.has(e.id)) { seen.add(e.id); all.push(e); }
     }
     return all

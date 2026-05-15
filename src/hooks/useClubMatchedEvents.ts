@@ -16,6 +16,11 @@ export interface ClubEvent {
   source: string | null;
   source_url: string | null;
   verified: boolean | null;
+  corrected_title: string | null;
+  corrected_start_time: string | null;
+  corrected_end_time: string | null;
+  corrected_location: string | null;
+  caption: string | null;
   matchScore: number;
   isNative: boolean;
 }
@@ -36,27 +41,38 @@ export function useClubMatchedEvents(
     setError(null);
 
     try {
-      // Score all clubs against student interests
+      // Score all clubs against student interests — threshold 20 to cast a wide net
+      // (threshold 40 was too aggressive when a student has 4+ interests)
       const scored = clubs
         .map(club => ({
           club,
           score: calculateMatchScore(club, interestValues, resumeSignals),
         }))
-        .filter(c => c.score >= 40)
+        .filter(c => c.score >= 20)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 20); // top 20 matching clubs
+        .slice(0, 30); // top 30 matching clubs
 
       if (scored.length === 0) { setEvents([]); setLoading(false); return; }
 
       const clubIds = scored.map(c => c.club.id);
-      const clubHandles = scored.map(c => c.club.id); // club_handle matches club.id
+
+      // Extract Instagram handles for the secondary query
+      const clubHandles = scored
+        .map(c => {
+          const ig = c.club.instagram;
+          if (!ig) return null;
+          const m = ig.match(/(?:instagram\.com\/)?@?([A-Za-z0-9_.]+)\/?$/);
+          return m ? m[1].toLowerCase() : null;
+        })
+        .filter(Boolean) as string[];
 
       const now = new Date().toISOString();
+      const eventFields = 'id, title, description, start_time, end_time, location, club_id, club_handle, source, source_url, verified, corrected_title, corrected_start_time, corrected_end_time, corrected_location, caption';
 
       // Fetch upcoming events for those clubs from external DB
       const { data, error: dbError } = await (dataClient as any)
         .from('events')
-        .select('id, title, description, start_time, end_time, location, club_id, club_handle, source, source_url, verified')
+        .select(eventFields)
         .gte('start_time', now)
         .eq('verified', true)
         .in('club_id', clubIds)
@@ -65,13 +81,13 @@ export function useClubMatchedEvents(
 
       if (dbError) throw dbError;
 
-      // Also fetch by club_handle in case club_id is stored differently
+      // Also fetch by club_handle (Instagram handle) for events scraped via IG
       const { data: handleData } = await (dataClient as any)
         .from('events')
-        .select('id, title, description, start_time, end_time, location, club_id, club_handle, source, source_url, verified')
+        .select(eventFields)
         .gte('start_time', now)
         .eq('verified', true)
-        .in('club_handle', clubHandles)
+        .in('club_handle', clubHandles.length ? clubHandles : ['__none__'])
         .order('start_time', { ascending: true })
         .limit(50);
 
@@ -82,10 +98,15 @@ export function useClubMatchedEvents(
         if (!seen.has(ev.id)) { seen.add(ev.id); merged.push(ev); }
       }
 
-      // Build a quick lookup: club_id/handle → match score and name
+      // Build lookup keyed by both club_id and instagram handle
       const clubScoreMap: Record<string, { score: number; name: string }> = {};
       for (const { club, score } of scored) {
         clubScoreMap[club.id] = { score, name: club.name };
+        const ig = club.instagram;
+        if (ig) {
+          const m = ig.match(/(?:instagram\.com\/)?@?([A-Za-z0-9_.]+)\/?$/);
+          if (m) clubScoreMap[m[1].toLowerCase()] = { score, name: club.name };
+        }
       }
 
       const withScores: ClubEvent[] = merged
