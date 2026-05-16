@@ -218,21 +218,86 @@ const INTEREST_DISPLAY_MAP: Record<string, string> = {
   creative_vibe: 'Creative Projects',
 };
 
-function calcInterestScore(club: Club, interestValues: string[]): number {
-  const clubText = [club.name, club.category, club.categoryBucket, club.description, ...(club.tags || [])]
-    .filter(Boolean).join(' ').toLowerCase();
+// Maps each interest quiz answer to the semantic cluster names in KEYWORD_CLUSTERS
+// This is more accurate than raw text matching — "computer", "coding", "software"
+// all resolve to the same cluster so a CS club scores high on any of them.
+const INTEREST_TO_CLUSTERS: Record<string, string[]> = {
+  // Goal / superpower
+  network:       ['leadership', 'business', 'academic'],
+  skills:        ['academic', 'computer_science', 'engineering'],
+  squad:         [], // too vague — don't bias any specific clubs
+  confidence:    ['leadership'],
+  purpose:       ['service', 'social_justice', 'sustainability'],
+  fun:           [], // too vague
+  // Career goals
+  tech_career:        ['computer_science', 'engineering', 'math'],
+  finance_career:     ['finance', 'business'],
+  startup_career:     ['business'],
+  consulting_career:  ['consulting', 'business'],
+  healthcare_career:  ['healthcare'],
+  research_career:    ['academic', 'science'],
+  creative_career:    ['arts', 'writing', 'theater', 'music', 'dance', 'photography'],
+  nonprofit_career:   ['service', 'social_justice'],
+  law_career:         ['law'],
+  marketing_career:   ['marketing', 'business'],
+  education_career:   ['academic'],
+  government_career:  ['law', 'social_justice'],
+  undecided_career:   [],
+  // Interest areas
+  tech:          ['computer_science', 'engineering'],
+  business:      ['business', 'finance', 'marketing', 'consulting'],
+  arts:          ['arts', 'theater', 'writing'],
+  science:       ['science', 'math', 'healthcare'],
+  culture:       ['cultural', 'asian', 'latinx', 'african', 'middle_eastern', 'lgbtq', 'international'],
+  fitness:       ['sports', 'fitness', 'outdoor', 'martial_arts'],
+  social_impact: ['service', 'social_justice', 'sustainability'],
+  gaming:        ['gaming'],
+  music:         ['music'],
+  dance:         ['dance'],
+  writing:       ['writing'],
+  investing:     ['finance'],
+  ai:            ['computer_science'],
+  film:          ['theater', 'photography'],
+  food:          ['food'],
+  travel:        ['international'],
+  sustainability: ['sustainability'],
+  spiritual:     ['spiritual'],
+  // Vibe / energy
+  competitive:   ['sports'],
+  chill:         [],
+  party:         [],
+  professional:  ['leadership', 'business', 'academic'],
+  creative_vibe: ['arts', 'writing', 'theater', 'music', 'dance', 'photography'],
+  inclusive:     ['cultural', 'lgbtq'],
+  explorer:      [],
+  committed:     [],
+  all_in:        ['leadership'],
+};
 
-  let hits = 0;
-  let total = 0;
+function calcInterestScore(club: Club, interestValues: string[]): number {
+  const clubClusters = extractClubKeywords(club); // semantic clusters the club belongs to
+
+  // Collect all clusters the user cares about (deduplicated)
+  const userClusters = new Set<string>();
   for (const val of interestValues) {
-    const terms = INTEREST_TERM_MAP[val] || [val];
-    total += terms.length;
-    for (const term of terms) {
-      if (clubText.includes(term.toLowerCase())) hits++;
-    }
+    const clusters = INTEREST_TO_CLUSTERS[val] ?? [];
+    clusters.forEach(c => userClusters.add(c));
   }
-  if (total === 0) return 0;
-  return Math.min(100, Math.round((hits / total) * 100 * 2.5));
+
+  if (userClusters.size === 0) return 0;
+
+  // Count how many of the user's interest clusters the club actually matches
+  let matches = 0;
+  for (const cluster of userClusters) {
+    if (clubClusters.has(cluster)) matches++;
+  }
+
+  if (matches === 0) return 0;
+
+  // Score = % of user's interest clusters that matched, with a small bonus for deep overlap
+  const pct = (matches / userClusters.size) * 100;
+  const bonus = matches >= 3 ? 12 : matches >= 2 ? 5 : 0;
+  return Math.min(100, Math.round(pct + bonus));
 }
 
 function calcResumeScore(club: Club, resumeKeywords: string[]): number {

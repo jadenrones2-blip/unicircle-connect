@@ -64,45 +64,6 @@ const CTASection = () => (
       </Link>
     </div>
 
-    {/* Survey callout */}
-    <div
-      className="mx-auto mt-16 mb-0 max-w-xl rounded-2xl px-8 py-8 text-left"
-      style={{
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.08)",
-      }}
-    >
-      <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-        <div className="flex-1">
-          <p
-            className="font-display font-bold text-white mb-1"
-            style={{ fontSize: "clamp(16px, 2vw, 20px)" }}
-          >
-            Help us build what students actually need.
-          </p>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
-            We're expanding to campuses across California. 3 questions that actually matter — your answers go straight to the founders.
-          </p>
-        </div>
-        <Link
-          to="/survey"
-          className="shrink-0 font-bold text-black"
-          style={{
-            fontSize: 13,
-            padding: "12px 24px",
-            borderRadius: 9999,
-            background: "hsl(47 95% 58%)",
-            textDecoration: "none",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            whiteSpace: "nowrap",
-          }}
-        >
-          Take the survey →
-        </Link>
-      </div>
-    </div>
 
     <div style={{ padding: "60px 0 80px" }} />
   </section>
