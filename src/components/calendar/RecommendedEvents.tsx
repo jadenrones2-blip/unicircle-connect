@@ -5,35 +5,35 @@ import { format, parseISO } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalEvent, useExternalEvents } from '@/hooks/useExternalEvents';
+import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
-import { useEventRecommendations, ScoredEvent } from '@/hooks/useEventRecommendations';
+import { useRecommendedEvents } from '@/hooks/useRecommendedEvents';
+import { useClubsContext } from '@/contexts/ClubsContext';
 import { EventDetailModal } from '@/components/calendar/EventDetailModal';
 
 export function RecommendedEvents() {
   const { user } = useAuth();
   const { fetchInterests } = useUserInterests();
-  const { events } = useExternalEvents();
-  const [interests, setInterests] = useState<any[]>([]);
+  const { clubs } = useClubsContext();
+  const [interestValues, setInterestValues] = useState<string[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<ExternalEvent | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
-      fetchInterests(user.id).then(setInterests);
+      fetchInterests(user.id).then(data => {
+        if (data) setInterestValues(data.map(i => i.interest_value));
+      });
     }
   }, [user, fetchInterests]);
 
-  const { recommendedEvents, hasInterests } = useEventRecommendations(events, interests, 4);
+  const { events: recommendedEvents } = useRecommendedEvents(clubs, interestValues, 4);
 
-  // Don't show if not logged in or no interests
-  if (!user || !hasInterests || recommendedEvents.length === 0) {
-    return null;
-  }
+  if (!user || !interestValues.length || recommendedEvents.length === 0) return null;
 
-  const handleEventClick = (event: ScoredEvent) => {
-    setSelectedEvent(event);
+  const handleEventClick = (event: any) => {
+    setSelectedEvent(event as ExternalEvent);
     setModalOpen(true);
   };
 
@@ -117,24 +117,15 @@ export function RecommendedEvents() {
                   )}
                 </div>
 
-                {/* Matched interests tags */}
-                {event.matchedInterests.length > 0 && (
+                {/* Club name */}
+                {event.club_name && (
                   <div className="flex flex-wrap gap-1.5">
-                    <span className="text-xs text-muted-foreground mr-1">Matched:</span>
-                    {event.matchedInterests.slice(0, 3).map((interest, i) => (
-                      <Badge 
-                        key={i} 
-                        variant="outline" 
-                        className="text-xs bg-gold/10 text-gold border-gold/20 capitalize"
-                      >
-                        {interest}
-                      </Badge>
-                    ))}
-                    {event.matchedInterests.length > 3 && (
-                      <Badge variant="outline" className="text-xs text-muted-foreground">
-                        +{event.matchedInterests.length - 3} more
-                      </Badge>
-                    )}
+                    <Badge
+                      variant="outline"
+                      className="text-xs bg-gold/10 text-gold border-gold/20"
+                    >
+                      {event.club_name}
+                    </Badge>
                   </div>
                 )}
               </motion.button>

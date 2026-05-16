@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from '@/components/calendar/EventDetailModal';
 import { formatEventTime } from '@/lib/formatters';
-import { useClubMatchedEvents } from '@/hooks/useClubMatchedEvents';
+import { useRecommendedEvents } from '@/hooks/useRecommendedEvents';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function Dashboard() {
     () => interests.filter(i => i.category.startsWith('resume')).map(i => i.value),
     [interests]
   );
-  const { events: clubEvents } = useClubMatchedEvents(clubs, interestValues, resumeSignalValues, 8);
+  const { events: clubEvents } = useRecommendedEvents(clubs, interestValues, 8);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/login');
