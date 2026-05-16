@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>UniCircle — Week of May 11, 2026</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0A0A0A;
+      font-family: 'Space Grotesk', sans-serif;
+      color: #e4e4e7;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 24px 100px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 780px;
+      background: #111;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, rgba(196,150,28,0.1), rgba(124,58,237,0.06));
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 40px 48px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::after {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 260px; height: 260px;
+      background: radial-gradient(circle, rgba(196,150,28,0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .eyebrow {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: hsl(43,74%,56%);
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 52px; line-height: 0.95; color: #fff;
+      letter-spacing: 0.01em; margin-bottom: 12px;
+    }
+    .header h1 span { color: hsl(43,74%,56%); }
+    .header p { font-size: 14px; color: #71717a; max-width: 440px; }
+
+    /* ── Stat row ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .stat {
+      padding: 24px 28px;
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .stat:last-child { border-right: none; }
+    .stat .val {
+      font-size: 36px; font-weight: 800; color: #fff;
+      line-height: 1; margin-bottom: 4px;
+    }
+    .stat .val.gold { color: hsl(43,74%,56%); }
+    .stat .lbl {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #52525b;
+    }
+
+    /* ── Body ── */
+    .body { padding: 36px 48px; display: flex; flex-direction: column; gap: 32px; }
+
+    .section-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: #3f3f46;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Wins */
+    .wins { display: flex; flex-direction: column; gap: 8px; }
+    .win {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+    }
+    .win-emoji { font-size: 18px; flex-shrink: 0; }
+    .win p { font-size: 13px; color: #d4d4d8; flex: 1; line-height: 1.4; }
+    .win p span { color: #71717a; }
+    .badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 3px 9px;
+      border-radius: 100px; white-space: nowrap; flex-shrink: 0;
+    }
+    .green  { background: rgba(52,211,153,0.1);  color: #34d399; border: 1px solid rgba(52,211,153,0.2); }
+    .yellow { background: rgba(234,179,8,0.1);   color: #eab308; border: 1px solid rgba(234,179,8,0.2); }
+    .blue   { background: rgba(96,165,250,0.1);  color: #60a5fa; border: 1px solid rgba(96,165,250,0.2); }
+
+    /* Two columns */
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+    /* Next week */
+    .next { display: flex; flex-direction: column; gap: 7px; }
+    .next-item {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: #a1a1aa;
+    }
+    .next-item::before {
+      content: '→'; color: #3f3f46; flex-shrink: 0; font-weight: 700;
+    }
+
+    /* Product */
+    .feat-list { display: flex; flex-direction: column; gap: 7px; }
+    .feat {
+      display: flex; align-items: center; gap-10px;
+      font-size: 13px; color: #a1a1aa; gap: 8px;
+    }
+    .feat .check { color: #34d399; flex-shrink: 0; font-weight: 700; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      position: fixed; bottom: 28px; right: 28px;
+      display: flex; gap: 10px;
+    }
+    .tbtn {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; font-weight: 700;
+      border: none; cursor: pointer;
+      border-radius: 100px; padding: 10px 22px;
+    }
+    .tbtn-outline { background: rgba(255,255,255,0.07); color: #d4d4d8; border: 1px solid rgba(255,255,255,0.12); }
+    .tbtn-gold { background: hsl(43,74%,56%); color: #000; }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .toolbar { display: none; }
+      .card { border-radius: 0; border: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <p class="eyebrow">Weekly Update · May 11, 2026</p>
+    <h1>UNICIRCLE<br/><span>CONNECT</span></h1>
+    <p>Club discovery and recruitment platform for UCSD students. Solving social fragmentation on campus.</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="val gold">1K</div>
+      <div class="lbl">User Goal</div>
+    </div>
+    <div class="stat">
+      <div class="val">12</div>
+      <div class="lbl">Features Shipped</div>
+    </div>
+    <div class="stat">
+      <div class="val">8+</div>
+      <div class="lbl">Communities Reached</div>
+    </div>
+    <div class="stat">
+      <div class="val">6</div>
+      <div class="lbl">Partnerships</div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- Wins -->
+    <div>
+      <p class="section-title">This Week's Wins</p>
+      <div class="wins">
+        <div class="win">
+          <span class="win-emoji">👩‍💼</span>
+          <p><strong>CFO Hired</strong> <span>— in contact with community colleges, pitch meeting this week, potential grant funding</span></p>
+          <span class="badge green">Done</span>
+        </div>
+        <div class="win">
+          <span class="win-emoji">📣</span>
+          <p><strong>Marketing Plan Launched</strong> <span>— contractor-built plan, aggressive posting starts this week across all channels</span></p>
+          <span class="badge green">Live</span>
+        </div>
+        <div class="win">
+          <span class="win-emoji">⚡</span>
+          <p><strong>Lovable x SIC Tabling Event</strong> <span>— May 14 at Library Walk, free AI credits as incentive</span></p>
+          <span class="badge yellow">Pending Approval</span>
+        </div>
+        <div class="win">
+          <span class="win-emoji">🥤</span>
+          <p><strong>Red Bull + EIEC + AI Student Collective</strong> <span>— partnerships in progress, co-branded events planned</span></p>
+          <span class="badge yellow">In Progress</span>
+        </div>
+        <div class="win">
+          <span class="win-emoji">📢</span>
+          <p><strong>5 Discord + 3/4 Slack communities</strong> <span>— product posted, professor outreach initiated</span></p>
+          <span class="badge green">Done</span>
+        </div>
+        <div class="win">
+          <span class="win-emoji">👩‍💼</span>
+          <p><strong>Intern onboarded</strong> <span>— Elle Ma joins as Product/Growth Intern starting today</span></p>
+          <span class="badge green">Done</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="two">
+      <!-- Product -->
+      <div>
+        <p class="section-title">Product Shipped</p>
+        <div class="feat-list">
+          <div class="feat"><span class="check">✓</span> Swipe discovery (Hinge-style onboarding)</div>
+          <div class="feat"><span class="check">✓</span> Event filtering by category</div>
+          <div class="feat"><span class="check">✓</span> Club Spotlights + Activity feed</div>
+          <div class="feat"><span class="check">✓</span> Campus AI search</div>
+          <div class="feat"><span class="check">✓</span> Personalized welcome + profile photo</div>
+          <div class="feat"><span class="check">✓</span> Club Inbox (student → club DMs)</div>
+          <div class="feat"><span class="check">✓</span> Mobile bottom nav bar</div>
+        </div>
+      </div>
+
+      <!-- Traction + next -->
+      <div>
+        <p class="section-title">Traction & Next Steps</p>
+        <div class="next">
+          <div class="next-item"><strong style="color:#f4f4f5">50 live users</strong> — testing in progress</div>
+          <div class="next-item">Weekly iteration with 10–20 users, tracking session time</div>
+          <div class="next-item">Pitch community colleges this week — grant opportunity</div>
+          <div class="next-item">Tabling May 14 — target 50+ signups</div>
+          <div class="next-item">Close Red Bull collab</div>
+          <div class="next-item">Activate Class of 2030 pipeline</div>
+          <div class="next-item">Professor outreach — 10 departments</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toolbar">
+  <button class="tbtn tbtn-outline" onclick="window.print()">Print / PDF</button>
+  <button class="tbtn tbtn-gold" id="dlBtn" onclick="downloadPNG()">⬇ Download</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  async function downloadPNG() {
+    const btn = document.getElementById('dlBtn');
+    btn.textContent = 'Capturing…';
+    const canvas = await html2canvas(document.querySelector('.card'), {
+      scale: 2, useCORS: true, backgroundColor: '#111',
+      ignoreElements: el => el.classList.contains('toolbar'),
+    });
+    const link = document.createElement('a');
+    link.download = 'unicircle-kpi-may11.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent = '⬇ Download';
+  }
+</script>
+
+</body>
+</html>

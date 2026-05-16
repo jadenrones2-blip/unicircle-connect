@@ -13,11 +13,12 @@ const cleanText = (value: unknown) =>
 
 const cleanClubName = (name: string): string => {
   let s = cleanText(name);
-  s = s.replace(/\)\s+[A-Za-z]{1,4}$/, ')');
-  s = s.replace(/\s+[Cc]lub$/i, '');
-  s = s.replace(/\s+(Pre|Pro|The|And|For|With|Of|At|In|On|To|By|Or|As|An|A)$/i, '');
-  s = s.replace(/\s+[A-Za-z]{1,2}$/, '');
-  return s;
+  // Remove registry suffixes like "at UC San Diego" appended by CSI
+  s = s.replace(/\s+at\s+UC\s+San\s+Diego.*$/i, '');
+  s = s.replace(/\s+at\s+UCSD.*$/i, '');
+  // Remove trailing lone parenthesized campus tag e.g. "(at UCSD)"
+  s = s.replace(/\s*\(\s*at\s+[^)]+\)\s*$/i, '');
+  return s.trim();
 };
 
 const transformClub = (record: Record<string, unknown>): Club => {

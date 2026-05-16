@@ -13,7 +13,16 @@ export default function AuthCallback() {
     handled.current = true;
 
     const handleCallback = async () => {
-      // Wait for Supabase to exchange the OAuth code for a session
+      // On mobile, Supabase uses PKCE — exchange the code before calling getSession
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      if (code) {
+        await supabase.auth.exchangeCodeForSession(code).catch(() => {});
+      }
+
+      // Small delay on mobile to allow session to propagate
+      await new Promise(r => setTimeout(r, 300));
+
       const { data, error } = await supabase.auth.getSession();
 
       if (error || !data.session) {

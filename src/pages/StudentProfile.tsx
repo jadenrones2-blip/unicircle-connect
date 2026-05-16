@@ -495,7 +495,8 @@ export default function StudentProfile() {
           <input
             ref={resumeInputRef}
             type="file"
-            accept=".pdf"
+            accept=".pdf,application/pdf"
+            capture={undefined}
             className="hidden"
             onChange={handleResumeChange}
             disabled={uploadingResume}
