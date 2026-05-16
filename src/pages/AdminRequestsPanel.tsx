@@ -13,6 +13,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
+import { dataClient } from '@/integrations/supabase/dataClient';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -111,6 +112,7 @@ export default function AdminRequestsPanel() {
     if (!approveTarget) return;
     setApproving(true);
     try {
+      // 1. Mark request as approved
       const { error } = await (supabase as any)
         .from('new_club_requests')
         .update({
@@ -121,7 +123,43 @@ export default function AdminRequestsPanel() {
         .eq('id', approveTarget.id);
       if (error) throw error;
 
-      // Send approval email
+      // 2. Look up the user by email in profiles
+      const { data: profileData } = await (supabase as any)
+        .from('profiles')
+        .select('user_id, email')
+        .eq('email', approveTarget.user_email.trim().toLowerCase())
+        .maybeSingle();
+
+      // 3. Look up the club by name in external DB
+      const { data: clubData } = await dataClient
+        .from('clubs')
+        .select('id, name')
+        .ilike('name', `%${approveTarget.club_name.trim()}%`)
+        .limit(1)
+        .maybeSingle();
+
+      // 4. Create club_owners entry if both exist
+      if (profileData?.user_id && clubData?.id) {
+        await supabase.from('club_owners').insert({
+          user_id: profileData.user_id,
+          club_id: clubData.id,
+          club_name: clubData.name,
+          email: approveTarget.user_email.trim().toLowerCase(),
+          verified_at: new Date().toISOString(),
+          trust_level: 'medium',
+          trust_score: 70,
+          verification_state: 'provisional',
+          provisional_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+        toast.success(`${approveTarget.club_name} approved — portal access granted!`);
+      } else {
+        // User hasn't signed up yet — approval saved, access granted when they do
+        toast.success(`${approveTarget.club_name} approved! Access will be granted when they sign up.`);
+        if (!profileData?.user_id) toast.info(`No account found for ${approveTarget.user_email} yet.`);
+        if (!clubData?.id) toast.info(`Club "${approveTarget.club_name}" not found in DB — add it manually.`);
+      }
+
+      // 5. Send approval email (best-effort)
       try {
         await supabase.functions.invoke('notify-club-request', {
           body: {
@@ -131,7 +169,7 @@ export default function AdminRequestsPanel() {
             reviewerNotes: approveNote.trim() || undefined,
           },
         });
-      } catch { /* non-fatal — approval email failed */ }
+      } catch { /* non-fatal */ }
 
       setRequests((prev) =>
         prev.map((r) =>
@@ -140,7 +178,6 @@ export default function AdminRequestsPanel() {
             : r
         )
       );
-      toast.success(`${approveTarget.club_name} approved!`);
       setApproveTarget(null);
       setApproveNote('');
     } catch (err) {
