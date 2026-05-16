@@ -11,6 +11,11 @@ const cleanText = (value: unknown) =>
     .replace(/( at)+$/i, '')
     .trim();
 
+// Known typos in the CSI source data → correct spelling
+const DB_NAME_CORRECTIONS: Record<string, string> = {
+  'sororit': 'Sorority',
+};
+
 const cleanClubName = (name: string): string => {
   let s = cleanText(name);
   // Remove registry suffixes like "at UC San Diego" appended by CSI
@@ -18,7 +23,19 @@ const cleanClubName = (name: string): string => {
   s = s.replace(/\s+at\s+UCSD.*$/i, '');
   // Remove trailing lone parenthesized campus tag e.g. "(at UCSD)"
   s = s.replace(/\s*\(\s*at\s+[^)]+\)\s*$/i, '');
-  return s.trim();
+  s = s.trim();
+
+  // Apply known DB typo corrections (full-name match, case-insensitive)
+  const lower = s.toLowerCase();
+  if (DB_NAME_CORRECTIONS[lower]) return DB_NAME_CORRECTIONS[lower];
+  // Also catch cases where the typo is the first word e.g. "Sororit Xi"
+  for (const [typo, correction] of Object.entries(DB_NAME_CORRECTIONS)) {
+    if (lower.startsWith(typo + ' ')) {
+      return correction + s.slice(typo.length);
+    }
+  }
+
+  return s;
 };
 
 const transformClub = (record: Record<string, unknown>): Club => {

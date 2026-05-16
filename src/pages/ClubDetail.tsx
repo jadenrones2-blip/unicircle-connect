@@ -106,12 +106,27 @@ const ClubDetail = () => {
 
   useEffect(() => {
     if (!id) return;
+    const normalizedId = id.trim().toLowerCase();
+
+    // Initial fetch
     mainSupabase
       .from('club_owners')
       .select('id')
-      .eq('club_id', id.trim().toLowerCase())
+      .eq('club_id', normalizedId)
       .maybeSingle()
       .then(({ data }) => setIsClubClaimed(!!data));
+
+    // Realtime — fires immediately when someone claims this club in any tab/device
+    const channel = mainSupabase
+      .channel(`club-claimed-${normalizedId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'club_owners', filter: `club_id=eq.${normalizedId}` },
+        () => setIsClubClaimed(true)
+      )
+      .subscribe();
+
+    return () => { mainSupabase.removeChannel(channel); };
   }, [id]);
 
   // Reviews state

@@ -316,7 +316,10 @@ const handler = async (req: Request): Promise<Response> => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { action, claimId, token, name, clubName, clubId, proofLink, redirectUrl } = await req.json() as ClaimRequest;
+    const body = await req.json() as ClaimRequest;
+    const { action, claimId, token, name, clubName, proofLink, redirectUrl } = body;
+    // Always normalize club_id — raw equality checks fail silently when case differs
+    const clubId = body.clubId?.trim().toLowerCase() ?? '';
 
     if (action === "send-verification") {
       // Validate authentication - user must be logged in
