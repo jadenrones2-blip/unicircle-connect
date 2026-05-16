@@ -9,7 +9,11 @@
       "Bash(curl -s 'https://xvaoxmqmnmhbnpwobpmm.supabase.co/rest/v1/club_spotlights?limit=1' -H 'apikey: __CMDSUB_OUTPUT__')",
       "Bash(curl -s 'https://xvaoxmqmnmhbnpwobpmm.supabase.co/rest/v1/club_spotlights?limit=1' -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2YW94bXFtbm1oYm5wd29icG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzM1MzAsImV4cCI6MjA5MDIwOTUzMH0.5Kl50m0a8xnyCQwDszZCgYbx7PR3JDeXBfGrZqlcTFY' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2YW94bXFtbm1oYm5wd29icG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MzM1MzAsImV4cCI6MjA5MDIwOTUzMH0.5Kl50m0a8xnyCQwDszZCgYbx7PR3JDeXBfGrZqlcTFY')",
       "Bash(open /Users/jadenrones/Desktop/unicircle-connect/docs/weekly-kpi-may11.html)",
-      "Bash(open /Users/jadenrones/Desktop/unicircle-flyer.html)"
+      "Bash(open /Users/jadenrones/Desktop/unicircle-flyer.html)",
+      "Bash(curl -s 'https://tayhvgmterjzolvodwow.supabase.co/rest/v1/clubs?limit=1' -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRheWh2Z210ZXJqem9sdm9kd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTExODIsImV4cCI6MjA4NDI2NzE4Mn0.QUBp8guzuSsRh_9hpVOsqsGFlRn7IO6adwZRMRL8UHI' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRheWh2Z210ZXJqem9sdm9kd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTExODIsImV4cCI6MjA4NDI2NzE4Mn0.QUBp8guzuSsRh_9hpVOsqsGFlRn7IO6adwZRMRL8UHI')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s 'https://tayhvgmterjzolvodwow.supabase.co/rest/v1/clubs?limit=1&select=*' -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRheWh2Z210ZXJqem9sdm9kd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTExODIsImV4cCI6MjA4NDI2NzE4Mn0.QUBp8guzuSsRh_9hpVOsqsGFlRn7IO6adwZRMRL8UHI' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRheWh2Z210ZXJqem9sdm9kd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTExODIsImV4cCI6MjA4NDI2NzE4Mn0.QUBp8guzuSsRh_9hpVOsqsGFlRn7IO6adwZRMRL8UHI')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(list\\(d[0].keys\\(\\)\\)\\)\")"
     ]
   }
 }

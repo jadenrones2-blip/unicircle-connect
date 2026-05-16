@@ -63,6 +63,7 @@ import ApprovalPending from "./pages/ApprovalPending";
 import ClubSpotlightCreator from "./pages/ClubSpotlightCreator";
 import ClubAdminInbox from "./pages/ClubAdminInbox";
 import MobileNav from "./components/MobileNav";
+import UCLALanding from "./pages/UCLALanding";
 
 const queryClient = new QueryClient();
 
@@ -127,6 +128,7 @@ const App = () => (
           <Route path="/reach" element={<ReachDemo />} />
           <Route path="/startup-incubator" element={<StartupIncubatorDemo />} />
           <Route path="/tabling" element={<TablingLanding />} />
+          <Route path="/ucla" element={<UCLALanding />} />
           <Route path="/join/:clubId" element={<JoinEvent />} />
           <Route path="/join/:clubId/done" element={<JoinComplete />} />
           <Route path="/approval-pending" element={<ApprovalPending />} />
