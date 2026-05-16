@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
 import { dataClient } from '@/integrations/supabase/dataClient';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import ResumeUploadStep from '@/components/onboarding/ResumeUploadStep';
@@ -178,7 +179,7 @@ function matchesArea(club: { categoryBucket?: string; category?: string }, areaV
 
 // ─── Steps ───────────────────────────────────────────────────────────────────
 
-const STEPS = ['goal', 'vibe', 'areas', 'specifics', 'resume', 'swipe'] as const;
+const STEPS = ['major', 'goal', 'vibe', 'areas', 'specifics', 'resume', 'swipe'] as const;
 type Step = typeof STEPS[number];
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -191,7 +192,8 @@ export default function Onboarding() {
   const { user, loading: authLoading } = useAuth();
   const { saveInterests, loading: savingInterests, hasCompletedOnboarding } = useUserInterests();
 
-  const [step, setStep] = useState<Step>('goal');
+  const [step, setStep] = useState<Step>('major');
+  const [major, setMajor] = useState('');
   const [goals, setGoals] = useState<string[]>([]);
   const [selectedVibe, setSelectedVibe] = useState<string[]>([]);
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
@@ -276,6 +278,15 @@ export default function Onboarding() {
       kw.vibe.forEach(v => interests.push({ category: 'resume_vibe', value: v }));
     }
 
+    // Save major to profile if entered
+    if (major.trim()) {
+      await (supabase as any)
+        .from('profiles')
+        .update({ major: major.trim() })
+        .eq('user_id', user.id)
+        .catch(() => {});
+    }
+
     const result = await saveInterests(user.id, interests);
     if (result.success) {
       setStep('swipe');
@@ -314,6 +325,38 @@ export default function Onboarding() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
+
+              {/* ── STEP 0: MAJOR ── */}
+              {step === 'major' && (
+                <div>
+                  <div className="text-center mb-10">
+                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">Step 1 of 6</span>
+                    <h1 className="text-3xl font-display font-bold text-white mb-2">
+                      What's your major?
+                    </h1>
+                    <p className="text-zinc-500 text-sm">
+                      This is the single biggest factor in matching you to the right clubs.
+                    </p>
+                  </div>
+                  <div className="max-w-sm mx-auto space-y-4">
+                    <input
+                      type="text"
+                      value={major}
+                      onChange={e => setMajor(e.target.value)}
+                      placeholder="e.g. Computer Science, Biology, Undecided..."
+                      className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-600 focus:border-gold/50 focus:outline-none text-sm"
+                      autoFocus
+                      onKeyDown={e => { if (e.key === 'Enter') handleNext(); }}
+                    />
+                    <button
+                      onClick={handleNext}
+                      className="w-full py-3 rounded-xl bg-gold text-zinc-900 font-bold text-sm hover:bg-gold/90 transition-colors"
+                    >
+                      {major.trim() ? 'Continue →' : 'Skip for now →'}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* ── STEP 1: GOAL ── */}
               {step === 'goal' && (

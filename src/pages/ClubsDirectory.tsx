@@ -21,6 +21,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSavedClubs } from "@/hooks/useSavedClubs";
 import { useUserInterests } from "@/hooks/useUserInterests";
 import { calculateMatchScore, getTopMatchTerm, resumeHitsClub } from "@/lib/clubRecommendations";
+import { useAIMatching } from "@/hooks/useAIMatching";
+import { useClubsContext } from "@/contexts/ClubsContext";
 import { toast } from "sonner";
 
 const CATEGORIES: { label: string; color: string; icon: LucideIcon }[] = [
@@ -90,11 +92,13 @@ const ClubsDirectory = () => {
   }, [searchText, selectedCategory, recruitingOnly]);
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
+  const { enrichments } = useClubsContext();
   const { user } = useAuth();
   const { savedClubs, fetchSavedClubs, saveClub, unsaveClub, isSaved } = useSavedClubs();
   const { fetchInterests, fetchResumeSignals } = useUserInterests();
   const [interestValues, setInterestValues] = useState<string[]>([]);
   const [resumeSignals, setResumeSignals] = useState<string[]>([]);
+  const { getScore } = useAIMatching(clubs, enrichments, interestValues, resumeSignals, user?.id ?? null);
   const [appliedClubIds, setAppliedClubIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -222,29 +226,28 @@ const ClubsDirectory = () => {
     if (!interestValues.length && !resumeSignals.length) return {} as Record<string, number>;
     const scores: Record<string, number> = {};
     for (const club of filteredClubs) {
-      const score = calculateMatchScore(club, interestValues, resumeSignals);
-      if (score > 0) scores[club.id] = score;
+      const result = getScore(club.id);
+      if (result && result.score > 0) scores[club.id] = result.score;
     }
     return scores;
-  }, [filteredClubs, interestValues, resumeSignals]);
+  }, [filteredClubs, interestValues, resumeSignals, getScore]);
 
-  // Top 10 recommended clubs ranked by blended match score
+  // Top 10 recommended clubs — AI-scored when available, cluster fallback
   const recommendedClubs = useMemo(() => {
     if (!user || (!interestValues.length && !resumeSignals.length)) return [];
     return clubs
-      .map((club) => ({
-        club,
-        score: calculateMatchScore(club, interestValues, resumeSignals),
-        reason: getTopMatchTerm(club, interestValues, resumeSignals),
-      }))
-      .filter(({ score, club }) =>
-        score >= 40 &&
-        !appliedClubIds.has(club.id) &&
-        (resumeSignals.length === 0 || resumeHitsClub(club, resumeSignals))
-      )
+      .map((club) => {
+        const aiResult = getScore(club.id);
+        return {
+          club,
+          score: aiResult?.score ?? 0,
+          reason: aiResult?.source === 'ai' ? aiResult.reason : getTopMatchTerm(club, interestValues, resumeSignals),
+        };
+      })
+      .filter(({ score, club }) => score >= 40 && !appliedClubIds.has(club.id))
       .sort((a, b) => b.score - a.score)
       .slice(0, 10);
-  }, [clubs, interestValues, resumeSignals, user]);
+  }, [clubs, interestValues, resumeSignals, user, getScore]);
 
   const [showAllRanked, setShowAllRanked] = useState(false);
 
