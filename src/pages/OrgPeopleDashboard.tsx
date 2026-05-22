@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
@@ -91,7 +91,7 @@ export default function OrgPeopleDashboard() {
     notes: '',
   });
 
-  const fetchPeople = async () => {
+  const fetchPeople = useCallback(async () => {
     if (!clubId) return;
     setLoading(true);
 
@@ -135,11 +135,11 @@ export default function OrgPeopleDashboard() {
       (peopleData || []).map((p: Person) => ({ ...p, avg_score: reviewMap[p.id] ?? null }))
     );
     setLoading(false);
-  };
+  }, [clubId]);
 
   useEffect(() => {
     fetchPeople();
-  }, [clubId]);
+  }, [fetchPeople]);
 
   // Clear selection when filter/search changes
   useEffect(() => {

@@ -57,7 +57,7 @@ export default function Discover() {
     if (!authLoading && !user) navigate('/login?redirect=/discover');
   }, [user, authLoading, navigate]);
 
-  const { savedClubs, saveClub, isSaved } = useSavedClubs();
+  const { savedClubs, saveClub, isSaved, fetchSavedClubs } = useSavedClubs();
   const { fetchInterests, fetchResumeSignals } = useUserInterests();
   const [interestValues, setInterestValues] = useState<string[]>([]);
   const [resumeSignals, setResumeSignals] = useState<string[]>([]);
@@ -73,7 +73,7 @@ export default function Discover() {
       if (d) setInterestValues(d.map((i) => i.interest_value));
     });
     fetchResumeSignals(user.id).then((s) => setResumeSignals(s));
-    if (user.id) savedClubs; // trigger load
+    fetchSavedClubs(user.id);
   }, [user]);
 
   const { events, loading: eventsLoading } = useClubMatchedEvents(

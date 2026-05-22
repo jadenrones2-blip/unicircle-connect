@@ -7,19 +7,13 @@ import {
   Users,
   Star,
   MoreHorizontal,
-  ArrowRight,
   Check,
-  X,
-  Mail,
-  FileText,
-  GripVertical,
-  BarChart3,
   Clock,
   ChevronRight,
   TrendingUp,
-  UserCheck,
-  Send,
   MoveHorizontal,
+  ShieldCheck,
+  GraduationCap,
 } from 'lucide-react';
 
 // Mock Kanban Board
@@ -60,7 +54,6 @@ const KanbanMockup = () => {
 
   return (
     <div className="bg-[#111111] rounded-xl border border-border/30 overflow-hidden shadow-2xl">
-      {/* Window chrome */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border/20 bg-[#111111]/80">
         <div className="flex gap-1.5">
           <div className="w-3 h-3 rounded-full bg-red-500/60" />
@@ -74,7 +67,6 @@ const KanbanMockup = () => {
         </div>
       </div>
 
-      {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
         <div className="flex items-center gap-3">
           <span className="text-sm font-display font-semibold text-white">
@@ -90,7 +82,6 @@ const KanbanMockup = () => {
         </div>
       </div>
 
-      {/* Kanban */}
       <div className="p-3 md:p-4 flex md:grid md:grid-cols-4 gap-3 min-h-[220px] md:min-h-[280px] overflow-x-auto snap-x snap-mandatory scrollbar-hide">
         {columns.map((col, colIdx) => (
           <motion.div
@@ -117,7 +108,7 @@ const KanbanMockup = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.5 + colIdx * 0.1 + cardIdx * 0.08 }}
-                  className="p-2.5 rounded-md bg-white/[0.05] border border-border/20 hover:border-gold/30 transition-colors cursor-default group"
+                  className="p-2.5 rounded-md bg-white/[0.05] border border-border/20 hover:border-gold/30 transition-colors cursor-default"
                 >
                   <div className="flex items-center gap-2 mb-1">
                     <div className="w-5 h-5 rounded-full bg-gold/20 flex items-center justify-center">
@@ -141,7 +132,6 @@ const KanbanMockup = () => {
         ))}
       </div>
 
-      {/* Mobile swipe hint */}
       <motion.div
         className="flex md:hidden items-center justify-center gap-2 pt-3 pb-1"
         initial={{ opacity: 0 }}
@@ -183,7 +173,6 @@ const AnalyticsMockup = () => {
       </div>
 
       <div className="p-4">
-        {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-5">
           {[
             { label: 'Total Applied', value: '247', change: '+18%', icon: Users },
@@ -209,7 +198,6 @@ const AnalyticsMockup = () => {
           ))}
         </div>
 
-        {/* Chart */}
         <div className="p-3 rounded-lg bg-white/[0.03] border border-border/15">
           <div className="flex items-center justify-between mb-4">
             <span className="text-[11px] font-medium text-white/70">Applications this week</span>
@@ -269,7 +257,6 @@ const ApplicantViewMockup = () => {
       <div className="p-4">
         <div className="text-sm font-display font-semibold text-white mb-4">Your Applications</div>
 
-        {/* Application cards */}
         {[
           {
             club: 'Triton Consulting Group',
@@ -310,7 +297,6 @@ const ApplicantViewMockup = () => {
           </motion.div>
         ))}
 
-        {/* Timeline for selected app */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -356,32 +342,67 @@ const ApplicantViewMockup = () => {
   );
 };
 
-const tabs = [
+const personas = [
   {
-    id: 'pipeline',
-    label: 'Recruitment Pipeline',
-    description: 'All applicants in one board. Score, review, and advance — no spreadsheet.',
+    id: 'admin',
+    label: 'Club Admin / Exec',
+    icon: ShieldCheck,
+    description: 'Manage your entire recruitment pipeline — from intake to final decision.',
+    subViews: [
+      {
+        id: 'pipeline',
+        label: 'Recruitment Pipeline',
+        description: 'All applicants in one board. Score, review, and advance — no spreadsheet.',
+      },
+      {
+        id: 'analytics',
+        label: 'Analytics Dashboard',
+        description: 'Track acceptance rate, scores, and daily volume across every stage.',
+      },
+    ],
   },
   {
-    id: 'analytics',
-    label: 'Analytics Dashboard',
-    description: 'Track acceptance rate, scores, and daily volume across every stage.',
-  },
-  {
-    id: 'applicant',
-    label: 'Applicant View',
-    description: "Students track their own status. No more 'where do I stand?' emails.",
+    id: 'student',
+    label: 'Student / Applicant',
+    icon: GraduationCap,
+    description: "Track every application in real time. No more 'where do I stand?' emails.",
+    subViews: [
+      {
+        id: 'status',
+        label: 'Application Status',
+        description: "See exactly where you stand across every club you've applied to.",
+      },
+    ],
   },
 ];
 
 const ProductShowcase = () => {
-  const [activeTab, setActiveTab] = useState('pipeline');
+  const [activePersona, setActivePersona] = useState('admin');
+  const [activeSubView, setActiveSubView] = useState('pipeline');
   const { playClick } = useSoundEffects();
+
+  const currentPersona = personas.find((p) => p.id === activePersona)!;
+
+  const handlePersonaSwitch = (personaId: string) => {
+    setActivePersona(personaId);
+    const persona = personas.find((p) => p.id === personaId)!;
+    setActiveSubView(persona.subViews[0].id);
+    playClick();
+  };
+
+  const handleSubViewSwitch = (subViewId: string) => {
+    setActiveSubView(subViewId);
+    playClick();
+  };
+
+  const currentDescription =
+    currentPersona.subViews.find((sv) => sv.id === activeSubView)?.description ??
+    currentPersona.description;
 
   return (
     <section className="py-32 md:py-48 border-t border-white/[0.07]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
-        <div className="mb-8 md:mb-10">
+        <div className="mb-10 md:mb-12">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -403,52 +424,81 @@ const ProductShowcase = () => {
           </div>
         </div>
 
-        {/* Tab switcher */}
-        <div className="flex flex-wrap gap-1 mb-8 border-b border-white/[0.08]">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id);
-                playClick();
-              }}
-              className={`relative pb-3 pr-8 text-left transition-all ${
-                activeTab === tab.id ? 'text-white/70' : 'text-white/60 hover:text-white/80'
-              }`}
-            >
-              <span className="text-sm font-semibold tracking-wide">{tab.label}</span>
-              {activeTab === tab.id && (
-                <motion.div
-                  layoutId="product-tab-underline"
-                  className="absolute bottom-0 left-0 right-8 h-px bg-gold"
-                  transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+        {/* Persona switcher */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+          className="flex gap-3 mb-8"
+        >
+          {personas.map((persona) => {
+            const Icon = persona.icon;
+            const isActive = activePersona === persona.id;
+            return (
+              <button
+                key={persona.id}
+                onClick={() => handlePersonaSwitch(persona.id)}
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg border text-left transition-all duration-200 ${
+                  isActive
+                    ? 'bg-gold/10 border-gold/40 text-white'
+                    : 'bg-white/[0.03] border-white/10 text-white/50 hover:text-white/70 hover:border-white/20'
+                }`}
+              >
+                <Icon
+                  className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-gold' : 'text-white/30'}`}
                 />
-              )}
-            </button>
-          ))}
-        </div>
+                <span className="text-sm font-semibold tracking-wide">{persona.label}</span>
+              </button>
+            );
+          })}
+        </motion.div>
+
+        {/* Sub-view tabs — only shown when persona has multiple views */}
+        {currentPersona.subViews.length > 1 && (
+          <div className="flex gap-1 mb-8 border-b border-white/[0.08]">
+            {currentPersona.subViews.map((sv) => (
+              <button
+                key={sv.id}
+                onClick={() => handleSubViewSwitch(sv.id)}
+                className={`relative pb-3 pr-8 text-left transition-all ${
+                  activeSubView === sv.id ? 'text-white/70' : 'text-white/40 hover:text-white/60'
+                }`}
+              >
+                <span className="text-sm font-medium">{sv.label}</span>
+                {activeSubView === sv.id && (
+                  <motion.div
+                    layoutId="product-subview-underline"
+                    className="absolute bottom-0 left-0 right-8 h-px bg-gold"
+                    transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Description */}
         <motion.p
-          key={activeTab}
+          key={`${activePersona}-${activeSubView}`}
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-sm text-white mb-10 max-w-md"
+          className="text-sm text-white/60 mb-10 max-w-md"
         >
-          {tabs.find((t) => t.id === activeTab)?.description}
+          {currentDescription}
         </motion.p>
 
         {/* Mockup */}
         <TiltCard>
           <motion.div
-            key={`mockup-${activeTab}`}
+            key={`mockup-${activePersona}-${activeSubView}`}
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            {activeTab === 'pipeline' && <KanbanMockup />}
-            {activeTab === 'analytics' && <AnalyticsMockup />}
-            {activeTab === 'applicant' && <ApplicantViewMockup />}
+            {activeSubView === 'pipeline' && <KanbanMockup />}
+            {activeSubView === 'analytics' && <AnalyticsMockup />}
+            {activeSubView === 'status' && <ApplicantViewMockup />}
           </motion.div>
         </TiltCard>
       </div>
