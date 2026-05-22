@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Plus, Search, Loader2, ChevronRight, Star, Upload, Download, AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { Plus, Search, Loader2, ChevronRight, Star, Upload, Download, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Papa from 'papaparse';
 
@@ -33,8 +33,6 @@ const STAGE_LABELS: Record<Stage, string> = {
   rejected: 'Rejected',
 };
 
-const VALID_STAGES = new Set(STAGES as readonly string[]);
-
 interface Person {
   id: string;
   first_name: string;
@@ -46,33 +44,6 @@ interface Person {
   notes: string | null;
   created_at: string;
   avg_score?: number | null;
-}
-
-interface CsvRow {
-  first_name: string;
-  last_name: string;
-  email: string;
-  year: string;
-  major: string;
-  stage: string;
-  notes: string;
-  _valid: boolean;
-  _error: string;
-}
-
-function normalizeStage(raw: string): string {
-  const s = raw.toLowerCase().trim().replace(/\s+/g, '_');
-  if (VALID_STAGES.has(s)) return s;
-  const aliases: Record<string, string> = {
-    'under review': 'under_review',
-    'review': 'under_review',
-    'accept': 'accepted',
-    'reject': 'rejected',
-    'interviews': 'interview',
-    'members': 'member',
-    'apply': 'applied',
-  };
-  return aliases[raw.toLowerCase().trim()] || 'applied';
 }
 
 export default function OrgPeopleDashboard() {
@@ -89,13 +60,14 @@ export default function OrgPeopleDashboard() {
   const [bulkStage, setBulkStage] = useState<Stage | ''>('');
   const [bulkMoving, setBulkMoving] = useState(false);
 
-  // CSV import state
-  const [importOpen, setImportOpen] = useState(false);
-  const [csvRows, setCsvRows] = useState<CsvRow[]>([]);
-  const [importing, setImporting] = useState(false);
-  const [importDone, setImportDone] = useState(false);
-  const [importResult, setImportResult] = useState<{ inserted: number; skipped: number } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Smart import state
+  const [smartImporting, setSmartImporting] = useState(false);
+  const smartImportRef = useRef<HTMLInputElement>(null);
+
+  // NIGO (Not In Good Order) queue — rows Claude couldn't fully clean
+  const [nigoQueue, setNigoQueue] = useState<any[]>([]);
+  const [nigoEdits, setNigoEdits] = useState<Record<number, any>>({});
+  const [nigoSaving, setNigoSaving] = useState<Record<number, boolean>>({});
 
   const [form, setForm] = useState({
     first_name: '', last_name: '', email: '', year: '', major: '',
@@ -237,104 +209,51 @@ export default function OrgPeopleDashboard() {
     toast.success(`Exported ${data.length} ${data.length === 1 ? 'person' : 'people'}`);
   };
 
-  // ─── CSV import ─────────────────────────────────────────────────────────────
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ─── Smart AI import ────────────────────────────────────────────────────────
+  const handleSmartImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      // Strip BOM, lowercase, trim, collapse spaces → underscores
-      transformHeader: (h) => h.replace(/^\uFEFF/, '').toLowerCase().trim().replace(/\s+/g, '_'),
-      complete: (results) => {
-        const rows = (results.data as any[]).map((row) => {
-          // Handle combined "Name" / "Full Name" column — split on first space
-          const combinedName = (row.name || row.full_name || row.fullname || row.student_name || row.applicant_name || '').trim();
-          const combinedParts = combinedName ? combinedName.split(/\s+/) : [];
-
-          let firstName = (row.first_name || row.firstname || (combinedParts[0] ?? '')).trim();
-          let lastName  = (row.last_name  || row.lastname  || combinedParts.slice(1).join(' ')).trim();
-
-          // If only one token in combined field, use it as both to avoid "Missing last name"
-          if (combinedName && !lastName) lastName = firstName;
-
-          const email = (
-            row.email || row.email_address || row.ucsd_email ||
-            row.school_email || row.student_email || row.contact_email || ''
-          ).trim().toLowerCase();
-
-          const year = (row.year || row.class_year || row.academic_year || row.grade_level || '').trim();
-          const major = (row.major || row.field_of_study || row.area_of_study || row.concentration || '').trim();
-          const stageRaw = (row.stage || '').trim();
-          const notes = (row.notes || '').trim();
-
-          let error = '';
-          if (!firstName) error = 'Missing first name';
-          else if (!lastName) error = 'Missing last name';
-          return {
-            first_name: firstName, last_name: lastName, email, year, major,
-            stage: stageRaw ? normalizeStage(stageRaw) : 'applied',
-            notes, _valid: !error, _error: error,
-          } as CsvRow;
-        });
-        setCsvRows(rows);
-        setImportDone(false);
-        setImportResult(null);
-      },
-      error: () => toast.error('Failed to parse CSV'),
-    });
+    if (!file || !clubId) return;
     e.target.value = '';
-  };
+    setSmartImporting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error('Not signed in'); return; }
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('club_id', clubId);
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${supabaseUrl}/functions/v1/ingest-roster`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+        body: fd,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) { toast.error(json.error || 'Import failed'); return; }
+      if (json.error) { toast.error(json.error); return; }
 
-  const handleImport = async () => {
-    const valid = csvRows.filter(r => r._valid);
-    if (!valid.length) { toast.error('No valid rows to import'); return; }
-    setImporting(true);
-    const payload = valid.map(r => ({
-      organization_id: clubId,
-      first_name: r.first_name, last_name: r.last_name,
-      email: r.email || null, year: r.year || null,
-      major: r.major || null, stage: r.stage as Stage,
-      notes: r.notes || null,
-    }));
-    let inserted = 0;
-    for (let i = 0; i < payload.length; i += 100) {
-      const batch = payload.slice(i, i + 100);
-      const { error } = await (supabase as any).from('people').insert(batch);
-      if (error) toast.error(`Batch ${Math.floor(i / 100) + 1} failed: ${error.message}`);
-      else inserted += batch.length;
+      const nigoCount = json.nigo_count ?? 0;
+      toast.success(
+        `${json.inserted} members imported${nigoCount > 0 ? ` · ${nigoCount} need attention` : ''}`
+      );
+
+      // Surface NIGO queue in the UI so officers can fix individual rows
+      if (nigoCount > 0) {
+        setNigoQueue(json.nigo_queue ?? []);
+        setNigoEdits({});
+      }
+
+      fetchPeople();
+    } catch {
+      toast.error('Import failed — please try again');
+    } finally {
+      setSmartImporting(false);
     }
-    setImportResult({ inserted, skipped: csvRows.filter(r => !r._valid).length });
-    setImportDone(true);
-    setImporting(false);
-    fetchPeople();
-  };
-
-  const closeImport = () => {
-    setImportOpen(false);
-    setCsvRows([]);
-    setImportDone(false);
-    setImportResult(null);
-  };
-
-  const downloadTemplate = () => {
-    const csv = 'first_name,last_name,email,year,major,stage,notes\nJane,Smith,jane@ucsd.edu,Junior,Economics,applied,\nJohn,Doe,john@ucsd.edu,Sophomore,Business,member,';
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'people_template.csv';
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const stageCounts = STAGES.reduce((acc, s) => {
     acc[s] = people.filter(p => p.stage === s).length;
     return acc;
   }, {} as Record<Stage, number>);
-
-  const validCount = csvRows.filter(r => r._valid).length;
-  const invalidCount = csvRows.filter(r => !r._valid).length;
 
   return (
     <SidebarProvider>
@@ -359,14 +278,128 @@ export default function OrgPeopleDashboard() {
                   <Download className="w-4 h-4 mr-1.5" /> Export CSV
                 </Button>
               )}
-              <Button onClick={() => setImportOpen(true)} variant="outline" className="border-white/10 text-zinc-300 hover:bg-white/5">
-                <Upload className="w-4 h-4 mr-1.5" /> Import CSV
+              <Button
+                onClick={() => smartImportRef.current?.click()}
+                disabled={smartImporting}
+                variant="outline"
+                className="border-white/10 text-zinc-300 hover:bg-white/5"
+              >
+                {smartImporting ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Upload className="w-4 h-4 mr-1.5" />}
+                {smartImporting ? 'Importing...' : 'Import Roster'}
               </Button>
+              <input
+                ref={smartImportRef}
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                className="hidden"
+                onChange={handleSmartImport}
+              />
               <Button onClick={() => setAddOpen(true)} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">
                 <Plus className="w-4 h-4 mr-1" /> Add Person
               </Button>
             </div>
           </div>
+
+          {/* ── NIGO Queue — Action Needed ────────────────────────────────── */}
+          {nigoQueue.length > 0 && (
+            <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-amber-500/20">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="text-sm font-semibold text-amber-400">
+                    Action Needed — {nigoQueue.length} member{nigoQueue.length !== 1 ? 's' : ''} couldn't be imported
+                  </span>
+                </div>
+                <button
+                  onClick={() => setNigoQueue([])}
+                  className="text-zinc-500 hover:text-white transition-colors"
+                  aria-label="Dismiss"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-4 space-y-3">
+                {nigoQueue.map((row, idx) => {
+                  const edit = nigoEdits[idx] ?? row;
+                  const isSaving = nigoSaving[idx] ?? false;
+
+                  const handleFix = async () => {
+                    const firstName = (edit.first_name || '').trim();
+                    const lastName = (edit.last_name || '').trim();
+                    const email = (edit.email || '').trim().toLowerCase();
+                    if (!firstName || !lastName || !email || !email.includes('@')) {
+                      toast.error('Please fill in name and a valid email before saving');
+                      return;
+                    }
+                    setNigoSaving(prev => ({ ...prev, [idx]: true }));
+                    try {
+                      const { error } = await (supabase as any).from('people').upsert({
+                        organization_id: clubId,
+                        first_name: firstName,
+                        last_name: lastName,
+                        email,
+                        major: edit.major || null,
+                        status: ['applicant', 'member', 'alumni'].includes(edit.status) ? edit.status : 'applicant',
+                        gender: ['male', 'female', 'non-binary', 'unspecified'].includes(edit.gender) ? edit.gender : 'unspecified',
+                        grad_year: Number.isInteger(edit.grad_year) ? edit.grad_year : null,
+                        stage: 'applied',
+                      }, { onConflict: 'email,organization_id' });
+
+                      if (error) throw error;
+                      toast.success(`${firstName} ${lastName} imported!`);
+                      setNigoQueue(prev => prev.filter((_, i) => i !== idx));
+                      setNigoEdits(prev => { const next = { ...prev }; delete next[idx]; return next; });
+                      fetchPeople();
+                    } catch (err: any) {
+                      toast.error(err.message || 'Failed to save');
+                    } finally {
+                      setNigoSaving(prev => ({ ...prev, [idx]: false }));
+                    }
+                  };
+
+                  return (
+                    <div key={idx} className="rounded-lg border border-amber-500/20 bg-zinc-900 p-4">
+                      <p className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider mb-3">
+                        ⚠ {row.flag_reason}
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                        {[
+                          { key: 'first_name', label: 'First Name', required: true },
+                          { key: 'last_name', label: 'Last Name', required: true },
+                          { key: 'email', label: 'Email', required: true },
+                          { key: 'major', label: 'Major', required: false },
+                        ].map(({ key, label, required }) => (
+                          <div key={key}>
+                            <label className="text-[10px] text-zinc-500 mb-1 block">
+                              {label}{required && <span className="text-amber-400 ml-0.5">*</span>}
+                            </label>
+                            <input
+                              type="text"
+                              value={edit[key] || ''}
+                              onChange={e => setNigoEdits(prev => ({
+                                ...prev,
+                                [idx]: { ...(prev[idx] ?? row), [key]: e.target.value },
+                              }))}
+                              placeholder={label}
+                              className="w-full h-8 px-2.5 text-xs rounded-lg bg-zinc-800 border border-white/10 text-white placeholder:text-zinc-600 focus:border-amber-400/50 focus:outline-none"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={handleFix}
+                        disabled={isSaving}
+                        className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition-colors disabled:opacity-50"
+                      >
+                        {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                        {isSaving ? 'Saving...' : 'Save & Import →'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Stage filter tabs */}
           <div className="flex gap-2 flex-wrap mb-4">
@@ -574,97 +607,6 @@ export default function OrgPeopleDashboard() {
               {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add Person'}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* CSV Import Dialog */}
-      <Dialog open={importOpen} onOpenChange={closeImport}>
-        <DialogContent className="bg-[#111] border-white/10 text-white max-w-2xl max-h-[80vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Import from CSV</DialogTitle>
-          </DialogHeader>
-
-          {importDone ? (
-            <div className="flex flex-col items-center py-8 gap-4">
-              <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-7 h-7 text-green-500" />
-              </div>
-              <div className="text-center">
-                <p className="text-white font-semibold text-lg">{importResult?.inserted} people imported</p>
-                {importResult?.skipped ? <p className="text-zinc-500 text-sm mt-1">{importResult.skipped} rows skipped due to errors</p> : null}
-              </div>
-              <Button onClick={closeImport} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">Done</Button>
-            </div>
-          ) : csvRows.length === 0 ? (
-            <div className="space-y-4 py-2">
-              <p className="text-zinc-400 text-sm">
-                Upload a CSV — column names are flexible. Accepted headers:
-              </p>
-              <ul className="text-zinc-500 text-xs space-y-0.5 list-disc list-inside">
-                <li><code className="text-zinc-300">Name</code> or <code className="text-zinc-300">Full Name</code> <span className="text-zinc-600">(auto-splits into first + last)</span>, or separate <code className="text-zinc-300">First Name</code> / <code className="text-zinc-300">Last Name</code></li>
-                <li><code className="text-zinc-300">Email</code>, <code className="text-zinc-300">Email Address</code>, <code className="text-zinc-300">UCSD Email</code></li>
-                <li><code className="text-zinc-300">Major</code>, <code className="text-zinc-300">Year</code> <span className="text-zinc-600">(optional)</span></li>
-              </ul>
-              <p className="text-zinc-500 text-xs">Valid stages: member, applied, under_review, interview, accepted, rejected. Defaults to <em>applied</em> if blank.</p>
-              <label className="flex flex-col items-center justify-center gap-3 border border-dashed border-white/15 rounded-xl py-10 cursor-pointer hover:border-white/30 transition-colors">
-                <Upload className="w-6 h-6 text-zinc-500" />
-                <span className="text-sm text-zinc-400">Click to upload CSV</span>
-                <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
-              </label>
-              <button onClick={downloadTemplate} className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-                <Download className="w-3.5 h-3.5" /> Download template CSV
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col flex-1 min-h-0 gap-4">
-              <div className="flex items-center gap-4 text-sm">
-                <span className="flex items-center gap-1.5 text-green-400"><CheckCircle2 className="w-4 h-4" /> {validCount} ready</span>
-                {invalidCount > 0 && <span className="flex items-center gap-1.5 text-red-400"><AlertCircle className="w-4 h-4" /> {invalidCount} skipped</span>}
-                <button onClick={() => setCsvRows([])} className="ml-auto text-xs text-zinc-500 hover:text-zinc-300 transition-colors">Choose different file</button>
-              </div>
-              <div className="flex-1 overflow-auto rounded-lg border border-white/10 min-h-0">
-                <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-[#111]">
-                    <tr className="border-b border-white/10">
-                      {['#', 'Name', 'Email', 'Major / Year', 'Stage', 'Status'].map(h => (
-                        <th key={h} className="text-left px-3 py-2 text-xs text-zinc-500 font-semibold">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {csvRows.map((row, i) => (
-                      <tr key={i} className={`border-b border-white/5 ${!row._valid ? 'opacity-50' : ''}`}>
-                        <td className="px-3 py-2 text-zinc-600">{i + 1}</td>
-                        <td className="px-3 py-2 text-white">{row.first_name} {row.last_name}</td>
-                        <td className="px-3 py-2 text-zinc-400">{row.email || '—'}</td>
-                        <td className="px-3 py-2 text-zinc-400">{[row.major, row.year].filter(Boolean).join(' · ') || '—'}</td>
-                        <td className="px-3 py-2">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium"
-                            style={{
-                              background: VALID_STAGES.has(row.stage) ? STAGE_COLORS[row.stage as Stage] + '22' : 'rgba(255,255,255,0.05)',
-                              color: VALID_STAGES.has(row.stage) ? STAGE_COLORS[row.stage as Stage] : '#71717a',
-                            }}>
-                            {STAGE_LABELS[row.stage as Stage] || row.stage || 'applied'}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2">
-                          {row._valid
-                            ? <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            : <span className="flex items-center gap-1 text-red-400 text-xs"><AlertCircle className="w-3.5 h-3.5" />{row._error}</span>}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={closeImport} className="text-zinc-400">Cancel</Button>
-                <Button onClick={handleImport} disabled={importing || validCount === 0} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">
-                  {importing ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Importing...</> : `Import ${validCount} ${validCount === 1 ? 'Person' : 'People'}`}
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
         </DialogContent>
       </Dialog>
     </SidebarProvider>

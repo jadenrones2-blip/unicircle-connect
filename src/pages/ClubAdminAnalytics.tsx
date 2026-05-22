@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -20,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubOwnership } from "@/hooks/useClubOwnership";
 import { useRecruitment } from "@/hooks/useRecruitment";
+import { Loader2 } from "lucide-react";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -139,6 +139,10 @@ export default function ClubAdminAnalytics() {
   const { isOwnerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
   const { stages, applicants, loading: recruitmentLoading, isEnabled } = useRecruitment(clubId);
 
+  const [activeTab, setActiveTab] = useState<'recruitment' | 'demographics'>('recruitment');
+  const [demographics, setDemographics] = useState<any[]>([]);
+  const [demoLoading, setDemoLoading] = useState(false);
+
   // Also count people from the OrgPeopleDashboard `people` table
   const [peopleCount, setPeopleCount] = useState(0);
   useEffect(() => {
@@ -151,6 +155,19 @@ export default function ClubAdminAnalytics() {
         if (count) setPeopleCount(count);
       });
   }, [clubId]);
+
+  useEffect(() => {
+    if (!clubId || activeTab !== 'demographics') return;
+    setDemoLoading(true);
+    (supabase as any)
+      .from('people')
+      .select('status, gender, major, grad_year')
+      .eq('organization_id', clubId)
+      .then(({ data }: { data: any[] | null }) => {
+        setDemographics(data || []);
+        setDemoLoading(false);
+      });
+  }, [clubId, activeTab]);
 
   // ── Auth guard ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -225,6 +242,48 @@ export default function ClubAdminAnalytics() {
 
     return { total, avgGpa, topMajor, stageData, majorData, yearData };
   }, [applicants, stages]);
+
+  const demoStats = useMemo(() => {
+    const total = demographics.length;
+    if (total === 0) return null;
+
+    const pct = (n: number) => total > 0 ? Math.round((n / total) * 100) : 0;
+
+    // Status
+    const statusCounts = { applicant: 0, member: 0, alumni: 0 };
+    for (const p of demographics) {
+      const s = p.status as keyof typeof statusCounts;
+      if (s in statusCounts) statusCounts[s]++;
+    }
+
+    // Gender
+    const genderCounts: Record<string, number> = {};
+    for (const p of demographics) {
+      const g = p.gender || 'unspecified';
+      genderCounts[g] = (genderCounts[g] ?? 0) + 1;
+    }
+
+    // Major top 5 + Other
+    const majorMap: Record<string, number> = {};
+    for (const p of demographics) {
+      const m = p.major?.trim() || 'Unknown';
+      majorMap[m] = (majorMap[m] ?? 0) + 1;
+    }
+    const majorEntries = Object.entries(majorMap).sort((a, b) => b[1] - a[1]);
+    const topMajors = majorEntries.slice(0, 5);
+    const otherCount = majorEntries.slice(5).reduce((s, [, n]) => s + n, 0);
+    if (otherCount > 0) topMajors.push(['Other', otherCount]);
+
+    // Grad year
+    const yearMap: Record<string, number> = {};
+    for (const p of demographics) {
+      const y = p.grad_year ? String(p.grad_year) : 'Unknown';
+      yearMap[y] = (yearMap[y] ?? 0) + 1;
+    }
+    const gradYears = Object.entries(yearMap).sort((a, b) => a[0].localeCompare(b[0]));
+
+    return { total, pct, statusCounts, genderCounts, topMajors, gradYears };
+  }, [demographics]);
 
   const clubName = ownedClubs.find((c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase())?.clubName ?? "Club";
 
@@ -332,6 +391,25 @@ export default function ClubAdminAnalytics() {
               </p>
             </motion.div>
 
+            {/* Tab bar */}
+            <div className="flex gap-1 p-1 rounded-xl bg-white/[0.04] border border-white/[0.07] w-fit">
+              {(['recruitment', 'demographics'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize ${
+                    activeTab === tab
+                      ? 'bg-gold text-zinc-900'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {activeTab === 'recruitment' && (
+              <>
             {/* ── Summary cards ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <StatCard
@@ -627,6 +705,85 @@ export default function ClubAdminAnalytics() {
                   </motion.section>
                 )}
               </>
+            )}
+              </>
+            )}
+
+            {activeTab === 'demographics' && (
+              <div className="space-y-8">
+                {demoLoading ? (
+                  <div className="flex justify-center py-20">
+                    <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
+                  </div>
+                ) : !demoStats ? (
+                  <div className="rounded-2xl p-10 flex flex-col items-center text-center" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <p className="text-sm font-semibold text-white mb-1">No member data yet</p>
+                    <p className="text-xs text-zinc-500 max-w-xs">Import a roster from the People tab to see demographic breakdowns.</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Summary */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      <StatCard label="Total Members" value={demoStats.total} delay={0.05} />
+                      <StatCard label="Applicants" value={demoStats.statusCounts.applicant} sub={`${demoStats.pct(demoStats.statusCounts.applicant)}% of total`} delay={0.1} />
+                      <StatCard label="Members" value={demoStats.statusCounts.member} sub={`${demoStats.pct(demoStats.statusCounts.member)}% of total`} delay={0.15} />
+                      <StatCard label="Alumni" value={demoStats.statusCounts.alumni} sub={`${demoStats.pct(demoStats.statusCounts.alumni)}% of total`} delay={0.2} />
+                    </div>
+
+                    {/* Gender breakdown */}
+                    <motion.section initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+                      <SectionHeader>Gender Breakdown</SectionHeader>
+                      <div className="rounded-2xl p-5 space-y-3" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}>
+                        {Object.entries(demoStats.genderCounts).sort((a, b) => b[1] - a[1]).map(([g, n]) => (
+                          <div key={g} className="flex items-center gap-3">
+                            <span className="text-sm text-zinc-300 w-28 capitalize">{g}</span>
+                            <div className="flex-1 h-2 rounded-full overflow-hidden bg-white/[0.07]">
+                              <div className="h-full rounded-full bg-gold transition-all duration-700" style={{ width: `${demoStats.pct(n)}%` }} />
+                            </div>
+                            <span className="text-xs text-zinc-400 w-16 text-right tabular-nums">{n} <span className="text-zinc-600">({demoStats.pct(n)}%)</span></span>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.section>
+
+                    {/* Major breakdown */}
+                    {demoStats.topMajors.length > 0 && (
+                      <motion.section initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}>
+                        <SectionHeader>Top Majors</SectionHeader>
+                        <div className="rounded-2xl p-5 space-y-3" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}>
+                          {demoStats.topMajors.map(([m, n]) => (
+                            <div key={m} className="flex items-center gap-3">
+                              <span className="text-sm text-zinc-300 w-40 truncate">{m}</span>
+                              <div className="flex-1 h-2 rounded-full overflow-hidden bg-white/[0.07]">
+                                <div className="h-full rounded-full bg-gold transition-all duration-700" style={{ width: `${demoStats.pct(n)}%` }} />
+                              </div>
+                              <span className="text-xs text-zinc-400 w-16 text-right tabular-nums">{n} <span className="text-zinc-600">({demoStats.pct(n)}%)</span></span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.section>
+                    )}
+
+                    {/* Grad year breakdown */}
+                    {demoStats.gradYears.length > 0 && (
+                      <motion.section initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38 }}>
+                        <SectionHeader>Graduation Year</SectionHeader>
+                        <div className="rounded-2xl p-5 space-y-3" style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}>
+                          {demoStats.gradYears.map(([y, n]) => (
+                            <div key={y} className="flex items-center gap-3">
+                              <span className="text-sm text-zinc-300 w-20">{y}</span>
+                              <div className="flex-1 h-2 rounded-full overflow-hidden bg-white/[0.07]">
+                                <div className="h-full rounded-full bg-gold transition-all duration-700" style={{ width: `${demoStats.pct(n)}%` }} />
+                              </div>
+                              <span className="text-xs text-zinc-400 w-16 text-right tabular-nums">{n} <span className="text-zinc-600">({demoStats.pct(n)}%)</span></span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.section>
+                    )}
+                  </>
+                )}
+              </div>
             )}
           </div>
         </main>
