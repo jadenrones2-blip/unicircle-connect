@@ -108,13 +108,14 @@ const ClubDetail = () => {
     if (!id) return;
     const normalizedId = id.trim().toLowerCase();
 
-    // Initial fetch
+    // Initial fetch — use count to avoid maybeSingle errors on edge cases
     mainSupabase
       .from('club_owners')
-      .select('id')
+      .select('club_id', { count: 'exact', head: true })
       .eq('club_id', normalizedId)
-      .maybeSingle()
-      .then(({ data }) => setIsClubClaimed(!!data));
+      .then(({ count, error }) => {
+        if (!error && count !== null) setIsClubClaimed(count > 0);
+      });
 
     // Realtime — fires immediately when someone claims this club in any tab/device
     const channel = mainSupabase
@@ -388,7 +389,10 @@ const ClubDetail = () => {
 
                 {/* Description with fallback */}
                 <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
-                  {club.description || "This club profile is community-maintained. Leaders can claim and update it."}
+                  {club.description || (isClubClaimed
+                    ? "This club's profile is being set up by its officers."
+                    : "This club profile is community-maintained. Leaders can claim and update it."
+                  )}
                 </p>
 
                 {/* Tags - only show if there are non-empty tags */}
