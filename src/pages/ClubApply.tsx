@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Zap } from 'lucide-react';
-import { ArrowLeft, Loader2, CheckCircle2, Upload, Video, StopCircle, RotateCcw, Download, Camera } from 'lucide-react';
+import {
+  ArrowLeft,
+  Loader2,
+  CheckCircle2,
+  Upload,
+  Video,
+  StopCircle,
+  RotateCcw,
+  Download,
+  Camera,
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -80,7 +90,9 @@ function VideoQuestionField({
       }
       chunksRef.current = [];
       const mr = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8,opus' });
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
       mr.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
@@ -133,7 +145,12 @@ function VideoQuestionField({
     setTimeLeft(maxDuration);
   };
 
-  useEffect(() => () => { stopStream(); }, [stopStream]);
+  useEffect(
+    () => () => {
+      stopStream();
+    },
+    [stopStream]
+  );
 
   const progressPct = mode === 'recording' ? Math.min((elapsed / maxDuration) * 100, 100) : 0;
 
@@ -171,7 +188,10 @@ function VideoQuestionField({
               type="file"
               accept="video/mp4,video/quicktime,video/webm,video/*"
               className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); }}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFileUpload(f);
+              }}
             />
           </label>
         </div>
@@ -198,7 +218,9 @@ function VideoQuestionField({
                 <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 <span className="text-xs text-red-400 font-medium">Recording</span>
               </div>
-              <span className="text-xs text-zinc-400 font-mono">{formatSeconds(timeLeft)} left</span>
+              <span className="text-xs text-zinc-400 font-mono">
+                {formatSeconds(timeLeft)} left
+              </span>
               <button
                 type="button"
                 onClick={stopRecording}
@@ -291,19 +313,25 @@ export default function ClubApply() {
     if (!clubId) return;
 
     const timeout = <T,>(ms: number, promise: Promise<T>): Promise<T> =>
-      Promise.race([promise, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))]);
+      Promise.race([
+        promise,
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+      ]);
 
     (async () => {
       setLoadingForm(true);
       try {
         // Stages fetch is the gate — if it fails/times out, show "Applications Closed"
         // Form fetch is best-effort — if it fails, show standard fields only
-        const stagesRes = await timeout(6000, supabase
-          .from('recruitment_stages')
-          .select('id, order_index')
-          .eq('club_id', clubId)
-          .order('order_index', { ascending: true })
-          .limit(1));
+        const stagesRes = await timeout(
+          6000,
+          supabase
+            .from('recruitment_stages')
+            .select('id, order_index')
+            .eq('club_id', clubId)
+            .order('order_index', { ascending: true })
+            .limit(1)
+        );
 
         const firstStage = stagesRes.data?.[0];
         if (!firstStage) {
@@ -314,23 +342,37 @@ export default function ClubApply() {
         setFirstStageId(firstStage.id);
 
         // Fetch active form questions — non-blocking, empty custom questions on failure
-        timeout(6000, (supabase as any)
-          .from('application_forms')
-          .select('questions')
-          .eq('club_id', clubId)
-          .eq('is_active', true)
-          .maybeSingle()
-        ).then((formRes: { data?: { questions?: FormQuestion[] } }) => {
-          const qs = (formRes?.data?.questions as FormQuestion[]) || [];
-          setQuestions(qs);
-        }).catch(() => { /* use standard fields only */ });
+        timeout(
+          6000,
+          (supabase as any)
+            .from('application_forms')
+            .select('questions')
+            .eq('club_id', clubId)
+            .eq('is_active', true)
+            .maybeSingle()
+        )
+          .then((formRes: { data?: { questions?: FormQuestion[] } }) => {
+            const qs = (formRes?.data?.questions as FormQuestion[]) || [];
+            setQuestions(qs);
+          })
+          .catch(() => {
+            /* use standard fields only */
+          });
 
         // Club name from external DB is purely cosmetic — never block on it
-        timeout(4000, import('@/integrations/supabase/dataClient').then(async ({ dataClient }) => {
-          const { data: clubData } = await dataClient.from('clubs').select('name').eq('id', clubId).maybeSingle();
-          if (clubData?.name) setClubName(clubData.name);
-        })).catch(() => {/* non-fatal */});
-
+        timeout(
+          4000,
+          import('@/integrations/supabase/dataClient').then(async ({ dataClient }) => {
+            const { data: clubData } = await dataClient
+              .from('clubs')
+              .select('name')
+              .eq('id', clubId)
+              .maybeSingle();
+            if (clubData?.name) setClubName(clubData.name);
+          })
+        ).catch(() => {
+          /* non-fatal */
+        });
       } catch (err) {
         console.error('Error loading apply form:', err);
         // On timeout or network error, still show form if we have a stageId
@@ -378,25 +420,25 @@ export default function ClubApply() {
       const lName = profile?.last_name || nameParts.slice(1).join(' ') || '';
       const emailAddr = profile?.email || user.email || '';
 
-      const { error } = await supabase
-        .from('applicants')
-        .insert({
-          club_id: clubId.trim().toLowerCase(),
-          stage_id: firstStageId,
-          first_name: fName,
-          last_name: lName,
-          email: emailAddr,
-          major: null,
-          year: null,
-          gpa: null,
-          metadata: {},
-          is_quick_interest: true,
-        } as any);
+      const { error } = await supabase.from('applicants').insert({
+        club_id: clubId.trim().toLowerCase(),
+        stage_id: firstStageId,
+        first_name: fName,
+        last_name: lName,
+        email: emailAddr,
+        major: null,
+        year: null,
+        gpa: null,
+        metadata: {},
+        is_quick_interest: true,
+      } as any);
 
       if (error) throw error;
 
       setQuickSubmitted(true);
-      toast.success('Interest registered! Complete your full application anytime from your dashboard.');
+      toast.success(
+        'Interest registered! Complete your full application anytime from your dashboard.'
+      );
     } catch (err: any) {
       toast.error(err?.message || 'Failed to express interest. Please try again.');
     } finally {
@@ -421,7 +463,9 @@ export default function ClubApply() {
       return !answers[q.id]?.trim();
     });
     if (missingRequired.length > 0) {
-      toast.error(`Please answer all required questions: ${missingRequired.map((q) => q.label).join(', ')}`);
+      toast.error(
+        `Please answer all required questions: ${missingRequired.map((q) => q.label).join(', ')}`
+      );
       return;
     }
 
@@ -439,7 +483,8 @@ export default function ClubApply() {
             .from('avatars')
             .upload(photoPath, photoFile, { upsert: true, contentType: photoFile.type });
           if (!photoError && photoUpload) {
-            photoUrl = supabase.storage.from('avatars').getPublicUrl(photoUpload.path).data.publicUrl;
+            photoUrl = supabase.storage.from('avatars').getPublicUrl(photoUpload.path)
+              .data.publicUrl;
           }
         } catch {
           // non-fatal
@@ -484,8 +529,12 @@ export default function ClubApply() {
           const { error: fnErr } = await supabase.functions.invoke('upload-applicant-resume', {
             body: fd,
           });
-          if (fnErr) { /* non-fatal — resume upload failed */ }
-        } catch { /* non-fatal */ }
+          if (fnErr) {
+            /* non-fatal — resume upload failed */
+          }
+        } catch {
+          /* non-fatal */
+        }
       }
 
       // Upload video answers and patch metadata with public URLs
@@ -502,12 +551,14 @@ export default function ClubApply() {
               .from('application-videos')
               .upload(path, vid.blob, { upsert: true, contentType: vid.blob.type || 'video/webm' });
             if (!uploadError && uploadData) {
-              const { data: { publicUrl } } = supabase.storage
-                .from('application-videos')
-                .getPublicUrl(uploadData.path);
+              const {
+                data: { publicUrl },
+              } = supabase.storage.from('application-videos').getPublicUrl(uploadData.path);
               videoUpdates[q.id] = publicUrl;
             }
-          } catch { /* non-fatal */ }
+          } catch {
+            /* non-fatal */
+          }
         }
         // Patch applicant metadata with video URLs if any uploaded
         if (Object.keys(videoUpdates).length > 0) {
@@ -516,7 +567,9 @@ export default function ClubApply() {
               .from('applicants')
               .update({ metadata: { ...metadata, ...videoUpdates } })
               .eq('id', applicant.id);
-          } catch { /* non-fatal */ }
+          } catch {
+            /* non-fatal */
+          }
         }
       }
 
@@ -534,7 +587,9 @@ export default function ClubApply() {
           }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
         ]);
-      } catch { /* non-fatal */ }
+      } catch {
+        /* non-fatal */
+      }
 
       setSubmitted(true);
     } catch (err) {
@@ -586,7 +641,9 @@ export default function ClubApply() {
           <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-6">
             <CheckCircle2 className="w-8 h-8 text-green-500" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-white mb-3">Application Submitted!</h1>
+          <h1 className="text-3xl font-display font-bold text-white mb-3">
+            Application Submitted!
+          </h1>
           <p className="text-zinc-400 max-w-sm mb-8">
             Your application to {clubName || 'this club'} has been received. We'll be in touch soon.
           </p>
@@ -634,13 +691,18 @@ export default function ClubApply() {
                 <Zap className="w-4 h-4 text-gold" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-white text-sm mb-0.5">Express interest in one tap</p>
+                <p className="font-semibold text-white text-sm mb-0.5">
+                  Express interest in one tap
+                </p>
                 <p className="text-xs text-zinc-400 mb-3">
-                  Scanning at the org fair? Tap below — your profile is sent instantly. You can fill out the full application anytime from your dashboard.
+                  Scanning at the org fair? Tap below — your profile is sent instantly. You can fill
+                  out the full application anytime from your dashboard.
                 </p>
                 {quickSubmitted ? (
                   <div className="flex items-center gap-2 text-sm text-emerald-400">
-                    <span className="w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center text-[10px]">✓</span>
+                    <span className="w-4 h-4 rounded-full bg-emerald-400/20 flex items-center justify-center text-[10px]">
+                      ✓
+                    </span>
                     Interest registered! Check your dashboard to complete the application.
                   </div>
                 ) : (
@@ -671,7 +733,9 @@ export default function ClubApply() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Profile Photo (optional) */}
           <div className="rounded-xl border border-white/10 bg-zinc-900/40 p-6 space-y-3">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">Profile Photo</p>
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+              Profile Photo
+            </p>
             <Label className="text-zinc-300">Photo (optional)</Label>
             <label className="flex items-center gap-3 px-4 py-3 rounded-lg border border-dashed border-white/15 cursor-pointer hover:border-white/30 transition-colors">
               <Camera className="w-4 h-4 text-zinc-500 shrink-0" />
@@ -766,7 +830,9 @@ export default function ClubApply() {
                   </SelectTrigger>
                   <SelectContent className="bg-zinc-950 border-white/10">
                     {YEAR_OPTIONS.map((y) => (
-                      <SelectItem key={y} value={y}>{y}</SelectItem>
+                      <SelectItem key={y} value={y}>
+                        {y}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -1,43 +1,60 @@
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
-import AnimatedWords from "./AnimatedWords";
-import TiltCard from "./TiltCard";
-import { 
-  Users, Star, MoreHorizontal, ArrowRight, Check, X, 
-  Mail, FileText, GripVertical, BarChart3, Clock, ChevronRight,
-  TrendingUp, UserCheck, Send, MoveHorizontal
-} from "lucide-react";
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
+import AnimatedWords from './AnimatedWords';
+import TiltCard from './TiltCard';
+import {
+  Users,
+  Star,
+  MoreHorizontal,
+  ArrowRight,
+  Check,
+  X,
+  Mail,
+  FileText,
+  GripVertical,
+  BarChart3,
+  Clock,
+  ChevronRight,
+  TrendingUp,
+  UserCheck,
+  Send,
+  MoveHorizontal,
+} from 'lucide-react';
 
 // Mock Kanban Board
 const KanbanMockup = () => {
   const columns = [
-    { 
-      title: "Applied", count: 24, color: "bg-blue-500/20 text-blue-400",
+    {
+      title: 'Applied',
+      count: 24,
+      color: 'bg-blue-500/20 text-blue-400',
       cards: [
-        { name: "Sarah Chen", major: "CS · 3.8 GPA", tags: ["Resume ✓"] },
-        { name: "James Park", major: "Data Sci · 3.6 GPA", tags: ["Resume ✓"] },
-        { name: "Emily Rodriguez", major: "Math · 3.9 GPA", tags: [] },
-      ]
+        { name: 'Sarah Chen', major: 'CS · 3.8 GPA', tags: ['Resume ✓'] },
+        { name: 'James Park', major: 'Data Sci · 3.6 GPA', tags: ['Resume ✓'] },
+        { name: 'Emily Rodriguez', major: 'Math · 3.9 GPA', tags: [] },
+      ],
     },
-    { 
-      title: "Under Review", count: 12, color: "bg-gold/20 text-gold",
+    {
+      title: 'Under Review',
+      count: 12,
+      color: 'bg-gold/20 text-gold',
       cards: [
-        { name: "Alex Kim", major: "CS · 3.7 GPA", tags: ["Score: 87"] },
-        { name: "Maya Patel", major: "Econ · 3.5 GPA", tags: ["Score: 72"] },
-      ]
+        { name: 'Alex Kim', major: 'CS · 3.7 GPA', tags: ['Score: 87'] },
+        { name: 'Maya Patel', major: 'Econ · 3.5 GPA', tags: ['Score: 72'] },
+      ],
     },
-    { 
-      title: "Interview", count: 6, color: "bg-emerald-500/20 text-emerald-400",
-      cards: [
-        { name: "Jordan Lee", major: "CS · 3.9 GPA", tags: ["Score: 94"] },
-      ]
+    {
+      title: 'Interview',
+      count: 6,
+      color: 'bg-emerald-500/20 text-emerald-400',
+      cards: [{ name: 'Jordan Lee', major: 'CS · 3.9 GPA', tags: ['Score: 94'] }],
     },
-    { 
-      title: "Accepted", count: 3, color: "bg-purple-500/20 text-purple-400",
-      cards: [
-        { name: "Taylor Nguyen", major: "CS · 4.0 GPA", tags: ["✓ Accepted"] },
-      ]
+    {
+      title: 'Accepted',
+      count: 3,
+      color: 'bg-purple-500/20 text-purple-400',
+      cards: [{ name: 'Taylor Nguyen', major: 'CS · 4.0 GPA', tags: ['✓ Accepted'] }],
     },
   ];
 
@@ -60,8 +77,12 @@ const KanbanMockup = () => {
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-display font-semibold text-white">Fall 2025 Recruitment</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/20 text-gold font-semibold">Active</span>
+          <span className="text-sm font-display font-semibold text-white">
+            Fall 2025 Recruitment
+          </span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/20 text-gold font-semibold">
+            Active
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="text-[10px] text-white/40">45 applicants</div>
@@ -106,7 +127,10 @@ const KanbanMockup = () => {
                   </div>
                   <p className="text-[9px] text-white/40 mb-1.5">{card.major}</p>
                   {card.tags.map((tag) => (
-                    <span key={tag} className="text-[8px] px-1.5 py-0.5 rounded bg-gold/10 text-gold/70 font-medium">
+                    <span
+                      key={tag}
+                      className="text-[8px] px-1.5 py-0.5 rounded bg-gold/10 text-gold/70 font-medium"
+                    >
                       {tag}
                     </span>
                   ))}
@@ -127,7 +151,7 @@ const KanbanMockup = () => {
       >
         <motion.div
           animate={{ x: [0, 8, 0] }}
-          transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+          transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
           className="flex items-center gap-1.5 text-white/30"
         >
           <MoveHorizontal className="w-3.5 h-3.5" />
@@ -141,7 +165,7 @@ const KanbanMockup = () => {
 // Mock Analytics Dashboard
 const AnalyticsMockup = () => {
   const barHeights = [40, 65, 55, 80, 70, 95, 85];
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return (
     <div className="bg-[#111111] rounded-xl border border-border/30 overflow-hidden shadow-2xl">
@@ -162,10 +186,10 @@ const AnalyticsMockup = () => {
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-5">
           {[
-            { label: "Total Applied", value: "247", change: "+18%", icon: Users },
-            { label: "Under Review", value: "84", change: "+12%", icon: Clock },
-            { label: "Acceptance Rate", value: "23%", change: "+2%", icon: TrendingUp },
-            { label: "Avg Score", value: "76.4", change: "+5.1", icon: Star },
+            { label: 'Total Applied', value: '247', change: '+18%', icon: Users },
+            { label: 'Under Review', value: '84', change: '+12%', icon: Clock },
+            { label: 'Acceptance Rate', value: '23%', change: '+2%', icon: TrendingUp },
+            { label: 'Avg Score', value: '76.4', change: '+5.1', icon: Star },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -197,7 +221,7 @@ const AnalyticsMockup = () => {
                 key={i}
                 className="flex-1 flex flex-col items-center gap-1"
                 initial={{ height: 0 }}
-                whileInView={{ height: "auto" }}
+                whileInView={{ height: 'auto' }}
                 viewport={{ once: true }}
               >
                 <motion.div
@@ -206,7 +230,7 @@ const AnalyticsMockup = () => {
                   initial={{ scaleY: 0 }}
                   whileInView={{ scaleY: 1 }}
                   viewport={{ once: true }}
-                  transition={{ delay: 0.6 + i * 0.05, duration: 0.5, ease: "easeOut" }}
+                  transition={{ delay: 0.6 + i * 0.05, duration: 0.5, ease: 'easeOut' }}
                 />
                 <span className="text-[8px] text-white/30">{days[i]}</span>
               </motion.div>
@@ -221,10 +245,10 @@ const AnalyticsMockup = () => {
 // Mock Applicant View (student perspective)
 const ApplicantViewMockup = () => {
   const stages = [
-    { label: "Applied", done: true },
-    { label: "Review", done: true },
-    { label: "Interview", done: false, active: true },
-    { label: "Decision", done: false },
+    { label: 'Applied', done: true },
+    { label: 'Review', done: true },
+    { label: 'Interview', done: false, active: true },
+    { label: 'Decision', done: false },
   ];
 
   return (
@@ -247,9 +271,14 @@ const ApplicantViewMockup = () => {
 
         {/* Application cards */}
         {[
-          { club: "Triton Consulting Group", status: "Interview Stage", color: "text-gold", progress: 75 },
-          { club: "Design Co", status: "Under Review", color: "text-blue-400", progress: 50 },
-          { club: "Data Science Society", status: "Applied", color: "text-white/40", progress: 25 },
+          {
+            club: 'Triton Consulting Group',
+            status: 'Interview Stage',
+            color: 'text-gold',
+            progress: 75,
+          },
+          { club: 'Design Co', status: 'Under Review', color: 'text-blue-400', progress: 50 },
+          { club: 'Data Science Society', status: 'Applied', color: 'text-white/40', progress: 25 },
         ].map((app, i) => (
           <motion.div
             key={app.club}
@@ -289,20 +318,34 @@ const ApplicantViewMockup = () => {
           transition={{ delay: 0.9 }}
           className="mt-4 p-3 rounded-lg bg-white/[0.03] border border-border/15"
         >
-          <div className="text-[10px] font-medium text-white/50 mb-3">Triton Consulting Group · Timeline</div>
+          <div className="text-[10px] font-medium text-white/50 mb-3">
+            Triton Consulting Group · Timeline
+          </div>
           <div className="flex items-center gap-1">
             {stages.map((stage, i) => (
               <div key={stage.label} className="flex items-center gap-1 flex-1">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  stage.done ? "bg-gold text-primary" : stage.active ? "border-2 border-gold bg-gold/10" : "border border-border/30 bg-transparent"
-                }`}>
-                  {stage.done ? <Check className="w-2.5 h-2.5" /> : <span className="w-1.5 h-1.5 rounded-full bg-gold/50" />}
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    stage.done
+                      ? 'bg-gold text-primary'
+                      : stage.active
+                        ? 'border-2 border-gold bg-gold/10'
+                        : 'border border-border/30 bg-transparent'
+                  }`}
+                >
+                  {stage.done ? (
+                    <Check className="w-2.5 h-2.5" />
+                  ) : (
+                    <span className="w-1.5 h-1.5 rounded-full bg-gold/50" />
+                  )}
                 </div>
-                <span className={`text-[8px] font-medium ${stage.done || stage.active ? "text-white/70" : "text-white/30"}`}>
+                <span
+                  className={`text-[8px] font-medium ${stage.done || stage.active ? 'text-white/70' : 'text-white/30'}`}
+                >
                   {stage.label}
                 </span>
                 {i < stages.length - 1 && (
-                  <div className={`flex-1 h-px ${stage.done ? "bg-gold/50" : "bg-border/30"}`} />
+                  <div className={`flex-1 h-px ${stage.done ? 'bg-gold/50' : 'bg-border/30'}`} />
                 )}
               </div>
             ))}
@@ -314,18 +357,29 @@ const ApplicantViewMockup = () => {
 };
 
 const tabs = [
-  { id: "pipeline", label: "Recruitment Pipeline", description: "All applicants in one board. Score, review, and advance — no spreadsheet." },
-  { id: "analytics", label: "Analytics Dashboard", description: "Track acceptance rate, scores, and daily volume across every stage." },
-  { id: "applicant", label: "Applicant View", description: "Students track their own status. No more 'where do I stand?' emails." },
+  {
+    id: 'pipeline',
+    label: 'Recruitment Pipeline',
+    description: 'All applicants in one board. Score, review, and advance — no spreadsheet.',
+  },
+  {
+    id: 'analytics',
+    label: 'Analytics Dashboard',
+    description: 'Track acceptance rate, scores, and daily volume across every stage.',
+  },
+  {
+    id: 'applicant',
+    label: 'Applicant View',
+    description: "Students track their own status. No more 'where do I stand?' emails.",
+  },
 ];
 
 const ProductShowcase = () => {
-  const [activeTab, setActiveTab] = useState("pipeline");
+  const [activeTab, setActiveTab] = useState('pipeline');
   const { playClick } = useSoundEffects();
 
   return (
     <section className="py-32 md:py-48 border-t border-white/[0.07]">
-
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
         <div className="mb-8 md:mb-10">
           <motion.p
@@ -341,7 +395,7 @@ const ProductShowcase = () => {
               text="See it in action."
               as="h2"
               className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight text-white/70"
-              goldWords={["action."]}
+              goldWords={['action.']}
             />
             <p className="text-white text-base max-w-xs leading-relaxed">
               One system for the entire pipeline — intake, review, and decisions.
@@ -354,7 +408,10 @@ const ProductShowcase = () => {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => { setActiveTab(tab.id); playClick(); }}
+              onClick={() => {
+                setActiveTab(tab.id);
+                playClick();
+              }}
               className={`relative pb-3 pr-8 text-left transition-all ${
                 activeTab === tab.id ? 'text-white/70' : 'text-white/60 hover:text-white/80'
               }`}
@@ -378,7 +435,7 @@ const ProductShowcase = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-sm text-white mb-10 max-w-md"
         >
-          {tabs.find(t => t.id === activeTab)?.description}
+          {tabs.find((t) => t.id === activeTab)?.description}
         </motion.p>
 
         {/* Mockup */}
@@ -389,12 +446,11 @@ const ProductShowcase = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.5 }}
           >
-            {activeTab === "pipeline" && <KanbanMockup />}
-            {activeTab === "analytics" && <AnalyticsMockup />}
-            {activeTab === "applicant" && <ApplicantViewMockup />}
+            {activeTab === 'pipeline' && <KanbanMockup />}
+            {activeTab === 'analytics' && <AnalyticsMockup />}
+            {activeTab === 'applicant' && <ApplicantViewMockup />}
           </motion.div>
         </TiltCard>
-
       </div>
     </section>
   );

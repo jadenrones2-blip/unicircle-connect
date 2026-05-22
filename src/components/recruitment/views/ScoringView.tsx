@@ -18,7 +18,11 @@ interface ScoringViewProps {
 
 // ── Officer fetcher ───────────────────────────────────────────────────────────
 
-interface Officer { user_id: string; email: string; name?: string; }
+interface Officer {
+  user_id: string;
+  email: string;
+  name?: string;
+}
 
 function useClubOfficers(clubId: string) {
   const [officers, setOfficers] = useState<Officer[]>([]);
@@ -43,9 +47,18 @@ interface ScoreDetailProps {
   onAssign: (applicantId: string, userId: string | null) => Promise<void>;
 }
 
-function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssign }: ScoreDetailProps) {
+function ScoreDetail({
+  applicant,
+  clubId,
+  stages,
+  officers,
+  onOpenDrawer,
+  onAssign,
+}: ScoreDetailProps) {
   const { aiCriteria } = useRecruitmentRequirements(clubId);
-  const { scores, saving, scoreError, saveScore, teamAvgForCriterion, loading } = useRubricScoring(applicant.id) as any;
+  const { scores, saving, scoreError, saveScore, teamAvgForCriterion, loading } = useRubricScoring(
+    applicant.id
+  ) as any;
   const { user } = useAuth();
 
   const [localScores, setLocalScores] = useState<Record<string, number>>({});
@@ -67,7 +80,10 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
 
   const handleSave = async (reqId: string) => {
     const score = localScores[reqId];
-    if (!score) { toast.error('Please select a score first'); return; }
+    if (!score) {
+      toast.error('Please select a score first');
+      return;
+    }
     await saveScore(reqId, score, localNotes[reqId] || '');
     toast.success('Score saved');
   };
@@ -80,8 +96,8 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
     return calcWeightedScore(built, aiCriteria);
   }, [localScores, aiCriteria]);
 
-  const assignedOfficer = officers.find(o => o.user_id === (applicant as any).assigned_to);
-  const stageName = stages.find(s => s.id === applicant.stage_id)?.label ?? '—';
+  const assignedOfficer = officers.find((o) => o.user_id === (applicant as any).assigned_to);
+  const stageName = stages.find((s) => s.id === applicant.stage_id)?.label ?? '—';
 
   const handleAssign = async (userId: string | null) => {
     setAssigning(true);
@@ -108,11 +124,15 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
           {/* Assignment */}
           <div className="relative">
             <button
-              onClick={() => setAssignOpen(v => !v)}
+              onClick={() => setAssignOpen((v) => !v)}
               disabled={assigning}
               className="flex items-center gap-1.5 text-xs text-zinc-400 border border-white/10 rounded-lg px-2.5 py-1.5 hover:text-white hover:border-white/20 transition-colors"
             >
-              {assigning ? <Loader2 className="w-3 h-3 animate-spin" /> : <UserPlus className="w-3 h-3" />}
+              {assigning ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <UserPlus className="w-3 h-3" />
+              )}
               {assignedOfficer ? assignedOfficer.email.split('@')[0] : 'Assign'}
             </button>
             {assignOpen && (
@@ -123,7 +143,7 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
                 >
                   Unassign
                 </button>
-                {officers.map(o => (
+                {officers.map((o) => (
                   <button
                     key={o.user_id}
                     onClick={() => handleAssign(o.user_id)}
@@ -165,11 +185,15 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
       {responses.length > 0 && (
         <div className="rounded-lg border border-white/8">
           <button
-            onClick={() => setResponsesOpen(v => !v)}
+            onClick={() => setResponsesOpen((v) => !v)}
             className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-zinc-300 hover:text-white transition-colors"
           >
             <span>Application responses</span>
-            {responsesOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            {responsesOpen ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
           </button>
           {responsesOpen && (
             <div className="border-t border-white/8 px-3 py-3 space-y-3">
@@ -195,7 +219,7 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
         </div>
       ) : (
         <div className="space-y-4">
-          {aiCriteria.map(req => {
+          {aiCriteria.map((req) => {
             const { description, weight } = parseCriterionValue(req);
             const teamAvg = teamAvgForCriterion(req.id);
             const myScore = localScores[req.id];
@@ -212,10 +236,10 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
 
                 {/* 1-5 score selector */}
                 <div className="flex items-center gap-2 mb-2">
-                  {[1, 2, 3, 4, 5].map(n => (
+                  {[1, 2, 3, 4, 5].map((n) => (
                     <button
                       key={n}
-                      onClick={() => setLocalScores(prev => ({ ...prev, [req.id]: n }))}
+                      onClick={() => setLocalScores((prev) => ({ ...prev, [req.id]: n }))}
                       className={`w-9 h-9 rounded-lg border text-sm font-semibold transition-all ${
                         myScore === n
                           ? 'bg-gold text-zinc-900 border-gold'
@@ -232,7 +256,7 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
                 <input
                   type="text"
                   value={localNotes[req.id] ?? ''}
-                  onChange={e => setLocalNotes(prev => ({ ...prev, [req.id]: e.target.value }))}
+                  onChange={(e) => setLocalNotes((prev) => ({ ...prev, [req.id]: e.target.value }))}
                   placeholder="Add a note (optional)…"
                   className="w-full bg-transparent text-xs text-zinc-400 placeholder:text-zinc-600 focus:outline-none border-b border-white/8 focus:border-white/20 py-1 transition-colors mb-2"
                 />
@@ -240,7 +264,8 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
                 {/* Footer row */}
                 <div className="flex items-center justify-between">
                   <div className="text-xs text-zinc-600">
-                    Team avg: {teamAvg !== null ? <span className="text-zinc-400">{teamAvg}/5</span> : '—'}
+                    Team avg:{' '}
+                    {teamAvg !== null ? <span className="text-zinc-400">{teamAvg}/5</span> : '—'}
                   </div>
                   <button
                     onClick={() => handleSave(req.id)}
@@ -251,10 +276,15 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
                         : 'text-gold border-gold/30 bg-gold/8 hover:bg-gold/15'
                     }`}
                   >
-                    {saving === req.id
-                      ? <Loader2 className="w-3 h-3 animate-spin" />
-                      : isSaved ? <><Check className="w-3 h-3" /> Saved</> : 'Save score'
-                    }
+                    {saving === req.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : isSaved ? (
+                      <>
+                        <Check className="w-3 h-3" /> Saved
+                      </>
+                    ) : (
+                      'Save score'
+                    )}
                   </button>
                 </div>
               </div>
@@ -268,7 +298,13 @@ function ScoreDetail({ applicant, clubId, stages, officers, onOpenDrawer, onAssi
 
 // ── Scoring view (two-panel) ──────────────────────────────────────────────────
 
-export function ScoringView({ clubId, stages, applicants, onOpenDrawer, onRefresh }: ScoringViewProps) {
+export function ScoringView({
+  clubId,
+  stages,
+  applicants,
+  onOpenDrawer,
+  onRefresh,
+}: ScoringViewProps) {
   const { user } = useAuth();
   const officers = useClubOfficers(clubId);
   const [queueFilter, setQueueFilter] = useState<'mine' | 'all'>('mine');
@@ -289,14 +325,17 @@ export function ScoringView({ clubId, stages, applicants, onOpenDrawer, onRefres
       .from('applicants')
       .update({ assigned_to: userId })
       .eq('id', applicantId);
-    if (error) { toast.error('Failed to assign'); return; }
-    setAssignedMap(prev => ({ ...prev, [applicantId]: userId }));
+    if (error) {
+      toast.error('Failed to assign');
+      return;
+    }
+    setAssignedMap((prev) => ({ ...prev, [applicantId]: userId }));
     toast.success(userId ? 'Assigned' : 'Unassigned');
   }, []);
 
   const queue = useMemo(() => {
     let list = applicants;
-    if (queueFilter === 'mine') list = list.filter(a => assignedMap[a.id] === user?.id);
+    if (queueFilter === 'mine') list = list.filter((a) => assignedMap[a.id] === user?.id);
     return list;
   }, [applicants, queueFilter, assignedMap, user]);
 
@@ -305,7 +344,7 @@ export function ScoringView({ clubId, stages, applicants, onOpenDrawer, onRefres
     if (!selected && queue.length > 0) setSelected(queue[0]);
   }, [queue]);
 
-  const stageMap = Object.fromEntries(stages.map(s => [s.id, s.label]));
+  const stageMap = Object.fromEntries(stages.map((s) => [s.id, s.label]));
 
   return (
     <div className="flex gap-4 h-full min-h-0">
@@ -315,7 +354,7 @@ export function ScoringView({ clubId, stages, applicants, onOpenDrawer, onRefres
         <div className="px-3 py-3 border-b border-white/8">
           <h3 className="text-sm font-semibold text-white mb-2">Scoring Queue</h3>
           <div className="flex gap-1 p-0.5 rounded-lg bg-zinc-900 border border-white/8">
-            {(['mine', 'all'] as const).map(f => (
+            {(['mine', 'all'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setQueueFilter(f)}
@@ -327,7 +366,9 @@ export function ScoringView({ clubId, stages, applicants, onOpenDrawer, onRefres
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-zinc-600 mt-1.5">{queue.length} applicant{queue.length !== 1 ? 's' : ''}</p>
+          <p className="text-[11px] text-zinc-600 mt-1.5">
+            {queue.length} applicant{queue.length !== 1 ? 's' : ''}
+          </p>
         </div>
 
         {/* Queue list */}
@@ -341,10 +382,10 @@ export function ScoringView({ clubId, stages, applicants, onOpenDrawer, onRefres
               </p>
             </div>
           ) : (
-            queue.map(applicant => {
+            queue.map((applicant) => {
               const isActive = selected?.id === applicant.id;
               const assignedTo = assignedMap[applicant.id];
-              const assignedOfficer = officers.find(o => o.user_id === assignedTo);
+              const assignedOfficer = officers.find((o) => o.user_id === assignedTo);
 
               return (
                 <button
@@ -360,7 +401,9 @@ export function ScoringView({ clubId, stages, applicants, onOpenDrawer, onRefres
                   <p className="text-[11px] text-zinc-500 mt-0.5">
                     {stageMap[applicant.stage_id ?? ''] ?? '—'}
                     {assignedOfficer && (
-                      <span className="ml-2 text-gold/70">→ {assignedOfficer.email.split('@')[0]}</span>
+                      <span className="ml-2 text-gold/70">
+                        → {assignedOfficer.email.split('@')[0]}
+                      </span>
                     )}
                   </p>
                 </button>
@@ -383,7 +426,9 @@ export function ScoringView({ clubId, stages, applicants, onOpenDrawer, onRefres
           />
         ) : (
           <div className="h-full flex items-center justify-center">
-            <p className="text-sm text-zinc-600">Select an applicant from the queue to score them.</p>
+            <p className="text-sm text-zinc-600">
+              Select an applicant from the queue to score them.
+            </p>
           </div>
         )}
       </div>

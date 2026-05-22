@@ -22,8 +22,8 @@ export function RecommendedEvents() {
 
   useEffect(() => {
     if (user) {
-      fetchInterests(user.id).then(data => {
-        if (data) setInterestValues(data.map(i => i.interest_value));
+      fetchInterests(user.id).then((data) => {
+        if (data) setInterestValues(data.map((i) => i.interest_value));
       });
     }
   }, [user, fetchInterests]);
@@ -58,18 +58,18 @@ export function RecommendedEvents() {
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="premium-card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-foreground">Recommended for You</h2>
             </div>
             <Link to="/dashboard">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+              >
                 Update Interests
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Button>

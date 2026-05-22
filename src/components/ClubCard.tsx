@@ -1,9 +1,26 @@
-import { memo } from "react";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowRight, Heart, Clock, GraduationCap, Globe, Building, Briefcase, Users, Star, Trophy, Cpu, Crown, Music, Palette, Dumbbell, type LucideIcon } from "lucide-react";
-import type { Club, RecruitingStatus } from "@/data/mockData";
-import { useClubEnrichment } from "@/contexts/ClubsContext";
+import { memo } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import {
+  ArrowRight,
+  Heart,
+  Clock,
+  GraduationCap,
+  Globe,
+  Building,
+  Briefcase,
+  Users,
+  Star,
+  Trophy,
+  Cpu,
+  Crown,
+  Music,
+  Palette,
+  Dumbbell,
+  type LucideIcon,
+} from 'lucide-react';
+import type { Club, RecruitingStatus } from '@/data/mockData';
+import { useClubEnrichment } from '@/contexts/ClubsContext';
 
 interface ClubCardProps {
   club: Club;
@@ -74,7 +91,7 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
   return (
     <motion.div
       whileHover={{ y: -3 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       className="h-full"
     >
       <Link
@@ -92,7 +109,9 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
             />
             <div
               className="absolute inset-0"
-              style={{ background: 'linear-gradient(to bottom, transparent 50%, rgba(17,17,17,0.7) 100%)' }}
+              style={{
+                background: 'linear-gradient(to bottom, transparent 50%, rgba(17,17,17,0.7) 100%)',
+              }}
             />
           </div>
         ) : (
@@ -109,13 +128,19 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
               style={{ color: `${categoryColor}22`, strokeWidth: 1 }}
             />
             {/* Small accent dot */}
-            <div className="absolute top-5 right-[4.5rem] w-1.5 h-1.5 rounded-full" style={{ background: `${categoryColor}50` }} />
+            <div
+              className="absolute top-5 right-[4.5rem] w-1.5 h-1.5 rounded-full"
+              style={{ background: `${categoryColor}50` }}
+            />
             {/* Club initial badge */}
             <div
               className="relative z-10 w-9 h-9 rounded-xl flex items-center justify-center"
               style={{ background: `${categoryColor}22`, border: `1px solid ${categoryColor}45` }}
             >
-              <span className="text-lg font-black leading-none select-none" style={{ color: categoryColor }}>
+              <span
+                className="text-lg font-black leading-none select-none"
+                style={{ color: categoryColor }}
+              >
                 {club.name[0]}
               </span>
             </div>
@@ -160,9 +185,13 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
               )}
               {onToggleSave && (
                 <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleSave(club.id); }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onToggleSave(club.id);
+                  }}
                   className="transition-colors"
-                  aria-label={isSaved ? "Unsave club" : "Save club"}
+                  aria-label={isSaved ? 'Unsave club' : 'Save club'}
                 >
                   <Heart
                     className={`w-3.5 h-3.5 ${isSaved ? 'fill-red-500 text-red-500' : 'text-zinc-600 hover:text-zinc-300'}`}
@@ -189,28 +218,28 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
           {/* Vibe tags from enrichment */}
           {enrichment?.vibe && (
             <div className="flex flex-wrap gap-1 mb-3">
-              {enrichment.vibe.split(',').map(v => v.trim()).filter(Boolean).map((v, i) => (
-                <span
-                  key={i}
-                  className="text-[10px] px-2 py-0.5 rounded-full"
-                  style={{
-                    background: `${categoryColor}15`,
-                    color: categoryColor,
-                    border: `1px solid ${categoryColor}30`,
-                  }}
-                >
-                  {v}
-                </span>
-              ))}
+              {enrichment.vibe
+                .split(',')
+                .map((v) => v.trim())
+                .filter(Boolean)
+                .map((v, i) => (
+                  <span
+                    key={i}
+                    className="text-[10px] px-2 py-0.5 rounded-full"
+                    style={{
+                      background: `${categoryColor}15`,
+                      color: categoryColor,
+                      border: `1px solid ${categoryColor}30`,
+                    }}
+                  >
+                    {v}
+                  </span>
+                ))}
             </div>
           )}
 
           {/* Reason tag — only shown on recommended shelf */}
-          {reason && (
-            <p className="text-[11px] text-gold/80 mb-3 leading-snug">
-              ✦ {reason}
-            </p>
-          )}
+          {reason && <p className="text-[11px] text-gold/80 mb-3 leading-snug">✦ {reason}</p>}
 
           {/* Footer */}
           <div className="flex items-center justify-between mt-auto">
@@ -223,6 +252,6 @@ const ClubCardComponent = ({ club, isSaved, onToggleSave, matchScore, reason }: 
   );
 };
 
-ClubCardComponent.displayName = "ClubCard";
+ClubCardComponent.displayName = 'ClubCard';
 
 export default memo(ClubCardComponent);

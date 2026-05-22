@@ -1,11 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ThumbsUp, ThumbsDown, Minus, Loader2, Check, Star, Download, ClipboardList, ArrowRight, Mail } from 'lucide-react';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  ThumbsUp,
+  ThumbsDown,
+  Minus,
+  Loader2,
+  Check,
+  Star,
+  Download,
+  ClipboardList,
+  ArrowRight,
+  Mail,
+} from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -60,16 +66,12 @@ function FitScoreBadge({ score }: { score: number | null }) {
     score >= 80
       ? 'bg-green-500/10 text-green-400 border-green-500/20'
       : score >= 60
-      ? 'bg-gold/10 text-gold border-gold/20'
-      : score >= 40
-      ? 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
-      : 'bg-red-500/10 text-red-400 border-red-500/20';
+        ? 'bg-gold/10 text-gold border-gold/20'
+        : score >= 40
+          ? 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
+          : 'bg-red-500/10 text-red-400 border-red-500/20';
 
-  return (
-    <Badge className={`gap-1.5 ${color}`}>
-      {score} AI Score
-    </Badge>
-  );
+  return <Badge className={`gap-1.5 ${color}`}>{score} AI Score</Badge>;
 }
 
 // ─── Vote button ──────────────────────────────────────────────────────────────
@@ -86,14 +88,21 @@ function VoteButton({
   disabled: boolean;
 }) {
   const isActive = current === value;
-  const icon = value === 'yes' ? <ThumbsUp className="w-4 h-4" /> : value === 'no' ? <ThumbsDown className="w-4 h-4" /> : <Minus className="w-4 h-4" />;
+  const icon =
+    value === 'yes' ? (
+      <ThumbsUp className="w-4 h-4" />
+    ) : value === 'no' ? (
+      <ThumbsDown className="w-4 h-4" />
+    ) : (
+      <Minus className="w-4 h-4" />
+    );
   const label = value === 'yes' ? 'Yes' : value === 'no' ? 'No' : 'Maybe';
   const activeClass =
     value === 'yes'
       ? 'bg-green-500/10 text-green-400 border-green-500/30'
       : value === 'no'
-      ? 'bg-red-500/10 text-red-400 border-red-500/30'
-      : 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30';
+        ? 'bg-red-500/10 text-red-400 border-red-500/30'
+        : 'bg-zinc-500/10 text-zinc-300 border-zinc-500/30';
 
   return (
     <button
@@ -101,7 +110,9 @@ function VoteButton({
       disabled={disabled}
       onClick={onClick}
       className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50 ${
-        isActive ? activeClass : 'border-white/10 text-zinc-500 hover:border-white/20 hover:text-zinc-300'
+        isActive
+          ? activeClass
+          : 'border-white/10 text-zinc-500 hover:border-white/20 hover:text-zinc-300'
       }`}
     >
       {icon}
@@ -114,9 +125,7 @@ function VoteButton({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-      {children}
-    </p>
+    <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">{children}</p>
   );
 }
 
@@ -161,16 +170,21 @@ export function ApplicantDetailDrawer({
 
   // Rubric scoring
   const { aiCriteria } = useRecruitmentRequirements(clubId);
-  const { scores, saving: scoreSaving, saveScore, teamAvgForCriterion } = useRubricScoring(
-    open && applicant ? applicant.id : null
-  );
+  const {
+    scores,
+    saving: scoreSaving,
+    saveScore,
+    teamAvgForCriterion,
+  } = useRubricScoring(open && applicant ? applicant.id : null);
   const [scoreNotes, setScoreNotes] = useState<Record<string, string>>({});
 
   // Sync local note state from loaded scores
   useEffect(() => {
     if (open && applicant) {
       const notes: Record<string, string> = {};
-      Object.values(scores).forEach((s) => { notes[s.requirementId] = s.note; });
+      Object.values(scores).forEach((s) => {
+        notes[s.requirementId] = s.note;
+      });
       setScoreNotes(notes);
     }
   }, [open, applicant?.id, scores]);
@@ -289,8 +303,10 @@ export function ApplicantDetailDrawer({
   if (!applicant) return null;
 
   const metadata = applicant.metadata as Record<string, string> | null;
-  const isStandout = applicant.is_standout ?? ((applicant.fit_score ?? 0) >= 85 && applicant.passes_strict_filters !== false);
-  const otherVoteComments = allVoteRows.filter(v => v.voter_id !== user?.id && v.comment);
+  const isStandout =
+    applicant.is_standout ??
+    ((applicant.fit_score ?? 0) >= 85 && applicant.passes_strict_filters !== false);
+  const otherVoteComments = allVoteRows.filter((v) => v.voter_id !== user?.id && v.comment);
   const totalVotes = tally.yes + tally.no + tally.maybe;
 
   return (
@@ -302,7 +318,9 @@ export function ApplicantDetailDrawer({
         {isStandout && (
           <div className="flex items-center gap-2 px-4 py-2.5 bg-gold/10 border-b border-gold/20 -mx-6 -mt-6 mb-4">
             <Star className="w-4 h-4 text-gold fill-gold shrink-0" />
-            <p className="text-sm font-medium text-gold">AI Standout — worth keeping a close eye on</p>
+            <p className="text-sm font-medium text-gold">
+              AI Standout — worth keeping a close eye on
+            </p>
           </div>
         )}
         <SheetHeader className="pb-4 border-b border-white/10">
@@ -333,7 +351,6 @@ export function ApplicantDetailDrawer({
         </SheetHeader>
 
         <div className="space-y-6 pt-5">
-
           {/* 1. AI Summary */}
           <section>
             <SectionLabel>AI Summary</SectionLabel>
@@ -388,7 +405,11 @@ export function ApplicantDetailDrawer({
                 onClick={handleSaveComment}
                 disabled={voteSaving}
               >
-                {voteSaving ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
+                {voteSaving ? (
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                ) : (
+                  <Check className="w-3 h-3 mr-1" />
+                )}
                 Save comment
               </Button>
             </div>
@@ -401,22 +422,31 @@ export function ApplicantDetailDrawer({
               <>
                 <div className="flex gap-5 text-sm mb-3">
                   <span className="flex items-center gap-1.5 text-green-400 font-medium">
-                    <ThumbsUp className="w-3.5 h-3.5" />{tally.yes}
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                    {tally.yes}
                   </span>
                   <span className="flex items-center gap-1.5 text-red-400 font-medium">
-                    <ThumbsDown className="w-3.5 h-3.5" />{tally.no}
+                    <ThumbsDown className="w-3.5 h-3.5" />
+                    {tally.no}
                   </span>
                   <span className="flex items-center gap-1.5 text-zinc-400 font-medium">
-                    <Minus className="w-3.5 h-3.5" />{tally.maybe}
+                    <Minus className="w-3.5 h-3.5" />
+                    {tally.maybe}
                   </span>
                 </div>
                 {otherVoteComments.length > 0 && (
                   <div className="space-y-2">
                     {otherVoteComments.map((v, i) => (
                       <div key={i} className="flex items-start gap-2">
-                        <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
-                          v.vote === 'yes' ? 'bg-green-500/20 text-green-400' : v.vote === 'no' ? 'bg-red-500/20 text-red-400' : 'bg-zinc-500/20 text-zinc-400'
-                        }`}>
+                        <div
+                          className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
+                            v.vote === 'yes'
+                              ? 'bg-green-500/20 text-green-400'
+                              : v.vote === 'no'
+                                ? 'bg-red-500/20 text-red-400'
+                                : 'bg-zinc-500/20 text-zinc-400'
+                          }`}
+                        >
                           {v.vote === 'yes' ? '✓' : v.vote === 'no' ? '✗' : '?'}
                         </div>
                         <p className="text-xs text-zinc-400 bg-zinc-900 rounded-lg px-3 py-2 border border-white/10 flex-1 leading-relaxed">
@@ -457,7 +487,10 @@ export function ApplicantDetailDrawer({
                   const isSaving = scoreSaving === req.id;
 
                   return (
-                    <div key={req.id} className="rounded-xl border border-white/10 bg-zinc-900/60 p-3.5 space-y-3">
+                    <div
+                      key={req.id}
+                      className="rounded-xl border border-white/10 bg-zinc-900/60 p-3.5 space-y-3"
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-sm text-zinc-200 leading-snug">{description}</p>
                         <div className="flex items-center gap-0.5 shrink-0 ml-2 mt-0.5">
@@ -484,8 +517,8 @@ export function ApplicantDetailDrawer({
                                 myScore === val
                                   ? 'bg-gold border-gold text-zinc-900 scale-110'
                                   : myScore > 0 && val <= myScore
-                                  ? 'bg-gold/30 border-gold/50 text-gold'
-                                  : 'bg-white/5 border-white/15 text-zinc-600 hover:border-white/30 hover:text-zinc-300'
+                                    ? 'bg-gold/30 border-gold/50 text-gold'
+                                    : 'bg-white/5 border-white/15 text-zinc-600 hover:border-white/30 hover:text-zinc-300'
                               }`}
                             >
                               {val}
@@ -496,7 +529,9 @@ export function ApplicantDetailDrawer({
                           {myScore > 0 && (
                             <span className="text-sm font-semibold text-white">{myScore}/5</span>
                           )}
-                          {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />}
+                          {isSaving && (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
+                          )}
                           {teamAvg !== null && (
                             <span className="text-xs text-zinc-600">team avg {teamAvg}</span>
                           )}
@@ -505,7 +540,9 @@ export function ApplicantDetailDrawer({
 
                       <input
                         value={scoreNotes[req.id] || ''}
-                        onChange={(e) => setScoreNotes((prev) => ({ ...prev, [req.id]: e.target.value }))}
+                        onChange={(e) =>
+                          setScoreNotes((prev) => ({ ...prev, [req.id]: e.target.value }))
+                        }
                         onBlur={() => {
                           if (myScore > 0) saveScore(req.id, myScore, scoreNotes[req.id] || '');
                         }}
@@ -573,7 +610,11 @@ export function ApplicantDetailDrawer({
           <section>
             <SectionLabel>Final Decision</SectionLabel>
             <div className="flex items-center gap-3">
-              <Select value={decision} onValueChange={handleDecisionChange} disabled={decisionSaving}>
+              <Select
+                value={decision}
+                onValueChange={handleDecisionChange}
+                disabled={decisionSaving}
+              >
                 <SelectTrigger className="bg-zinc-900 border-white/10 text-white w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
@@ -586,7 +627,9 @@ export function ApplicantDetailDrawer({
               </Select>
               {decisionSaving && <Loader2 className="w-4 h-4 animate-spin text-zinc-500" />}
               {decision === 'accepted' && (
-                <Badge className="bg-green-500/10 text-green-400 border-green-500/20">Accepted</Badge>
+                <Badge className="bg-green-500/10 text-green-400 border-green-500/20">
+                  Accepted
+                </Badge>
               )}
               {decision === 'rejected' && (
                 <Badge className="bg-red-500/10 text-red-400 border-red-500/20">Rejected</Badge>
@@ -602,7 +645,10 @@ export function ApplicantDetailDrawer({
             <SectionLabel>Officer Notes</SectionLabel>
             <Textarea
               value={notes}
-              onChange={(e) => { setNotes(e.target.value); setNotesDirty(true); }}
+              onChange={(e) => {
+                setNotes(e.target.value);
+                setNotesDirty(true);
+              }}
               rows={4}
               placeholder="Private notes visible only to club officers..."
               className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 resize-none text-sm mb-2"
@@ -615,7 +661,11 @@ export function ApplicantDetailDrawer({
                 onClick={handleSaveNotes}
                 disabled={notesSaving}
               >
-                {notesSaving ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Check className="w-3 h-3 mr-1" />}
+                {notesSaving ? (
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                ) : (
+                  <Check className="w-3 h-3 mr-1" />
+                )}
                 Save notes
               </Button>
             )}
@@ -668,7 +718,6 @@ export function ApplicantDetailDrawer({
               </div>
             </section>
           )}
-
         </div>
       </SheetContent>
     </Sheet>

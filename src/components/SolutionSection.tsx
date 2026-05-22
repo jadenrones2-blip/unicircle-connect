@@ -1,17 +1,17 @@
-import { motion } from "framer-motion";
-import { FileText, GripVertical, BarChart3, ShieldCheck, GitBranch, Bell } from "lucide-react";
-import { PipelinePreview } from "./PipelinePreview";
-import AnimatedWords from "./AnimatedWords";
-import TiltCard from "./TiltCard";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { motion } from 'framer-motion';
+import { FileText, GripVertical, BarChart3, ShieldCheck, GitBranch, Bell } from 'lucide-react';
+import { PipelinePreview } from './PipelinePreview';
+import AnimatedWords from './AnimatedWords';
+import TiltCard from './TiltCard';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 const capabilities = [
-  { icon: FileText, title: "Application intake", desc: "Structured forms with resume parsing." },
-  { icon: GripVertical, title: "Drag-and-drop pipeline", desc: "Visual kanban for every stage." },
-  { icon: BarChart3, title: "Structured scoring", desc: "Consistent evaluation across reviewers." },
-  { icon: ShieldCheck, title: "Reviewer permissions", desc: "Control who sees and decides what." },
-  { icon: GitBranch, title: "Stage tracking", desc: "Track every applicant's position." },
-  { icon: Bell, title: "Auto notifications", desc: "Applicants get updates automatically." },
+  { icon: FileText, title: 'Application intake', desc: 'Structured forms with resume parsing.' },
+  { icon: GripVertical, title: 'Drag-and-drop pipeline', desc: 'Visual kanban for every stage.' },
+  { icon: BarChart3, title: 'Structured scoring', desc: 'Consistent evaluation across reviewers.' },
+  { icon: ShieldCheck, title: 'Reviewer permissions', desc: 'Control who sees and decides what.' },
+  { icon: GitBranch, title: 'Stage tracking', desc: "Track every applicant's position." },
+  { icon: Bell, title: 'Auto notifications', desc: 'Applicants get updates automatically.' },
 ];
 
 const SolutionSection = () => {
@@ -35,7 +35,7 @@ const SolutionSection = () => {
               text="Everything you need. Nothing you don't."
               as="h2"
               className="font-display text-3xl md:text-5xl font-semibold"
-              goldWords={["need."]}
+              goldWords={['need.']}
             />
           </motion.div>
 

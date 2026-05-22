@@ -18,7 +18,11 @@ const DECISION_STYLES: Record<string, string> = {
   pending: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
 };
 
-export function ApplicantRosterView({ stages, applicants, onOpenDrawer }: ApplicantRosterViewProps) {
+export function ApplicantRosterView({
+  stages,
+  applicants,
+  onOpenDrawer,
+}: ApplicantRosterViewProps) {
   const [search, setSearch] = useState('');
   const [filterStage, setFilterStage] = useState('all');
 
@@ -103,7 +107,8 @@ export function ApplicantRosterView({ stages, applicants, onOpenDrawer }: Applic
             };
             const isStandout =
               extended.is_standout ??
-              ((extended.fit_score ?? 0) >= 85 && (applicant as any).passes_strict_filters !== false);
+              ((extended.fit_score ?? 0) >= 85 &&
+                (applicant as any).passes_strict_filters !== false);
             const decision = extended.final_decision ?? 'pending';
 
             return (
@@ -161,7 +166,9 @@ export function ApplicantRosterView({ stages, applicants, onOpenDrawer }: Applic
                       {getStageName(applicant.stage_id)}
                     </Badge>
                     {decision !== 'pending' && (
-                      <Badge className={`text-xs border ${DECISION_STYLES[decision] ?? DECISION_STYLES.pending}`}>
+                      <Badge
+                        className={`text-xs border ${DECISION_STYLES[decision] ?? DECISION_STYLES.pending}`}
+                      >
                         {decision.charAt(0).toUpperCase() + decision.slice(1)}
                       </Badge>
                     )}

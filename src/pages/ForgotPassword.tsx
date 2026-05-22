@@ -67,10 +67,9 @@ export default function ForgotPassword() {
           </Link>
           <h1 className="text-2xl font-bold text-foreground">Reset Password</h1>
           <p className="text-muted-foreground mt-2">
-            {sent 
+            {sent
               ? 'Check your email for a reset link'
-              : 'Enter your email to receive a password reset link'
-            }
+              : 'Enter your email to receive a password reset link'}
           </p>
         </div>
 
@@ -96,10 +95,7 @@ export default function ForgotPassword() {
               </div>
               <p className="text-xs text-muted-foreground">
                 Didn't receive the email? Check your spam folder or{' '}
-                <button 
-                  onClick={() => setSent(false)}
-                  className="text-primary hover:underline"
-                >
+                <button onClick={() => setSent(false)} className="text-primary hover:underline">
                   try again
                 </button>
               </p>
@@ -129,11 +125,7 @@ export default function ForgotPassword() {
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 disabled={loading}
               >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Send Reset Link'
-                )}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send Reset Link'}
               </Button>
             </form>
           )}

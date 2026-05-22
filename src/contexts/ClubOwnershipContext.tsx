@@ -60,11 +60,17 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
     let isMounted = true;
 
     const fetch = async () => {
-      if (authLoading) { if (isMounted) setLoading(true); return; }
+      if (authLoading) {
+        if (isMounted) setLoading(true);
+        return;
+      }
       if (isMounted) setLoading(true);
 
       if (!user) {
-        if (isMounted) { setOwnedClubs([]); setLoading(false); }
+        if (isMounted) {
+          setOwnedClubs([]);
+          setLoading(false);
+        }
         return;
       }
 
@@ -72,7 +78,9 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
         const [ownersRes, officersRes] = await Promise.all([
           supabase
             .from('club_owners')
-            .select('club_id, club_name, email, verified_at, verification_state, trust_level, trust_score, restrictions, provisional_until')
+            .select(
+              'club_id, club_name, email, verified_at, verification_state, trust_level, trust_score, restrictions, provisional_until'
+            )
             .eq('user_id', user.id),
           (supabase as any)
             .from('club_officers')
@@ -121,7 +129,9 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
     };
 
     fetch();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [user, authLoading, refreshTick]);
 
   const isOwnerOf = (clubId: string) => {
@@ -147,7 +157,8 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
     return club.restrictions[action] === true;
   };
 
-  const isProvisional = (clubId: string) => getClubOwnership(clubId)?.verificationState === 'provisional';
+  const isProvisional = (clubId: string) =>
+    getClubOwnership(clubId)?.verificationState === 'provisional';
   const isVerified = (clubId: string) => getClubOwnership(clubId)?.verificationState === 'verified';
 
   const checkOwnershipByEmail = async (email: string, clubId: string) => {
@@ -159,7 +170,9 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
         .eq('club_id', clubId)
         .maybeSingle();
       return !error && !!data;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   };
 
   const value: ClubOwnershipContextValue = {

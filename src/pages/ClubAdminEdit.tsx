@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { ArrowLeft, Loader2, Save, Instagram, Mail, Globe, Linkedin } from "lucide-react";
-import { toast } from "sonner";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { ArrowLeft, Loader2, Save, Instagram, Mail, Globe, Linkedin } from 'lucide-react';
+import { toast } from 'sonner';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Form,
   FormControl,
@@ -17,25 +17,24 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from "@/components/ui/form";
-import { ClubAdminSidebar } from "@/components/club-admin/ClubAdminSidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { useClubOwnership } from "@/hooks/useClubOwnership";
-import { useAuth } from "@/hooks/useAuth";
-import { dataClient } from "@/integrations/supabase/dataClient";
-import { ClubImageUpload } from "@/components/club-admin/ClubImageUpload";
-import { useExternalClubRecord } from "@/hooks/useExternalClubRecord";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AdminBreadcrumb } from "@/components/club-admin/AdminBreadcrumb";
-import { RecruitmentStatusCard } from "@/components/club-admin/RecruitmentStatusCard";
-
+} from '@/components/ui/form';
+import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { useClubOwnership } from '@/hooks/useClubOwnership';
+import { useAuth } from '@/hooks/useAuth';
+import { dataClient } from '@/integrations/supabase/dataClient';
+import { ClubImageUpload } from '@/components/club-admin/ClubImageUpload';
+import { useExternalClubRecord } from '@/hooks/useExternalClubRecord';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AdminBreadcrumb } from '@/components/club-admin/AdminBreadcrumb';
+import { RecruitmentStatusCard } from '@/components/club-admin/RecruitmentStatusCard';
 
 const clubEditSchema = z.object({
-  description: z.string().max(2000, "Description must be under 2000 characters").optional(),
-  email: z.string().email("Invalid email").max(255).optional().or(z.literal("")),
-  instagram: z.string().max(100).optional().or(z.literal("")),
-  linkedin: z.string().max(200).optional().or(z.literal("")),
-  website: z.string().url("Invalid URL").max(500).optional().or(z.literal("")),
+  description: z.string().max(2000, 'Description must be under 2000 characters').optional(),
+  email: z.string().email('Invalid email').max(255).optional().or(z.literal('')),
+  instagram: z.string().max(100).optional().or(z.literal('')),
+  linkedin: z.string().max(200).optional().or(z.literal('')),
+  website: z.string().url('Invalid URL').max(500).optional().or(z.literal('')),
 });
 
 type ClubEditFormData = z.infer<typeof clubEditSchema>;
@@ -45,22 +44,27 @@ export default function ClubAdminEdit() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { ownedClubs, loading: ownershipLoading, isOwnerOf } = useClubOwnership();
-  const { club, loading: clubLoading, error: clubError, refetch: refetchClub } = useExternalClubRecord(clubId);
+  const {
+    club,
+    loading: clubLoading,
+    error: clubError,
+    refetch: refetchClub,
+  } = useExternalClubRecord(clubId);
   const [isSaving, setIsSaving] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
 
-  const normalizeId = (id?: string) => (id ?? "").trim().toLowerCase();
+  const normalizeId = (id?: string) => (id ?? '').trim().toLowerCase();
   const isOwner = clubId ? isOwnerOf(clubId) : false;
   const ownership = ownedClubs.find((o) => normalizeId(o.clubId) === normalizeId(clubId));
 
   const form = useForm<ClubEditFormData>({
     resolver: zodResolver(clubEditSchema),
     defaultValues: {
-      description: "",
-      email: "",
-      instagram: "",
-      linkedin: "",
-      website: "",
+      description: '',
+      email: '',
+      instagram: '',
+      linkedin: '',
+      website: '',
     },
   });
 
@@ -68,11 +72,11 @@ export default function ClubAdminEdit() {
   useEffect(() => {
     if (club) {
       form.reset({
-        description: club.description || "",
-        email: club.email || "",
-        instagram: club.instagram || "",
-        linkedin: club.linkedin || "",
-        website: club.website || "",
+        description: club.description || '',
+        email: club.email || '',
+        instagram: club.instagram || '',
+        linkedin: club.linkedin || '',
+        website: club.website || '',
       });
       setCoverImageUrl(club.cover_image || null);
     }
@@ -82,8 +86,8 @@ export default function ClubAdminEdit() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
-      const redirect = clubId ? `/club-admin/clubs/${clubId}/edit` : "/club-admin";
-      toast.error("Please log in to access club admin");
+      const redirect = clubId ? `/club-admin/clubs/${clubId}/edit` : '/club-admin';
+      toast.error('Please log in to access club admin');
       navigate(`/login?redirect=${encodeURIComponent(redirect)}`);
     }
   }, [authLoading, user, clubId, navigate]);
@@ -94,7 +98,7 @@ export default function ClubAdminEdit() {
     if (!user) return;
     if (!ownershipLoading && clubId && !isOwnerOf(clubId)) {
       toast.error("You don't have permission to edit this club");
-      navigate("/club-admin");
+      navigate('/club-admin');
     }
   }, [ownershipLoading, clubId, isOwnerOf, navigate, authLoading, user]);
 
@@ -116,14 +120,14 @@ export default function ClubAdminEdit() {
         .eq('id', clubId);
 
       if (dbError) {
-        throw new Error(dbError.message || "Failed to update club");
+        throw new Error(dbError.message || 'Failed to update club');
       }
 
-      toast.success("Club profile updated successfully!");
+      toast.success('Club profile updated successfully!');
       navigate(`/clubs/${clubId}`);
     } catch (err: any) {
-      console.error("Error updating club:", err);
-      toast.error(err.message || "Failed to update club profile");
+      console.error('Error updating club:', err);
+      toast.error(err.message || 'Failed to update club profile');
     } finally {
       setIsSaving(false);
     }
@@ -204,19 +208,17 @@ export default function ClubAdminEdit() {
           <main className="flex-1 p-8">
             <div className="text-center py-12">
               <h2 className="text-xl font-semibold mb-2">Club not found</h2>
-              {clubError && (
-                <p className="text-sm text-muted-foreground mb-4">{clubError}</p>
-              )}
+              {clubError && <p className="text-sm text-muted-foreground mb-4">{clubError}</p>}
               <div className="flex items-center justify-center gap-3">
                 <Button variant="outline" onClick={refetchClub}>
                   Try Again
                 </Button>
-              <Button variant="outline" asChild>
-                <Link to="/club-admin">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Dashboard
-                </Link>
-              </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/club-admin">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Dashboard
+                  </Link>
+                </Button>
               </div>
             </div>
           </main>
@@ -229,7 +231,7 @@ export default function ClubAdminEdit() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <ClubAdminSidebar />
-        
+
         <main className="flex-1">
           <header className="h-14 border-b border-border flex items-center px-4 gap-4">
             <SidebarTrigger />
@@ -240,15 +242,9 @@ export default function ClubAdminEdit() {
           </header>
 
           <div className="p-6 w-full max-w-4xl">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <AdminBreadcrumb 
-                items={[
-                  { label: club.name, href: `/clubs/${clubId}` },
-                  { label: 'Edit Profile' }
-                ]} 
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <AdminBreadcrumb
+                items={[{ label: club.name, href: `/clubs/${clubId}` }, { label: 'Edit Profile' }]}
                 className="mb-6"
               />
 
@@ -256,11 +252,10 @@ export default function ClubAdminEdit() {
               <RecruitmentStatusCard
                 clubId={clubId!}
                 clubName={club.name}
-                currentStatus={club.recruitingStatus || "closed"}
-                currentCycle={club.recruitment_cycle || "none"}
+                currentStatus={club.recruitingStatus || 'closed'}
+                currentCycle={club.recruitment_cycle || 'none'}
                 onUpdate={refetchClub}
               />
-
 
               <div className="premium-card p-6 mt-6">
                 <Form {...form}>
@@ -303,11 +298,7 @@ export default function ClubAdminEdit() {
                               Contact Email
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="email"
-                                placeholder="club@ucsd.edu"
-                                {...field}
-                              />
+                              <Input type="email" placeholder="club@ucsd.edu" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -324,14 +315,9 @@ export default function ClubAdminEdit() {
                               Instagram
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="@yourclub"
-                                {...field}
-                              />
+                              <Input placeholder="@yourclub" {...field} />
                             </FormControl>
-                            <FormDescription>
-                              Username or full URL
-                            </FormDescription>
+                            <FormDescription>Username or full URL</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -354,9 +340,7 @@ export default function ClubAdminEdit() {
                                 {...field}
                               />
                             </FormControl>
-                            <FormDescription>
-                              Full URL or username
-                            </FormDescription>
+                            <FormDescription>Full URL or username</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -372,11 +356,7 @@ export default function ClubAdminEdit() {
                               Website
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="url"
-                                placeholder="https://yourclub.com"
-                                {...field}
-                              />
+                              <Input type="url" placeholder="https://yourclub.com" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -392,11 +372,7 @@ export default function ClubAdminEdit() {
                       >
                         Cancel
                       </Button>
-                      <Button
-                        type="submit"
-                        variant="gold"
-                        disabled={isSaving}
-                      >
+                      <Button type="submit" variant="gold" disabled={isSaving}>
                         {isSaving ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />

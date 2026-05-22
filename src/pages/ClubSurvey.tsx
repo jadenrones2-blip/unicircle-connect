@@ -67,10 +67,10 @@ export default function ClubSurvey() {
           if (!fallback?.questions?.length) {
             setNoSurvey(true);
           } else {
-            setQuestions((fallback.questions as FormQuestion[]).filter(q => q.type !== 'video'));
+            setQuestions((fallback.questions as FormQuestion[]).filter((q) => q.type !== 'video'));
           }
         } else {
-          setQuestions((formData.questions as FormQuestion[]).filter(q => q.type !== 'video'));
+          setQuestions((formData.questions as FormQuestion[]).filter((q) => q.type !== 'video'));
         }
       } catch {
         setNoSurvey(true);
@@ -89,7 +89,7 @@ export default function ClubSurvey() {
       return;
     }
 
-    const missingRequired = questions.filter(q => q.required && !answers[q.id]?.trim());
+    const missingRequired = questions.filter((q) => q.required && !answers[q.id]?.trim());
     if (missingRequired.length > 0) {
       toast.error(`Please answer all required questions.`);
       return;
@@ -97,17 +97,15 @@ export default function ClubSurvey() {
 
     setSubmitting(true);
     try {
-      const { error } = await (supabase as any)
-        .from('survey_responses')
-        .insert({
-          club_id: clubId.trim().toLowerCase(),
-          email: email.trim().toLowerCase(),
-          responses: {
-            major: major || null,
-            year: year || null,
-            ...answers,
-          },
-        });
+      const { error } = await (supabase as any).from('survey_responses').insert({
+        club_id: clubId.trim().toLowerCase(),
+        email: email.trim().toLowerCase(),
+        responses: {
+          major: major || null,
+          year: year || null,
+          ...answers,
+        },
+      });
 
       if (error) throw error;
       setSubmitted(true);
@@ -163,9 +161,12 @@ export default function ClubSurvey() {
           <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
             <CheckCircle2 className="w-8 h-8 text-emerald-400" />
           </div>
-          <h1 className="text-3xl font-display font-bold text-white mb-3">Thanks for your response!</h1>
+          <h1 className="text-3xl font-display font-bold text-white mb-3">
+            Thanks for your response!
+          </h1>
           <p className="text-zinc-400 max-w-sm mb-8 text-sm leading-relaxed">
-            {clubName || 'The club'} will use your feedback to improve. We may follow up at the email you provided.
+            {clubName || 'The club'} will use your feedback to improve. We may follow up at the
+            email you provided.
           </p>
           <div className="flex gap-3">
             <Button variant="outline" asChild>
@@ -203,18 +204,19 @@ export default function ClubSurvey() {
             </span>
             <span className="text-xs text-zinc-500">{clubName}</span>
           </div>
-          <h1 className="text-2xl font-display font-bold text-white mb-2">
-            Share your thoughts
-          </h1>
+          <h1 className="text-2xl font-display font-bold text-white mb-2">Share your thoughts</h1>
           <p className="text-sm text-zinc-500">
-            This takes under 3 minutes. Your answers help {clubName || 'this club'} understand what students need.
+            This takes under 3 minutes. Your answers help {clubName || 'this club'} understand what
+            students need.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Identity fields */}
           <div className="rounded-xl border border-white/8 bg-zinc-900/60 p-5 space-y-4">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">About you</p>
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+              About you
+            </p>
 
             <div className="space-y-1.5">
               <Label className="text-zinc-300 text-sm">
@@ -223,11 +225,13 @@ export default function ClubSurvey() {
               <Input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@ucsd.edu"
                 className="bg-zinc-800 border-white/10 text-white placeholder:text-zinc-600"
               />
-              <p className="text-[11px] text-zinc-600">We may follow up — never shared or spammed.</p>
+              <p className="text-[11px] text-zinc-600">
+                We may follow up — never shared or spammed.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -235,7 +239,7 @@ export default function ClubSurvey() {
                 <Label className="text-zinc-300 text-sm">Major</Label>
                 <Input
                   value={major}
-                  onChange={e => setMajor(e.target.value)}
+                  onChange={(e) => setMajor(e.target.value)}
                   placeholder="e.g. CS, Biology"
                   className="bg-zinc-800 border-white/10 text-white placeholder:text-zinc-600"
                 />
@@ -244,11 +248,15 @@ export default function ClubSurvey() {
                 <Label className="text-zinc-300 text-sm">Year</Label>
                 <select
                   value={year}
-                  onChange={e => setYear(e.target.value)}
+                  onChange={(e) => setYear(e.target.value)}
                   className="w-full h-10 bg-zinc-800 border border-white/10 text-zinc-300 rounded-md px-3 text-sm"
                 >
                   <option value="">Select…</option>
-                  {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
+                  {YEAR_OPTIONS.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -256,7 +264,10 @@ export default function ClubSurvey() {
 
           {/* Survey questions */}
           {questions.map((q, i) => (
-            <div key={q.id} className="rounded-xl border border-white/8 bg-zinc-900/60 p-5 space-y-3">
+            <div
+              key={q.id}
+              className="rounded-xl border border-white/8 bg-zinc-900/60 p-5 space-y-3"
+            >
               <Label className="text-zinc-200 text-sm leading-relaxed block">
                 <span className="text-zinc-600 mr-2">{i + 1}.</span>
                 {q.label}
@@ -266,7 +277,7 @@ export default function ClubSurvey() {
               {q.type === 'short' && (
                 <Input
                   value={answers[q.id] ?? ''}
-                  onChange={e => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                  onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
                   placeholder="Your answer…"
                   className="bg-zinc-800 border-white/10 text-white placeholder:text-zinc-600"
                 />
@@ -275,7 +286,7 @@ export default function ClubSurvey() {
               {q.type === 'long' && (
                 <Textarea
                   value={answers[q.id] ?? ''}
-                  onChange={e => setAnswers(prev => ({ ...prev, [q.id]: e.target.value }))}
+                  onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
                   placeholder="Your answer…"
                   rows={4}
                   className="bg-zinc-800 border-white/10 text-white placeholder:text-zinc-600 resize-none"
@@ -284,25 +295,29 @@ export default function ClubSurvey() {
 
               {q.type === 'multiple_choice' && q.options.length > 0 && (
                 <div className="space-y-2">
-                  {q.options.filter(o => o.trim()).map(opt => (
-                    <label
-                      key={opt}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
-                        answers[q.id] === opt
-                          ? 'border-gold/40 bg-gold/8 text-white'
-                          : 'border-white/8 bg-zinc-800/60 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                        answers[q.id] === opt ? 'border-gold' : 'border-zinc-600'
-                      }`}>
-                        {answers[q.id] === opt && (
-                          <div className="w-2 h-2 rounded-full bg-gold" />
-                        )}
-                      </div>
-                      <span className="text-sm">{opt}</span>
-                    </label>
-                  ))}
+                  {q.options
+                    .filter((o) => o.trim())
+                    .map((opt) => (
+                      <label
+                        key={opt}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-all ${
+                          answers[q.id] === opt
+                            ? 'border-gold/40 bg-gold/8 text-white'
+                            : 'border-white/8 bg-zinc-800/60 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
+                        }`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                            answers[q.id] === opt ? 'border-gold' : 'border-zinc-600'
+                          }`}
+                        >
+                          {answers[q.id] === opt && (
+                            <div className="w-2 h-2 rounded-full bg-gold" />
+                          )}
+                        </div>
+                        <span className="text-sm">{opt}</span>
+                      </label>
+                    ))}
                 </div>
               )}
             </div>
@@ -315,7 +330,10 @@ export default function ClubSurvey() {
             className="w-full bg-gold text-zinc-900 font-semibold hover:bg-gold/90 disabled:opacity-50 py-3"
           >
             {submitting ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting…</>
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Submitting…
+              </>
             ) : (
               'Submit Survey'
             )}

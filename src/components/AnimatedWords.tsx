@@ -1,27 +1,27 @@
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
 interface AnimatedWordsProps {
   text: string;
   className?: string;
-  as?: "h1" | "h2" | "h3" | "p" | "span";
+  as?: 'h1' | 'h2' | 'h3' | 'p' | 'span';
   goldWords?: string[];
   delay?: number;
 }
 
 const AnimatedWords = ({
   text,
-  className = "",
-  as: Tag = "h2",
+  className = '',
+  as: Tag = 'h2',
   goldWords = [],
   delay = 0,
 }: AnimatedWordsProps) => {
-  const words = text.split(" ");
+  const words = text.split(' ');
 
   return (
     <Tag className={className}>
       {words.map((word, i) => {
         const isGold = goldWords.some(
-          (gw) => word.toLowerCase().replace(/[.,!?]/g, "") === gw.toLowerCase()
+          (gw) => word.toLowerCase().replace(/[.,!?]/g, '') === gw.toLowerCase()
         );
         return (
           <motion.span
@@ -32,9 +32,9 @@ const AnimatedWords = ({
             transition={{
               delay: delay + i * 0.05,
               duration: 0.4,
-              ease: "easeOut",
+              ease: 'easeOut',
             }}
-            className={`inline-block mr-[0.3em] ${isGold ? "text-gold" : ""}`}
+            className={`inline-block mr-[0.3em] ${isGold ? 'text-gold' : ''}`}
           >
             {word}
           </motion.span>

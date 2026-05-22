@@ -1,30 +1,30 @@
-import { motion } from "framer-motion";
-import { Kanban, Users, Eye, Bell, ArrowRight } from "lucide-react";
+import { motion } from 'framer-motion';
+import { Kanban, Users, Eye, Bell, ArrowRight } from 'lucide-react';
 
 const RecruitmentSection = () => {
   const forClubs = [
     {
       icon: Kanban,
-      title: "Visual Pipeline",
-      description: "Track applicants through customizable stages with drag-and-drop simplicity.",
+      title: 'Visual Pipeline',
+      description: 'Track applicants through customizable stages with drag-and-drop simplicity.',
     },
     {
       icon: Users,
-      title: "Centralized Data",
-      description: "Import applicants via CSV, add custom fields, and keep everything organized.",
+      title: 'Centralized Data',
+      description: 'Import applicants via CSV, add custom fields, and keep everything organized.',
     },
   ];
 
   const forStudents = [
     {
       icon: Eye,
-      title: "Track Your Status",
-      description: "See exactly where you stand in the recruitment process for each club.",
+      title: 'Track Your Status',
+      description: 'See exactly where you stand in the recruitment process for each club.',
     },
     {
       icon: Bell,
-      title: "Stay Updated",
-      description: "Get notified when you move to the next stage or receive a decision.",
+      title: 'Stay Updated',
+      description: 'Get notified when you move to the next stage or receive a decision.',
     },
   ];
 
@@ -46,8 +46,8 @@ const RecruitmentSection = () => {
               No more waiting in the dark
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Recruitment should be clear, not confusing. 
-              Track your applications — or manage them — all in one place.
+              Recruitment should be clear, not confusing. Track your applications — or manage them —
+              all in one place.
             </p>
           </motion.div>
 
@@ -66,7 +66,7 @@ const RecruitmentSection = () => {
                 </div>
                 <h3 className="font-display text-xl font-semibold">For Club Leaders</h3>
               </div>
-              
+
               <div className="space-y-4">
                 {forClubs.map((item, index) => (
                   <motion.div
@@ -88,8 +88,8 @@ const RecruitmentSection = () => {
                 ))}
               </div>
 
-              <a 
-                href="/express-interest" 
+              <a
+                href="/express-interest"
                 className="inline-flex items-center gap-2 text-gold hover:text-gold/80 text-sm font-medium transition-colors group"
               >
                 Claim your club
@@ -111,7 +111,7 @@ const RecruitmentSection = () => {
                 </div>
                 <h3 className="font-display text-xl font-semibold">For Students</h3>
               </div>
-              
+
               <div className="space-y-4">
                 {forStudents.map((item, index) => (
                   <motion.div
@@ -133,8 +133,8 @@ const RecruitmentSection = () => {
                 ))}
               </div>
 
-              <a 
-                href="/signup" 
+              <a
+                href="/signup"
                 className="inline-flex items-center gap-2 text-foreground hover:text-gold text-sm font-medium transition-colors group"
               >
                 Create your account

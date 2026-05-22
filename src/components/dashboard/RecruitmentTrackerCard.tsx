@@ -28,20 +28,22 @@ export default function RecruitmentTrackerCard({ data }: RecruitmentTrackerCardP
   const customMessage = settings?.student_visible_message;
 
   const appliedDate = new Date(application.created_at).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric',
+    month: 'short',
+    day: 'numeric',
   });
 
   const currentStageName = stages[currentStageIndex]?.label;
 
   return (
-    <div className={`rounded-xl border bg-zinc-900 p-5 space-y-4 transition-all ${
-      isAccepted
-        ? 'border-emerald-400/30 hover:border-emerald-400/50'
-        : isRejected
-        ? 'border-white/8 hover:border-white/15'
-        : 'border-white/10 hover:border-white/20'
-    }`}>
-
+    <div
+      className={`rounded-xl border bg-zinc-900 p-5 space-y-4 transition-all ${
+        isAccepted
+          ? 'border-emerald-400/30 hover:border-emerald-400/50'
+          : isRejected
+            ? 'border-white/8 hover:border-white/15'
+            : 'border-white/10 hover:border-white/20'
+      }`}
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -91,7 +93,9 @@ export default function RecruitmentTrackerCard({ data }: RecruitmentTrackerCardP
           <Info className="w-5 h-5 text-zinc-500 shrink-0" />
           <div>
             <p className="text-sm font-semibold text-zinc-300">Application reviewed</p>
-            <p className="text-xs text-zinc-500">Thank you for applying — it was a competitive cycle.</p>
+            <p className="text-xs text-zinc-500">
+              Thank you for applying — it was a competitive cycle.
+            </p>
           </div>
         </div>
       )}
@@ -128,37 +132,47 @@ export default function RecruitmentTrackerCard({ data }: RecruitmentTrackerCardP
                 const isCurrent = idx === currentStageIndex && !finalDecision;
                 return (
                   <div key={stage.id} className="flex items-start">
-                    <div className="flex flex-col items-center gap-1.5" style={{ minWidth: '68px' }}>
+                    <div
+                      className="flex flex-col items-center gap-1.5"
+                      style={{ minWidth: '68px' }}
+                    >
                       {/* Circle */}
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-all ${
-                        isAccepted && idx <= currentStageIndex
-                          ? 'bg-emerald-400/20 border-emerald-400 text-emerald-400'
-                          : isCompleted
-                          ? 'bg-emerald-400/15 border-emerald-400/70 text-emerald-400'
-                          : isCurrent
-                          ? 'bg-gold/20 border-gold text-gold shadow-[0_0_10px_rgba(212,175,55,0.25)]'
-                          : 'bg-zinc-800 border-zinc-700 text-zinc-600'
-                      }`}>
+                      <div
+                        className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold border-2 transition-all ${
+                          isAccepted && idx <= currentStageIndex
+                            ? 'bg-emerald-400/20 border-emerald-400 text-emerald-400'
+                            : isCompleted
+                              ? 'bg-emerald-400/15 border-emerald-400/70 text-emerald-400'
+                              : isCurrent
+                                ? 'bg-gold/20 border-gold text-gold shadow-[0_0_10px_rgba(212,175,55,0.25)]'
+                                : 'bg-zinc-800 border-zinc-700 text-zinc-600'
+                        }`}
+                      >
                         {isCompleted || (isAccepted && idx <= currentStageIndex) ? '✓' : idx + 1}
                       </div>
 
                       {/* Label */}
-                      <span className={`text-[10px] text-center leading-tight px-0.5 ${
-                        isCurrent
-                          ? 'text-zinc-200 font-medium'
-                          : isCompleted
-                          ? 'text-emerald-400/60'
-                          : 'text-zinc-600'
-                      }`} style={{ maxWidth: '64px' }}>
+                      <span
+                        className={`text-[10px] text-center leading-tight px-0.5 ${
+                          isCurrent
+                            ? 'text-zinc-200 font-medium'
+                            : isCompleted
+                              ? 'text-emerald-400/60'
+                              : 'text-zinc-600'
+                        }`}
+                        style={{ maxWidth: '64px' }}
+                      >
                         {stage.label}
                       </span>
                     </div>
 
                     {/* Connector */}
                     {idx < stages.length - 1 && (
-                      <div className={`h-px mt-3.5 w-6 mx-0.5 rounded-full shrink-0 ${
-                        idx < currentStageIndex ? 'bg-emerald-400/50' : 'bg-zinc-700'
-                      }`} />
+                      <div
+                        className={`h-px mt-3.5 w-6 mx-0.5 rounded-full shrink-0 ${
+                          idx < currentStageIndex ? 'bg-emerald-400/50' : 'bg-zinc-700'
+                        }`}
+                      />
                     )}
                   </div>
                 );

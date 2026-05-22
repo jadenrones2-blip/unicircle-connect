@@ -34,7 +34,7 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
   };
 
   const handleCustomSubmit = () => {
-    const validStages = customStages.filter(s => s.trim().length > 0);
+    const validStages = customStages.filter((s) => s.trim().length > 0);
     if (validStages.length < 2) {
       return;
     }
@@ -42,7 +42,7 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
   };
 
   const updateCustomStage = (index: number, value: string) => {
-    setCustomStages(prev => {
+    setCustomStages((prev) => {
       const updated = [...prev];
       updated[index] = value;
       return updated;
@@ -51,24 +51,20 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
 
   const addCustomStage = () => {
     if (customStages.length < 8) {
-      setCustomStages(prev => [...prev, '']);
+      setCustomStages((prev) => [...prev, '']);
     }
   };
 
   const removeCustomStage = (index: number) => {
     if (customStages.length > 2) {
-      setCustomStages(prev => prev.filter((_, i) => i !== index));
+      setCustomStages((prev) => prev.filter((_, i) => i !== index));
     }
   };
 
   if (mode === 'custom') {
     return (
       <div className="max-w-lg mx-auto py-12 px-4">
-        <Button
-          variant="ghost"
-          className="mb-6"
-          onClick={() => setMode('select')}
-        >
+        <Button variant="ghost" className="mb-6" onClick={() => setMode('select')}>
           ← Back to templates
         </Button>
 
@@ -79,9 +75,7 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
           <h2 className="text-2xl font-display font-bold text-foreground mb-2">
             Build Your Pipeline
           </h2>
-          <p className="text-muted-foreground">
-            Define the stages applicants will move through.
-          </p>
+          <p className="text-muted-foreground">Define the stages applicants will move through.</p>
         </div>
 
         <Card>
@@ -123,11 +117,7 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
             ))}
 
             {customStages.length < 8 && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={addCustomStage}
-              >
+              <Button variant="outline" className="w-full" onClick={addCustomStage}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Stage
               </Button>
@@ -138,7 +128,7 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
                 variant="gold"
                 className="w-full"
                 onClick={handleCustomSubmit}
-                disabled={loading || customStages.filter(s => s.trim()).length < 2}
+                disabled={loading || customStages.filter((s) => s.trim()).length < 2}
               >
                 {loading ? 'Creating...' : 'Create Pipeline'}
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -163,8 +153,8 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
 
       <div className="grid gap-6 md:grid-cols-2 mb-8">
         {Object.entries(TEMPLATES).map(([key, template]) => (
-          <Card 
-            key={key} 
+          <Card
+            key={key}
             className="cursor-pointer transition-all hover:border-gold/50 hover:shadow-md"
             onClick={() => !loading && handleTemplateSelect(key as keyof typeof TEMPLATES)}
           >
@@ -179,7 +169,9 @@ export function RecruitmentSetupWizard({ onComplete, loading }: RecruitmentSetup
               <div className="flex flex-wrap gap-2">
                 {/* Always show Applied as locked first stage */}
                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold/10 text-sm border border-gold/20">
-                  <span className="w-4 h-4 rounded-full bg-gold/20 text-gold text-xs flex items-center justify-center">1</span>
+                  <span className="w-4 h-4 rounded-full bg-gold/20 text-gold text-xs flex items-center justify-center">
+                    1
+                  </span>
                   <span className="text-gold/80">Applied</span>
                 </div>
                 {template.stages.map((stage, index) => (

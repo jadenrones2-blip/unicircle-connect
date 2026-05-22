@@ -40,7 +40,7 @@ export default function ClubAdminEvents() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
-  
+
   const [events, setEvents] = useState<ExternalEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
@@ -78,7 +78,10 @@ export default function ClubAdminEvents() {
       const seen = new Set<string>();
       const merged: ExternalEvent[] = [];
       for (const e of [...(byHandle.data || []), ...(byId.data || [])]) {
-        if (!seen.has(e.id)) { seen.add(e.id); merged.push(e as ExternalEvent); }
+        if (!seen.has(e.id)) {
+          seen.add(e.id);
+          merged.push(e as ExternalEvent);
+        }
       }
 
       // Also look up the club's instagram handle to fetch by that too
@@ -90,12 +93,20 @@ export default function ClubAdminEvents() {
           .maybeSingle();
         if (clubRow?.instagram && clubRow.instagram !== club.clubId) {
           const { data: byInsta } = await dataClient
-            .from('events').select('*').ilike('club_handle', clubRow.instagram).limit(50);
-          for (const e of (byInsta || [])) {
-            if (!seen.has(e.id)) { seen.add(e.id); merged.push(e as ExternalEvent); }
+            .from('events')
+            .select('*')
+            .ilike('club_handle', clubRow.instagram)
+            .limit(50);
+          for (const e of byInsta || []) {
+            if (!seen.has(e.id)) {
+              seen.add(e.id);
+              merged.push(e as ExternalEvent);
+            }
           }
         }
-      } catch { /* non-fatal */ }
+      } catch {
+        /* non-fatal */
+      }
 
       setEvents(merged);
     } catch (err) {
@@ -136,13 +147,10 @@ export default function ClubAdminEvents() {
 
   const handleDelete = async () => {
     if (!deleteEventId) return;
-    
+
     setDeleting(true);
     try {
-      const { error: dbError } = await dataClient
-        .from('events')
-        .delete()
-        .eq('id', deleteEventId);
+      const { error: dbError } = await dataClient.from('events').delete().eq('id', deleteEventId);
 
       if (dbError) throw new Error(dbError.message);
 
@@ -235,7 +243,7 @@ export default function ClubAdminEvents() {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <ClubAdminSidebar />
-        
+
         <main className="flex-1">
           <header className="h-16 border-b border-border flex items-center justify-between px-4">
             <div className="flex items-center gap-4">
@@ -244,29 +252,30 @@ export default function ClubAdminEvents() {
                 <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
                   {club.clubName}
                 </h1>
-                <p className="text-xs text-muted-foreground tracking-wide uppercase font-medium">Event Management</p>
+                <p className="text-xs text-muted-foreground tracking-wide uppercase font-medium">
+                  Event Management
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="gold"
-                onClick={() => setPostEventOpen(true)}
-              >
+              <Button variant="gold" onClick={() => setPostEventOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Post Event
               </Button>
-              <Button variant="outline" size="sm" asChild className="border-white/10 text-zinc-400 hover:text-white text-xs">
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="border-white/10 text-zinc-400 hover:text-white text-xs"
+              >
                 <Link to={`/submit-event?club=${clubId}`}>Advanced</Link>
               </Button>
             </div>
           </header>
 
           <div className="p-6">
-            <AdminBreadcrumb 
-              items={[
-                { label: club.clubName, href: `/clubs/${clubId}` },
-                { label: 'Events' }
-              ]} 
+            <AdminBreadcrumb
+              items={[{ label: club.clubName, href: `/clubs/${clubId}` }, { label: 'Events' }]}
               className="mb-6"
             />
             {/* Filters - show when there are events */}
@@ -324,9 +333,7 @@ export default function ClubAdminEvents() {
             ) : events.length === 0 ? (
               <div className="text-center py-20">
                 <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h2 className="text-xl font-semibold text-foreground mb-2">
-                  No Events Yet
-                </h2>
+                <h2 className="text-xl font-semibold text-foreground mb-2">No Events Yet</h2>
                 <p className="text-muted-foreground mb-6">
                   Create your first event to get started.
                 </p>
@@ -340,12 +347,8 @@ export default function ClubAdminEvents() {
             ) : filteredEvents.length === 0 ? (
               <div className="text-center py-20">
                 <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h2 className="text-lg font-semibold text-foreground mb-2">
-                  No matching events
-                </h2>
-                <p className="text-muted-foreground mb-4">
-                  Try adjusting your filters.
-                </p>
+                <h2 className="text-lg font-semibold text-foreground mb-2">No matching events</h2>
+                <p className="text-muted-foreground mb-4">Try adjusting your filters.</p>
                 <Button variant="outline" onClick={clearFilters}>
                   Clear Filters
                 </Button>
@@ -366,9 +369,7 @@ export default function ClubAdminEvents() {
                     {filteredEvents.map((event) => (
                       <TableRow key={event.id}>
                         <TableCell>
-                          <div className="font-medium">
-                            {event.corrected_title || event.title}
-                          </div>
+                          <div className="font-medium">{event.corrected_title || event.title}</div>
                         </TableCell>
                         <TableCell className="text-sm">
                           {formatDateTime(event.corrected_start_time || event.start_time)}
@@ -392,12 +393,7 @@ export default function ClubAdminEvents() {
                               <Edit className="w-4 h-4" />
                             </Button>
                             {event.source_url && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                asChild
-                                title="View original"
-                              >
+                              <Button variant="ghost" size="icon" asChild title="View original">
                                 <a
                                   href={event.source_url}
                                   target="_blank"

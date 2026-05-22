@@ -40,7 +40,9 @@ export default function ClubAdminInbox() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<ClubMessage | null>(null);
 
-  const club = ownedClubs.find(c => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase());
+  const club = ownedClubs.find(
+    (c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase()
+  );
   const clubName = club?.clubName || 'Club';
 
   useEffect(() => {
@@ -65,39 +67,50 @@ export default function ClubAdminInbox() {
     setLoading(false);
   }, [clubId]);
 
-  useEffect(() => { fetchMessages(); }, [fetchMessages]);
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
 
   // Realtime subscription
   useEffect(() => {
     if (!clubId) return;
     const channel = supabase
       .channel(`inbox:${clubId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'club_messages',
-        filter: `club_id=eq.${clubId.trim().toLowerCase()}`,
-      }, (payload) => {
-        setMessages(prev => [payload.new as ClubMessage, ...prev]);
-        toast.success('New message received');
-      })
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'club_messages',
+          filter: `club_id=eq.${clubId.trim().toLowerCase()}`,
+        },
+        (payload) => {
+          setMessages((prev) => [payload.new as ClubMessage, ...prev]);
+          toast.success('New message received');
+        }
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [clubId]);
 
   const markRead = async (msg: ClubMessage) => {
     setSelected(msg);
     if (!msg.read) {
       await (supabase as any).from('club_messages').update({ read: true }).eq('id', msg.id);
-      setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, read: true } : m));
+      setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, read: true } : m)));
     }
   };
 
-  const unreadCount = messages.filter(m => !m.read).length;
+  const unreadCount = messages.filter((m) => !m.read).length;
 
   if (authLoading || ownershipLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0A0A' }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: '#0A0A0A' }}
+      >
         <Loader2 className="w-6 h-6 text-gold animate-spin" />
       </div>
     );
@@ -108,9 +121,17 @@ export default function ClubAdminInbox() {
       <div className="min-h-screen flex w-full" style={{ background: '#0A0A0A' }}>
         <ClubAdminSidebar />
         <main className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center px-4 gap-3 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <header
+            className="h-14 flex items-center px-4 gap-3 shrink-0"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          >
             <SidebarTrigger className="text-zinc-500 hover:text-white transition-colors" />
-            <AdminBreadcrumb items={[{ label: clubName, href: `/club-admin/clubs/${clubId}/recruitment` }, { label: 'Inbox' }]} />
+            <AdminBreadcrumb
+              items={[
+                { label: clubName, href: `/club-admin/clubs/${clubId}/recruitment` },
+                { label: 'Inbox' },
+              ]}
+            />
             {unreadCount > 0 && (
               <span className="ml-auto text-xs font-bold bg-gold/20 text-gold border border-gold/30 px-2 py-0.5 rounded-full">
                 {unreadCount} new
@@ -120,7 +141,10 @@ export default function ClubAdminInbox() {
 
           <div className="flex-1 flex min-h-0">
             {/* Message list */}
-            <div className="w-full max-w-sm border-r flex flex-col" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+            <div
+              className="w-full max-w-sm border-r flex flex-col"
+              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+            >
               <div className="p-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                 <div className="flex items-center gap-2">
                   <Inbox className="w-4 h-4 text-gold" />
@@ -139,11 +163,13 @@ export default function ClubAdminInbox() {
                     <Inbox className="w-5 h-5 text-zinc-600" />
                   </div>
                   <p className="text-sm text-zinc-600">No messages yet.</p>
-                  <p className="text-xs text-zinc-700">Students can message you from your club's page.</p>
+                  <p className="text-xs text-zinc-700">
+                    Students can message you from your club's page.
+                  </p>
                 </div>
               ) : (
                 <div className="flex-1 overflow-y-auto">
-                  {messages.map(msg => (
+                  {messages.map((msg) => (
                     <button
                       key={msg.id}
                       onClick={() => markRead(msg)}
@@ -159,13 +185,21 @@ export default function ClubAdminInbox() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <p className={`text-sm truncate ${msg.read ? 'text-zinc-400 font-medium' : 'text-white font-semibold'}`}>
+                            <p
+                              className={`text-sm truncate ${msg.read ? 'text-zinc-400 font-medium' : 'text-white font-semibold'}`}
+                            >
                               {msg.sender_name || 'Student'}
                             </p>
-                            {!msg.read && <span className="w-2 h-2 rounded-full bg-gold shrink-0" />}
-                            <span className="text-[10px] text-zinc-600 ml-auto shrink-0">{timeAgo(msg.created_at)}</span>
+                            {!msg.read && (
+                              <span className="w-2 h-2 rounded-full bg-gold shrink-0" />
+                            )}
+                            <span className="text-[10px] text-zinc-600 ml-auto shrink-0">
+                              {timeAgo(msg.created_at)}
+                            </span>
                           </div>
-                          <p className={`text-xs truncate ${msg.read ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                          <p
+                            className={`text-xs truncate ${msg.read ? 'text-zinc-600' : 'text-zinc-400'}`}
+                          >
                             {msg.subject || msg.body}
                           </p>
                         </div>
@@ -180,12 +214,17 @@ export default function ClubAdminInbox() {
             <div className="flex-1 flex flex-col">
               {selected ? (
                 <div className="flex-1 p-6 max-w-2xl">
-                  <div className="mb-6 pb-6 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                  <div
+                    className="mb-6 pb-6 border-b"
+                    style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+                  >
                     <h3 className="text-xl font-display font-bold text-white mb-1">
                       {selected.subject || 'No subject'}
                     </h3>
                     <div className="flex items-center gap-3 text-sm text-zinc-500">
-                      <span className="font-medium text-zinc-300">{selected.sender_name || 'Student'}</span>
+                      <span className="font-medium text-zinc-300">
+                        {selected.sender_name || 'Student'}
+                      </span>
                       {selected.sender_email && <span>·</span>}
                       {selected.sender_email && <span>{selected.sender_email}</span>}
                       <span>·</span>
@@ -195,7 +234,9 @@ export default function ClubAdminInbox() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-zinc-300 leading-relaxed whitespace-pre-wrap">{selected.body}</p>
+                  <p className="text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                    {selected.body}
+                  </p>
 
                   {selected.sender_email && (
                     <a

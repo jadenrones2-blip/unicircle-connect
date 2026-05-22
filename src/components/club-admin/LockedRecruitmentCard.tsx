@@ -43,22 +43,32 @@ export function LockedRecruitmentCard({ clubId }: LockedRecruitmentCardProps) {
             {FAKE_PIPELINE.map((col) => (
               <div key={col.label} className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-semibold text-zinc-400 tracking-wide uppercase">{col.label}</span>
-                  <span className="text-[10px] text-zinc-600 bg-white/5 px-1.5 py-0.5 rounded-full">{col.count}</span>
+                  <span className="text-[10px] font-semibold text-zinc-400 tracking-wide uppercase">
+                    {col.label}
+                  </span>
+                  <span className="text-[10px] text-zinc-600 bg-white/5 px-1.5 py-0.5 rounded-full">
+                    {col.count}
+                  </span>
                 </div>
                 <div className="space-y-1.5">
                   {col.items.map((name) => (
                     <div
                       key={name}
                       className="px-3 py-2 rounded-lg text-xs text-zinc-300 font-medium"
-                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.06)' }}
+                      style={{
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.06)',
+                      }}
                     >
                       {name}
                     </div>
                   ))}
                   <div
                     className="px-3 py-2 rounded-lg"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.08)' }}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px dashed rgba(255,255,255,0.08)',
+                    }}
                   />
                 </div>
               </div>
@@ -74,34 +84,40 @@ export function LockedRecruitmentCard({ clubId }: LockedRecruitmentCardProps) {
 
         {/* Overlay CTA */}
         <div className="relative z-10 px-6 py-8 text-center">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full mb-4"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div
+            className="inline-flex items-center justify-center w-10 h-10 rounded-full mb-4"
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
+          >
             <Lock className="w-4 h-4 text-zinc-400" />
           </div>
 
           <h3 className="text-xl font-display font-bold text-white tracking-tight mb-2 leading-snug max-w-sm mx-auto">
-            Automate your next cycle with<br />
+            Automate your next cycle with
+            <br />
             <span className="text-gold">Absolute Precision.</span>
           </h3>
 
           <p className="text-sm text-zinc-500 mb-6 max-w-xs mx-auto leading-relaxed">
-            Structured intake, drag-and-drop pipelines, automated scoring, and applicant notifications — all in one place.
+            Structured intake, drag-and-drop pipelines, automated scoring, and applicant
+            notifications — all in one place.
           </p>
 
           <button
             className="inline-flex items-center gap-2 bg-gold text-zinc-900 text-sm font-semibold px-6 py-2.5 rounded-lg hover:bg-gold/90 active:scale-[0.98] transition-all"
-            onClick={(e) => { e.stopPropagation(); setModalOpen(true); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setModalOpen(true);
+            }}
           >
             Request Exclusive Access
           </button>
         </div>
       </motion.div>
 
-      <WaitlistModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        clubId={clubId}
-      />
+      <WaitlistModal open={modalOpen} onClose={() => setModalOpen(false)} clubId={clubId} />
     </>
   );
 }

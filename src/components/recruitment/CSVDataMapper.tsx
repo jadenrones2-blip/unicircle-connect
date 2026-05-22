@@ -49,9 +49,7 @@ interface ParsedApplicant {
 }
 
 interface CSVDataMapperProps {
-  onImport: (
-    applicants: ParsedApplicant[]
-  ) => Promise<{ success: number; failed: number }>;
+  onImport: (applicants: ParsedApplicant[]) => Promise<{ success: number; failed: number }>;
 }
 
 const REQUIRED_FIELDS = ['first_name', 'last_name', 'email'] as const;
@@ -159,11 +157,15 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
           .replace(/\b(what is|what's|please enter|please provide|your)\b/g, '')
           .replace(/\s+/g, ' ')
           .trim();
-        
+
         let mappedTo: FieldName | 'metadata' | 'skip' = 'metadata';
 
         // Skip timestamp columns (common in Google Forms)
-        if (lowerHeader.includes('timestamp') || lowerHeader === 'submitted at' || lowerHeader === 'response id') {
+        if (
+          lowerHeader.includes('timestamp') ||
+          lowerHeader === 'submitted at' ||
+          lowerHeader === 'response id'
+        ) {
           mappedTo = 'skip';
         }
         // Full name (combined) — split into first + last at import time
@@ -254,9 +256,9 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
   };
 
   const updateMapping = (index: number, mappedTo: FieldName | 'metadata' | 'skip') => {
-        setMappings((prev) =>
-          prev.map((m, i) => (i === index ? { ...m, mappedTo, wasModified: true } : m))
-        );
+    setMappings((prev) =>
+      prev.map((m, i) => (i === index ? { ...m, mappedTo, wasModified: true } : m))
+    );
   };
 
   const validateMappings = (): boolean => {
@@ -391,7 +393,10 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
   };
 
   const getMappingBadgeVariant = (mappedTo: string) => {
-    if (mappedTo === 'full_name' || REQUIRED_FIELDS.includes(mappedTo as (typeof REQUIRED_FIELDS)[number])) {
+    if (
+      mappedTo === 'full_name' ||
+      REQUIRED_FIELDS.includes(mappedTo as (typeof REQUIRED_FIELDS)[number])
+    ) {
       return 'default';
     }
     if (OPTIONAL_FIELDS.includes(mappedTo as (typeof OPTIONAL_FIELDS)[number])) {
@@ -408,7 +413,11 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="border-white/15 text-zinc-300 hover:text-white hover:bg-white/5">
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-white/15 text-zinc-300 hover:text-white hover:bg-white/5"
+        >
           <Upload className="w-4 h-4 mr-2" />
           Smart Import
         </Button>
@@ -422,7 +431,8 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
             {step === 'importing' && 'Importing...'}
           </DialogTitle>
           <DialogDescription>
-            {step === 'upload' && 'Upload a Google Form export or any CSV file with applicant data.'}
+            {step === 'upload' &&
+              'Upload a Google Form export or any CSV file with applicant data.'}
             {step === 'mapping' &&
               'Map your CSV columns to applicant fields. Extra columns will be stored as metadata.'}
             {step === 'preview' && `Ready to import ${parsedData.length} applicants.`}
@@ -505,7 +515,9 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
                           <SelectItem value="skip">
                             <span className="text-muted-foreground">Skip</span>
                           </SelectItem>
-                          <SelectItem value="full_name">Full Name * (splits into first + last)</SelectItem>
+                          <SelectItem value="full_name">
+                            Full Name * (splits into first + last)
+                          </SelectItem>
                           <SelectItem value="first_name">First Name *</SelectItem>
                           <SelectItem value="last_name">Last Name *</SelectItem>
                           <SelectItem value="email">Email *</SelectItem>
@@ -520,17 +532,30 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
 
                       <div className="flex items-center gap-1.5 shrink-0">
                         {mapping.wasModified ? (
-                          <Badge variant="outline" className="text-xs gap-1 border-muted-foreground/30">
+                          <Badge
+                            variant="outline"
+                            className="text-xs gap-1 border-muted-foreground/30"
+                          >
                             <Pencil className="w-3 h-3" />
                             Manual
                           </Badge>
                         ) : mapping.autoDetected ? (
-                          <Badge variant="secondary" className="text-xs gap-1 bg-gold/10 text-gold border-gold/20">
+                          <Badge
+                            variant="secondary"
+                            className="text-xs gap-1 bg-gold/10 text-gold border-gold/20"
+                          >
                             Auto
                           </Badge>
                         ) : null}
-                        <Badge variant={getMappingBadgeVariant(mapping.mappedTo)} className="shrink-0">
-                          {mapping.mappedTo === 'metadata' ? 'Extra' : mapping.mappedTo === 'skip' ? '—' : '✓'}
+                        <Badge
+                          variant={getMappingBadgeVariant(mapping.mappedTo)}
+                          className="shrink-0"
+                        >
+                          {mapping.mappedTo === 'metadata'
+                            ? 'Extra'
+                            : mapping.mappedTo === 'skip'
+                              ? '—'
+                              : '✓'}
                         </Badge>
                       </div>
                     </div>
@@ -542,8 +567,8 @@ export function CSVDataMapper({ onImport }: CSVDataMapperProps) {
                 <Alert>
                   <CheckCircle2 className="h-4 w-4 text-gold" />
                   <AlertDescription>
-                    {metadataFieldCount} column{metadataFieldCount !== 1 ? 's' : ''} will be stored as
-                    metadata (e.g., form responses like "Why do you want to join?")
+                    {metadataFieldCount} column{metadataFieldCount !== 1 ? 's' : ''} will be stored
+                    as metadata (e.g., form responses like "Why do you want to join?")
                   </AlertDescription>
                 </Alert>
               )}

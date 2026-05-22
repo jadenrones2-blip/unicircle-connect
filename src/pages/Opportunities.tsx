@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Briefcase, ExternalLink, Clock, Loader2 } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { dataClient as supabase } from "@/integrations/supabase/dataClient";
+import { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Briefcase, ExternalLink, Clock, Loader2 } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { dataClient as supabase } from '@/integrations/supabase/dataClient';
 
 interface Opportunity {
   id: string;
@@ -29,7 +29,11 @@ const TYPES = ['All', 'Position', 'Internship', 'Research', 'Volunteer', 'Other'
 
 function formatDeadline(dateStr: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   } catch {
     return dateStr;
   }
@@ -71,9 +75,7 @@ const Opportunities = () => {
       {/* Hero */}
       <section className="pt-28 pb-6 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-[10px] tracking-[0.22em] uppercase text-zinc-600 mb-2">
-            UC San Diego
-          </p>
+          <p className="text-[10px] tracking-[0.22em] uppercase text-zinc-600 mb-2">UC San Diego</p>
           <h1 className="text-3xl md:text-5xl font-display font-bold text-white tracking-tight mb-2">
             Opportunities
           </h1>
@@ -98,7 +100,11 @@ const Opportunities = () => {
                   style={
                     isActive
                       ? { background: color, color: '#000', border: `1px solid ${color}` }
-                      : { background: 'transparent', color: '#71717a', border: '1px solid rgba(255,255,255,0.1)' }
+                      : {
+                          background: 'transparent',
+                          color: '#71717a',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                        }
                   }
                 >
                   {type}
@@ -129,9 +135,7 @@ const Opportunities = () => {
               <h3 className="text-lg font-display font-semibold text-white mb-2">
                 No opportunities yet
               </h3>
-              <p className="text-zinc-500">
-                Check back soon — clubs will post openings here.
-              </p>
+              <p className="text-zinc-500">Check back soon — clubs will post openings here.</p>
             </motion.div>
           ) : (
             <>
@@ -193,7 +197,9 @@ const Opportunities = () => {
                             <div className="flex items-center justify-between mt-auto">
                               <span className="flex items-center gap-1 text-[11px] text-zinc-600">
                                 <Clock className="w-3 h-3" />
-                                {opp.deadline ? `Due ${formatDeadline(opp.deadline)}` : 'No deadline'}
+                                {opp.deadline
+                                  ? `Due ${formatDeadline(opp.deadline)}`
+                                  : 'No deadline'}
                               </span>
                               {opp.link && (
                                 <a

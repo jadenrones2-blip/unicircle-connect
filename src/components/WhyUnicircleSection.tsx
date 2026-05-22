@@ -1,9 +1,9 @@
-import { motion } from "framer-motion";
-import { Search, CalendarCheck, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import AnimatedWords from "./AnimatedWords";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { motion } from 'framer-motion';
+import { Search, CalendarCheck, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import AnimatedWords from './AnimatedWords';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 const WhyUnicircleSection = () => {
   const { playClick, playHover } = useSoundEffects();
@@ -26,7 +26,7 @@ const WhyUnicircleSection = () => {
               text="Find your people."
               as="h2"
               className="font-display text-3xl md:text-5xl font-semibold"
-              goldWords={["people."]}
+              goldWords={['people.']}
             />
           </motion.div>
 
@@ -42,12 +42,8 @@ const WhyUnicircleSection = () => {
               <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center">
                 <Search className="w-8 h-8 text-gold" />
               </div>
-              <h3 className="font-display font-semibold text-foreground">
-                Club directory
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Every organization. One search.
-              </p>
+              <h3 className="font-display font-semibold text-foreground">Club directory</h3>
+              <p className="text-sm text-muted-foreground">Every organization. One search.</p>
             </motion.div>
 
             <motion.div
@@ -61,12 +57,8 @@ const WhyUnicircleSection = () => {
               <div className="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center">
                 <CalendarCheck className="w-8 h-8 text-gold" />
               </div>
-              <h3 className="font-display font-semibold text-foreground">
-                Event calendar
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Every event. One view.
-              </p>
+              <h3 className="font-display font-semibold text-foreground">Event calendar</h3>
+              <p className="text-sm text-muted-foreground">Every event. One view.</p>
             </motion.div>
           </div>
 

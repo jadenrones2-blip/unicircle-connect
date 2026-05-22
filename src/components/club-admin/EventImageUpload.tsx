@@ -49,9 +49,9 @@ export function EventImageUpload({ clubId, value, onChange, disabled }: EventIma
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('club-images')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('club-images').getPublicUrl(fileName);
 
       onChange(publicUrl);
       toast.success('Image uploaded!');
@@ -83,11 +83,7 @@ export function EventImageUpload({ clubId, value, onChange, disabled }: EventIma
 
       {value ? (
         <div className="relative rounded-lg overflow-hidden border border-border">
-          <img
-            src={value}
-            alt="Event preview"
-            className="w-full h-40 object-cover"
-          />
+          <img src={value} alt="Event preview" className="w-full h-40 object-cover" />
           <Button
             type="button"
             variant="destructive"
@@ -105,9 +101,9 @@ export function EventImageUpload({ clubId, value, onChange, disabled }: EventIma
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || uploading}
           className={cn(
-            "w-full h-40 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 transition-colors",
-            "hover:border-gold/50 hover:bg-gold/5",
-            (disabled || uploading) && "opacity-50 cursor-not-allowed"
+            'w-full h-40 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 transition-colors',
+            'hover:border-gold/50 hover:bg-gold/5',
+            (disabled || uploading) && 'opacity-50 cursor-not-allowed'
           )}
         >
           {uploading ? (

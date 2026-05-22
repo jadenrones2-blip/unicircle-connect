@@ -29,8 +29,14 @@ export default function ClubMessageButton({ clubId, clubName }: Props) {
   const [sent, setSent] = useState(false);
 
   const handleSend = async () => {
-    if (!body.trim()) { toast.error('Please write a message.'); return; }
-    if (!user) { toast.error('You need to be logged in to send a message.'); return; }
+    if (!body.trim()) {
+      toast.error('Please write a message.');
+      return;
+    }
+    if (!user) {
+      toast.error('You need to be logged in to send a message.');
+      return;
+    }
 
     setSending(true);
     try {
@@ -42,13 +48,13 @@ export default function ClubMessageButton({ clubId, clubName }: Props) {
         .maybeSingle();
 
       const { error } = await (supabase as any).from('club_messages').insert({
-        club_id:      clubId.trim().toLowerCase(),
-        sender_id:    user.id,
-        sender_name:  profile?.display_name || user.email?.split('@')[0] || 'Student',
+        club_id: clubId.trim().toLowerCase(),
+        sender_id: user.id,
+        sender_name: profile?.display_name || user.email?.split('@')[0] || 'Student',
         sender_email: user.email,
-        subject:      subject.trim() || `Message from ${profile?.display_name || 'a student'}`,
-        body:         body.trim(),
-        read:         false,
+        subject: subject.trim() || `Message from ${profile?.display_name || 'a student'}`,
+        body: body.trim(),
+        read: false,
       });
 
       if (error) throw error;
@@ -62,7 +68,11 @@ export default function ClubMessageButton({ clubId, clubName }: Props) {
 
   const handleClose = () => {
     setOpen(false);
-    setTimeout(() => { setSent(false); setSubject(''); setBody(''); }, 300);
+    setTimeout(() => {
+      setSent(false);
+      setSubject('');
+      setBody('');
+    }, 300);
   };
 
   return (
@@ -71,14 +81,18 @@ export default function ClubMessageButton({ clubId, clubName }: Props) {
         variant="outline"
         size="lg"
         className="w-full border-white/20 text-white hover:border-gold/50 hover:text-gold transition-all"
-        onClick={() => user ? setOpen(true) : toast.error('Sign in to message this club')}
+        onClick={() => (user ? setOpen(true) : toast.error('Sign in to message this club'))}
       >
         <MessageCircle className="w-4 h-4 mr-2" />
         Message Club
       </Button>
 
       <Sheet open={open} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="bg-zinc-950 border-white/10 rounded-t-2xl pb-safe" style={{ maxHeight: '90vh' }}>
+        <SheetContent
+          side="bottom"
+          className="bg-zinc-950 border-white/10 rounded-t-2xl pb-safe"
+          style={{ maxHeight: '90vh' }}
+        >
           <SheetHeader className="mb-5">
             <SheetTitle className="text-white font-display text-lg">Message {clubName}</SheetTitle>
             <SheetDescription className="text-zinc-500 text-sm">
@@ -93,28 +107,38 @@ export default function ClubMessageButton({ clubId, clubName }: Props) {
               </div>
               <div>
                 <p className="text-white font-semibold text-base mb-1">Message sent!</p>
-                <p className="text-zinc-500 text-sm">The {clubName} team will receive it in their inbox.</p>
+                <p className="text-zinc-500 text-sm">
+                  The {clubName} team will receive it in their inbox.
+                </p>
               </div>
-              <Button onClick={handleClose} variant="outline" className="border-white/10 text-zinc-300 mt-2">
+              <Button
+                onClick={handleClose}
+                variant="outline"
+                className="border-white/10 text-zinc-300 mt-2"
+              >
                 Done
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Subject</Label>
+                <Label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
+                  Subject
+                </Label>
                 <Input
                   value={subject}
-                  onChange={e => setSubject(e.target.value)}
+                  onChange={(e) => setSubject(e.target.value)}
                   placeholder={`e.g. Interest in joining ${clubName}`}
                   className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Message <span className="text-red-400">*</span></Label>
+                <Label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
+                  Message <span className="text-red-400">*</span>
+                </Label>
                 <Textarea
                   value={body}
-                  onChange={e => setBody(e.target.value)}
+                  onChange={(e) => setBody(e.target.value)}
                   placeholder="Introduce yourself and what you'd like to know…"
                   className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 min-h-[120px] resize-none"
                 />
@@ -124,10 +148,15 @@ export default function ClubMessageButton({ clubId, clubName }: Props) {
                 disabled={sending || !body.trim()}
                 className="w-full h-12 font-bold bg-gold text-zinc-900 hover:bg-gold/90"
               >
-                {sending
-                  ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending…</>
-                  : <><Send className="w-4 h-4 mr-2" /> Send Message</>
-                }
+                {sending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending…
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" /> Send Message
+                  </>
+                )}
               </Button>
             </div>
           )}

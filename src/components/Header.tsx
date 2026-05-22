@@ -1,25 +1,36 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Menu, X, Home, Users, Calendar, LogIn, User, LogOut, LayoutDashboard, Play, Bell, Settings, BookOpen, Zap } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/hooks/useAuth";
-import { useClubOwnership } from "@/hooks/useClubOwnership";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import {
+  Menu,
+  X,
+  Home,
+  Users,
+  Calendar,
+  LogIn,
+  User,
+  LogOut,
+  LayoutDashboard,
+  Play,
+  Bell,
+  Settings,
+  BookOpen,
+  Zap,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/hooks/useAuth';
+import { useClubOwnership } from '@/hooks/useClubOwnership';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import logoImage from "@/assets/unicircle-logo-new.png";
+} from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import logoImage from '@/assets/unicircle-logo-new.png';
 
 function formatRelativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -45,8 +56,8 @@ const Header = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -59,12 +70,12 @@ const Header = () => {
   };
 
   const navLinks = [
-    { href: "/", label: "Home", icon: Home },
-    { href: "/discover", label: "Discover", icon: Zap },
-    { href: "/clubs", label: "Clubs", icon: Users },
-    { href: "/events", label: "Events", icon: Calendar },
-    { href: "/demo", label: "Demo", icon: Play },
-    { href: "/story", label: "Our Story", icon: BookOpen },
+    { href: '/', label: 'Home', icon: Home },
+    { href: '/discover', label: 'Discover', icon: Zap },
+    { href: '/clubs', label: 'Clubs', icon: Users },
+    { href: '/events', label: 'Events', icon: Calendar },
+    { href: '/demo', label: 'Demo', icon: Play },
+    { href: '/story', label: 'Our Story', icon: BookOpen },
   ];
 
   const getUserInitials = () => {
@@ -75,9 +86,9 @@ const Header = () => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? "bg-background/60 backdrop-blur-xl border-b border-border/50 py-2 shadow-sm" 
-          : "bg-transparent backdrop-blur-sm py-4"
+        isScrolled
+          ? 'bg-background/60 backdrop-blur-xl border-b border-border/50 py-2 shadow-sm'
+          : 'bg-transparent backdrop-blur-sm py-4'
       }`}
     >
       <div className="container mx-auto flex items-center justify-between px-4 md:px-6 h-14 md:h-16">
@@ -86,14 +97,10 @@ const Header = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
             whileHover={{ scale: 1.02 }}
           >
-            <img 
-              src={logoImage} 
-              alt="UniCircle" 
-              className="h-10 md:h-14 w-auto object-contain"
-            />
+            <img src={logoImage} alt="UniCircle" className="h-10 md:h-14 w-auto object-contain" />
           </motion.div>
         </Link>
 
@@ -106,8 +113,8 @@ const Header = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * index }}
             >
-              <Link 
-                to={link.href} 
+              <Link
+                to={link.href}
                 className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors duration-200 relative group tracking-[0.1em] uppercase"
               >
                 <link.icon className="w-3.5 h-3.5 inline-block mr-1.5 opacity-70 group-hover:opacity-100 transition-opacity" />
@@ -171,7 +178,9 @@ const Header = () => {
                           className={`px-4 py-3 border-b border-white/5 last:border-b-0 ${n.read ? 'opacity-60' : 'bg-white/[0.03]'}`}
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <p className={`text-sm font-medium leading-snug ${n.read ? 'text-muted-foreground' : 'text-foreground'}`}>
+                            <p
+                              className={`text-sm font-medium leading-snug ${n.read ? 'text-muted-foreground' : 'text-foreground'}`}
+                            >
                               {n.title}
                             </p>
                             <span className="text-[11px] text-muted-foreground whitespace-nowrap flex-shrink-0 mt-0.5">
@@ -179,7 +188,9 @@ const Header = () => {
                             </span>
                           </div>
                           {n.body && (
-                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.body}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                              {n.body}
+                            </p>
                           )}
                         </div>
                       ))
@@ -209,41 +220,45 @@ const Header = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
-                  {isClubOwner && (
-                    <p className="text-xs text-gold font-semibold">Club Owner</p>
-                  )}
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard" className="cursor-pointer">
-                    <User className="w-4 h-4 mr-2" />
-                    Student Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                {isClubOwner && (
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
+                    {isClubOwner && <p className="text-xs text-gold font-semibold">Club Owner</p>}
+                  </div>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/club-admin" className="cursor-pointer">
-                      <LayoutDashboard className="w-4 h-4 mr-2" />
-                      Club Admin Portal
+                    <Link to="/dashboard" className="cursor-pointer">
+                      <User className="w-4 h-4 mr-2" />
+                      Student Dashboard
                     </Link>
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuItem asChild>
-                  <Link to={isClubOwner ? "/club-admin/profile" : "/profile"} className="cursor-pointer">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Profile Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {isClubOwner && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/club-admin" className="cursor-pointer">
+                        <LayoutDashboard className="w-4 h-4 mr-2" />
+                        Club Admin Portal
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to={isClubOwner ? '/club-admin/profile' : '/profile'}
+                      className="cursor-pointer"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Profile Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="cursor-pointer text-destructive"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <motion.div
@@ -253,7 +268,12 @@ const Header = () => {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
             >
-              <Button variant="gold" size="default" className="relative group overflow-hidden" asChild>
+              <Button
+                variant="gold"
+                size="default"
+                className="relative group overflow-hidden"
+                asChild
+              >
                 <Link to="/login">
                   <span className="relative z-10 flex items-center gap-2">
                     <LogIn className="w-4 h-4" />
@@ -302,9 +322,9 @@ const Header = () => {
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
+            animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="md:hidden overflow-hidden"
           >
             <div className="bg-card/95 backdrop-blur-xl border-b border-border px-4 py-6 mt-2">
@@ -326,7 +346,7 @@ const Header = () => {
                     </Link>
                   </motion.div>
                 ))}
-                
+
                 {user ? (
                   <>
                     <motion.div
@@ -359,7 +379,7 @@ const Header = () => {
                       transition={{ delay: 0.32 }}
                     >
                       <Link
-                        to={isClubOwner ? "/club-admin/profile" : "/profile"}
+                        to={isClubOwner ? '/club-admin/profile' : '/profile'}
                         className="block text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors py-3 px-4 rounded-lg hover:bg-gold/5 tracking-[0.1em] uppercase"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >

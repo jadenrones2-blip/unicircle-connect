@@ -1,20 +1,20 @@
-import { useSearchParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ExpressInterestForm from "@/components/ExpressInterestForm";
-import { clubs } from "@/data/mockData";
+import { useSearchParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import ExpressInterestForm from '@/components/ExpressInterestForm';
+import { clubs } from '@/data/mockData';
 
 const ExpressInterest = () => {
   const [searchParams] = useSearchParams();
-  const clubId = searchParams.get("club");
-  const preselectedClub = clubId ? clubs.find(c => c.id === clubId) : null;
+  const clubId = searchParams.get('club');
+  const preselectedClub = clubId ? clubs.find((c) => c.id === clubId) : null;
 
   return (
     <main className="min-h-screen bg-background">
       <Header />
-      
+
       {/* Hero Section */}
       <section className="pt-28 pb-12 md:pt-36 md:pb-16 px-4">
         <div className="container mx-auto">
@@ -38,10 +38,9 @@ const ExpressInterest = () => {
               )}
             </h1>
             <p className="text-lg text-muted-foreground">
-              {preselectedClub 
-                ? "Fill out the form below and the club will reach out to you with next steps."
-                : "Select a club and express your interest. We'll connect you with the right community."
-              }
+              {preselectedClub
+                ? 'Fill out the form below and the club will reach out to you with next steps.'
+                : "Select a club and express your interest. We'll connect you with the right community."}
             </p>
           </motion.div>
         </div>
@@ -58,7 +57,7 @@ const ExpressInterest = () => {
           >
             {preselectedClub && (
               <div className="mb-6 pb-6 border-b border-border">
-                <Link 
+                <Link
                   to={`/clubs/${preselectedClub.id}`}
                   className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -67,8 +66,8 @@ const ExpressInterest = () => {
                 </Link>
               </div>
             )}
-            
-            <ExpressInterestForm 
+
+            <ExpressInterestForm
               preselectedClubId={preselectedClub?.id}
               showClubSelector={!preselectedClub}
             />
@@ -82,7 +81,8 @@ const ExpressInterest = () => {
             className="mt-8 text-center text-sm text-muted-foreground"
           >
             <p>
-              By submitting, you agree to be contacted by the club regarding membership opportunities.
+              By submitting, you agree to be contacted by the club regarding membership
+              opportunities.
             </p>
           </motion.div>
         </div>

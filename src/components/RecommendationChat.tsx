@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import type { Club } from "@/data/mockData";
+import { useState, useRef, useEffect } from 'react';
+import { MessageCircle, X, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import type { Club } from '@/data/mockData';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,13 +18,13 @@ interface ChatOption {
 }
 
 interface BotMessage {
-  type: "bot";
+  type: 'bot';
   text: string;
   options?: ChatOption[];
 }
 
 interface UserMessage {
-  type: "user";
+  type: 'user';
   text: string;
 }
 
@@ -39,51 +39,49 @@ interface UserAnswers {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const interestToClubMapping: Record<string, string[]> = {
-  network: ["Professional", "Networking", "Career", "Industry"],
-  skills: ["Workshop", "Training", "Academic", "Bootcamp"],
-  squad: ["Social", "Community", "Recreation"],
-  purpose: ["Service", "Volunteer", "Philanthropy", "Social Impact"],
-  tech: ["Tech / STEM", "STEM", "Engineering", "Computer Science", "Coding", "Technology"],
-  business: ["Business", "Consulting", "Entrepreneurship", "Finance"],
-  arts: ["Arts", "Design", "Creative", "Music", "Dance", "Theater"],
-  science: ["Science", "Research", "Pre-Med", "Biology", "Chemistry"],
-  social_impact: ["Social Impact", "Advocacy", "Service", "Sustainability"],
-  fitness: ["Health", "Wellness", "Fitness", "Sports", "Recreation"],
-  professional: ["Professional", "Industry", "Career", "Corporate"],
-  chill: ["Casual", "Social", "Community"],
-  competitive: ["Competition", "Competitive", "Tournament"],
-  creative_vibe: ["Creative", "Arts", "Experimental"],
+  network: ['Professional', 'Networking', 'Career', 'Industry'],
+  skills: ['Workshop', 'Training', 'Academic', 'Bootcamp'],
+  squad: ['Social', 'Community', 'Recreation'],
+  purpose: ['Service', 'Volunteer', 'Philanthropy', 'Social Impact'],
+  tech: ['Tech / STEM', 'STEM', 'Engineering', 'Computer Science', 'Coding', 'Technology'],
+  business: ['Business', 'Consulting', 'Entrepreneurship', 'Finance'],
+  arts: ['Arts', 'Design', 'Creative', 'Music', 'Dance', 'Theater'],
+  science: ['Science', 'Research', 'Pre-Med', 'Biology', 'Chemistry'],
+  social_impact: ['Social Impact', 'Advocacy', 'Service', 'Sustainability'],
+  fitness: ['Health', 'Wellness', 'Fitness', 'Sports', 'Recreation'],
+  professional: ['Professional', 'Industry', 'Career', 'Corporate'],
+  chill: ['Casual', 'Social', 'Community'],
+  competitive: ['Competition', 'Competitive', 'Tournament'],
+  creative_vibe: ['Creative', 'Arts', 'Experimental'],
 };
 
 const STEP_1_OPTIONS: ChatOption[] = [
-  { label: "Build my network", value: "network" },
-  { label: "Learn new skills", value: "skills" },
-  { label: "Find my people", value: "squad" },
-  { label: "Make an impact", value: "purpose" },
+  { label: 'Build my network', value: 'network' },
+  { label: 'Learn new skills', value: 'skills' },
+  { label: 'Find my people', value: 'squad' },
+  { label: 'Make an impact', value: 'purpose' },
 ];
 
 const STEP_2_OPTIONS: ChatOption[] = [
-  { label: "Tech & Engineering", value: "tech" },
-  { label: "Business & Finance", value: "business" },
-  { label: "Arts & Design", value: "arts" },
-  { label: "Science & Research", value: "science" },
-  { label: "Social Impact", value: "social_impact" },
-  { label: "Sports & Fitness", value: "fitness" },
+  { label: 'Tech & Engineering', value: 'tech' },
+  { label: 'Business & Finance', value: 'business' },
+  { label: 'Arts & Design', value: 'arts' },
+  { label: 'Science & Research', value: 'science' },
+  { label: 'Social Impact', value: 'social_impact' },
+  { label: 'Sports & Fitness', value: 'fitness' },
 ];
 
 const STEP_3_OPTIONS: ChatOption[] = [
-  { label: "Professional & career-focused", value: "professional" },
-  { label: "Chill & social", value: "chill" },
-  { label: "Competitive & ambitious", value: "competitive" },
-  { label: "Creative & experimental", value: "creative_vibe" },
+  { label: 'Professional & career-focused', value: 'professional' },
+  { label: 'Chill & social', value: 'chill' },
+  { label: 'Competitive & ambitious', value: 'competitive' },
+  { label: 'Creative & experimental', value: 'creative_vibe' },
 ];
 
 // ─── Scoring ──────────────────────────────────────────────────────────────────
 
 function scoreClub(club: Club, answers: UserAnswers): number {
-  const clubText = [club.name, club.description, club.category]
-    .join(" ")
-    .toLowerCase();
+  const clubText = [club.name, club.description, club.category].join(' ').toLowerCase();
 
   let score = 0;
 
@@ -125,16 +123,16 @@ function getTopClubs(clubs: Club[], answers: UserAnswers): Club[] {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function RecruitingDot({ status }: { status: Club["recruitingStatus"] }) {
-  const colorMap: Record<Club["recruitingStatus"], string> = {
-    open: "bg-green-400",
-    upcoming: "bg-yellow-400",
-    closed: "bg-red-400",
+function RecruitingDot({ status }: { status: Club['recruitingStatus'] }) {
+  const colorMap: Record<Club['recruitingStatus'], string> = {
+    open: 'bg-green-400',
+    upcoming: 'bg-yellow-400',
+    closed: 'bg-red-400',
   };
-  const labelMap: Record<Club["recruitingStatus"], string> = {
-    open: "Open",
-    upcoming: "Upcoming",
-    closed: "Closed",
+  const labelMap: Record<Club['recruitingStatus'], string> = {
+    open: 'Open',
+    upcoming: 'Upcoming',
+    closed: 'Closed',
   };
   return (
     <span className="flex items-center gap-1">
@@ -159,9 +157,7 @@ function ClubResultCard({ club }: { club: Club }) {
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           <RecruitingDot status={club.recruitingStatus} />
-          <span className="text-[11px] text-[hsl(43_76%_52%)] font-medium">
-            View →
-          </span>
+          <span className="text-[11px] text-[hsl(43_76%_52%)] font-medium">View →</span>
         </div>
       </div>
     </Link>
@@ -182,7 +178,7 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
   const [selectedOptions, setSelectedOptions] = useState<Record<number, string>>({});
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      type: "bot",
+      type: 'bot',
       text: "Hi! 👋 I'll help you find the right club. What's your main goal?",
       options: STEP_1_OPTIONS,
     },
@@ -194,7 +190,7 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
   // Scroll to bottom whenever messages change
   useEffect(() => {
     if (isOpen) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isOpen]);
 
@@ -213,7 +209,7 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
     setRecommendations([]);
     setMessages([
       {
-        type: "bot",
+        type: 'bot',
         text: "Hi! 👋 I'll help you find the right club. What's your main goal?",
         options: STEP_1_OPTIONS,
       },
@@ -226,17 +222,14 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
 
     setSelectedOptions((prev) => ({ ...prev, [stepNumber]: option.value }));
 
-    const newMessages: ChatMessage[] = [
-      ...messages,
-      { type: "user", text: option.label },
-    ];
+    const newMessages: ChatMessage[] = [...messages, { type: 'user', text: option.label }];
 
     if (stepNumber === 1) {
       const updatedAnswers = { ...answers, goal: option.value };
       setAnswers(updatedAnswers);
       newMessages.push({
-        type: "bot",
-        text: "What field are you into?",
+        type: 'bot',
+        text: 'What field are you into?',
         options: STEP_2_OPTIONS,
       });
       setMessages(newMessages);
@@ -245,8 +238,8 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
       const updatedAnswers = { ...answers, field: option.value };
       setAnswers(updatedAnswers);
       newMessages.push({
-        type: "bot",
-        text: "What vibe fits you?",
+        type: 'bot',
+        text: 'What vibe fits you?',
         options: STEP_3_OPTIONS,
       });
       setMessages(newMessages);
@@ -257,8 +250,8 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
       const top = getTopClubs(clubs, updatedAnswers);
       setRecommendations(top);
       newMessages.push({
-        type: "bot",
-        text: "Here are your top matches! 🎯",
+        type: 'bot',
+        text: 'Here are your top matches! 🎯',
       });
       setMessages(newMessages);
       setStep(4);
@@ -277,7 +270,7 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
             initial={{ opacity: 0, scale: 0.8, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 16 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
             onClick={handleOpen}
             className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-[hsl(43_76%_52%)] px-4 py-3 text-sm font-semibold text-zinc-900 shadow-lg hover:bg-[hsl(43_76%_46%)] transition-colors duration-200"
             aria-label="Open club finder chat"
@@ -296,7 +289,7 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 24 }}
-            transition={{ duration: 0.24, ease: "easeOut" }}
+            transition={{ duration: 0.24, ease: 'easeOut' }}
             className="fixed bottom-6 right-6 z-50 flex flex-col w-[380px] max-h-[520px] rounded-2xl border border-white/10 bg-[#111] shadow-2xl overflow-hidden"
             aria-label="Club recommendation chat"
           >
@@ -304,9 +297,7 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
               <div className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4 text-[hsl(43_76%_52%)]" />
-                <span className="text-sm font-semibold text-white tracking-tight">
-                  Club Finder
-                </span>
+                <span className="text-sm font-semibold text-white tracking-tight">Club Finder</span>
               </div>
               <button
                 onClick={handleClose}
@@ -322,16 +313,15 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
               {messages.map((msg, idx) => {
                 // Determine which step this bot message with options belongs to
                 const botMessageStepIndex =
-                  msg.type === "bot" && msg.options
+                  msg.type === 'bot' && msg.options
                     ? messages
                         .slice(0, idx + 1)
-                        .filter((m) => m.type === "bot" && (m as BotMessage).options)
-                        .length
+                        .filter((m) => m.type === 'bot' && (m as BotMessage).options).length
                     : null;
 
                 return (
                   <div key={idx}>
-                    {msg.type === "bot" ? (
+                    {msg.type === 'bot' ? (
                       <div className="flex flex-col items-start gap-2">
                         {/* Bot bubble */}
                         <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-white/10 px-3 py-2 text-sm text-white leading-relaxed">
@@ -342,26 +332,22 @@ export default function RecommendationChat({ clubs }: RecommendationChatProps) {
                         {msg.options && botMessageStepIndex !== null && (
                           <div className="flex flex-wrap gap-1.5 mt-0.5">
                             {msg.options.map((opt) => {
-                              const isSelected =
-                                selectedOptions[botMessageStepIndex] === opt.value;
-                              const stepLocked =
-                                selectedOptions[botMessageStepIndex] !== undefined;
+                              const isSelected = selectedOptions[botMessageStepIndex] === opt.value;
+                              const stepLocked = selectedOptions[botMessageStepIndex] !== undefined;
 
                               return (
                                 <button
                                   key={opt.value}
-                                  onClick={() =>
-                                    handleOptionSelect(botMessageStepIndex, opt)
-                                  }
+                                  onClick={() => handleOptionSelect(botMessageStepIndex, opt)}
                                   disabled={stepLocked}
                                   className={[
-                                    "rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150",
+                                    'rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150',
                                     isSelected
-                                      ? "border-[hsl(43_76%_52%)] bg-[hsl(43_76%_52%)] text-zinc-900"
+                                      ? 'border-[hsl(43_76%_52%)] bg-[hsl(43_76%_52%)] text-zinc-900'
                                       : stepLocked
-                                      ? "border-white/10 text-white/30 cursor-not-allowed"
-                                      : "border-white/20 text-white hover:border-[hsl(43_76%_52%)] hover:text-[hsl(43_76%_52%)]",
-                                  ].join(" ")}
+                                        ? 'border-white/10 text-white/30 cursor-not-allowed'
+                                        : 'border-white/20 text-white hover:border-[hsl(43_76%_52%)] hover:text-[hsl(43_76%_52%)]',
+                                  ].join(' ')}
                                 >
                                   {opt.label}
                                 </button>

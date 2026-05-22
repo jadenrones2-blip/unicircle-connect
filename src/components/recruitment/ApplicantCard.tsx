@@ -14,14 +14,9 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Applicant } from '@/hooks/useRecruitment';
-import {Checkbox} from "@/components/ui/checkbox.tsx";
+import { Checkbox } from '@/components/ui/checkbox.tsx';
 
 const AVATAR_COLORS = [
   'bg-sky-500/20 text-sky-300',
@@ -40,17 +35,30 @@ function getAvatarColor(name: string) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-export function ApplicantAvatar({ firstName, lastName, avatarUrl, size = 'sm' }: { firstName: string; lastName: string; avatarUrl?: string | null; size?: 'sm' | 'md' | 'lg' }) {
+export function ApplicantAvatar({
+  firstName,
+  lastName,
+  avatarUrl,
+  size = 'sm',
+}: {
+  firstName: string;
+  lastName: string;
+  avatarUrl?: string | null;
+  size?: 'sm' | 'md' | 'lg';
+}) {
   const initials = `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
   const color = getAvatarColor(`${firstName}${lastName}`);
-  const sizeClass = size === 'lg' ? 'w-10 h-10 text-sm' : size === 'md' ? 'w-8 h-8 text-xs' : 'w-7 h-7 text-xs';
+  const sizeClass =
+    size === 'lg' ? 'w-10 h-10 text-sm' : size === 'md' ? 'w-8 h-8 text-xs' : 'w-7 h-7 text-xs';
   if (avatarUrl) {
     return (
       <img src={avatarUrl} className={`${sizeClass} rounded-full object-cover shrink-0`} alt="" />
     );
   }
   return (
-    <div className={`${sizeClass} ${color} rounded-full flex items-center justify-center font-semibold shrink-0`}>
+    <div
+      className={`${sizeClass} ${color} rounded-full flex items-center justify-center font-semibold shrink-0`}
+    >
       {initials || '?'}
     </div>
   );
@@ -71,15 +79,20 @@ interface ApplicantCardProps {
   onMove?: (applicantId: string, stageId: string) => void;
 }
 
-export function ApplicantCard({ applicant, onDelete, onOpen, officerScore, stages, currentStageId, onMove, isSelected = false, onSelect }: ApplicantCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: applicant.id });
+export function ApplicantCard({
+  applicant,
+  onDelete,
+  onOpen,
+  officerScore,
+  stages,
+  currentStageId,
+  onMove,
+  isSelected = false,
+  onSelect,
+}: ApplicantCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: applicant.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -112,7 +125,9 @@ export function ApplicantCard({ applicant, onDelete, onOpen, officerScore, stage
   };
 
   // Derive standout: explicit AI flag, or fallback to high score + passes strict
-  const isStandout = applicant.is_standout ?? ((applicant.fit_score ?? 0) >= 85 && applicant.passes_strict_filters !== false);
+  const isStandout =
+    applicant.is_standout ??
+    ((applicant.fit_score ?? 0) >= 85 && applicant.passes_strict_filters !== false);
 
   return (
     <Card
@@ -128,39 +143,38 @@ export function ApplicantCard({ applicant, onDelete, onOpen, officerScore, stage
       <div className="flex items-start gap-2">
         <div className="flex flex-col justify-between items-center self-stretch">
           <button
-              {...attributes}
-              {...listeners}
-              className="mt-1 p-0.5 rounded hover:bg-white/10 cursor-grab active:cursor-grabbing shrink-0"
+            {...attributes}
+            {...listeners}
+            className="mt-1 p-0.5 rounded hover:bg-white/10 cursor-grab active:cursor-grabbing shrink-0"
           >
-            <GripVertical className="w-4 h-4 text-zinc-600"/>
+            <GripVertical className="w-4 h-4 text-zinc-600" />
           </button>
           <Checkbox
-              onClick={(e) => e.stopPropagation()}
-              checked={isSelected}
-              onCheckedChange={() => onSelect?.(applicant.id)}
-              className="border-zinc-500 data-[state=checked]:bg-yellow-400 data-[state=checked]:border-yellow-400 data-[state=checked]:text-white cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+            checked={isSelected}
+            onCheckedChange={() => onSelect?.(applicant.id)}
+            className="border-zinc-500 data-[state=checked]:bg-yellow-400 data-[state=checked]:border-yellow-400 data-[state=checked]:text-white cursor-pointer"
           />
         </div>
 
         <ApplicantAvatar
-            firstName={applicant.first_name}
-            lastName={applicant.last_name}
-            avatarUrl={applicant.avatar_url}
-            size="sm"/>
+          firstName={applicant.first_name}
+          lastName={applicant.last_name}
+          avatarUrl={applicant.avatar_url}
+          size="sm"
+        />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                {isStandout && (
-                    <Star className="w-3.5 h-3.5 text-gold fill-gold shrink-0"/>
-                )}
+                {isStandout && <Star className="w-3.5 h-3.5 text-gold fill-gold shrink-0" />}
                 <p className="font-medium text-sm text-zinc-100 truncate">
                   {applicant.first_name} {applicant.last_name}
                 </p>
               </div>
               <div className="flex items-center gap-1 text-xs text-zinc-500 mt-0.5">
-                <Mail className="w-3 h-3"/>
+                <Mail className="w-3 h-3" />
                 <span className="truncate">{applicant.email}</span>
               </div>
             </div>
@@ -168,42 +182,44 @@ export function ApplicantCard({ applicant, onDelete, onOpen, officerScore, stage
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0">
-                  <MoreVertical className="w-3.5 h-3.5"/>
+                  <MoreVertical className="w-3.5 h-3.5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {stages && stages.filter(s => s.id !== currentStageId).length > 0 && (
-                    <>
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          <ChevronRight className="w-4 h-4 mr-2"/>
-                          Move to
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent>
-                          {stages.filter(s => s.id !== currentStageId).map(s => (
-                              <DropdownMenuItem
-                                  key={s.id}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onMove?.(applicant.id, s.id);
-                                  }}
-                              >
-                                {s.label}
-                              </DropdownMenuItem>
+                {stages && stages.filter((s) => s.id !== currentStageId).length > 0 && (
+                  <>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <ChevronRight className="w-4 h-4 mr-2" />
+                        Move to
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {stages
+                          .filter((s) => s.id !== currentStageId)
+                          .map((s) => (
+                            <DropdownMenuItem
+                              key={s.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onMove?.(applicant.id, s.id);
+                              }}
+                            >
+                              {s.label}
+                            </DropdownMenuItem>
                           ))}
-                        </DropdownMenuSubContent>
-                      </DropdownMenuSub>
-                      <DropdownMenuSeparator/>
-                    </>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
+                  </>
                 )}
                 <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(applicant.id);
-                    }}
+                  className="text-destructive focus:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(applicant.id);
+                  }}
                 >
-                  <Trash2 className="w-4 h-4 mr-2"/>
+                  <Trash2 className="w-4 h-4 mr-2" />
                   Remove
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -212,30 +228,30 @@ export function ApplicantCard({ applicant, onDelete, onOpen, officerScore, stage
 
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {applicant.major && (
-                <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-zinc-400">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-zinc-400">
                 {applicant.major}
               </span>
             )}
             {applicant.year && (
-                <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-zinc-400">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-zinc-400">
                 {applicant.year}
               </span>
             )}
             {getFitScoreBadge()}
             {officerScore != null && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Badge variant="outline" className="text-xs gap-1 border-gold/40 text-gold/80">
-                        <Star className="w-3 h-3"/>
-                        {officerScore}
-                      </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-sm">Your rubric score</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="text-xs gap-1 border-gold/40 text-gold/80">
+                      <Star className="w-3 h-3" />
+                      {officerScore}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-sm">Your rubric score</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         </div>

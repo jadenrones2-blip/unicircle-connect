@@ -88,7 +88,7 @@ serve(async (req) => {
     const raw = data.content?.[0]?.text || "";
 
     // Strip markdown fences
-    let clean = raw.trim().replace(/^```[a-z]*\n?/, "").replace(/```$/, "").trim();
+    const clean = raw.trim().replace(/^```[a-z]*\n?/, "").replace(/```$/, "").trim();
     // Extract JSON object
     const match = clean.match(/\{[\s\S]*\}/);
     if (!match) {

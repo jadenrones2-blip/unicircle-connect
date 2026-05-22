@@ -45,11 +45,20 @@ export default function ClubAdminRecruitment() {
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (!authLoading && !ownershipLoading && user && clubId && !isOwnerOf(clubId) && !isOfficerOf(clubId))
+    if (
+      !authLoading &&
+      !ownershipLoading &&
+      user &&
+      clubId &&
+      !isOwnerOf(clubId) &&
+      !isOfficerOf(clubId)
+    )
       navigate('/club-admin');
   }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, isOfficerOf, navigate]);
 
-  const clubName = ownedClubs.find(c => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase())?.clubName || 'Club';
+  const clubName =
+    ownedClubs.find((c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase())
+      ?.clubName || 'Club';
 
   const handleEnable = async () => {
     setEnabling(true);
@@ -67,14 +76,17 @@ export default function ClubAdminRecruitment() {
     if (!recruitmentLoading && isEnabled && !hasStages && !creatingStages) {
       handleCreateStages([]);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recruitmentLoading, isEnabled, hasStages]);
 
   const isLoading = authLoading || ownershipLoading || recruitmentLoading;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0A0A' }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: '#0A0A0A' }}
+      >
         <Loader2 className="w-6 h-6 text-gold animate-spin" />
       </div>
     );
@@ -87,12 +99,17 @@ export default function ClubAdminRecruitment() {
       <div className="min-h-screen flex w-full overflow-hidden" style={{ background: '#0A0A0A' }}>
         <ClubAdminSidebar />
         <main className="flex-1 flex flex-col min-h-screen min-w-0 overflow-hidden">
-          <header className="h-14 flex items-center px-4 gap-3 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <header
+            className="h-14 flex items-center px-4 gap-3 shrink-0"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          >
             <SidebarTrigger className="text-zinc-500 hover:text-white transition-colors" />
-            <AdminBreadcrumb items={[
-              { label: clubName, href: `/club-admin/clubs/${clubId}/events` },
-              { label: 'Recruitment' }
-            ]} />
+            <AdminBreadcrumb
+              items={[
+                { label: clubName, href: `/club-admin/clubs/${clubId}/events` },
+                { label: 'Recruitment' },
+              ]}
+            />
           </header>
 
           <div className="flex-1 flex flex-col p-5 sm:p-7 min-h-0">

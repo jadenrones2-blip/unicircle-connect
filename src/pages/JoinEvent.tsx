@@ -1,14 +1,23 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowRight, Calendar, Clock, MapPin, Camera, Utensils, Rocket, Handshake } from 'lucide-react';
+import {
+  ArrowRight,
+  Calendar,
+  Clock,
+  MapPin,
+  Camera,
+  Utensils,
+  Rocket,
+  Handshake,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 
 const PERKS = [
-  { icon: Camera,    title: 'LinkedIn Headshots', body: 'Professional headshots, on the house' },
-  { icon: Utensils,  title: 'Mendocino Farms',    body: 'Real food, not pizza' },
-  { icon: Rocket,    title: 'Real Founders',       body: 'Meet the people building things' },
-  { icon: Handshake, title: 'Opportunities',       body: 'Internships, team-joins, side projects' },
+  { icon: Camera, title: 'LinkedIn Headshots', body: 'Professional headshots, on the house' },
+  { icon: Utensils, title: 'Mendocino Farms', body: 'Real food, not pizza' },
+  { icon: Rocket, title: 'Real Founders', body: 'Meet the people building things' },
+  { icon: Handshake, title: 'Opportunities', body: 'Internships, team-joins, side projects' },
 ];
 
 export default function JoinEvent() {
@@ -23,10 +32,7 @@ export default function JoinEvent() {
   }, [user, authLoading, clubId, navigate]);
 
   const storeContextAndGo = (path: string) => {
-    localStorage.setItem(
-      'unicircle_join_context',
-      JSON.stringify({ clubId, googleFormUrl: null }),
-    );
+    localStorage.setItem('unicircle_join_context', JSON.stringify({ clubId, googleFormUrl: null }));
     navigate(path);
   };
 
@@ -35,12 +41,16 @@ export default function JoinEvent() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 relative overflow-hidden">
       {/* Ambient glows */}
-      <div className="pointer-events-none absolute top-0 right-0 w-[500px] h-[500px]
+      <div
+        className="pointer-events-none absolute top-0 right-0 w-[500px] h-[500px]
                       bg-[radial-gradient(circle,rgba(124,58,237,0.15)_0%,transparent_70%)]
-                      -translate-y-1/4 translate-x-1/4" />
-      <div className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px]
+                      -translate-y-1/4 translate-x-1/4"
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px]
                       bg-[radial-gradient(circle,rgba(196,150,28,0.12)_0%,transparent_70%)]
-                      translate-y-1/4 -translate-x-1/4" />
+                      translate-y-1/4 -translate-x-1/4"
+      />
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -54,7 +64,6 @@ export default function JoinEvent() {
       <div className="h-[3px] bg-gradient-to-r from-[#7C3AED] via-[hsl(43,74%,56%)] to-[#7C3AED]" />
 
       <div className="relative z-10 max-w-lg mx-auto px-6 pt-12 pb-24">
-
         {/* Club chips */}
         <div className="flex items-center gap-3 flex-wrap mb-10">
           <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.09] rounded-full px-4 py-2">
@@ -78,7 +87,8 @@ export default function JoinEvent() {
 
         {/* Headline */}
         <h1 className="font-display text-7xl font-black leading-[0.88] mb-4 tracking-tight">
-          LINK<br />
+          LINK
+          <br />
           <span className="text-gold">UP.</span>
         </h1>
         <p className="text-zinc-400 text-lg leading-relaxed mb-10">
@@ -134,9 +144,7 @@ export default function JoinEvent() {
 
         {/* CTA card */}
         <div className="bg-gradient-to-br from-violet-500/10 to-gold/5 border border-violet-500/20 rounded-2xl p-7 text-center">
-          <h2 className="text-xl font-bold text-zinc-100 mb-1.5">
-            Build your campus profile
-          </h2>
+          <h2 className="text-xl font-bold text-zinc-100 mb-1.5">Build your campus profile</h2>
           <p className="text-sm text-zinc-500 mb-5 max-w-xs mx-auto">
             Takes 2 minutes. Tell us what you're into — we'll match you with the right clubs and
             people at UCSD.
@@ -168,7 +176,9 @@ export default function JoinEvent() {
         <div className="mt-14 pt-6 border-t border-white/[0.04] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-gold" />
-            <span className="text-xs font-bold tracking-widest text-zinc-700 uppercase">unicircle.app</span>
+            <span className="text-xs font-bold tracking-widest text-zinc-700 uppercase">
+              unicircle.app
+            </span>
           </div>
           <p className="text-xs text-zinc-700">@startupincubatorucsd · @seventhcsc</p>
         </div>

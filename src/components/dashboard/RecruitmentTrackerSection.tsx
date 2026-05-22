@@ -21,10 +21,7 @@ export default function RecruitmentTrackerSection() {
           </h2>
           <p className="text-sm text-zinc-500">Track where you stand</p>
         </div>
-        <Link
-          to="/clubs"
-          className="text-xs text-zinc-500 hover:text-gold transition-colors"
-        >
+        <Link to="/clubs" className="text-xs text-zinc-500 hover:text-gold transition-colors">
           Browse clubs →
         </Link>
       </div>

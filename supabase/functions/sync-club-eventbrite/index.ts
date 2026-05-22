@@ -455,7 +455,7 @@ Deno.serve(async (req) => {
         const normalizedOrganizer = event.organizer_name.toLowerCase();
         const normalizedOrganizerClean = normalizeClubName(event.organizer_name);
         
-        let matchedClub = clubNameMap.get(normalizedOrganizer) || 
+        const matchedClub = clubNameMap.get(normalizedOrganizer) || 
                           clubNameMap.get(normalizedOrganizerClean);
 
         if (!matchedClub) {

@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
-import { Upload, X, Loader2, ImageIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { dataClient } from "@/integrations/supabase/dataClient";
-import { toast } from "sonner";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { useState, useRef } from 'react';
+import { Upload, X, Loader2, ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { dataClient } from '@/integrations/supabase/dataClient';
+import { toast } from 'sonner';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 interface ClubImageUploadProps {
   clubId: string;
@@ -11,7 +11,11 @@ interface ClubImageUploadProps {
   onImageUploaded: (url: string) => void;
 }
 
-export function ClubImageUpload({ clubId, currentImageUrl, onImageUploaded }: ClubImageUploadProps) {
+export function ClubImageUpload({
+  clubId,
+  currentImageUrl,
+  onImageUploaded,
+}: ClubImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -21,14 +25,14 @@ export function ClubImageUpload({ clubId, currentImageUrl, onImageUploaded }: Cl
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be less than 5MB");
+      toast.error('Image must be less than 5MB');
       return;
     }
 
@@ -36,42 +40,42 @@ export function ClubImageUpload({ clubId, currentImageUrl, onImageUploaded }: Cl
 
     try {
       // Create a unique file path
-      const fileExt = file.name.split(".").pop();
+      const fileExt = file.name.split('.').pop();
       const fileName = `${clubId}/cover.${fileExt}`;
 
       // Upload to external DB storage
       const { error: uploadError } = await dataClient.storage
-        .from("club-images")
+        .from('club-images')
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = dataClient.storage
-        .from("club-images")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = dataClient.storage.from('club-images').getPublicUrl(fileName);
 
       // Add cache-busting query param
       const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
-      
+
       setPreviewUrl(urlWithCacheBust);
       onImageUploaded(publicUrl);
-      toast.success("Image uploaded successfully!");
+      toast.success('Image uploaded successfully!');
     } catch (err: any) {
-      console.error("Error uploading image:", err);
-      toast.error(err.message || "Failed to upload image");
+      console.error('Error uploading image:', err);
+      toast.error(err.message || 'Failed to upload image');
     } finally {
       setUploading(false);
       // Reset input
       if (inputRef.current) {
-        inputRef.current.value = "";
+        inputRef.current.value = '';
       }
     }
   };
 
   const handleRemoveImage = () => {
     setPreviewUrl(null);
-    onImageUploaded("");
+    onImageUploaded('');
   };
 
   return (
@@ -84,11 +88,7 @@ export function ClubImageUpload({ clubId, currentImageUrl, onImageUploaded }: Cl
       {previewUrl ? (
         <div className="relative group">
           <AspectRatio ratio={16 / 9} className="bg-muted rounded-lg overflow-hidden">
-            <img
-              src={previewUrl}
-              alt="Club cover"
-              className="w-full h-full object-cover"
-            />
+            <img src={previewUrl} alt="Club cover" className="w-full h-full object-cover" />
           </AspectRatio>
           <Button
             type="button"
@@ -113,9 +113,7 @@ export function ClubImageUpload({ clubId, currentImageUrl, onImageUploaded }: Cl
           ) : (
             <div className="flex flex-col items-center gap-2">
               <Upload className="w-8 h-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Click to upload a cover image
-              </p>
+              <p className="text-sm text-muted-foreground">Click to upload a cover image</p>
               <p className="text-xs text-muted-foreground/70">
                 PNG, JPG up to 5MB. Recommended 16:9 aspect ratio.
               </p>

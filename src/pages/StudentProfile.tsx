@@ -9,8 +9,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Camera, Loader2, Check, X, FileText, Upload, Trash2, RefreshCw } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  ArrowLeft,
+  Camera,
+  Loader2,
+  Check,
+  X,
+  FileText,
+  Upload,
+  Trash2,
+  RefreshCw,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 const INTEREST_OPTIONS: { category: string; label: string; value: string; emoji: string }[] = [
@@ -97,7 +113,13 @@ export default function StudentProfile() {
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState<Profile>({
-    display_name: '', email: '', avatar_url: null, major: null, year: null, bio: null, resume_url: null,
+    display_name: '',
+    email: '',
+    avatar_url: null,
+    major: null,
+    year: null,
+    bio: null,
+    resume_url: null,
   });
   const [uploadingResume, setUploadingResume] = useState(false);
   const resumeInputRef = useRef<HTMLInputElement>(null);
@@ -109,12 +131,19 @@ export default function StudentProfile() {
   const [interestsDirty, setInterestsDirty] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !user) { navigate('/login'); return; }
+    if (!authLoading && !user) {
+      navigate('/login');
+      return;
+    }
     if (!user) return;
     (async () => {
       setLoading(true);
       const [profileRes, interestsData] = await Promise.all([
-        supabase.from('profiles' as any).select('*').eq('user_id', user.id).maybeSingle(),
+        supabase
+          .from('profiles' as any)
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle(),
         fetchInterests(user.id),
       ]);
       if (profileRes.data) {
@@ -129,10 +158,16 @@ export default function StudentProfile() {
           resume_url: p.resume_url || null,
         });
       } else {
-        setProfile(f => ({ ...f, email: user.email || '', display_name: user.email?.split('@')[0] || '' }));
+        setProfile((f) => ({
+          ...f,
+          email: user.email || '',
+          display_name: user.email?.split('@')[0] || '',
+        }));
       }
       const set = new Set<string>();
-      (interestsData || []).forEach((i: any) => set.add(`${i.interest_category}:${i.interest_value}`));
+      (interestsData || []).forEach((i: any) =>
+        set.add(`${i.interest_category}:${i.interest_value}`)
+      );
       setSelectedInterests(set);
       setLoading(false);
     })();
@@ -141,21 +176,32 @@ export default function StudentProfile() {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB');
+      return;
+    }
     setUploadingAvatar(true);
     const ext = file.name.split('.').pop() || 'jpg';
     const path = `${user.id}.${ext}`;
-    const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true });
     if (uploadError) {
       console.error('Avatar upload error:', JSON.stringify(uploadError));
-      toast.error(`Upload failed: ${uploadError.message || uploadError.error || JSON.stringify(uploadError)}`);
+      toast.error(
+        `Upload failed: ${uploadError.message || uploadError.error || JSON.stringify(uploadError)}`
+      );
       setUploadingAvatar(false);
       return;
     }
-    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path);
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from('avatars').getPublicUrl(path);
     const url = `${publicUrl}?t=${Date.now()}`;
-    await supabase.from('profiles' as any).upsert({ user_id: user.id, avatar_url: url }, { onConflict: 'user_id' });
-    setProfile(p => ({ ...p, avatar_url: url }));
+    await supabase
+      .from('profiles' as any)
+      .upsert({ user_id: user.id, avatar_url: url }, { onConflict: 'user_id' });
+    setProfile((p) => ({ ...p, avatar_url: url }));
     toast.success('Photo updated');
     setUploadingAvatar(false);
     e.target.value = '';
@@ -164,31 +210,37 @@ export default function StudentProfile() {
   const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    if (file.size > 10 * 1024 * 1024) { toast.error('Resume must be under 10MB'); return; }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Resume must be under 10MB');
+      return;
+    }
     setUploadingResume(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { toast.error('Not signed in'); setUploadingResume(false); return; }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Not signed in');
+        setUploadingResume(false);
+        return;
+      }
 
       const formData = new FormData();
       formData.append('file', file);
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const res = await fetch(
-        `${supabaseUrl}/functions/v1/upload-resume`,
-        {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${session.access_token}` },
-          body: formData,
-        }
-      );
+      const res = await fetch(`${supabaseUrl}/functions/v1/upload-resume`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: formData,
+      });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         console.error('Resume upload error:', json);
         toast.error(`Upload failed: ${json.error || res.statusText}`);
         return;
       }
-      setProfile(p => ({ ...p, resume_url: json.url }));
+      setProfile((p) => ({ ...p, resume_url: json.url }));
       toast.success('Resume uploaded');
 
       // Fire parse-resume in background — extracts keywords for recommendations
@@ -196,16 +248,18 @@ export default function StudentProfile() {
       toast.loading('Analyzing your resume…', { id: toastId });
       fetch(`${supabaseUrl}/functions/v1/parse-resume`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
-      }).then(async (r) => {
-        if (r.ok) {
-          const d = await r.json();
-          const count = d.signals?.length ?? 0;
-          toast.success(`Resume analyzed — ${count} keywords extracted`, { id: toastId });
-        } else {
-          toast.dismiss(toastId);
-        }
-      }).catch(() => toast.dismiss(toastId));
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+        .then(async (r) => {
+          if (r.ok) {
+            const d = await r.json();
+            const count = d.signals?.length ?? 0;
+            toast.success(`Resume analyzed — ${count} keywords extracted`, { id: toastId });
+          } else {
+            toast.dismiss(toastId);
+          }
+        })
+        .catch(() => toast.dismiss(toastId));
     } catch (err) {
       console.error('Resume upload exception:', err);
       toast.error('Upload failed — please try again');
@@ -218,14 +272,15 @@ export default function StudentProfile() {
   const handleRemoveResume = async () => {
     if (!user) return;
     await supabase.storage.from('resumes').remove([`${user.id}/resume.pdf`]);
-    const { error: profileErr } = await supabase.from('profiles' as any)
+    const { error: profileErr } = await supabase
+      .from('profiles' as any)
       .update({ resume_url: null, resume_signals: [] })
       .eq('user_id', user.id);
     if (profileErr) {
       toast.error('Failed to remove resume');
       return;
     }
-    setProfile(p => ({ ...p, resume_url: null }));
+    setProfile((p) => ({ ...p, resume_url: null }));
     toast.success('Resume removed');
   };
 
@@ -241,13 +296,22 @@ export default function StudentProfile() {
     };
 
     // Check if profile row exists
-    const { data: existing } = await supabase.from('profiles' as any).select('user_id').eq('user_id', user.id).maybeSingle();
+    const { data: existing } = await supabase
+      .from('profiles' as any)
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
 
     let error;
     if (existing) {
-      ({ error } = await supabase.from('profiles' as any).update(payload).eq('user_id', user.id));
+      ({ error } = await supabase
+        .from('profiles' as any)
+        .update(payload)
+        .eq('user_id', user.id));
     } else {
-      ({ error } = await supabase.from('profiles' as any).insert({ user_id: user.id, email: user.email, ...payload }));
+      ({ error } = await supabase
+        .from('profiles' as any)
+        .insert({ user_id: user.id, email: user.email, ...payload }));
     }
 
     if (error) {
@@ -261,7 +325,7 @@ export default function StudentProfile() {
   };
 
   const toggleInterest = (key: string) => {
-    setSelectedInterests(prev => {
+    setSelectedInterests((prev) => {
       const next = new Set(prev);
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
@@ -272,23 +336,29 @@ export default function StudentProfile() {
   const handleSaveInterests = async () => {
     if (!user) return;
     setSavingInterests(true);
-    const interests = [...selectedInterests].map(key => {
+    const interests = [...selectedInterests].map((key) => {
       const [category, value] = key.split(':');
       return { category, value };
     });
     const result = await saveInterests(user.id, interests);
-    if (result.success) { toast.success('Interests saved'); setInterestsDirty(false); }
-    else toast.error('Failed to save interests');
+    if (result.success) {
+      toast.success('Interests saved');
+      setInterestsDirty(false);
+    } else toast.error('Failed to save interests');
     setSavingInterests(false);
   };
 
-  const groupedOptions = INTEREST_OPTIONS.reduce((acc, opt) => {
-    if (!acc[opt.category]) acc[opt.category] = [];
-    acc[opt.category].push(opt);
-    return acc;
-  }, {} as Record<string, typeof INTEREST_OPTIONS>);
+  const groupedOptions = INTEREST_OPTIONS.reduce(
+    (acc, opt) => {
+      if (!acc[opt.category]) acc[opt.category] = [];
+      acc[opt.category].push(opt);
+      return acc;
+    },
+    {} as Record<string, typeof INTEREST_OPTIONS>
+  );
 
-  const initials = profile.display_name?.[0]?.toUpperCase() || profile.email?.[0]?.toUpperCase() || '?';
+  const initials =
+    profile.display_name?.[0]?.toUpperCase() || profile.email?.[0]?.toUpperCase() || '?';
 
   if (loading) {
     return (
@@ -306,28 +376,50 @@ export default function StudentProfile() {
       <Header />
 
       <div className="container mx-auto px-4 pt-24 pb-24 max-w-2xl">
-        <Link to="/dashboard" className="inline-flex items-center text-sm text-zinc-500 hover:text-white transition-colors mb-8">
+        <Link
+          to="/dashboard"
+          className="inline-flex items-center text-sm text-zinc-500 hover:text-white transition-colors mb-8"
+        >
           <ArrowLeft className="w-4 h-4 mr-1.5" /> Dashboard
         </Link>
 
         {/* ── Hero: avatar + name ─────────────────────────────────────── */}
         <div className="rounded-2xl border border-white/8 bg-white/[0.03] p-6 mb-3 flex items-center gap-4 flex-wrap sm:flex-nowrap">
-          <div className="relative flex-shrink-0 cursor-pointer group" onClick={() => avatarInputRef.current?.click()}>
+          <div
+            className="relative flex-shrink-0 cursor-pointer group"
+            onClick={() => avatarInputRef.current?.click()}
+          >
             {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt="Avatar"
-                className="w-20 h-20 rounded-full object-cover ring-2 ring-white/10" />
+              <img
+                src={profile.avatar_url}
+                alt="Avatar"
+                className="w-20 h-20 rounded-full object-cover ring-2 ring-white/10"
+              />
             ) : (
-              <div className="w-20 h-20 rounded-full ring-2 ring-white/10 flex items-center justify-center text-3xl font-bold"
-                style={{ background: 'linear-gradient(135deg, #b8860b44, #b8860b22)', color: '#f59e0b' }}>
+              <div
+                className="w-20 h-20 rounded-full ring-2 ring-white/10 flex items-center justify-center text-3xl font-bold"
+                style={{
+                  background: 'linear-gradient(135deg, #b8860b44, #b8860b22)',
+                  color: '#f59e0b',
+                }}
+              >
                 {initials}
               </div>
             )}
             <div className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              {uploadingAvatar
-                ? <Loader2 className="w-5 h-5 text-white animate-spin" />
-                : <Camera className="w-5 h-5 text-white" />}
+              {uploadingAvatar ? (
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
+              ) : (
+                <Camera className="w-5 h-5 text-white" />
+              )}
             </div>
-            <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
           </div>
 
           <div className="flex-1 min-w-0">
@@ -365,7 +457,7 @@ export default function StudentProfile() {
             <Label className="text-xs text-zinc-500">Display Name</Label>
             <Input
               value={profile.display_name}
-              onChange={e => setProfile(p => ({ ...p, display_name: e.target.value }))}
+              onChange={(e) => setProfile((p) => ({ ...p, display_name: e.target.value }))}
               className="bg-white/5 border-white/8 text-white placeholder:text-zinc-600 focus:border-gold/40 focus:ring-0"
               placeholder="How you want to be known"
             />
@@ -376,19 +468,26 @@ export default function StudentProfile() {
               <Label className="text-xs text-zinc-500">Major</Label>
               <Input
                 value={profile.major || ''}
-                onChange={e => setProfile(p => ({ ...p, major: e.target.value }))}
+                onChange={(e) => setProfile((p) => ({ ...p, major: e.target.value }))}
                 className="bg-white/5 border-white/8 text-white placeholder:text-zinc-600 focus:border-gold/40 focus:ring-0"
                 placeholder="e.g. Business Economics"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-500">Year</Label>
-              <Select value={profile.year || ''} onValueChange={v => setProfile(p => ({ ...p, year: v }))}>
+              <Select
+                value={profile.year || ''}
+                onValueChange={(v) => setProfile((p) => ({ ...p, year: v }))}
+              >
                 <SelectTrigger className="bg-white/5 border-white/8 text-white focus:border-gold/40">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#111] border-white/10">
-                  {YEAR_OPTIONS.map(y => <SelectItem key={y} value={y} className="text-white">{y}</SelectItem>)}
+                  {YEAR_OPTIONS.map((y) => (
+                    <SelectItem key={y} value={y} className="text-white">
+                      {y}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -401,7 +500,7 @@ export default function StudentProfile() {
             </div>
             <Textarea
               value={profile.bio || ''}
-              onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
+              onChange={(e) => setProfile((p) => ({ ...p, bio: e.target.value }))}
               className="bg-white/5 border-white/8 text-white placeholder:text-zinc-600 resize-none focus:border-gold/40 focus:ring-0"
               rows={3}
               placeholder="A short intro about yourself…"
@@ -414,7 +513,14 @@ export default function StudentProfile() {
             disabled={saving}
             className="w-full bg-gold text-zinc-900 font-semibold hover:bg-gold/90 h-10"
           >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1.5" />Save Profile</>}
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-1.5" />
+                Save Profile
+              </>
+            )}
           </Button>
         </div>
 
@@ -430,9 +536,7 @@ export default function StudentProfile() {
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <FileText className="w-6 h-6 text-gold flex-shrink-0" />
                   <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-medium text-white truncate">
-                      Resume.pdf
-                    </span>
+                    <span className="text-sm font-medium text-white truncate">Resume.pdf</span>
                     <span className="text-xs text-zinc-500">PDF Document</span>
                   </div>
                 </div>
@@ -451,11 +555,7 @@ export default function StudentProfile() {
                     disabled={uploadingResume}
                     className="text-blue-400 hover:text-blue-300 hover:bg-blue-400/10 px-3"
                   >
-                    {uploadingResume ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      'Replace'
-                    )}
+                    {uploadingResume ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Replace'}
                   </Button>
                   <Button
                     variant="ghost"
@@ -468,16 +568,17 @@ export default function StudentProfile() {
                 </div>
               </div>
               {uploadingResume && (
-                <div className="text-center text-sm text-gold">
-                  Uploading new resume...
-                </div>
+                <div className="text-center text-sm text-gold">Uploading new resume...</div>
               )}
             </div>
           ) : (
             <div
               onClick={() => !uploadingResume && resumeInputRef.current?.click()}
-              className={`flex flex-col items-center justify-center gap-2 border border-dashed border-white/20 rounded-xl py-8 transition-colors ${uploadingResume ? 'opacity-50 cursor-not-allowed' : 'hover:border-gold/50 hover:bg-gold/5 cursor-pointer'
-                }`}
+              className={`flex flex-col items-center justify-center gap-2 border border-dashed border-white/20 rounded-xl py-8 transition-colors ${
+                uploadingResume
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:border-gold/50 hover:bg-gold/5 cursor-pointer'
+              }`}
             >
               {uploadingResume ? (
                 <Loader2 className="w-6 h-6 text-gold animate-spin" />
@@ -511,7 +612,9 @@ export default function StudentProfile() {
               {selectedInterests.size} selected
             </span>
           </div>
-          <p className="text-xs text-zinc-600 -mt-3">These power your club match scores. Toggle anything on or off.</p>
+          <p className="text-xs text-zinc-600 -mt-3">
+            These power your club match scores. Toggle anything on or off.
+          </p>
 
           <div className="space-y-5">
             {Object.entries(groupedOptions).map(([category, options]) => (
@@ -520,18 +623,23 @@ export default function StudentProfile() {
                   {CATEGORY_LABELS[category] || category}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {options.map(opt => {
+                  {options.map((opt) => {
                     const key = `${opt.category}:${opt.value}`;
                     const active = selectedInterests.has(key);
                     return (
                       <button
                         key={key}
                         onClick={() => toggleInterest(key)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${active
-                          ? 'border-gold/50 text-gold'
-                          : 'border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
-                          }`}
-                        style={active ? { background: 'rgba(180,135,11,0.1)' } : { background: 'rgba(255,255,255,0.03)' }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          active
+                            ? 'border-gold/50 text-gold'
+                            : 'border-white/8 text-zinc-400 hover:border-white/20 hover:text-zinc-200'
+                        }`}
+                        style={
+                          active
+                            ? { background: 'rgba(180,135,11,0.1)' }
+                            : { background: 'rgba(255,255,255,0.03)' }
+                        }
                       >
                         <span>{opt.emoji}</span>
                         <span>{opt.label}</span>
@@ -549,9 +657,14 @@ export default function StudentProfile() {
             disabled={savingInterests || !interestsDirty}
             className="w-full bg-gold text-zinc-900 font-semibold hover:bg-gold/90 h-10 disabled:opacity-30"
           >
-            {savingInterests
-              ? <Loader2 className="w-4 h-4 animate-spin" />
-              : <><Check className="w-4 h-4 mr-1.5" />Save Interests</>}
+            {savingInterests ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-1.5" />
+                Save Interests
+              </>
+            )}
           </Button>
         </div>
       </div>

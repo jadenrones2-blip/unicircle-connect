@@ -19,7 +19,17 @@ interface InviteInfo {
   invited_email: string | null;
 }
 
-type PageState = 'loading' | 'invalid' | 'expired' | 'already_used' | 'already_member' | 'ready' | 'signing_in' | 'awaiting_confirmation' | 'claiming' | 'done';
+type PageState =
+  | 'loading'
+  | 'invalid'
+  | 'expired'
+  | 'already_used'
+  | 'already_member'
+  | 'ready'
+  | 'signing_in'
+  | 'awaiting_confirmation'
+  | 'claiming'
+  | 'done';
 
 export default function AcceptInvite() {
   const { token } = useParams<{ token: string }>();
@@ -39,18 +49,34 @@ export default function AcceptInvite() {
 
   // 1. Fetch invite on mount
   useEffect(() => {
-    if (!token) { setPageState('invalid'); return; }
+    if (!token) {
+      setPageState('invalid');
+      return;
+    }
 
     (async () => {
       const { data, error } = await (supabase as any)
         .from('club_invites')
-        .select('id, token, club_id, club_name, role, expires_at, used_by, created_by, invited_email')
+        .select(
+          'id, token, club_id, club_name, role, expires_at, used_by, created_by, invited_email'
+        )
         .eq('token', token)
         .maybeSingle();
 
-      if (error || !data) { setPageState('invalid'); return; }
-      if (data.used_by) { setPageState('already_used'); setInvite(data); return; }
-      if (new Date(data.expires_at) <= new Date()) { setPageState('expired'); setInvite(data); return; }
+      if (error || !data) {
+        setPageState('invalid');
+        return;
+      }
+      if (data.used_by) {
+        setPageState('already_used');
+        setInvite(data);
+        return;
+      }
+      if (new Date(data.expires_at) <= new Date()) {
+        setPageState('expired');
+        setInvite(data);
+        return;
+      }
 
       setInvite(data);
       setPageState('ready');
@@ -60,7 +86,12 @@ export default function AcceptInvite() {
   // 2. Once user is authenticated and invite is ready → auto-claim (only once)
   useEffect(() => {
     if (authLoading || !invite || !user) return;
-    if (pageState === 'loading' || pageState === 'signing_in' || pageState === 'awaiting_confirmation') return;
+    if (
+      pageState === 'loading' ||
+      pageState === 'signing_in' ||
+      pageState === 'awaiting_confirmation'
+    )
+      return;
     if (pageState === 'claiming' || pageState === 'done' || pageState === 'already_member') return;
     if (invite.used_by) return;
     if (claimAttempted.current) return;
@@ -75,7 +106,9 @@ export default function AcceptInvite() {
 
     // Email gate — if the invite was sent to a specific address, enforce it
     if (invite.invited_email && user.email?.toLowerCase() !== invite.invited_email.toLowerCase()) {
-      toast.error(`This invite was sent to ${invite.invited_email}. Sign in with that account to accept.`);
+      toast.error(
+        `This invite was sent to ${invite.invited_email}. Sign in with that account to accept.`
+      );
       setPageState('ready');
       claimAttempted.current = false;
       return;
@@ -122,7 +155,6 @@ export default function AcceptInvite() {
 
       setPageState('done');
       toast.success(`Welcome to ${invite.club_name}!`);
-
     } catch (err: any) {
       const msg = (err as any)?.message || String(err);
 
@@ -184,7 +216,11 @@ export default function AcceptInvite() {
   /* ─── Render ─── */
 
   if (pageState === 'loading') {
-    return <Screen><Loader2 className="w-8 h-8 text-gold animate-spin" /></Screen>;
+    return (
+      <Screen>
+        <Loader2 className="w-8 h-8 text-gold animate-spin" />
+      </Screen>
+    );
   }
 
   if (pageState === 'invalid') {
@@ -193,7 +229,9 @@ export default function AcceptInvite() {
         <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
         <h2 className="text-xl font-semibold text-white mb-1">Invalid invite link</h2>
         <p className="text-sm text-zinc-500">This link doesn't exist or may have been removed.</p>
-        <Link to="/" className="mt-6 text-sm text-gold hover:underline">Go home</Link>
+        <Link to="/" className="mt-6 text-sm text-gold hover:underline">
+          Go home
+        </Link>
       </Screen>
     );
   }
@@ -204,8 +242,8 @@ export default function AcceptInvite() {
         <AlertTriangle className="w-10 h-10 text-amber-400 mb-3" />
         <h2 className="text-xl font-semibold text-white mb-1">Invite expired</h2>
         <p className="text-sm text-zinc-500">
-          This invite to <span className="text-white font-medium">{invite?.club_name}</span> has expired.
-          Ask the club owner to generate a new link.
+          This invite to <span className="text-white font-medium">{invite?.club_name}</span> has
+          expired. Ask the club owner to generate a new link.
         </p>
       </Screen>
     );
@@ -217,10 +255,16 @@ export default function AcceptInvite() {
         <AlertTriangle className="w-10 h-10 text-amber-400 mb-3" />
         <h2 className="text-xl font-semibold text-white mb-1">Invite already used</h2>
         <p className="text-sm text-zinc-500">
-          This invite to <span className="text-white font-medium">{invite?.club_name}</span> has already been claimed.
+          This invite to <span className="text-white font-medium">{invite?.club_name}</span> has
+          already been claimed.
         </p>
         {user && (
-          <Button variant="gold" size="sm" className="mt-6" onClick={() => navigate(`/club-admin/clubs/${invite?.club_id}/recruitment`)}>
+          <Button
+            variant="gold"
+            size="sm"
+            className="mt-6"
+            onClick={() => navigate(`/club-admin/clubs/${invite?.club_id}/recruitment`)}
+          >
             Go to Dashboard
           </Button>
         )}
@@ -233,7 +277,7 @@ export default function AcceptInvite() {
       <Screen>
         <CheckCircle2 className="w-10 h-10 text-green-400 mb-3" />
         <h2 className="text-xl font-semibold text-white mb-1">
-          {pageState === 'already_member' ? 'Already a team member' : 'You\'re in!'}
+          {pageState === 'already_member' ? 'Already a team member' : "You're in!"}
         </h2>
         <p className="text-sm text-zinc-500">
           {pageState === 'already_member'
@@ -253,8 +297,9 @@ export default function AcceptInvite() {
         </div>
         <h2 className="text-xl font-semibold text-white mb-2 text-center">Check your email</h2>
         <p className="text-sm text-zinc-400 text-center max-w-xs">
-          We sent a confirmation link to <span className="text-white">{email}</span>.
-          Click it to confirm your account — you'll be brought back here automatically to finish joining <span className="text-white">{invite?.club_name}</span>.
+          We sent a confirmation link to <span className="text-white">{email}</span>. Click it to
+          confirm your account — you'll be brought back here automatically to finish joining{' '}
+          <span className="text-white">{invite?.club_name}</span>.
         </p>
         <p className="text-xs text-zinc-600 mt-6 text-center">
           Already confirmed?{' '}
@@ -284,9 +329,7 @@ export default function AcceptInvite() {
         <ShieldCheck className="w-7 h-7 text-gold" />
       </div>
 
-      <h2 className="text-xl font-bold text-white mb-1 text-center">
-        You've been invited to join
-      </h2>
+      <h2 className="text-xl font-bold text-white mb-1 text-center">You've been invited to join</h2>
       <p className="text-gold font-semibold text-lg mb-5 text-center">{invite?.club_name}</p>
 
       {/* If logged in → just claim */}
@@ -295,11 +338,20 @@ export default function AcceptInvite() {
           <p className="text-sm text-zinc-400 text-center">
             Signed in as <span className="text-white">{user.email}</span>
           </p>
-          <Button variant="gold" className="w-full" onClick={() => { claimAttempted.current = false; claimInvite(); }}>
+          <Button
+            variant="gold"
+            className="w-full"
+            onClick={() => {
+              claimAttempted.current = false;
+              claimInvite();
+            }}
+          >
             Accept Invite & Access Dashboard
           </Button>
           <button
-            onClick={async () => { await supabase.auth.signOut(); }}
+            onClick={async () => {
+              await supabase.auth.signOut();
+            }}
             className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
           >
             Sign in with a different account
@@ -313,7 +365,10 @@ export default function AcceptInvite() {
             {(['signin', 'signup'] as const).map((mode) => (
               <button
                 key={mode}
-                onClick={() => { setAuthMode(mode); setAuthError(''); }}
+                onClick={() => {
+                  setAuthMode(mode);
+                  setAuthError('');
+                }}
                 className={`flex-1 py-2 text-sm font-medium transition-colors ${authMode === mode ? 'bg-gold/15 text-gold' : 'text-zinc-500 hover:text-zinc-300'}`}
               >
                 {mode === 'signin' ? 'Sign In' : 'Create Account'}
@@ -354,10 +409,16 @@ export default function AcceptInvite() {
               className="w-full"
               disabled={pageState === 'signing_in'}
             >
-              {pageState === 'signing_in'
-                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Please wait…</>
-                : authMode === 'signin' ? 'Sign In & Accept Invite' : 'Create Account & Accept Invite'
-              }
+              {pageState === 'signing_in' ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Please wait…
+                </>
+              ) : authMode === 'signin' ? (
+                'Sign In & Accept Invite'
+              ) : (
+                'Create Account & Accept Invite'
+              )}
             </Button>
           </form>
 
@@ -376,9 +437,7 @@ function Screen({ children }: { children: React.ReactNode }) {
       className="min-h-screen flex flex-col items-center justify-center px-4 py-12"
       style={{ background: '#0A0A0A' }}
     >
-      <div className="w-full max-w-md flex flex-col items-center">
-        {children}
-      </div>
+      <div className="w-full max-w-md flex flex-col items-center">{children}</div>
     </div>
   );
 }

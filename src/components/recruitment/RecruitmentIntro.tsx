@@ -33,8 +33,8 @@ export function RecruitmentIntro({ onEnable, loading }: RecruitmentIntroProps) {
           Recruitment Tracking
         </h1>
         <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-          Streamline your club's recruitment process with a visual Kanban board. 
-          Track applicants from application to decision, all in one place.
+          Streamline your club's recruitment process with a visual Kanban board. Track applicants
+          from application to decision, all in one place.
         </p>
       </div>
 
@@ -55,13 +55,7 @@ export function RecruitmentIntro({ onEnable, loading }: RecruitmentIntroProps) {
       </div>
 
       <div className="text-center">
-        <Button 
-          variant="gold" 
-          size="lg" 
-          onClick={onEnable}
-          disabled={loading}
-          className="px-8"
-        >
+        <Button variant="gold" size="lg" onClick={onEnable} disabled={loading} className="px-8">
           {loading ? 'Enabling...' : 'Enable Recruitment Tracking'}
         </Button>
         <p className="text-sm text-muted-foreground mt-3">

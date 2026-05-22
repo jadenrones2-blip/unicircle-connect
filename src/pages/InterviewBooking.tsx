@@ -35,13 +35,17 @@ function formatTime(t: string): string {
 
 function formatDate(d: string): string {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric',
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
   });
 }
 
 function formatDateShort(d: string): string {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', {
-    weekday: 'short', month: 'short', day: 'numeric',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   });
 }
 
@@ -52,7 +56,11 @@ function addMinutesToTime(time: string, mins: number): string {
 }
 
 function googleCalendarUrl(
-  title: string, date: string, startTime: string, durationMins: number, description: string
+  title: string,
+  date: string,
+  startTime: string,
+  durationMins: number,
+  description: string
 ): string {
   const startDt = `${date.replace(/-/g, '')}T${startTime.replace(':', '')}00`;
   const endTime = addMinutesToTime(startTime, durationMins);
@@ -82,8 +90,14 @@ export default function InterviewBooking() {
   // Fetch club name
   useEffect(() => {
     if (!clubId) return;
-    dataClient.from('clubs').select('name').eq('id', clubId).maybeSingle()
-      .then(({ data }) => { if (data) setClubName((data as any).name ?? ''); });
+    dataClient
+      .from('clubs')
+      .select('name')
+      .eq('id', clubId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setClubName((data as any).name ?? '');
+      });
   }, [clubId]);
 
   const handleVerifyEmail = async () => {
@@ -126,7 +140,7 @@ export default function InterviewBooking() {
 
   const handleBook = async () => {
     if (!selectedSlot || !applicant || !clubId) return;
-    const slot = slots.find(s => s.id === selectedSlot);
+    const slot = slots.find((s) => s.id === selectedSlot);
     if (!slot) return;
 
     setBooking(true);
@@ -173,19 +187,19 @@ export default function InterviewBooking() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <img src={logoImage} alt="UniCircle" className="h-8 object-contain" />
         </div>
 
         <AnimatePresence mode="wait">
-
           {/* ── Step 1: Email entry ── */}
           {step === 'email' && (
             <motion.div
               key="email"
-              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
               className="space-y-6"
             >
               <div className="text-center">
@@ -193,19 +207,25 @@ export default function InterviewBooking() {
                   Book your interview
                 </h1>
                 {clubName && (
-                  <p className="text-zinc-400 text-sm">with <span className="text-white font-medium">{clubName}</span></p>
+                  <p className="text-zinc-400 text-sm">
+                    with <span className="text-white font-medium">{clubName}</span>
+                  </p>
                 )}
               </div>
 
               <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 space-y-4">
                 <div>
-                  <label className="text-xs text-zinc-400 mb-1.5 block">Email you applied with</label>
+                  <label className="text-xs text-zinc-400 mb-1.5 block">
+                    Email you applied with
+                  </label>
                   <Input
                     type="email"
                     placeholder="you@ucsd.edu"
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleVerifyEmail(); }}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleVerifyEmail();
+                    }}
                     className="bg-zinc-800 border-white/10 text-white placeholder:text-zinc-600 h-11"
                     autoFocus
                   />
@@ -215,10 +235,15 @@ export default function InterviewBooking() {
                   disabled={verifying || !email.trim()}
                   className="w-full h-11 bg-gold hover:bg-gold/90 text-zinc-900 font-semibold"
                 >
-                  {verifying
-                    ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying…</>
-                    : <>Find my slots <ArrowRight className="w-4 h-4 ml-2" /></>
-                  }
+                  {verifying ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying…
+                    </>
+                  ) : (
+                    <>
+                      Find my slots <ArrowRight className="w-4 h-4 ml-2" />
+                    </>
+                  )}
                 </Button>
               </div>
             </motion.div>
@@ -228,16 +253,16 @@ export default function InterviewBooking() {
           {step === 'slots' && (
             <motion.div
               key="slots"
-              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
               className="space-y-5"
             >
               <div className="text-center">
                 <h1 className="text-2xl font-display font-bold text-white mb-1">
                   Hi {applicant?.first_name} 👋
                 </h1>
-                <p className="text-zinc-400 text-sm">
-                  Pick a time that works for you
-                </p>
+                <p className="text-zinc-400 text-sm">Pick a time that works for you</p>
               </div>
 
               {slotsLoading ? (
@@ -249,7 +274,9 @@ export default function InterviewBooking() {
                 <div className="text-center py-10 border border-dashed border-white/10 rounded-xl">
                   <Calendar className="w-8 h-8 text-zinc-600 mx-auto mb-3" />
                   <p className="text-sm text-zinc-400 mb-1">No slots available yet</p>
-                  <p className="text-xs text-zinc-600">The club will add times soon — check back shortly.</p>
+                  <p className="text-xs text-zinc-600">
+                    The club will add times soon — check back shortly.
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
@@ -260,7 +287,7 @@ export default function InterviewBooking() {
                         {formatDate(d)}
                       </p>
                       <div className="grid grid-cols-2 gap-2">
-                        {daySlots.map(slot => {
+                        {daySlots.map((slot) => {
                           const isSelected = selectedSlot === slot.id;
                           return (
                             <button
@@ -290,10 +317,13 @@ export default function InterviewBooking() {
                     disabled={booking}
                     className="w-full h-11 bg-gold hover:bg-gold/90 text-zinc-900 font-semibold"
                   >
-                    {booking
-                      ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Booking…</>
-                      : 'Confirm booking →'
-                    }
+                    {booking ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Booking…
+                      </>
+                    ) : (
+                      'Confirm booking →'
+                    )}
                   </Button>
                 </motion.div>
               )}
@@ -304,7 +334,8 @@ export default function InterviewBooking() {
           {step === 'confirmed' && bookedSlot && (
             <motion.div
               key="confirmed"
-              initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
               className="text-center space-y-6"
             >
               <div>
@@ -357,7 +388,6 @@ export default function InterviewBooking() {
               </a>
             </motion.div>
           )}
-
         </AnimatePresence>
 
         <p className="text-center text-xs text-zinc-700 mt-8">Powered by UniCircle</p>

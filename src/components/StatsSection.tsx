@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 // ── Count-up hook ────────────────────────────────────────────────
 function useCountUp(target: number, duration = 1400) {
@@ -22,7 +22,12 @@ function useCountUp(target: number, duration = 1400) {
     setValue(0);
   }, []);
 
-  useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    },
+    []
+  );
 
   return { value, start, reset };
 }
@@ -61,7 +66,7 @@ function NumberCard({
           startedRef.current = false;
         }
       },
-      { threshold: 0.25, rootMargin: "0px 0px -30px 0px" }
+      { threshold: 0.25, rootMargin: '0px 0px -30px 0px' }
     );
     io.observe(el);
     return () => io.disconnect();
@@ -73,32 +78,29 @@ function NumberCard({
       className="relative bg-black px-10 py-[52px]"
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(20px)",
+        transform: visible ? 'translateY(0)' : 'translateY(20px)',
         transition: `opacity 0.55s ${delay}s, transform 0.55s ${delay}s`,
       }}
     >
-      <div className="absolute top-0 left-0 h-[2px] w-9" style={{ background: "hsl(47 95% 58%)" }} />
       <div
-        className="flex items-baseline gap-[3px] mb-3.5"
-        style={{ lineHeight: 1 }}
-      >
+        className="absolute top-0 left-0 h-[2px] w-9"
+        style={{ background: 'hsl(47 95% 58%)' }}
+      />
+      <div className="flex items-baseline gap-[3px] mb-3.5" style={{ lineHeight: 1 }}>
         <span
           className="font-display font-black text-white tabular-nums"
-          style={{ fontSize: "clamp(44px, 4.5vw, 66px)", letterSpacing: "-0.04em" }}
+          style={{ fontSize: 'clamp(44px, 4.5vw, 66px)', letterSpacing: '-0.04em' }}
         >
           {value.toLocaleString()}
         </span>
         <span
           className="font-display font-bold"
-          style={{ fontSize: "0.52em", color: "hsl(47 95% 62%)" }}
+          style={{ fontSize: '0.52em', color: 'hsl(47 95% 62%)' }}
         >
           +
         </span>
       </div>
-      <div
-        className="uppercase tracking-[0.08em] text-white/30"
-        style={{ fontSize: 11 }}
-      >
+      <div className="uppercase tracking-[0.08em] text-white/30" style={{ fontSize: 11 }}>
         {label}
       </div>
     </div>
@@ -106,25 +108,17 @@ function NumberCard({
 }
 
 // ── Text card ────────────────────────────────────────────────────
-function TextCard({
-  lines,
-  label,
-  delay = 0,
-}: {
-  lines: string[];
-  label: string;
-  delay?: number;
-}) {
+function TextCard({ lines, label, delay = 0 }: { lines: string[]; label: string; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => setVisible(entry.isIntersecting),
-      { threshold: 0.25, rootMargin: "0px 0px -30px 0px" }
-    );
+    const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), {
+      threshold: 0.25,
+      rootMargin: '0px 0px -30px 0px',
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -135,23 +129,23 @@ function TextCard({
       className="relative bg-black px-10 py-[52px]"
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(20px)",
+        transform: visible ? 'translateY(0)' : 'translateY(20px)',
         transition: `opacity 0.55s ${delay}s, transform 0.55s ${delay}s`,
       }}
     >
-      <div className="absolute top-0 left-0 h-[2px] w-9" style={{ background: "hsl(47 95% 58%)" }} />
+      <div
+        className="absolute top-0 left-0 h-[2px] w-9"
+        style={{ background: 'hsl(47 95% 58%)' }}
+      />
       <div
         className="flex flex-col font-display font-black text-white mb-3.5"
-        style={{ fontSize: "clamp(28px, 3vw, 42px)", letterSpacing: "-0.02em", lineHeight: 1.2 }}
+        style={{ fontSize: 'clamp(28px, 3vw, 42px)', letterSpacing: '-0.02em', lineHeight: 1.2 }}
       >
         {lines.map((l) => (
           <span key={l}>{l}</span>
         ))}
       </div>
-      <div
-        className="uppercase tracking-[0.08em] text-white/30"
-        style={{ fontSize: 11 }}
-      >
+      <div className="uppercase tracking-[0.08em] text-white/30" style={{ fontSize: 11 }}>
         {label}
       </div>
     </div>
@@ -160,31 +154,29 @@ function TextCard({
 
 // ── StatsSection ─────────────────────────────────────────────────
 const StatsSection = () => (
-  <section style={{ background: "#000", padding: "110px 48px 130px" }}>
-    <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-
+  <section style={{ background: '#000', padding: '110px 48px 130px' }}>
+    <div style={{ maxWidth: 1000, margin: '0 auto' }}>
       {/* Eyebrow */}
       <div
         className="flex items-center gap-3 mb-[52px] font-semibold uppercase tracking-[0.15em]"
-        style={{ fontSize: 11, color: "hsl(47 95% 62%)" }}
+        style={{ fontSize: 11, color: 'hsl(47 95% 62%)' }}
       >
         Platform Scale
         <span
           className="flex-1 h-px"
-          style={{ background: "linear-gradient(to right, hsl(47 95% 58% / 0.25), transparent)" }}
+          style={{ background: 'linear-gradient(to right, hsl(47 95% 58% / 0.25), transparent)' }}
         />
       </div>
 
       {/* Grid — 1px gap rendered via container bg */}
       <div
         className="grid grid-cols-1 sm:grid-cols-3"
-        style={{ gap: 1, background: "rgba(255,255,255,0.05)" }}
+        style={{ gap: 1, background: 'rgba(255,255,255,0.05)' }}
       >
         <NumberCard target={10000} label="Organizations Across California" delay={0} />
-        <TextCard lines={["Multi-", "Campus"]} label="System-Wide Infrastructure" delay={0.1} />
+        <TextCard lines={['Multi-', 'Campus']} label="System-Wide Infrastructure" delay={0.1} />
         <NumberCard target={500000} label="Annual Projected Hours Recovered" delay={0.2} />
       </div>
-
     </div>
   </section>
 );

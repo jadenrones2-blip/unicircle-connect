@@ -24,13 +24,18 @@ export default function ClubAdminTeam() {
     }
   }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, isOfficerOf, navigate]);
 
-  const club = ownedClubs.find((c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase());
+  const club = ownedClubs.find(
+    (c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase()
+  );
   const clubName = club?.clubName || 'Club';
   const isOwner = !!club?.isOwner;
 
   if (authLoading || ownershipLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0A0A' }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: '#0A0A0A' }}
+      >
         <Loader2 className="w-6 h-6 text-gold animate-spin" />
       </div>
     );

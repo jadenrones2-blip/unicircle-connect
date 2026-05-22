@@ -51,117 +51,124 @@ export function useStudentRecruitment() {
   // Track previous state so we can detect meaningful changes for notifications
   const prevApplicationsRef = useRef<StudentRecruitmentData[]>([]);
 
-  const fetchApplications = useCallback(async (silent = false) => {
-    if (!user?.email) {
-      setLoading(false);
-      return;
-    }
-    if (!silent) setLoading(true);
-
-    try {
-      const { data: applicantData, error: applicantError } = await supabase
-        .from('applicants')
-        .select('id, club_id, stage_id, final_decision, first_name, last_name, email, major, year, is_quick_interest, created_at, updated_at')
-        .eq('email', user.email)
-        .order('created_at', { ascending: false });
-
-      if (applicantError) {
-        console.error('Error fetching applicant data:', applicantError);
+  const fetchApplications = useCallback(
+    async (silent = false) => {
+      if (!user?.email) {
         setLoading(false);
         return;
       }
+      if (!silent) setLoading(true);
 
-      if (!applicantData || applicantData.length === 0) {
-        setApplications([]);
-        setLoading(false);
-        return;
-      }
+      try {
+        const { data: applicantData, error: applicantError } = await supabase
+          .from('applicants')
+          .select(
+            'id, club_id, stage_id, final_decision, first_name, last_name, email, major, year, is_quick_interest, created_at, updated_at'
+          )
+          .eq('email', user.email)
+          .order('created_at', { ascending: false });
 
-      // Batch fetch club names from external DB
-      const clubIds = [...new Set(applicantData.map((a: any) => a.club_id))];
-      const { data: clubRows } = await dataClient
-        .from('clubs')
-        .select('id, name')
-        .in('id', clubIds as string[]);
+        if (applicantError) {
+          console.error('Error fetching applicant data:', applicantError);
+          setLoading(false);
+          return;
+        }
 
-      const clubNameMap: Record<string, string> = {};
-      for (const c of clubRows ?? []) {
-        clubNameMap[(c as any).id] = (c as any).name;
-      }
+        if (!applicantData || applicantData.length === 0) {
+          setApplications([]);
+          setLoading(false);
+          return;
+        }
 
-      const enrichedApplications: StudentRecruitmentData[] = [];
+        // Batch fetch club names from external DB
+        const clubIds = [...new Set(applicantData.map((a: any) => a.club_id))];
+        const { data: clubRows } = await dataClient
+          .from('clubs')
+          .select('id, name')
+          .in('id', clubIds as string[]);
 
-      for (const app of applicantData) {
-        const { data: stagesData } = await supabase
-          .from('recruitment_stages')
-          .select('*')
-          .eq('club_id', app.club_id)
-          .order('order_index', { ascending: true });
+        const clubNameMap: Record<string, string> = {};
+        for (const c of clubRows ?? []) {
+          clubNameMap[(c as any).id] = (c as any).name;
+        }
 
-        const { data: settingsData } = await supabase
-          .from('recruitment_settings')
-          .select('*')
-          .eq('club_id', app.club_id)
-          .maybeSingle();
+        const enrichedApplications: StudentRecruitmentData[] = [];
 
-        const stages = stagesData || [];
-        const currentStageIndex = app.stage_id
-          ? stages.findIndex((s: any) => s.id === app.stage_id)
-          : 0;
-        const totalStages = stages.length;
-        const progressPercent = totalStages > 0
-          ? Math.round(((currentStageIndex + 1) / totalStages) * 100)
-          : 0;
+        for (const app of applicantData) {
+          const { data: stagesData } = await supabase
+            .from('recruitment_stages')
+            .select('*')
+            .eq('club_id', app.club_id)
+            .order('order_index', { ascending: true });
 
-        enrichedApplications.push({
-          application: {
-            ...app,
-            final_decision: (app as any).final_decision ?? null,
-            is_quick_interest: (app as any).is_quick_interest ?? false,
-          } as StudentApplication,
-          stages: stages as RecruitmentStage[],
-          settings: settingsData as ClubRecruitmentSettings | null,
-          currentStageIndex: currentStageIndex >= 0 ? currentStageIndex : 0,
-          totalStages,
-          progressPercent,
-          clubName: clubNameMap[app.club_id] ?? 'Club',
-        });
-      }
+          const { data: settingsData } = await supabase
+            .from('recruitment_settings')
+            .select('*')
+            .eq('club_id', app.club_id)
+            .maybeSingle();
 
-      // Diff against previous state to fire notifications
-      if (prevApplicationsRef.current.length > 0) {
-        for (const next of enrichedApplications) {
-          const prev = prevApplicationsRef.current.find(p => p.application.id === next.application.id);
-          if (!prev) continue;
+          const stages = stagesData || [];
+          const currentStageIndex = app.stage_id
+            ? stages.findIndex((s: any) => s.id === app.stage_id)
+            : 0;
+          const totalStages = stages.length;
+          const progressPercent =
+            totalStages > 0 ? Math.round(((currentStageIndex + 1) / totalStages) * 100) : 0;
 
-          const stageMoved = prev.application.stage_id !== next.application.stage_id;
-          const decisionPosted = !prev.application.final_decision && next.application.final_decision;
+          enrichedApplications.push({
+            application: {
+              ...app,
+              final_decision: (app as any).final_decision ?? null,
+              is_quick_interest: (app as any).is_quick_interest ?? false,
+            } as StudentApplication,
+            stages: stages as RecruitmentStage[],
+            settings: settingsData as ClubRecruitmentSettings | null,
+            currentStageIndex: currentStageIndex >= 0 ? currentStageIndex : 0,
+            totalStages,
+            progressPercent,
+            clubName: clubNameMap[app.club_id] ?? 'Club',
+          });
+        }
 
-          if (decisionPosted) {
-            if (next.application.final_decision === 'accepted') {
-              toast.success(`You've been accepted to ${next.clubName}! 🎉`);
-            } else if (next.application.final_decision === 'rejected') {
-              toast.info(`A decision has been posted for your ${next.clubName} application.`);
-            }
-          } else if (stageMoved) {
-            const stageName = next.stages[next.currentStageIndex]?.label;
-            toast.success(
-              stageName
-                ? `Your ${next.clubName} application moved to "${stageName}"`
-                : `Your ${next.clubName} application status was updated`
+        // Diff against previous state to fire notifications
+        if (prevApplicationsRef.current.length > 0) {
+          for (const next of enrichedApplications) {
+            const prev = prevApplicationsRef.current.find(
+              (p) => p.application.id === next.application.id
             );
+            if (!prev) continue;
+
+            const stageMoved = prev.application.stage_id !== next.application.stage_id;
+            const decisionPosted =
+              !prev.application.final_decision && next.application.final_decision;
+
+            if (decisionPosted) {
+              if (next.application.final_decision === 'accepted') {
+                toast.success(`You've been accepted to ${next.clubName}! 🎉`);
+              } else if (next.application.final_decision === 'rejected') {
+                toast.info(`A decision has been posted for your ${next.clubName} application.`);
+              }
+            } else if (stageMoved) {
+              const stageName = next.stages[next.currentStageIndex]?.label;
+              toast.success(
+                stageName
+                  ? `Your ${next.clubName} application moved to "${stageName}"`
+                  : `Your ${next.clubName} application status was updated`
+              );
+            }
           }
         }
-      }
 
-      prevApplicationsRef.current = enrichedApplications;
-      setApplications(enrichedApplications);
-    } catch (error) {
-      console.error('Error in fetchApplications:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.email]);
+        prevApplicationsRef.current = enrichedApplications;
+        setApplications(enrichedApplications);
+      } catch (error) {
+        console.error('Error in fetchApplications:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user?.email]
+  );
 
   // Initial fetch
   useEffect(() => {
@@ -185,7 +192,9 @@ export function useStudentRecruitment() {
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.email, fetchApplications]);
 
   return { applications, loading, refetch: fetchApplications };

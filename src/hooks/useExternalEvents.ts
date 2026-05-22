@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { dataClient } from "@/integrations/supabase/dataClient";
+import { dataClient } from '@/integrations/supabase/dataClient';
 
 export interface ExternalEvent {
   id: string;

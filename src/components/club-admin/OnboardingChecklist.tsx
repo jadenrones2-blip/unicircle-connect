@@ -37,7 +37,11 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
           .eq('club_handle', club.clubId)
           .limit(1);
         if (data && data.length > 0) setHasEvents(true);
-      } catch { /* silent */ } finally { setLoadingEvents(false); }
+      } catch {
+        /* silent */
+      } finally {
+        setLoadingEvents(false);
+      }
     };
     checkEvents();
   }, [club.clubId]);
@@ -54,7 +58,9 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
         if (data?.questions && Array.isArray(data.questions) && data.questions.length > 0) {
           setHasApplicationForm(true);
         }
-      } catch { /* silent */ }
+      } catch {
+        /* silent */
+      }
     };
     checkForm();
   }, [club.clubId]);
@@ -62,14 +68,54 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
   const isLoading = loadingClub || loadingEvents;
 
   const checklistItems: ChecklistItem[] = [
-    { id: 'cover-image', title: 'Upload a cover image', description: 'Add a visual identity to your club profile', icon: Image, completed: !!clubRecord?.cover_image, href: `/club-admin/clubs/${club.clubId}/edit`, ctaText: 'Add Image' },
-    { id: 'description', title: 'Add a description', description: 'Tell students what your club is about', icon: FileText, completed: !!clubRecord?.description && clubRecord.description.length > 20, href: `/club-admin/clubs/${club.clubId}/edit`, ctaText: 'Write Description' },
-    { id: 'social-links', title: 'Connect social links', description: 'Instagram, LinkedIn, or website', icon: Link2, completed: !!(clubRecord?.instagram || clubRecord?.linkedin || clubRecord?.website), href: `/club-admin/clubs/${club.clubId}/edit`, ctaText: 'Add Links' },
-    { id: 'first-event', title: 'Submit your first event', description: 'Start promoting your club activities', icon: Calendar, completed: hasEvents, href: `/submit-event?club=${club.clubId}`, ctaText: 'Create Event' },
-    { id: 'application-form', title: 'Customize your application form', description: 'Add custom questions for applicants to answer', icon: ClipboardList, completed: hasApplicationForm, href: `/club-admin/clubs/${club.clubId}/recruitment`, ctaText: 'Build Form' },
+    {
+      id: 'cover-image',
+      title: 'Upload a cover image',
+      description: 'Add a visual identity to your club profile',
+      icon: Image,
+      completed: !!clubRecord?.cover_image,
+      href: `/club-admin/clubs/${club.clubId}/edit`,
+      ctaText: 'Add Image',
+    },
+    {
+      id: 'description',
+      title: 'Add a description',
+      description: 'Tell students what your club is about',
+      icon: FileText,
+      completed: !!clubRecord?.description && clubRecord.description.length > 20,
+      href: `/club-admin/clubs/${club.clubId}/edit`,
+      ctaText: 'Write Description',
+    },
+    {
+      id: 'social-links',
+      title: 'Connect social links',
+      description: 'Instagram, LinkedIn, or website',
+      icon: Link2,
+      completed: !!(clubRecord?.instagram || clubRecord?.linkedin || clubRecord?.website),
+      href: `/club-admin/clubs/${club.clubId}/edit`,
+      ctaText: 'Add Links',
+    },
+    {
+      id: 'first-event',
+      title: 'Submit your first event',
+      description: 'Start promoting your club activities',
+      icon: Calendar,
+      completed: hasEvents,
+      href: `/submit-event?club=${club.clubId}`,
+      ctaText: 'Create Event',
+    },
+    {
+      id: 'application-form',
+      title: 'Customize your application form',
+      description: 'Add custom questions for applicants to answer',
+      icon: ClipboardList,
+      completed: hasApplicationForm,
+      href: `/club-admin/clubs/${club.clubId}/recruitment`,
+      ctaText: 'Build Form',
+    },
   ];
 
-  const completedCount = checklistItems.filter(i => i.completed).length;
+  const completedCount = checklistItems.filter((i) => i.completed).length;
   const totalCount = checklistItems.length;
   const progressPercent = Math.round((completedCount / totalCount) * 100);
 
@@ -91,9 +137,19 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
         {/* Circular progress */}
         <div className="relative w-11 h-11 shrink-0">
           <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
-            <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="2.5" />
+            <circle
+              cx="22"
+              cy="22"
+              r="18"
+              fill="none"
+              stroke="rgba(255,255,255,0.06)"
+              strokeWidth="2.5"
+            />
             <motion.circle
-              cx="22" cy="22" r="18" fill="none"
+              cx="22"
+              cy="22"
+              r="18"
+              fill="none"
               stroke="hsl(43 74% 56%)"
               strokeWidth="2.5"
               strokeLinecap="round"
@@ -136,8 +192,10 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
                   className="flex items-center gap-5 sm:gap-7 py-4 sm:py-5"
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
                 >
-                  <span className="text-3xl sm:text-4xl font-display font-bold tabular-nums w-10 sm:w-12 shrink-0 select-none"
-                    style={{ color: 'rgba(255,255,255,0.08)' }}>
+                  <span
+                    className="text-3xl sm:text-4xl font-display font-bold tabular-nums w-10 sm:w-12 shrink-0 select-none"
+                    style={{ color: 'rgba(255,255,255,0.08)' }}
+                  >
                     {num}
                   </span>
                   <div
@@ -146,8 +204,12 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
                   >
                     <Check className="w-3.5 h-3.5 text-gold" />
                   </div>
-                  <span className="flex-1 text-sm sm:text-base text-zinc-600 line-through">{item.title}</span>
-                  <span className="text-[11px] font-semibold tracking-wide text-gold/50 uppercase">Done</span>
+                  <span className="flex-1 text-sm sm:text-base text-zinc-600 line-through">
+                    {item.title}
+                  </span>
+                  <span className="text-[11px] font-semibold tracking-wide text-gold/50 uppercase">
+                    Done
+                  </span>
                 </motion.div>
               );
             }
@@ -177,7 +239,9 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
                     <item.icon className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm sm:text-base font-semibold text-white leading-tight">{item.title}</p>
+                    <p className="text-sm sm:text-base font-semibold text-white leading-tight">
+                      {item.title}
+                    </p>
                     <p className="text-xs text-zinc-600 mt-0.5 truncate">{item.description}</p>
                   </div>
                   <span className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide uppercase text-zinc-600 group-hover:text-white transition-colors duration-200 shrink-0">
@@ -200,10 +264,19 @@ export function OnboardingChecklist({ club }: OnboardingChecklistProps) {
               style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
             >
               <div className="w-12 h-8 rounded" style={{ background: 'rgba(255,255,255,0.04)' }} />
-              <div className="w-7 h-7 rounded-full" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              <div
+                className="w-7 h-7 rounded-full"
+                style={{ background: 'rgba(255,255,255,0.04)' }}
+              />
               <div className="flex-1 space-y-1.5">
-                <div className="h-3.5 w-40 rounded" style={{ background: 'rgba(255,255,255,0.04)' }} />
-                <div className="h-2.5 w-28 rounded" style={{ background: 'rgba(255,255,255,0.03)' }} />
+                <div
+                  className="h-3.5 w-40 rounded"
+                  style={{ background: 'rgba(255,255,255,0.04)' }}
+                />
+                <div
+                  className="h-2.5 w-28 rounded"
+                  style={{ background: 'rgba(255,255,255,0.03)' }}
+                />
               </div>
             </div>
           ))}

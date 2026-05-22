@@ -46,7 +46,11 @@ export function useAdminProfile() {
     fetchProfile();
   }, [user]);
 
-  const createProfile = async (data: { display_name: string; role_title: string; avatar_url?: string }) => {
+  const createProfile = async (data: {
+    display_name: string;
+    role_title: string;
+    avatar_url?: string;
+  }) => {
     if (!user) throw new Error('Not authenticated');
 
     const { data: newProfile, error: insertError } = await supabase
@@ -65,7 +69,9 @@ export function useAdminProfile() {
     return newProfile;
   };
 
-  const updateProfile = async (data: Partial<{ display_name: string; role_title: string; avatar_url: string }>) => {
+  const updateProfile = async (
+    data: Partial<{ display_name: string; role_title: string; avatar_url: string }>
+  ) => {
     if (!user || !profile) throw new Error('Not authenticated or no profile');
 
     const { data: updatedProfile, error: updateError } = await supabase

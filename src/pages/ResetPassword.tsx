@@ -126,7 +126,9 @@ export default function ResetPassword() {
           setValid();
           clearUrl();
         } else {
-          setInvalid('This reset link is invalid or has already been used. Please request a new one.');
+          setInvalid(
+            'This reset link is invalid or has already been used. Please request a new one.'
+          );
         }
       }, 2000);
     };
@@ -141,7 +143,7 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!password || !confirmPassword) {
       toast.error('Please fill in all fields');
       return;
@@ -160,7 +162,9 @@ export default function ResetPassword() {
     setLoading(true);
     try {
       // Verify we still have a valid session before attempting update
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      const {
+        data: { session: currentSession },
+      } = await supabase.auth.getSession();
       if (!currentSession) {
         setError('Your session has expired. Please request a new password reset link.');
         setIsValidSession(false);
@@ -168,21 +172,25 @@ export default function ResetPassword() {
       }
 
       const { error } = await supabase.auth.updateUser({ password });
-      
+
       if (error) throw error;
-      
+
       setSuccess(true);
       toast.success('Password updated successfully!');
-      
+
       // Sign out to clear the recovery session, then redirect to login
       await supabase.auth.signOut();
-      
+
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update password';
-      if (message.toLowerCase().includes('session') || message.toLowerCase().includes('token') || message.toLowerCase().includes('not authenticated')) {
+      if (
+        message.toLowerCase().includes('session') ||
+        message.toLowerCase().includes('token') ||
+        message.toLowerCase().includes('not authenticated')
+      ) {
         setError('Your session has expired. Please request a new password reset link.');
         setIsValidSession(false);
       } else {
@@ -219,12 +227,11 @@ export default function ResetPassword() {
             {success ? 'Password Updated!' : error ? 'Link Expired' : 'Set New Password'}
           </h1>
           <p className="text-muted-foreground mt-2">
-            {success 
+            {success
               ? 'Redirecting you to login...'
-              : error 
+              : error
                 ? 'Please request a new password reset link'
-                : 'Enter your new password below'
-            }
+                : 'Enter your new password below'}
           </p>
         </div>
 
@@ -257,9 +264,7 @@ export default function ResetPassword() {
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Reset Link Invalid</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {error}
-                </p>
+                <p className="text-sm text-muted-foreground mt-1">{error}</p>
               </div>
               <Button
                 onClick={() => navigate('/forgot-password')}
@@ -311,11 +316,7 @@ export default function ResetPassword() {
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 disabled={loading}
               >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Update Password'
-                )}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update Password'}
               </Button>
             </form>
           )}

@@ -6,14 +6,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Plus, Search, Loader2, ChevronRight, Star, Upload, Download, X } from 'lucide-react';
 import { toast } from 'sonner';
 import Papa from 'papaparse';
 
 const STAGES = ['member', 'applied', 'under_review', 'interview', 'accepted', 'rejected'] as const;
-type Stage = typeof STAGES[number];
+type Stage = (typeof STAGES)[number];
 
 const STAGE_COLORS: Record<Stage, string> = {
   member: '#b8860b',
@@ -70,8 +82,13 @@ export default function OrgPeopleDashboard() {
   const [nigoSaving, setNigoSaving] = useState<Record<number, boolean>>({});
 
   const [form, setForm] = useState({
-    first_name: '', last_name: '', email: '', year: '', major: '',
-    stage: 'applied' as Stage, notes: '',
+    first_name: '',
+    last_name: '',
+    email: '',
+    year: '',
+    major: '',
+    stage: 'applied' as Stage,
+    notes: '',
   });
 
   const fetchPeople = async () => {
@@ -84,10 +101,14 @@ export default function OrgPeopleDashboard() {
       .eq('organization_id', clubId)
       .order('created_at', { ascending: false });
 
-    if (error) { toast.error('Failed to load people'); setLoading(false); return; }
+    if (error) {
+      toast.error('Failed to load people');
+      setLoading(false);
+      return;
+    }
 
     const ids = peopleData?.map((p: Person) => p.id) || [];
-    let reviewMap: Record<string, number> = {};
+    const reviewMap: Record<string, number> = {};
 
     if (ids.length > 0) {
       const { data: reviews } = await (supabase as any)
@@ -110,28 +131,35 @@ export default function OrgPeopleDashboard() {
       }
     }
 
-    setPeople((peopleData || []).map((p: Person) => ({ ...p, avg_score: reviewMap[p.id] ?? null })));
+    setPeople(
+      (peopleData || []).map((p: Person) => ({ ...p, avg_score: reviewMap[p.id] ?? null }))
+    );
     setLoading(false);
   };
 
-  useEffect(() => { fetchPeople(); }, [clubId]);
+  useEffect(() => {
+    fetchPeople();
+  }, [clubId]);
 
   // Clear selection when filter/search changes
-  useEffect(() => { setSelected(new Set()); }, [stageFilter, search]);
+  useEffect(() => {
+    setSelected(new Set());
+  }, [stageFilter, search]);
 
-  const filtered = people.filter(p => {
+  const filtered = people.filter((p) => {
     const matchesStage = stageFilter === 'all' || p.stage === stageFilter;
-    const matchesSearch = !search ||
+    const matchesSearch =
+      !search ||
       `${p.first_name} ${p.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
       p.email?.toLowerCase().includes(search.toLowerCase()) ||
       p.major?.toLowerCase().includes(search.toLowerCase());
     return matchesStage && matchesSearch;
   });
 
-  const allFilteredSelected = filtered.length > 0 && filtered.every(p => selected.has(p.id));
+  const allFilteredSelected = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
 
   const toggleSelect = (id: string) => {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
@@ -142,7 +170,7 @@ export default function OrgPeopleDashboard() {
     if (allFilteredSelected) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(filtered.map(p => p.id)));
+      setSelected(new Set(filtered.map((p) => p.id)));
     }
   };
 
@@ -154,8 +182,14 @@ export default function OrgPeopleDashboard() {
       .from('people')
       .update({ stage: bulkStage })
       .in('id', ids);
-    if (error) { toast.error('Failed to move people'); setBulkMoving(false); return; }
-    toast.success(`Moved ${ids.length} ${ids.length === 1 ? 'person' : 'people'} to ${STAGE_LABELS[bulkStage]}`);
+    if (error) {
+      toast.error('Failed to move people');
+      setBulkMoving(false);
+      return;
+    }
+    toast.success(
+      `Moved ${ids.length} ${ids.length === 1 ? 'person' : 'people'} to ${STAGE_LABELS[bulkStage]}`
+    );
     setSelected(new Set());
     setBulkStage('');
     fetchPeople();
@@ -178,17 +212,29 @@ export default function OrgPeopleDashboard() {
       stage: form.stage,
       notes: form.notes.trim() || null,
     });
-    if (error) { toast.error('Failed to add person'); setAdding(false); return; }
+    if (error) {
+      toast.error('Failed to add person');
+      setAdding(false);
+      return;
+    }
     toast.success('Person added');
     setAddOpen(false);
-    setForm({ first_name: '', last_name: '', email: '', year: '', major: '', stage: 'applied', notes: '' });
+    setForm({
+      first_name: '',
+      last_name: '',
+      email: '',
+      year: '',
+      major: '',
+      stage: 'applied',
+      notes: '',
+    });
     fetchPeople();
     setAdding(false);
   };
 
   // ─── Export CSV ──────────────────────────────────────────────────────────────
   const handleExport = () => {
-    const data = filtered.map(p => ({
+    const data = filtered.map((p) => ({
       first_name: p.first_name,
       last_name: p.last_name,
       email: p.email || '',
@@ -216,20 +262,31 @@ export default function OrgPeopleDashboard() {
     e.target.value = '';
     setSmartImporting(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { toast.error('Not signed in'); return; }
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Not signed in');
+        return;
+      }
       const fd = new FormData();
       fd.append('file', file);
       fd.append('club_id', clubId);
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const res = await fetch(`${supabaseUrl}/functions/v1/ingest-roster`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
         body: fd,
       });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) { toast.error(json.error || 'Import failed'); return; }
-      if (json.error) { toast.error(json.error); return; }
+      if (!res.ok) {
+        toast.error(json.error || 'Import failed');
+        return;
+      }
+      if (json.error) {
+        toast.error(json.error);
+        return;
+      }
 
       const nigoCount = json.nigo_count ?? 0;
       toast.success(
@@ -250,10 +307,13 @@ export default function OrgPeopleDashboard() {
     }
   };
 
-  const stageCounts = STAGES.reduce((acc, s) => {
-    acc[s] = people.filter(p => p.stage === s).length;
-    return acc;
-  }, {} as Record<Stage, number>);
+  const stageCounts = STAGES.reduce(
+    (acc, s) => {
+      acc[s] = people.filter((p) => p.stage === s).length;
+      return acc;
+    },
+    {} as Record<Stage, number>
+  );
 
   return (
     <SidebarProvider>
@@ -265,16 +325,25 @@ export default function OrgPeopleDashboard() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-display font-bold text-white">People</h1>
-              <p className="text-zinc-500 text-sm mt-0.5">{people.length} total · members &amp; applicants</p>
+              <p className="text-zinc-500 text-sm mt-0.5">
+                {people.length} total · members &amp; applicants
+              </p>
             </div>
             <div className="flex gap-2">
               <Link to={`/club-admin/clubs/${clubId}/pipeline`}>
-                <Button variant="outline" className="border-white/10 text-zinc-300 hover:bg-white/5">
+                <Button
+                  variant="outline"
+                  className="border-white/10 text-zinc-300 hover:bg-white/5"
+                >
                   Pipeline View
                 </Button>
               </Link>
               {filtered.length > 0 && (
-                <Button onClick={handleExport} variant="outline" className="border-white/10 text-zinc-300 hover:bg-white/5">
+                <Button
+                  onClick={handleExport}
+                  variant="outline"
+                  className="border-white/10 text-zinc-300 hover:bg-white/5"
+                >
                   <Download className="w-4 h-4 mr-1.5" /> Export CSV
                 </Button>
               )}
@@ -284,7 +353,11 @@ export default function OrgPeopleDashboard() {
                 variant="outline"
                 className="border-white/10 text-zinc-300 hover:bg-white/5"
               >
-                {smartImporting ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Upload className="w-4 h-4 mr-1.5" />}
+                {smartImporting ? (
+                  <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 mr-1.5" />
+                )}
                 {smartImporting ? 'Importing...' : 'Import Roster'}
               </Button>
               <input
@@ -294,7 +367,10 @@ export default function OrgPeopleDashboard() {
                 className="hidden"
                 onChange={handleSmartImport}
               />
-              <Button onClick={() => setAddOpen(true)} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">
+              <Button
+                onClick={() => setAddOpen(true)}
+                className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90"
+              >
                 <Plus className="w-4 h-4 mr-1" /> Add Person
               </Button>
             </div>
@@ -307,7 +383,8 @@ export default function OrgPeopleDashboard() {
                 <div className="flex items-center gap-2.5">
                   <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                   <span className="text-sm font-semibold text-amber-400">
-                    Action Needed — {nigoQueue.length} member{nigoQueue.length !== 1 ? 's' : ''} couldn't be imported
+                    Action Needed — {nigoQueue.length} member{nigoQueue.length !== 1 ? 's' : ''}{' '}
+                    couldn't be imported
                   </span>
                 </div>
                 <button
@@ -331,34 +408,50 @@ export default function OrgPeopleDashboard() {
                       toast.error('Please fill in name and a valid email before saving');
                       return;
                     }
-                    setNigoSaving(prev => ({ ...prev, [idx]: true }));
+                    setNigoSaving((prev) => ({ ...prev, [idx]: true }));
                     try {
-                      const { error } = await (supabase as any).from('people').upsert({
-                        organization_id: clubId,
-                        first_name: firstName,
-                        last_name: lastName,
-                        email,
-                        major: edit.major || null,
-                        status: ['applicant', 'member', 'alumni'].includes(edit.status) ? edit.status : 'applicant',
-                        gender: ['male', 'female', 'non-binary', 'unspecified'].includes(edit.gender) ? edit.gender : 'unspecified',
-                        grad_year: Number.isInteger(edit.grad_year) ? edit.grad_year : null,
-                        stage: 'applied',
-                      }, { onConflict: 'email,organization_id' });
+                      const { error } = await (supabase as any).from('people').upsert(
+                        {
+                          organization_id: clubId,
+                          first_name: firstName,
+                          last_name: lastName,
+                          email,
+                          major: edit.major || null,
+                          status: ['applicant', 'member', 'alumni'].includes(edit.status)
+                            ? edit.status
+                            : 'applicant',
+                          gender: ['male', 'female', 'non-binary', 'unspecified'].includes(
+                            edit.gender
+                          )
+                            ? edit.gender
+                            : 'unspecified',
+                          grad_year: Number.isInteger(edit.grad_year) ? edit.grad_year : null,
+                          stage: 'applied',
+                        },
+                        { onConflict: 'email,organization_id' }
+                      );
 
                       if (error) throw error;
                       toast.success(`${firstName} ${lastName} imported!`);
-                      setNigoQueue(prev => prev.filter((_, i) => i !== idx));
-                      setNigoEdits(prev => { const next = { ...prev }; delete next[idx]; return next; });
+                      setNigoQueue((prev) => prev.filter((_, i) => i !== idx));
+                      setNigoEdits((prev) => {
+                        const next = { ...prev };
+                        delete next[idx];
+                        return next;
+                      });
                       fetchPeople();
                     } catch (err: any) {
                       toast.error(err.message || 'Failed to save');
                     } finally {
-                      setNigoSaving(prev => ({ ...prev, [idx]: false }));
+                      setNigoSaving((prev) => ({ ...prev, [idx]: false }));
                     }
                   };
 
                   return (
-                    <div key={idx} className="rounded-lg border border-amber-500/20 bg-zinc-900 p-4">
+                    <div
+                      key={idx}
+                      className="rounded-lg border border-amber-500/20 bg-zinc-900 p-4"
+                    >
                       <p className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider mb-3">
                         ⚠ {row.flag_reason}
                       </p>
@@ -371,15 +464,18 @@ export default function OrgPeopleDashboard() {
                         ].map(({ key, label, required }) => (
                           <div key={key}>
                             <label className="text-[10px] text-zinc-500 mb-1 block">
-                              {label}{required && <span className="text-amber-400 ml-0.5">*</span>}
+                              {label}
+                              {required && <span className="text-amber-400 ml-0.5">*</span>}
                             </label>
                             <input
                               type="text"
                               value={edit[key] || ''}
-                              onChange={e => setNigoEdits(prev => ({
-                                ...prev,
-                                [idx]: { ...(prev[idx] ?? row), [key]: e.target.value },
-                              }))}
+                              onChange={(e) =>
+                                setNigoEdits((prev) => ({
+                                  ...prev,
+                                  [idx]: { ...(prev[idx] ?? row), [key]: e.target.value },
+                                }))
+                              }
                               placeholder={label}
                               className="w-full h-8 px-2.5 text-xs rounded-lg bg-zinc-800 border border-white/10 text-white placeholder:text-zinc-600 focus:border-amber-400/50 focus:outline-none"
                             />
@@ -409,14 +505,16 @@ export default function OrgPeopleDashboard() {
             >
               All ({people.length})
             </button>
-            {STAGES.map(s => (
+            {STAGES.map((s) => (
               <button
                 key={s}
                 onClick={() => setStageFilter(s)}
                 className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-                style={stageFilter === s
-                  ? { background: STAGE_COLORS[s], color: '#000' }
-                  : { background: 'rgba(255,255,255,0.05)', color: '#a1a1aa' }}
+                style={
+                  stageFilter === s
+                    ? { background: STAGE_COLORS[s], color: '#000' }
+                    : { background: 'rgba(255,255,255,0.05)', color: '#a1a1aa' }
+                }
               >
                 {STAGE_LABELS[s]} ({stageCounts[s]})
               </button>
@@ -429,7 +527,7 @@ export default function OrgPeopleDashboard() {
             <Input
               placeholder="Search by name, email, or major..."
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
             />
           </div>
@@ -439,13 +537,15 @@ export default function OrgPeopleDashboard() {
             <div className="flex items-center gap-3 mb-4 px-4 py-3 rounded-xl border border-gold/20 bg-gold/5">
               <span className="text-sm text-zinc-300 font-medium">{selected.size} selected</span>
               <div className="flex items-center gap-2 ml-auto">
-                <Select value={bulkStage} onValueChange={v => setBulkStage(v as Stage)}>
+                <Select value={bulkStage} onValueChange={(v) => setBulkStage(v as Stage)}>
                   <SelectTrigger className="bg-white/5 border-white/10 text-white h-8 text-sm w-44">
                     <SelectValue placeholder="Move to stage..." />
                   </SelectTrigger>
                   <SelectContent className="bg-[#111] border-white/10">
-                    {STAGES.map(s => (
-                      <SelectItem key={s} value={s} className="text-white">{STAGE_LABELS[s]}</SelectItem>
+                    {STAGES.map((s) => (
+                      <SelectItem key={s} value={s} className="text-white">
+                        {STAGE_LABELS[s]}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -457,7 +557,10 @@ export default function OrgPeopleDashboard() {
                 >
                   {bulkMoving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Move'}
                 </Button>
-                <button onClick={() => setSelected(new Set())} className="text-zinc-500 hover:text-white transition-colors ml-1">
+                <button
+                  onClick={() => setSelected(new Set())}
+                  className="text-zinc-500 hover:text-white transition-colors ml-1"
+                >
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -488,10 +591,18 @@ export default function OrgPeopleDashboard() {
                         className="accent-yellow-500 w-4 h-4 cursor-pointer"
                       />
                     </th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Name</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Major / Year</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Stage</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Avg Score</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                      Major / Year
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                      Stage
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                      Avg Score
+                    </th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -510,8 +621,12 @@ export default function OrgPeopleDashboard() {
                         />
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-white">{person.first_name} {person.last_name}</div>
-                        {person.email && <div className="text-xs text-zinc-500">{person.email}</div>}
+                        <div className="font-medium text-white">
+                          {person.first_name} {person.last_name}
+                        </div>
+                        {person.email && (
+                          <div className="text-xs text-zinc-500">{person.email}</div>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-sm text-zinc-400">
                         {[person.major, person.year].filter(Boolean).join(' · ') || '—'}
@@ -519,7 +634,10 @@ export default function OrgPeopleDashboard() {
                       <td className="px-4 py-3">
                         <span
                           className="px-2 py-0.5 rounded-full text-xs font-medium"
-                          style={{ background: STAGE_COLORS[person.stage] + '22', color: STAGE_COLORS[person.stage] }}
+                          style={{
+                            background: STAGE_COLORS[person.stage] + '22',
+                            color: STAGE_COLORS[person.stage],
+                          }}
                         >
                           {STAGE_LABELS[person.stage]}
                         </span>
@@ -530,7 +648,9 @@ export default function OrgPeopleDashboard() {
                             <Star className="w-3.5 h-3.5 text-gold fill-gold" />
                             {person.avg_score.toFixed(1)}
                           </span>
-                        ) : <span className="text-zinc-600 text-sm">—</span>}
+                        ) : (
+                          <span className="text-zinc-600 text-sm">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Link
@@ -559,29 +679,53 @@ export default function OrgPeopleDashboard() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-zinc-400 text-xs">First Name *</Label>
-                <Input value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} className="bg-white/5 border-white/10 text-white mt-1" />
+                <Input
+                  value={form.first_name}
+                  onChange={(e) => setForm((f) => ({ ...f, first_name: e.target.value }))}
+                  className="bg-white/5 border-white/10 text-white mt-1"
+                />
               </div>
               <div>
                 <Label className="text-zinc-400 text-xs">Last Name *</Label>
-                <Input value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))} className="bg-white/5 border-white/10 text-white mt-1" />
+                <Input
+                  value={form.last_name}
+                  onChange={(e) => setForm((f) => ({ ...f, last_name: e.target.value }))}
+                  className="bg-white/5 border-white/10 text-white mt-1"
+                />
               </div>
             </div>
             <div>
               <Label className="text-zinc-400 text-xs">Email</Label>
-              <Input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="bg-white/5 border-white/10 text-white mt-1" placeholder="optional" />
+              <Input
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                className="bg-white/5 border-white/10 text-white mt-1"
+                placeholder="optional"
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-zinc-400 text-xs">Major</Label>
-                <Input value={form.major} onChange={e => setForm(f => ({ ...f, major: e.target.value }))} className="bg-white/5 border-white/10 text-white mt-1" />
+                <Input
+                  value={form.major}
+                  onChange={(e) => setForm((f) => ({ ...f, major: e.target.value }))}
+                  className="bg-white/5 border-white/10 text-white mt-1"
+                />
               </div>
               <div>
                 <Label className="text-zinc-400 text-xs">Year</Label>
-                <Select value={form.year} onValueChange={v => setForm(f => ({ ...f, year: v }))}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1"><SelectValue placeholder="Select" /></SelectTrigger>
+                <Select
+                  value={form.year}
+                  onValueChange={(v) => setForm((f) => ({ ...f, year: v }))}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
                   <SelectContent className="bg-[#111] border-white/10">
-                    {['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'].map(y => (
-                      <SelectItem key={y} value={y} className="text-white">{y}</SelectItem>
+                    {['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'].map((y) => (
+                      <SelectItem key={y} value={y} className="text-white">
+                        {y}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -589,21 +733,41 @@ export default function OrgPeopleDashboard() {
             </div>
             <div>
               <Label className="text-zinc-400 text-xs">Stage</Label>
-              <Select value={form.stage} onValueChange={v => setForm(f => ({ ...f, stage: v as Stage }))}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1"><SelectValue /></SelectTrigger>
+              <Select
+                value={form.stage}
+                onValueChange={(v) => setForm((f) => ({ ...f, stage: v as Stage }))}
+              >
+                <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent className="bg-[#111] border-white/10">
-                  {STAGES.map(s => <SelectItem key={s} value={s} className="text-white">{STAGE_LABELS[s]}</SelectItem>)}
+                  {STAGES.map((s) => (
+                    <SelectItem key={s} value={s} className="text-white">
+                      {STAGE_LABELS[s]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
               <Label className="text-zinc-400 text-xs">Notes</Label>
-              <Input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-white/5 border-white/10 text-white mt-1" placeholder="optional" />
+              <Input
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                className="bg-white/5 border-white/10 text-white mt-1"
+                placeholder="optional"
+              />
             </div>
           </div>
           <DialogFooter className="mt-2">
-            <Button variant="ghost" onClick={() => setAddOpen(false)} className="text-zinc-400">Cancel</Button>
-            <Button onClick={handleAdd} disabled={adding} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">
+            <Button variant="ghost" onClick={() => setAddOpen(false)} className="text-zinc-400">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAdd}
+              disabled={adding}
+              className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90"
+            >
               {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add Person'}
             </Button>
           </DialogFooter>

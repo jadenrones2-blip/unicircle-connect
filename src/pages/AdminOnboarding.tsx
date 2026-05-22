@@ -35,7 +35,7 @@ export default function AdminOnboarding() {
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, createProfile, isProfileComplete } = useAdminProfile();
   const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
-  
+
   const [submitting, setSubmitting] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -96,9 +96,9 @@ export default function AdminOnboarding() {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('club-images')
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('club-images').getPublicUrl(fileName);
 
       setAvatarUrl(publicUrl);
       toast.success('Photo uploaded!');
@@ -151,7 +151,7 @@ export default function AdminOnboarding() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      
+
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4 max-w-lg">
           {/* Welcome Header */}
@@ -163,7 +163,8 @@ export default function AdminOnboarding() {
               Set Up Your Profile
             </h1>
             <p className="text-muted-foreground">
-              Let's personalize your experience as an admin for <span className="text-gold font-medium">{clubName}</span>
+              Let's personalize your experience as an admin for{' '}
+              <span className="text-gold font-medium">{clubName}</span>
             </p>
           </div>
 
@@ -238,12 +239,7 @@ export default function AdminOnboarding() {
                 />
 
                 {/* Submit */}
-                <Button
-                  type="submit"
-                  variant="gold"
-                  className="w-full"
-                  disabled={submitting}
-                >
+                <Button type="submit" variant="gold" className="w-full" disabled={submitting}>
                   {submitting ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (

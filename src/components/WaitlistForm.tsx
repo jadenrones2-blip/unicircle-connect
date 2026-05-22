@@ -1,20 +1,20 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ArrowRight, Loader2, CheckCircle } from "lucide-react";
-import { z } from "zod";
-import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ArrowRight, Loader2, CheckCircle } from 'lucide-react';
+import { z } from 'zod';
+import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
-const emailSchema = z.string().trim().email({ message: "Please enter a valid email address" });
+const emailSchema = z.string().trim().email({ message: 'Please enter a valid email address' });
 
 interface WaitlistFormProps {
-  variant?: "default" | "compact";
+  variant?: 'default' | 'compact';
 }
 
-const WaitlistForm = ({ variant = "default" }: WaitlistFormProps) => {
-  const [email, setEmail] = useState("");
+const WaitlistForm = ({ variant = 'default' }: WaitlistFormProps) => {
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,12 +33,10 @@ const WaitlistForm = ({ variant = "default" }: WaitlistFormProps) => {
     setIsLoading(true);
 
     try {
-      const { error: insertError } = await supabase
-        .from("waitlist")
-        .insert({ email: result.data });
+      const { error: insertError } = await supabase.from('waitlist').insert({ email: result.data });
 
       if (insertError) {
-        if (insertError.code === "23505") {
+        if (insertError.code === '23505') {
           // Unique constraint violation - email already exists
           setError("You're already on the waitlist!");
         } else {
@@ -51,28 +49,28 @@ const WaitlistForm = ({ variant = "default" }: WaitlistFormProps) => {
       // Send confirmation email via edge function
       try {
         const { error: emailError } = await supabase.functions.invoke('notify-waitlist-signup', {
-          body: { email: result.data }
+          body: { email: result.data },
         });
         if (emailError) {
-          console.error("Email notification error:", emailError);
+          console.error('Email notification error:', emailError);
         }
       } catch (emailErr) {
         // Don't fail the signup if email fails
-        console.error("Email notification failed:", emailErr);
+        console.error('Email notification failed:', emailErr);
       }
 
       setIsLoading(false);
       setIsSuccess(true);
-      setEmail("");
+      setEmail('');
 
       toast({
         title: "You're on the list!",
         description: "We'll notify you when Unicircle launches.",
       });
     } catch (err) {
-      console.error("Waitlist signup error:", err);
+      console.error('Waitlist signup error:', err);
       setIsLoading(false);
-      setError("Something went wrong. Please try again.");
+      setError('Something went wrong. Please try again.');
     }
   };
 
@@ -91,7 +89,9 @@ const WaitlistForm = ({ variant = "default" }: WaitlistFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md">
-      <div className={`flex ${variant === "compact" ? "flex-row gap-2" : "flex-col sm:flex-row gap-3"}`}>
+      <div
+        className={`flex ${variant === 'compact' ? 'flex-row gap-2' : 'flex-col sm:flex-row gap-3'}`}
+      >
         <div className="flex-1">
           <Input
             type="email"
@@ -102,7 +102,7 @@ const WaitlistForm = ({ variant = "default" }: WaitlistFormProps) => {
               if (error) setError(null);
             }}
             className={`h-12 bg-background/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 focus:border-gold focus:ring-gold/20 ${
-              error ? "border-red-400" : ""
+              error ? 'border-red-400' : ''
             }`}
             disabled={isLoading}
           />

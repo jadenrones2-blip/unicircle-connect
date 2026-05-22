@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
-import { dataClient } from "@/integrations/supabase/dataClient";
+import { useCallback, useEffect, useState } from 'react';
+import { dataClient } from '@/integrations/supabase/dataClient';
 
-export type RecruitmentCycle = "fall" | "winter" | "spring" | "rolling" | "none";
-export type RecruitmentStatus = "open" | "upcoming" | "closed";
+export type RecruitmentCycle = 'fall' | 'winter' | 'spring' | 'rolling' | 'none';
+export type RecruitmentStatus = 'open' | 'upcoming' | 'closed';
 
 export interface ExternalClubRecord {
   id: string;
@@ -48,16 +48,16 @@ export function useExternalClubRecord(clubId?: string): UseExternalClubRecordRes
         .maybeSingle();
 
       if (dbError) {
-        console.warn("Club not found:", clubId);
+        console.warn('Club not found:', clubId);
         setClub(null);
         return;
       }
 
       setClub(data as ExternalClubRecord | null);
     } catch (err) {
-      console.error("Error fetching club by id:", err);
+      console.error('Error fetching club by id:', err);
       setClub(null);
-      setError(err instanceof Error ? err.message : "Failed to fetch club");
+      setError(err instanceof Error ? err.message : 'Failed to fetch club');
     } finally {
       setLoading(false);
     }

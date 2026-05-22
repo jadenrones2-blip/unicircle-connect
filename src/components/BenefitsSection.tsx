@@ -1,17 +1,28 @@
-import { motion } from "framer-motion";
-import AnimatedWords from "./AnimatedWords";
+import { motion } from 'framer-motion';
+import AnimatedWords from './AnimatedWords';
 
 const benefits = [
-  { number: "01", title: "Track status",   desc: "See exactly where you stand in the process, in real time." },
-  { number: "02", title: "Get updates",    desc: "Notified the moment you advance or receive a decision." },
-  { number: "03", title: "Discover clubs", desc: "Find every org on campus that matches your interests." },
+  {
+    number: '01',
+    title: 'Track status',
+    desc: 'See exactly where you stand in the process, in real time.',
+  },
+  {
+    number: '02',
+    title: 'Get updates',
+    desc: 'Notified the moment you advance or receive a decision.',
+  },
+  {
+    number: '03',
+    title: 'Discover clubs',
+    desc: 'Find every org on campus that matches your interests.',
+  },
 ];
 
 const BenefitsSection = () => {
   return (
     <section className="py-24 md:py-36 border-t border-border/20">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14">
-
         <div className="mb-16 md:mb-20">
           <motion.p
             initial={{ opacity: 0 }}
@@ -25,7 +36,7 @@ const BenefitsSection = () => {
             text="Full transparency. Always."
             as="h2"
             className="font-display text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.0] tracking-tight"
-            goldWords={["transparency."]}
+            goldWords={['transparency.']}
           />
         </div>
 
@@ -47,7 +58,6 @@ const BenefitsSection = () => {
             </motion.div>
           ))}
         </div>
-
       </div>
     </section>
   );

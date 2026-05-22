@@ -48,7 +48,7 @@ export default function AdminProfileSettings() {
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading, updateProfile, isProfileComplete } = useAdminProfile();
   const { ownedClubs, loading: ownershipLoading } = useClubOwnership();
-  
+
   const [saving, setSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -115,20 +115,19 @@ export default function AdminProfileSettings() {
 
     setUploadingAvatar(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-avatar`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          body: formData,
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-avatar`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: formData,
+      });
 
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || 'Upload failed');
@@ -196,7 +195,10 @@ export default function AdminProfileSettings() {
         <div className="min-h-screen flex w-full" style={{ background: '#0A0A0A' }}>
           <ClubAdminSidebar />
           <main className="flex-1">
-            <header className="h-14 flex items-center px-4 gap-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <header
+              className="h-14 flex items-center px-4 gap-3"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+            >
               <SidebarTrigger className="text-zinc-500 hover:text-white transition-colors" />
               <Skeleton className="h-5 w-40 bg-white/10" />
             </header>
@@ -225,7 +227,10 @@ export default function AdminProfileSettings() {
         <ClubAdminSidebar />
 
         <main className="flex-1">
-          <header className="h-14 flex items-center px-4 gap-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <header
+            className="h-14 flex items-center px-4 gap-3"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          >
             <SidebarTrigger className="text-zinc-500 hover:text-white transition-colors" />
             <AdminBreadcrumb items={[{ label: 'Profile Settings' }]} />
           </header>
@@ -235,7 +240,10 @@ export default function AdminProfileSettings() {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Avatar Section */}
-                  <div className="flex flex-col items-center gap-3 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div
+                    className="flex flex-col items-center gap-3 pb-6"
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                  >
                     {/* Hidden file input */}
                     <input
                       ref={fileInputRef}
@@ -293,14 +301,21 @@ export default function AdminProfileSettings() {
                             </AlertDialogTrigger>
                             <AlertDialogContent className="bg-zinc-900 border-white/10">
                               <AlertDialogHeader>
-                                <AlertDialogTitle className="text-white">Remove Photo</AlertDialogTitle>
+                                <AlertDialogTitle className="text-white">
+                                  Remove Photo
+                                </AlertDialogTitle>
                                 <AlertDialogDescription className="text-zinc-400">
                                   Are you sure you want to remove your profile photo?
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleRemoveAvatar} className="bg-red-600 hover:bg-red-700 text-white">
+                                <AlertDialogCancel className="border-white/20 text-white hover:bg-white/10">
+                                  Cancel
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={handleRemoveAvatar}
+                                  className="bg-red-600 hover:bg-red-700 text-white"
+                                >
                                   Remove
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -326,7 +341,9 @@ export default function AdminProfileSettings() {
                             {...field}
                           />
                         </FormControl>
-                        <p className="text-xs text-zinc-500">This is how you'll appear to other admins</p>
+                        <p className="text-xs text-zinc-500">
+                          This is how you'll appear to other admins
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -353,11 +370,7 @@ export default function AdminProfileSettings() {
                   />
 
                   {/* Submit */}
-                  <Button
-                    type="submit"
-                    variant="gold"
-                    disabled={saving || !form.formState.isDirty}
-                  >
+                  <Button type="submit" variant="gold" disabled={saving || !form.formState.isDirty}>
                     {saving ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (

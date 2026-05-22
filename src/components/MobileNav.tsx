@@ -3,11 +3,11 @@ import { Home, Search, Calendar, Compass, UserCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const NAV = [
-  { href: '/dashboard', icon: Home,       label: 'Home'     },
-  { href: '/clubs',     icon: Search,     label: 'Clubs'    },
-  { href: '/discover',  icon: Compass,    label: 'Discover' },
-  { href: '/events',    icon: Calendar,   label: 'Events'   },
-  { href: '/profile',   icon: UserCircle, label: 'Profile'  },
+  { href: '/dashboard', icon: Home, label: 'Home' },
+  { href: '/clubs', icon: Search, label: 'Clubs' },
+  { href: '/discover', icon: Compass, label: 'Discover' },
+  { href: '/events', icon: Calendar, label: 'Events' },
+  { href: '/profile', icon: UserCircle, label: 'Profile' },
 ];
 
 export default function MobileNav() {
@@ -28,7 +28,11 @@ export default function MobileNav() {
         {NAV.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
           return (
-            <Link key={href} to={href} className="flex flex-col items-center gap-0.5 px-3 py-1 relative">
+            <Link
+              key={href}
+              to={href}
+              className="flex flex-col items-center gap-0.5 px-3 py-1 relative"
+            >
               {active && (
                 <motion.div
                   layoutId="mobile-nav-indicator"

@@ -31,34 +31,44 @@ export default function CampusSearch({ clubs, events }: Props) {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const search = useCallback(async (q: string) => {
-    if (!q.trim()) return;
-    setLoading(true);
-    setResults(null);
-    try {
-      const { data, error } = await supabase.functions.invoke('campus-search', {
-        body: { query: q, clubs, events },
-      });
-      if (!error && data) setResults(data as SearchResult);
-    } catch { /* silent */ }
-    setLoading(false);
-  }, [clubs, events]);
+  const search = useCallback(
+    async (q: string) => {
+      if (!q.trim()) return;
+      setLoading(true);
+      setResults(null);
+      try {
+        const { data, error } = await supabase.functions.invoke('campus-search', {
+          body: { query: q, clubs, events },
+        });
+        if (!error && data) setResults(data as SearchResult);
+      } catch {
+        /* silent */
+      }
+      setLoading(false);
+    },
+    [clubs, events]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) search(query);
   };
 
-  const clear = () => { setQuery(''); setResults(null); };
+  const clear = () => {
+    setQuery('');
+    setResults(null);
+  };
 
   // Map result IDs back to full objects
-  const matchedClubs = results?.clubs
-    .map(r => ({ club: clubs.find(c => c.id === r.id), reason: r.reason }))
-    .filter(r => r.club) ?? [];
+  const matchedClubs =
+    results?.clubs
+      .map((r) => ({ club: clubs.find((c) => c.id === r.id), reason: r.reason }))
+      .filter((r) => r.club) ?? [];
 
-  const matchedEvents = results?.events
-    .map(r => ({ event: events.find(e => e.id === r.id), reason: r.reason }))
-    .filter(r => r.event) ?? [];
+  const matchedEvents =
+    results?.events
+      .map((r) => ({ event: events.find((e) => e.id === r.id), reason: r.reason }))
+      .filter((r) => r.event) ?? [];
 
   return (
     <div className="mb-8">
@@ -66,23 +76,31 @@ export default function CampusSearch({ clubs, events }: Props) {
       <form onSubmit={handleSubmit} className="relative">
         <div
           className="flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all"
-          style={{ background: 'rgba(255,255,255,0.03)', borderColor: open ? 'rgba(196,150,28,0.4)' : 'rgba(255,255,255,0.08)' }}
+          style={{
+            background: 'rgba(255,255,255,0.03)',
+            borderColor: open ? 'rgba(196,150,28,0.4)' : 'rgba(255,255,255,0.08)',
+          }}
         >
-          {loading
-            ? <Loader2 className="w-4 h-4 text-zinc-500 animate-spin shrink-0" />
-            : <Search className="w-4 h-4 text-zinc-500 shrink-0" />
-          }
+          {loading ? (
+            <Loader2 className="w-4 h-4 text-zinc-500 animate-spin shrink-0" />
+          ) : (
+            <Search className="w-4 h-4 text-zinc-500 shrink-0" />
+          )}
           <input
             ref={inputRef}
             value={query}
-            onChange={e => setQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setOpen(true)}
             onBlur={() => setTimeout(() => setOpen(false), 150)}
-            placeholder="Ask anything — &quot;clubs recruiting now&quot;, &quot;free food this week&quot;…"
+            placeholder='Ask anything — "clubs recruiting now", "free food this week"…'
             className="flex-1 bg-transparent text-sm text-zinc-100 placeholder:text-zinc-600 outline-none"
           />
           {query && (
-            <button type="button" onClick={clear} className="text-zinc-600 hover:text-zinc-400 transition-colors">
+            <button
+              type="button"
+              onClick={clear}
+              className="text-zinc-600 hover:text-zinc-400 transition-colors"
+            >
               <X className="w-4 h-4" />
             </button>
           )}
@@ -104,13 +122,18 @@ export default function CampusSearch({ clubs, events }: Props) {
               exit={{ opacity: 0, y: 4 }}
               className="absolute top-full left-0 right-0 mt-2 p-3 rounded-xl border border-white/[0.07] bg-zinc-950 z-20 shadow-xl"
             >
-              <p className="text-[10px] font-semibold text-zinc-700 uppercase tracking-widest mb-2">Try asking</p>
+              <p className="text-[10px] font-semibold text-zinc-700 uppercase tracking-widest mb-2">
+                Try asking
+              </p>
               <div className="flex flex-wrap gap-2">
-                {SUGGESTIONS.map(s => (
+                {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
                     type="button"
-                    onMouseDown={() => { setQuery(s); search(s); }}
+                    onMouseDown={() => {
+                      setQuery(s);
+                      search(s);
+                    }}
                     className="text-xs text-zinc-400 bg-white/[0.04] border border-white/[0.07] rounded-full px-3 py-1.5 hover:text-white hover:border-white/15 transition-all"
                   >
                     {s}
@@ -131,16 +154,16 @@ export default function CampusSearch({ clubs, events }: Props) {
             exit={{ opacity: 0 }}
             className="mt-4 space-y-5"
           >
-            {results.summary && (
-              <p className="text-sm text-zinc-400 italic">"{results.summary}"</p>
-            )}
+            {results.summary && <p className="text-sm text-zinc-400 italic">"{results.summary}"</p>}
 
             {/* Club results */}
             {matchedClubs.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Users className="w-3.5 h-3.5 text-zinc-600" />
-                  <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest">Clubs</span>
+                  <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest">
+                    Clubs
+                  </span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {matchedClubs.map(({ club, reason }) => (
@@ -153,8 +176,12 @@ export default function CampusSearch({ clubs, events }: Props) {
                         {club!.name[0]}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-zinc-100 truncate group-hover:text-white">{club!.name}</p>
-                        <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mt-0.5">{reason}</p>
+                        <p className="text-sm font-semibold text-zinc-100 truncate group-hover:text-white">
+                          {club!.name}
+                        </p>
+                        <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mt-0.5">
+                          {reason}
+                        </p>
                       </div>
                     </Link>
                   ))}
@@ -167,12 +194,17 @@ export default function CampusSearch({ clubs, events }: Props) {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className="w-3.5 h-3.5 text-zinc-600" />
-                  <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest">Events</span>
+                  <span className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest">
+                    Events
+                  </span>
                 </div>
                 <div className="flex flex-col gap-2">
                   {matchedEvents.map(({ event, reason }) => {
                     const d = event.start_time
-                      ? new Date(event.start_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      ? new Date(event.start_time).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                        })
                       : null;
                     return (
                       <Link
@@ -185,10 +217,14 @@ export default function CampusSearch({ clubs, events }: Props) {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="text-sm font-semibold text-zinc-100 truncate">{event.corrected_title || event.title}</p>
+                            <p className="text-sm font-semibold text-zinc-100 truncate">
+                              {event.corrected_title || event.title}
+                            </p>
                             {d && <span className="text-[10px] text-zinc-600 shrink-0">{d}</span>}
                           </div>
-                          <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mt-0.5">{reason}</p>
+                          <p className="text-xs text-zinc-500 leading-relaxed line-clamp-2 mt-0.5">
+                            {reason}
+                          </p>
                         </div>
                       </Link>
                     );
@@ -198,7 +234,9 @@ export default function CampusSearch({ clubs, events }: Props) {
             )}
 
             {matchedClubs.length === 0 && matchedEvents.length === 0 && (
-              <p className="text-sm text-zinc-600 text-center py-4">No matches found — try rephrasing your search.</p>
+              <p className="text-sm text-zinc-600 text-center py-4">
+                No matches found — try rephrasing your search.
+              </p>
             )}
           </motion.div>
         )}

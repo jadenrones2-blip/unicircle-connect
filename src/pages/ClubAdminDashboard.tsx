@@ -5,7 +5,16 @@ import { useClubOwnership, VerificationState } from '@/hooks/useClubOwnership';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
-import { Loader2, Plus, Calendar, Settings, CheckCircle2, AlertTriangle, XCircle, Shield } from 'lucide-react';
+import {
+  Loader2,
+  Plus,
+  Calendar,
+  Settings,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Shield,
+} from 'lucide-react';
 import { OnboardingChecklist } from '@/components/club-admin/OnboardingChecklist';
 import { motion } from 'framer-motion';
 
@@ -40,13 +49,31 @@ export default function ClubAdminDashboard() {
   }, [authLoading, ownershipLoading, user, ownedClubs.length, navigate]);
 
   useEffect(() => {
-    if (!authLoading && !ownershipLoading && !profileLoading && user && ownedClubs.length > 0 && !isProfileComplete)
+    if (
+      !authLoading &&
+      !ownershipLoading &&
+      !profileLoading &&
+      user &&
+      ownedClubs.length > 0 &&
+      !isProfileComplete
+    )
       navigate('/admin-onboarding');
-  }, [authLoading, ownershipLoading, profileLoading, user, ownedClubs, isProfileComplete, navigate]);
+  }, [
+    authLoading,
+    ownershipLoading,
+    profileLoading,
+    user,
+    ownedClubs,
+    isProfileComplete,
+    navigate,
+  ]);
 
   if (authLoading || ownershipLoading || profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0A0A' }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: '#0A0A0A' }}
+      >
         <Loader2 className="w-6 h-6 text-gold animate-spin" />
       </div>
     );
@@ -70,21 +97,30 @@ export default function ClubAdminDashboard() {
           </header>
 
           <div className="p-5 sm:p-7 w-full">
-
             {/* Provisional warning */}
             {hasProvisionalClub && (
               <motion.div
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-6 px-4 py-3 rounded-xl flex items-start gap-3"
-                style={{ background: 'rgba(234,179,8,0.06)', border: '1px solid rgba(234,179,8,0.15)' }}
+                style={{
+                  background: 'rgba(234,179,8,0.06)',
+                  border: '1px solid rgba(234,179,8,0.15)',
+                }}
               >
                 <AlertTriangle className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-white">Provisional account</p>
-                  <p className="text-xs text-zinc-500 mt-0.5">Some features are restricted until you verify with a .edu email or get confirmed by a verified admin.</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    Some features are restricted until you verify with a .edu email or get confirmed
+                    by a verified admin.
+                  </p>
                   <ul className="mt-2 space-y-0.5">
-                    {['Events saved as drafts', 'No mass messages', 'External links require review'].map(r => (
+                    {[
+                      'Events saved as drafts',
+                      'No mass messages',
+                      'External links require review',
+                    ].map((r) => (
                       <li key={r} className="flex items-center gap-2 text-xs text-zinc-600">
                         <XCircle className="w-3 h-3 text-red-500/70 shrink-0" />
                         {r}
@@ -112,9 +148,13 @@ export default function ClubAdminDashboard() {
             {ownedClubs.map((club) => (
               <div key={`checklist-${club.clubId}`} className="mb-8">
                 <div className="flex items-center gap-2 mb-3">
-                  <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600">Setup</p>
+                  <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600">
+                    Setup
+                  </p>
                   <span className="text-[10px] text-zinc-500">·</span>
-                  <p className="text-[10px] font-semibold tracking-wide uppercase text-gold truncate">{club.clubName}</p>
+                  <p className="text-[10px] font-semibold tracking-wide uppercase text-gold truncate">
+                    {club.clubName}
+                  </p>
                 </div>
                 <OnboardingChecklist club={club} />
               </div>
@@ -142,13 +182,21 @@ export default function ClubAdminDashboard() {
                       <VerificationPip state={club.verificationState} />
                     </div>
                     <p className="text-[11px] text-zinc-600 mb-4">
-                      Claimed {new Date(club.verifiedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      Claimed{' '}
+                      {new Date(club.verifiedAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <Link
                         to={`/club-admin/clubs/${club.clubId}/edit`}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                        }}
                       >
                         <Settings className="w-3 h-3" />
                         Edit
@@ -156,7 +204,10 @@ export default function ClubAdminDashboard() {
                       <Link
                         to={`/club-admin/clubs/${club.clubId}/events`}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors"
-                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        style={{
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                        }}
                       >
                         <Calendar className="w-3 h-3" />
                         Events
@@ -189,9 +240,13 @@ export default function ClubAdminDashboard() {
                   >
                     <div>
                       <p className="text-sm font-medium text-white">{club.clubName}</p>
-                      <p className="text-xs text-zinc-500 mt-0.5">Manage stages, review applicants, run AI screening</p>
+                      <p className="text-xs text-zinc-500 mt-0.5">
+                        Manage stages, review applicants, run AI screening
+                      </p>
                     </div>
-                    <span className="text-zinc-600 group-hover:text-gold transition-colors text-lg">→</span>
+                    <span className="text-zinc-600 group-hover:text-gold transition-colors text-lg">
+                      →
+                    </span>
                   </Link>
                 ))}
               </div>

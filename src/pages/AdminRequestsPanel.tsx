@@ -57,7 +57,9 @@ export default function AdminRequestsPanel() {
   const [rejecting, setRejecting] = useState(false);
 
   // Filter
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>(
+    'all'
+  );
 
   // Check admin access
   useEffect(() => {
@@ -154,9 +156,13 @@ export default function AdminRequestsPanel() {
         toast.success(`${approveTarget.club_name} approved — portal access granted!`);
       } else {
         // User hasn't signed up yet — approval saved, access granted when they do
-        toast.success(`${approveTarget.club_name} approved! Access will be granted when they sign up.`);
-        if (!profileData?.user_id) toast.info(`No account found for ${approveTarget.user_email} yet.`);
-        if (!clubData?.id) toast.info(`Club "${approveTarget.club_name}" not found in DB — add it manually.`);
+        toast.success(
+          `${approveTarget.club_name} approved! Access will be granted when they sign up.`
+        );
+        if (!profileData?.user_id)
+          toast.info(`No account found for ${approveTarget.user_email} yet.`);
+        if (!clubData?.id)
+          toast.info(`Club "${approveTarget.club_name}" not found in DB — add it manually.`);
       }
 
       // 5. Send approval email (best-effort)
@@ -169,12 +175,19 @@ export default function AdminRequestsPanel() {
             reviewerNotes: approveNote.trim() || undefined,
           },
         });
-      } catch { /* non-fatal */ }
+      } catch {
+        /* non-fatal */
+      }
 
       setRequests((prev) =>
         prev.map((r) =>
           r.id === approveTarget.id
-            ? { ...r, status: 'approved', reviewed_at: new Date().toISOString(), reviewer_notes: approveNote.trim() || null }
+            ? {
+                ...r,
+                status: 'approved',
+                reviewed_at: new Date().toISOString(),
+                reviewer_notes: approveNote.trim() || null,
+              }
             : r
         )
       );
@@ -215,12 +228,19 @@ export default function AdminRequestsPanel() {
             rejectionReason: rejectReason.trim(),
           },
         });
-      } catch { /* non-fatal — rejection email failed */ }
+      } catch {
+        /* non-fatal — rejection email failed */
+      }
 
       setRequests((prev) =>
         prev.map((r) =>
           r.id === rejectTarget.id
-            ? { ...r, status: 'rejected', reviewed_at: new Date().toISOString(), reviewer_notes: rejectReason.trim() }
+            ? {
+                ...r,
+                status: 'rejected',
+                reviewed_at: new Date().toISOString(),
+                reviewer_notes: rejectReason.trim(),
+              }
             : r
         )
       );
@@ -235,7 +255,8 @@ export default function AdminRequestsPanel() {
     }
   };
 
-  const filtered = statusFilter === 'all' ? requests : requests.filter((r) => r.status === statusFilter);
+  const filtered =
+    statusFilter === 'all' ? requests : requests.filter((r) => r.status === statusFilter);
 
   const counts = {
     pending: requests.filter((r) => r.status === 'pending').length,
@@ -268,7 +289,10 @@ export default function AdminRequestsPanel() {
             { label: 'Approved', value: counts.approved, color: 'text-green-400' },
             { label: 'Rejected', value: counts.rejected, color: 'text-red-400' },
           ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-white/10 bg-zinc-900/40 p-4 text-center">
+            <div
+              key={s.label}
+              className="rounded-xl border border-white/10 bg-zinc-900/40 p-4 text-center"
+            >
               <p className={`text-2xl font-bold font-display ${s.color}`}>{s.value}</p>
               <p className="text-xs text-zinc-500 mt-0.5">{s.label}</p>
             </div>
@@ -287,7 +311,9 @@ export default function AdminRequestsPanel() {
                   : 'bg-transparent text-zinc-500 border border-white/10 hover:border-white/20'
               }`}
             >
-              {f === 'all' ? `All (${requests.length})` : `${f.charAt(0).toUpperCase() + f.slice(1)} (${counts[f]})`}
+              {f === 'all'
+                ? `All (${requests.length})`
+                : `${f.charAt(0).toUpperCase() + f.slice(1)} (${counts[f]})`}
             </button>
           ))}
         </div>
@@ -307,15 +333,14 @@ export default function AdminRequestsPanel() {
             {filtered.map((req) => {
               const style = STATUS_STYLES[req.status];
               return (
-                <div
-                  key={req.id}
-                  className="rounded-xl border border-white/10 bg-zinc-900/40 p-5"
-                >
+                <div key={req.id} className="rounded-xl border border-white/10 bg-zinc-900/40 p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1">
                         <h3 className="text-white font-semibold truncate">{req.club_name}</h3>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}
+                        >
                           {style.label}
                         </span>
                         {req.club_category && (
@@ -324,10 +349,19 @@ export default function AdminRequestsPanel() {
                       </div>
                       <p className="text-sm text-zinc-400 mb-1">{req.user_email}</p>
                       {req.club_description && (
-                        <p className="text-sm text-zinc-500 line-clamp-2 mb-2">{req.club_description}</p>
+                        <p className="text-sm text-zinc-500 line-clamp-2 mb-2">
+                          {req.club_description}
+                        </p>
                       )}
                       <div className="flex items-center gap-4 text-xs text-zinc-600">
-                        <span>Submitted {new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        <span>
+                          Submitted{' '}
+                          {new Date(req.created_at).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
                         {req.proof_link && (
                           <a
                             href={req.proof_link}
@@ -340,14 +374,24 @@ export default function AdminRequestsPanel() {
                           </a>
                         )}
                         {req.reviewed_at && (
-                          <span>Reviewed {new Date(req.reviewed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          <span>
+                            Reviewed{' '}
+                            {new Date(req.reviewed_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
                         )}
                       </div>
                       {req.reviewer_notes && (
-                        <p className="mt-2 text-xs text-zinc-500 italic">Note: {req.reviewer_notes}</p>
+                        <p className="mt-2 text-xs text-zinc-500 italic">
+                          Note: {req.reviewer_notes}
+                        </p>
                       )}
                       {req.additional_notes && (
-                        <p className="mt-1 text-xs text-zinc-600">Applicant notes: {req.additional_notes}</p>
+                        <p className="mt-1 text-xs text-zinc-600">
+                          Applicant notes: {req.additional_notes}
+                        </p>
                       )}
                     </div>
 
@@ -357,7 +401,10 @@ export default function AdminRequestsPanel() {
                           size="sm"
                           variant="outline"
                           className="border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50"
-                          onClick={() => { setRejectTarget(req); setRejectReason(''); }}
+                          onClick={() => {
+                            setRejectTarget(req);
+                            setRejectReason('');
+                          }}
                         >
                           <X className="w-3.5 h-3.5 mr-1" />
                           Reject
@@ -365,7 +412,10 @@ export default function AdminRequestsPanel() {
                         <Button
                           size="sm"
                           className="bg-green-600 hover:bg-green-700 text-white"
-                          onClick={() => { setApproveTarget(req); setApproveNote(''); }}
+                          onClick={() => {
+                            setApproveTarget(req);
+                            setApproveNote('');
+                          }}
                         >
                           <Check className="w-3.5 h-3.5 mr-1" />
                           Approve
@@ -381,7 +431,12 @@ export default function AdminRequestsPanel() {
       </div>
 
       {/* Approve Dialog */}
-      <Dialog open={!!approveTarget} onOpenChange={(o) => { if (!o) setApproveTarget(null); }}>
+      <Dialog
+        open={!!approveTarget}
+        onOpenChange={(o) => {
+          if (!o) setApproveTarget(null);
+        }}
+      >
         <DialogContent className="sm:max-w-md bg-zinc-950 border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white font-display">
@@ -390,7 +445,8 @@ export default function AdminRequestsPanel() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <p className="text-sm text-zinc-400">
-              This will approve the request and send a welcome email to <strong className="text-zinc-200">{approveTarget?.user_email}</strong>.
+              This will approve the request and send a welcome email to{' '}
+              <strong className="text-zinc-200">{approveTarget?.user_email}</strong>.
             </p>
             <div className="space-y-1.5">
               <Label className="text-zinc-300 text-sm">Welcome note (optional)</Label>
@@ -412,7 +468,11 @@ export default function AdminRequestsPanel() {
               onClick={handleApprove}
               disabled={approving}
             >
-              {approving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+              {approving ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Check className="w-4 h-4 mr-2" />
+              )}
               Approve & Notify
             </Button>
           </DialogFooter>
@@ -420,7 +480,12 @@ export default function AdminRequestsPanel() {
       </Dialog>
 
       {/* Reject Dialog */}
-      <Dialog open={!!rejectTarget} onOpenChange={(o) => { if (!o) setRejectTarget(null); }}>
+      <Dialog
+        open={!!rejectTarget}
+        onOpenChange={(o) => {
+          if (!o) setRejectTarget(null);
+        }}
+      >
         <DialogContent className="sm:max-w-md bg-zinc-950 border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white font-display">
@@ -429,7 +494,8 @@ export default function AdminRequestsPanel() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <p className="text-sm text-zinc-400">
-              Provide a reason — this will be included in the rejection email to <strong className="text-zinc-200">{rejectTarget?.user_email}</strong>.
+              Provide a reason — this will be included in the rejection email to{' '}
+              <strong className="text-zinc-200">{rejectTarget?.user_email}</strong>.
             </p>
             <div className="space-y-1.5">
               <Label className="text-zinc-300 text-sm">
@@ -453,7 +519,11 @@ export default function AdminRequestsPanel() {
               onClick={handleReject}
               disabled={rejecting || !rejectReason.trim()}
             >
-              {rejecting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <X className="w-4 h-4 mr-2" />}
+              {rejecting ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <X className="w-4 h-4 mr-2" />
+              )}
               Reject & Notify
             </Button>
           </DialogFooter>

@@ -39,7 +39,10 @@ export default function RecommendedClubCard({
             {score} {score === 1 ? 'match' : 'matches'}
           </Badge>
           {club.recruitingStatus === 'open' && (
-            <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">
+            <Badge
+              variant="outline"
+              className="bg-green-500/10 text-green-600 border-green-500/20 text-xs"
+            >
               Recruiting
             </Badge>
           )}
@@ -77,9 +80,9 @@ export default function RecommendedClubCard({
               Applied
             </Button>
           ) : (
-            <Button 
-              variant="gold" 
-              size="sm" 
+            <Button
+              variant="gold"
+              size="sm"
               className="flex-1"
               onClick={onApply}
               disabled={isApplying}

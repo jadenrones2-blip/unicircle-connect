@@ -13,7 +13,7 @@ const cleanText = (value: unknown) =>
 
 // Known typos in the CSI source data → correct spelling
 const DB_NAME_CORRECTIONS: Record<string, string> = {
-  'sororit': 'Sorority',
+  sororit: 'Sorority',
 };
 
 const cleanClubName = (name: string): string => {
@@ -97,7 +97,9 @@ const ClubsContext = createContext<ClubsContextValue | null>(null);
 
 export function ClubsProvider({ children }: { children: ReactNode }) {
   const [clubs, setClubs] = useState<Club[]>(_cache || []);
-  const [enrichments, setEnrichments] = useState<Record<string, ClubEnrichment>>(_enrichmentCache || {});
+  const [enrichments, setEnrichments] = useState<Record<string, ClubEnrichment>>(
+    _enrichmentCache || {}
+  );
   const [loading, setLoading] = useState(_cache === null);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,53 +120,62 @@ export function ClubsProvider({ children }: { children: ReactNode }) {
         _enrichmentCache = map;
         setEnrichments(map);
       }
-    } catch { /* enrichments are non-critical — fail silently */ }
+    } catch {
+      /* enrichments are non-critical — fail silently */
+    }
   }, []);
 
-  const fetchClubs = useCallback(async (force = false) => {
-    if (_cache && !force) {
-      setClubs(_cache);
-      setLoading(false);
-      fetchEnrichments(_cache.map(c => c.id));
-      return;
-    }
+  const fetchClubs = useCallback(
+    async (force = false) => {
+      if (_cache && !force) {
+        setClubs(_cache);
+        setLoading(false);
+        fetchEnrichments(_cache.map((c) => c.id));
+        return;
+      }
 
-    if (!_fetchPromise || force) {
-      _fetchPromise = (async () => {
-        const { data: records, error: dbError } = await dataClient
-          .from('clubs')
-          .select('id, name, category, category_bucket, description, email, instagram, website, cover_image, recruitingStatus')
-          .order('name', { ascending: true })
-          .limit(1000);
+      if (!_fetchPromise || force) {
+        _fetchPromise = (async () => {
+          const { data: records, error: dbError } = await dataClient
+            .from('clubs')
+            .select(
+              'id, name, category, category_bucket, description, email, instagram, website, cover_image, recruitingStatus'
+            )
+            .order('name', { ascending: true })
+            .limit(1000);
 
-        if (dbError) throw new Error(dbError.message);
-        const result = (records || []).map(transformClub);
-        _cache = result;
-        _fetchPromise = null;
-        return result;
-      })();
-    }
+          if (dbError) throw new Error(dbError.message);
+          const result = (records || []).map(transformClub);
+          _cache = result;
+          _fetchPromise = null;
+          return result;
+        })();
+      }
 
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await _fetchPromise!;
-      setClubs(result);
-      fetchEnrichments(result.map(c => c.id));
-    } catch (err) {
-      console.error('Error fetching clubs:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch clubs');
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchEnrichments]);
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await _fetchPromise!;
+        setClubs(result);
+        fetchEnrichments(result.map((c) => c.id));
+      } catch (err) {
+        console.error('Error fetching clubs:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch clubs');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchEnrichments]
+  );
 
   useEffect(() => {
     fetchClubs();
   }, [fetchClubs]);
 
   return (
-    <ClubsContext.Provider value={{ clubs, enrichments, loading, error, refetch: () => fetchClubs(true) }}>
+    <ClubsContext.Provider
+      value={{ clubs, enrichments, loading, error, refetch: () => fetchClubs(true) }}
+    >
       {children}
     </ClubsContext.Provider>
   );

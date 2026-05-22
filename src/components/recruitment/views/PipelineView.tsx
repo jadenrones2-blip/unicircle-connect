@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import {
-  DndContext, DragEndEvent, DragOverEvent, DragStartEvent, DragOverlay,
-  closestCorners, PointerSensor, TouchSensor, useSensor, useSensors,
+  DndContext,
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+  DragOverlay,
+  closestCorners,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -48,12 +56,23 @@ interface CompactCardProps {
   onClick: () => void;
 }
 
-function CompactCard({ applicant, officerScore, vote, isSelected, onSelect, onClick }: CompactCardProps) {
+function CompactCard({
+  applicant,
+  officerScore,
+  vote,
+  isSelected,
+  onSelect,
+  onClick,
+}: CompactCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: applicant.id,
   });
 
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 };
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
 
   const isStandout = (applicant as any).is_standout;
   const fitScore = (applicant as any).fit_score as number | null;
@@ -74,7 +93,10 @@ function CompactCard({ applicant, officerScore, vote, isSelected, onSelect, onCl
       <div
         className="shrink-0"
         onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => { e.stopPropagation(); onSelect(applicant.id); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect(applicant.id);
+        }}
       >
         <Checkbox
           checked={isSelected}
@@ -83,9 +105,11 @@ function CompactCard({ applicant, officerScore, vote, isSelected, onSelect, onCl
       </div>
 
       {/* Avatar */}
-      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-        isStandout ? 'bg-gold text-zinc-900' : 'bg-zinc-700 text-zinc-300'
-      }`}>
+      <div
+        className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+          isStandout ? 'bg-gold text-zinc-900' : 'bg-zinc-700 text-zinc-300'
+        }`}
+      >
         {initials(applicant.first_name, applicant.last_name)}
       </div>
 
@@ -107,13 +131,16 @@ function CompactCard({ applicant, officerScore, vote, isSelected, onSelect, onCl
       {/* Scores + vote tally */}
       <div className="flex items-center gap-1.5 shrink-0">
         {fitScore !== null && fitScore !== undefined && (
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${scoreColor(fitScore)}`}>
+          <span
+            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${scoreColor(fitScore)}`}
+          >
             {fitScore}
           </span>
         )}
         {officerScore !== undefined && (
           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded border text-zinc-400 bg-zinc-800 border-zinc-700">
-            <BarChart2 className="w-2.5 h-2.5 inline mr-0.5" />{officerScore}
+            <BarChart2 className="w-2.5 h-2.5 inline mr-0.5" />
+            {officerScore}
           </span>
         )}
         {hasVotes && (
@@ -155,9 +182,18 @@ interface StageColProps {
   onOpenDrawer: (a: Applicant) => void;
 }
 
-function StageCol({ stage, applicants, officerScoreMap, voteMap, selectedIds, onSelect, onSelectAll, onOpenDrawer }: StageColProps) {
+function StageCol({
+  stage,
+  applicants,
+  officerScoreMap,
+  voteMap,
+  selectedIds,
+  onSelect,
+  onSelectAll,
+  onOpenDrawer,
+}: StageColProps) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
-  const allSelected = applicants.length > 0 && applicants.every(a => selectedIds.has(a.id));
+  const allSelected = applicants.length > 0 && applicants.every((a) => selectedIds.has(a.id));
 
   return (
     <div
@@ -173,7 +209,10 @@ function StageCol({ stage, applicants, officerScoreMap, voteMap, selectedIds, on
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
-            onSelectAll(applicants.map(a => a.id), !allSelected);
+            onSelectAll(
+              applicants.map((a) => a.id),
+              !allSelected
+            );
           }}
         >
           <Checkbox
@@ -189,8 +228,8 @@ function StageCol({ stage, applicants, officerScoreMap, voteMap, selectedIds, on
 
       {/* Cards */}
       <div className="flex-1 p-2 space-y-1.5 min-h-[80px]">
-        <SortableContext items={applicants.map(a => a.id)} strategy={verticalListSortingStrategy}>
-          {applicants.map(applicant => (
+        <SortableContext items={applicants.map((a) => a.id)} strategy={verticalListSortingStrategy}>
+          {applicants.map((applicant) => (
             <CompactCard
               key={applicant.id}
               applicant={applicant}
@@ -215,8 +254,18 @@ function StageCol({ stage, applicants, officerScoreMap, voteMap, selectedIds, on
 // ── Pipeline view ─────────────────────────────────────────────────────────────
 
 export function PipelineView({
-  clubId, clubName, stages, applicants, officerScoreMap, voteMap,
-  onMoveApplicant, onDeleteApplicant, onOpenDrawer, onRefresh, onConfigureRubric, onBulkMove,
+  clubId,
+  clubName,
+  stages,
+  applicants,
+  officerScoreMap,
+  voteMap,
+  onMoveApplicant,
+  onDeleteApplicant,
+  onOpenDrawer,
+  onRefresh,
+  onConfigureRubric,
+  onBulkMove,
 }: PipelineViewProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -224,10 +273,10 @@ export function PipelineView({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
   );
 
-  const activeApplicant = activeId ? applicants.find(a => a.id === activeId) : null;
+  const activeApplicant = activeId ? applicants.find((a) => a.id === activeId) : null;
 
   const handleDragStart = (e: DragStartEvent) => setActiveId(e.active.id as string);
 
@@ -237,17 +286,17 @@ export function PipelineView({
     if (!over) return;
     const applicantId = active.id as string;
     const overId = over.id as string;
-    const targetStage = stages.find(s => s.id === overId);
+    const targetStage = stages.find((s) => s.id === overId);
     if (targetStage) {
-      const applicant = applicants.find(a => a.id === applicantId);
+      const applicant = applicants.find((a) => a.id === applicantId);
       if (applicant && applicant.stage_id !== targetStage.id) {
         await onMoveApplicant(applicantId, targetStage.id, clubName);
       }
       return;
     }
-    const targetApplicant = applicants.find(a => a.id === overId);
+    const targetApplicant = applicants.find((a) => a.id === overId);
     if (targetApplicant?.stage_id) {
-      const applicant = applicants.find(a => a.id === applicantId);
+      const applicant = applicants.find((a) => a.id === applicantId);
       if (applicant && applicant.stage_id !== targetApplicant.stage_id) {
         await onMoveApplicant(applicantId, targetApplicant.stage_id, clubName);
       }
@@ -257,17 +306,18 @@ export function PipelineView({
   const handleDragOver = (_e: DragOverEvent) => {};
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
 
   const handleSelectAll = (ids: string[], select: boolean) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
-      ids.forEach(id => select ? next.add(id) : next.delete(id));
+      ids.forEach((id) => (select ? next.add(id) : next.delete(id)));
       return next;
     });
   };
@@ -285,7 +335,8 @@ export function PipelineView({
       {/* Toolbar */}
       <div className="flex items-center gap-3 shrink-0">
         <p className="text-sm text-zinc-500 flex-1">
-          {applicants.length} applicant{applicants.length !== 1 ? 's' : ''} across {stages.length} stage{stages.length !== 1 ? 's' : ''}
+          {applicants.length} applicant{applicants.length !== 1 ? 's' : ''} across {stages.length}{' '}
+          stage{stages.length !== 1 ? 's' : ''}
         </p>
         <BulkAIScreen
           clubId={clubId}
@@ -298,10 +349,18 @@ export function PipelineView({
 
       {/* Legend */}
       <div className="flex items-center gap-4 text-[11px] text-zinc-600 shrink-0">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> AI ≥75</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> 50–74</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> &lt;50</span>
-        <span className="flex items-center gap-1"><Star className="w-3 h-3 text-gold fill-gold" /> Standout</span>
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> AI ≥75
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-yellow-400 inline-block" /> 50–74
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-red-400 inline-block" /> &lt;50
+        </span>
+        <span className="flex items-center gap-1">
+          <Star className="w-3 h-3 text-gold fill-gold" /> Standout
+        </span>
         <span className="flex items-center gap-1">
           <span className="text-emerald-400 font-bold">✓</span>
           <span className="text-red-400 font-bold">✗</span>
@@ -320,11 +379,11 @@ export function PipelineView({
           onDragOver={handleDragOver}
         >
           <div className="flex gap-3 pb-4 min-h-[400px]">
-            {stages.map(stage => (
+            {stages.map((stage) => (
               <StageCol
                 key={stage.id}
                 stage={stage}
-                applicants={applicants.filter(a => a.stage_id === stage.id)}
+                applicants={applicants.filter((a) => a.stage_id === stage.id)}
                 officerScoreMap={officerScoreMap}
                 voteMap={voteMap}
                 selectedIds={selectedIds}
@@ -334,9 +393,7 @@ export function PipelineView({
               />
             ))}
           </div>
-          <DragOverlay>
-            {activeApplicant && <DragCard applicant={activeApplicant} />}
-          </DragOverlay>
+          <DragOverlay>{activeApplicant && <DragCard applicant={activeApplicant} />}</DragOverlay>
         </DndContext>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
@@ -356,7 +413,7 @@ export function PipelineView({
           <div className="w-px h-5 bg-white/10 shrink-0" />
           <span className="text-xs text-zinc-500 shrink-0">Move to →</span>
           <div className="flex items-center gap-1.5 flex-wrap flex-1">
-            {stages.map(stage => (
+            {stages.map((stage) => (
               <button
                 key={stage.id}
                 disabled={bulkMoving}

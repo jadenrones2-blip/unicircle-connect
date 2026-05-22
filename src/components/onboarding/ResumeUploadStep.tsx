@@ -26,8 +26,14 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Props)
   const inputRef = useRef<HTMLInputElement>(null);
 
   const pickFile = (f: File) => {
-    if (f.type !== 'application/pdf') { toast.error('Please upload a PDF.'); return; }
-    if (f.size > 10 * 1024 * 1024) { toast.error('Resume must be under 10 MB.'); return; }
+    if (f.type !== 'application/pdf') {
+      toast.error('Please upload a PDF.');
+      return;
+    }
+    if (f.size > 10 * 1024 * 1024) {
+      toast.error('Resume must be under 10 MB.');
+      return;
+    }
     setFile(f);
   };
 
@@ -40,8 +46,13 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Props)
 
   const handleUpload = async () => {
     if (!file) return;
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { toast.error('Not signed in'); return; }
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error('Not signed in');
+      return;
+    }
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
@@ -75,7 +86,9 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Props)
 
     if (!parseRes?.ok) {
       // Upload succeeded but parsing failed — still continue with no keywords
-      toast.error('Resume saved, but keyword extraction failed. You can re-analyze from your profile.');
+      toast.error(
+        'Resume saved, but keyword extraction failed. You can re-analyze from your profile.'
+      );
       onKeywordsExtracted({ career_goals: [], interests: [], skills: [], vibe: [] });
       return;
     }
@@ -117,9 +130,7 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Props)
         <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">
           Step 5 of 5 · Optional
         </span>
-        <h1 className="text-3xl font-display font-bold text-white mb-2">
-          Upload your resume
-        </h1>
+        <h1 className="text-3xl font-display font-bold text-white mb-2">Upload your resume</h1>
         <p className="text-zinc-500 text-sm max-w-sm mx-auto">
           We'll analyze it to surface clubs that match your background — takes about 10 seconds.
         </p>
@@ -130,15 +141,18 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Props)
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         onClick={() => !file && inputRef.current?.click()}
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         className={`rounded-2xl border-2 border-dashed p-10 text-center transition-all cursor-pointer ${
           dragOver
             ? 'border-gold bg-gold/10'
             : file
-            ? 'border-gold/40 bg-gold/5 cursor-default'
-            : 'border-white/10 hover:border-gold/30 hover:bg-gold/5'
+              ? 'border-gold/40 bg-gold/5 cursor-default'
+              : 'border-white/10 hover:border-gold/30 hover:bg-gold/5'
         }`}
       >
         {file ? (
@@ -148,10 +162,15 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Props)
             </div>
             <div>
               <p className="text-white font-medium text-sm">{file.name}</p>
-              <p className="text-zinc-500 text-xs mt-0.5">{(file.size / 1024).toFixed(0)} KB · PDF</p>
+              <p className="text-zinc-500 text-xs mt-0.5">
+                {(file.size / 1024).toFixed(0)} KB · PDF
+              </p>
             </div>
             <button
-              onClick={e => { e.stopPropagation(); setFile(null); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setFile(null);
+              }}
               className="flex items-center gap-1 text-xs text-zinc-500 hover:text-red-400 transition-colors mt-1"
             >
               <X className="w-3 h-3" /> Remove
@@ -164,7 +183,9 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Props)
             </div>
             <div>
               <p className="text-zinc-300 font-medium text-sm">Drop your resume here</p>
-              <p className="text-zinc-600 text-xs mt-0.5">or click to browse · PDF only · max 10 MB</p>
+              <p className="text-zinc-600 text-xs mt-0.5">
+                or click to browse · PDF only · max 10 MB
+              </p>
             </div>
           </div>
         )}
@@ -175,7 +196,11 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Props)
         type="file"
         accept=".pdf,application/pdf"
         className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) pickFile(f); e.target.value = ''; }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) pickFile(f);
+          e.target.value = '';
+        }}
       />
 
       {/* Actions */}
@@ -186,11 +211,19 @@ export default function ResumeUploadStep({ onKeywordsExtracted, onSkip }: Props)
           className="w-full bg-gold text-zinc-900 font-semibold hover:bg-gold/90 disabled:opacity-40 py-3"
         >
           {uploading ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Uploading…</>
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Uploading…
+            </>
           ) : parsing ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Analyzing with AI…</>
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Analyzing with AI…
+            </>
           ) : (
-            <>Analyze & Continue <ArrowRight className="ml-2 w-4 h-4" /></>
+            <>
+              Analyze & Continue <ArrowRight className="ml-2 w-4 h-4" />
+            </>
           )}
         </Button>
 

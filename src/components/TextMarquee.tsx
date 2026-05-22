@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface TextMarqueeProps {
   text?: string;
@@ -7,7 +7,7 @@ interface TextMarqueeProps {
 }
 
 const TextMarquee = ({
-  text = "RECRUIT · EVALUATE · DECIDE · STRUCTURE · SCALE · ",
+  text = 'RECRUIT · EVALUATE · DECIDE · STRUCTURE · SCALE · ',
   speed = 20,
 }: TextMarqueeProps) => {
   const repeated = `${text}${text}${text}${text}`;
@@ -21,13 +21,13 @@ const TextMarquee = ({
     >
       <motion.div
         className="whitespace-nowrap"
-        animate={{ x: ["0%", "-50%"] }}
+        animate={{ x: ['0%', '-50%'] }}
         transition={{
           x: {
             repeat: Infinity,
-            repeatType: "loop",
+            repeatType: 'loop',
             duration: hovered ? speed * 0.35 : speed,
-            ease: "linear",
+            ease: 'linear',
           },
         }}
       >

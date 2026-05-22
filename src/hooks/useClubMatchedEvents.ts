@@ -44,21 +44,25 @@ export function useClubMatchedEvents(
       // Score all clubs against student interests — threshold 20 to cast a wide net
       // (threshold 40 was too aggressive when a student has 4+ interests)
       const scored = clubs
-        .map(club => ({
+        .map((club) => ({
           club,
           score: calculateMatchScore(club, interestValues, resumeSignals),
         }))
-        .filter(c => c.score >= 20)
+        .filter((c) => c.score >= 20)
         .sort((a, b) => b.score - a.score)
         .slice(0, 30); // top 30 matching clubs
 
-      if (scored.length === 0) { setEvents([]); setLoading(false); return; }
+      if (scored.length === 0) {
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
 
-      const clubIds = scored.map(c => c.club.id);
+      const clubIds = scored.map((c) => c.club.id);
 
       // Extract Instagram handles for the secondary query
       const clubHandles = scored
-        .map(c => {
+        .map((c) => {
           const ig = c.club.instagram;
           if (!ig) return null;
           const m = ig.match(/(?:instagram\.com\/)?@?([A-Za-z0-9_.]+)\/?$/);
@@ -67,7 +71,8 @@ export function useClubMatchedEvents(
         .filter(Boolean) as string[];
 
       const now = new Date().toISOString();
-      const eventFields = 'id, title, description, start_time, end_time, location, club_id, club_handle, source, source_url, verified, corrected_title, corrected_start_time, corrected_end_time, corrected_location, caption';
+      const eventFields =
+        'id, title, description, start_time, end_time, location, club_id, club_handle, source, source_url, verified, corrected_title, corrected_start_time, corrected_end_time, corrected_location, caption';
 
       // Fetch upcoming events for those clubs from external DB
       const { data, error: dbError } = await (dataClient as any)
@@ -95,7 +100,10 @@ export function useClubMatchedEvents(
       const seen = new Set<string>();
       const merged: any[] = [];
       for (const ev of [...(data || []), ...(handleData || [])]) {
-        if (!seen.has(ev.id)) { seen.add(ev.id); merged.push(ev); }
+        if (!seen.has(ev.id)) {
+          seen.add(ev.id);
+          merged.push(ev);
+        }
       }
 
       // Build lookup keyed by both club_id and instagram handle
@@ -110,8 +118,9 @@ export function useClubMatchedEvents(
       }
 
       const withScores: ClubEvent[] = merged
-        .map(ev => {
-          const lookup = clubScoreMap[ev.club_id] ?? clubScoreMap[ev.club_handle] ?? { score: 0, name: '' };
+        .map((ev) => {
+          const lookup = clubScoreMap[ev.club_id] ??
+            clubScoreMap[ev.club_handle] ?? { score: 0, name: '' };
           return {
             ...ev,
             club_name: lookup.name,
@@ -119,7 +128,7 @@ export function useClubMatchedEvents(
             isNative: ev.source === 'native',
           };
         })
-        .filter(ev => ev.matchScore > 0)
+        .filter((ev) => ev.matchScore > 0)
         .sort((a, b) => {
           // Sort: native first, then by match score, then by date
           if (a.isNative !== b.isNative) return a.isNative ? -1 : 1;
@@ -136,7 +145,9 @@ export function useClubMatchedEvents(
     }
   }, [clubs, interestValues.join(','), resumeSignals.join(','), limit]);
 
-  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   return { events, loading, error, refetch: fetchEvents };
 }

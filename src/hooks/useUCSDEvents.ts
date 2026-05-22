@@ -19,17 +19,64 @@ const LOCALIST_URL = 'https://calendar.ucsd.edu/api/2/events';
 // Keywords that map interest/area values to event text signals
 const INTEREST_EVENT_MAP: Record<string, string[]> = {
   // Goals
-  career: ['career', 'internship', 'recruiting', 'networking', 'job', 'employer', 'professional', 'industry'],
+  career: [
+    'career',
+    'internship',
+    'recruiting',
+    'networking',
+    'job',
+    'employer',
+    'professional',
+    'industry',
+  ],
   community: ['community', 'social', 'meetup', 'club', 'student org', 'welcome', 'mixer'],
   skills: ['workshop', 'training', 'bootcamp', 'seminar', 'skill', 'learn', 'tutorial'],
   impact: ['volunteer', 'service', 'advocacy', 'sustainability', 'nonprofit', 'social justice'],
   explore: ['expo', 'fair', 'discovery', 'showcase', 'open house', 'info session'],
 
   // Areas
-  'tech / stem': ['tech', 'engineering', 'computer', 'coding', 'software', 'ai', 'data', 'hack', 'stem', 'science'],
-  professional: ['business', 'finance', 'consulting', 'entrepreneurship', 'startup', 'investment', 'banking'],
-  academic: ['research', 'academic', 'lecture', 'symposium', 'colloquium', 'lab', 'graduate', 'phd'],
-  arts: ['art', 'music', 'dance', 'theater', 'creative', 'design', 'film', 'performance', 'gallery'],
+  'tech / stem': [
+    'tech',
+    'engineering',
+    'computer',
+    'coding',
+    'software',
+    'ai',
+    'data',
+    'hack',
+    'stem',
+    'science',
+  ],
+  professional: [
+    'business',
+    'finance',
+    'consulting',
+    'entrepreneurship',
+    'startup',
+    'investment',
+    'banking',
+  ],
+  academic: [
+    'research',
+    'academic',
+    'lecture',
+    'symposium',
+    'colloquium',
+    'lab',
+    'graduate',
+    'phd',
+  ],
+  arts: [
+    'art',
+    'music',
+    'dance',
+    'theater',
+    'creative',
+    'design',
+    'film',
+    'performance',
+    'gallery',
+  ],
   cultural: ['cultural', 'culture', 'heritage', 'identity', 'diversity', 'international', 'global'],
   service: ['volunteer', 'service', 'community', 'nonprofit', 'philanthropy', 'advocacy'],
   sports: ['sport', 'athletic', 'fitness', 'recreation', 'intramural', 'yoga', 'run', 'workout'],
@@ -38,8 +85,25 @@ const INTEREST_EVENT_MAP: Record<string, string[]> = {
   'greek life': ['greek', 'fraternity', 'sorority', 'panhellenic', 'rush', 'recruitment'],
 
   // Career interests
-  tech_career: ['tech', 'software', 'engineering', 'google', 'amazon', 'microsoft', 'startup', 'coding'],
-  finance_career: ['finance', 'banking', 'investment', 'wall street', 'trading', 'accounting', 'economics'],
+  tech_career: [
+    'tech',
+    'software',
+    'engineering',
+    'google',
+    'amazon',
+    'microsoft',
+    'startup',
+    'coding',
+  ],
+  finance_career: [
+    'finance',
+    'banking',
+    'investment',
+    'wall street',
+    'trading',
+    'accounting',
+    'economics',
+  ],
   startup_career: ['startup', 'entrepreneurship', 'venture', 'founder', 'pitch', 'innovation'],
   consulting_career: ['consulting', 'strategy', 'case', 'mckinsey', 'bain', 'bcg', 'deloitte'],
   healthcare_career: ['medical', 'health', 'premed', 'clinical', 'hospital', 'nursing', 'pharmacy'],
@@ -47,7 +111,10 @@ const INTEREST_EVENT_MAP: Record<string, string[]> = {
   creative_career: ['design', 'media', 'creative', 'film', 'art', 'ux', 'content'],
 };
 
-function scoreEvent(event: UCSDEvent, interestValues: string[]): { score: number; reason: string | null } {
+function scoreEvent(
+  event: UCSDEvent,
+  interestValues: string[]
+): { score: number; reason: string | null } {
   const text = [event.title, event.description, ...event.tags].join(' ').toLowerCase();
 
   let bestScore = 0;
@@ -80,7 +147,7 @@ function scoreEvent(event: UCSDEvent, interestValues: string[]): { score: number
   // Bonus for tags that directly match a specific interest
   for (const tag of event.tags) {
     const tagLower = tag.toLowerCase();
-    if (interestValues.some(v => tagLower.includes(v) || v.includes(tagLower))) {
+    if (interestValues.some((v) => tagLower.includes(v) || v.includes(tagLower))) {
       bestScore = Math.min(100, bestScore + 15);
     }
   }

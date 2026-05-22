@@ -23,19 +23,23 @@ interface StudentVisibilitySettingsProps {
   onUpdate: () => void;
 }
 
-export function StudentVisibilitySettings({ clubId, settings, onUpdate }: StudentVisibilitySettingsProps) {
+export function StudentVisibilitySettings({
+  clubId,
+  settings,
+  onUpdate,
+}: StudentVisibilitySettingsProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [localSettings, setLocalSettings] = useState({
     show_stage_names: settings?.show_stage_names ?? false,
     show_progress_bar: settings?.show_progress_bar ?? true,
     show_timeline: settings?.show_timeline ?? false,
-    student_visible_message: settings?.student_visible_message ?? null as string | null,
+    student_visible_message: settings?.student_visible_message ?? (null as string | null),
   });
 
   const handleSave = async () => {
     setSaving(true);
-    
+
     const { error } = await supabase
       .from('recruitment_settings')
       .update({
@@ -54,14 +58,18 @@ export function StudentVisibilitySettings({ clubId, settings, onUpdate }: Studen
       onUpdate();
       setOpen(false);
     }
-    
+
     setSaving(false);
   };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 border-white/15 text-zinc-300 hover:text-white hover:bg-white/5">
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 border-white/15 text-zinc-300 hover:text-white hover:bg-white/5"
+        >
           <Eye className="h-4 w-4" />
           Student Visibility
         </Button>
@@ -81,15 +89,13 @@ export function StudentVisibilitySettings({ clubId, settings, onUpdate }: Studen
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="progress-bar">Show Progress Bar</Label>
-              <p className="text-sm text-muted-foreground">
-                Display a visual progress indicator
-              </p>
+              <p className="text-sm text-muted-foreground">Display a visual progress indicator</p>
             </div>
             <Switch
               id="progress-bar"
               checked={localSettings.show_progress_bar}
-              onCheckedChange={(checked) => 
-                setLocalSettings(prev => ({ ...prev, show_progress_bar: checked }))
+              onCheckedChange={(checked) =>
+                setLocalSettings((prev) => ({ ...prev, show_progress_bar: checked }))
               }
             />
           </div>
@@ -104,8 +110,8 @@ export function StudentVisibilitySettings({ clubId, settings, onUpdate }: Studen
             <Switch
               id="stage-names"
               checked={localSettings.show_stage_names}
-              onCheckedChange={(checked) => 
-                setLocalSettings(prev => ({ ...prev, show_stage_names: checked }))
+              onCheckedChange={(checked) =>
+                setLocalSettings((prev) => ({ ...prev, show_stage_names: checked }))
               }
             />
           </div>
@@ -120,8 +126,8 @@ export function StudentVisibilitySettings({ clubId, settings, onUpdate }: Studen
             <Switch
               id="timeline"
               checked={localSettings.show_timeline}
-              onCheckedChange={(checked) => 
-                setLocalSettings(prev => ({ ...prev, show_timeline: checked }))
+              onCheckedChange={(checked) =>
+                setLocalSettings((prev) => ({ ...prev, show_timeline: checked }))
               }
             />
           </div>
@@ -132,10 +138,10 @@ export function StudentVisibilitySettings({ clubId, settings, onUpdate }: Studen
               id="message"
               placeholder="e.g., 'Thank you for applying! We'll be in touch within 2 weeks.'"
               value={localSettings.student_visible_message || ''}
-              onChange={(e) => 
-                setLocalSettings(prev => ({ 
-                  ...prev, 
-                  student_visible_message: e.target.value || null 
+              onChange={(e) =>
+                setLocalSettings((prev) => ({
+                  ...prev,
+                  student_visible_message: e.target.value || null,
                 }))
               }
               className="min-h-[100px]"

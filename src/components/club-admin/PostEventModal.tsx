@@ -27,11 +27,19 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
-    setTitle(''); setDate(''); setStartTime(''); setEndTime('');
-    setLocation(''); setDescription(''); setImageUrl('');
+    setTitle('');
+    setDate('');
+    setStartTime('');
+    setEndTime('');
+    setLocation('');
+    setDescription('');
+    setImageUrl('');
   };
 
-  const handleClose = () => { reset(); onClose(); };
+  const handleClose = () => {
+    reset();
+    onClose();
+  };
 
   const handleSubmit = async () => {
     if (!title.trim() || !date || !startTime) {
@@ -91,10 +99,12 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
         <div className="space-y-4 py-1">
           {/* Title */}
           <div className="space-y-1.5">
-            <Label className="text-zinc-300 text-sm">Event title <span className="text-red-400">*</span></Label>
+            <Label className="text-zinc-300 text-sm">
+              Event title <span className="text-red-400">*</span>
+            </Label>
             <Input
               value={title}
-              onChange={e => setTitle(e.target.value)}
+              onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Spring General Meeting"
               className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600"
               autoFocus
@@ -104,20 +114,24 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
           {/* Date + Times */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5 col-span-1">
-              <Label className="text-zinc-300 text-sm">Date <span className="text-red-400">*</span></Label>
+              <Label className="text-zinc-300 text-sm">
+                Date <span className="text-red-400">*</span>
+              </Label>
               <Input
                 type="date"
                 value={date}
-                onChange={e => setDate(e.target.value)}
+                onChange={(e) => setDate(e.target.value)}
                 className="bg-zinc-900 border-white/10 text-white"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-zinc-300 text-sm">Start <span className="text-red-400">*</span></Label>
+              <Label className="text-zinc-300 text-sm">
+                Start <span className="text-red-400">*</span>
+              </Label>
               <Input
                 type="time"
                 value={startTime}
-                onChange={e => setStartTime(e.target.value)}
+                onChange={(e) => setStartTime(e.target.value)}
                 className="bg-zinc-900 border-white/10 text-white"
               />
             </div>
@@ -126,7 +140,7 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
               <Input
                 type="time"
                 value={endTime}
-                onChange={e => setEndTime(e.target.value)}
+                onChange={(e) => setEndTime(e.target.value)}
                 className="bg-zinc-900 border-white/10 text-white"
               />
             </div>
@@ -139,7 +153,7 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
             </Label>
             <Input
               value={location}
-              onChange={e => setLocation(e.target.value)}
+              onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Price Center Room 123 / Zoom"
               className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600"
             />
@@ -152,7 +166,7 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
             </Label>
             <Textarea
               value={description}
-              onChange={e => setDescription(e.target.value)}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="What's happening? Who should come? What to bring?"
               rows={3}
               className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 resize-none"
@@ -162,23 +176,29 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
           {/* Image URL */}
           <div className="space-y-1.5">
             <Label className="text-zinc-300 text-sm flex items-center gap-1.5">
-              <Link className="w-3.5 h-3.5" /> Flyer or image URL <span className="text-zinc-600 font-normal">(optional)</span>
+              <Link className="w-3.5 h-3.5" /> Flyer or image URL{' '}
+              <span className="text-zinc-600 font-normal">(optional)</span>
             </Label>
             <Input
               value={imageUrl}
-              onChange={e => setImageUrl(e.target.value)}
+              onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://..."
               className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600"
             />
           </div>
 
           <p className="text-[11px] text-zinc-600">
-            This event will show up on your club page and in the feeds of students who match {clubName}'s interests.
+            This event will show up on your club page and in the feeds of students who match{' '}
+            {clubName}'s interests.
           </p>
         </div>
 
         <div className="flex justify-end gap-2 pt-2 border-t border-white/8">
-          <Button variant="outline" onClick={handleClose} className="border-white/20 text-white hover:bg-white/10">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
             Cancel
           </Button>
           <Button
@@ -186,7 +206,13 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
             disabled={saving || !canSubmit}
             className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90 disabled:opacity-40"
           >
-            {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Posting…</> : 'Post Event'}
+            {saving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Posting…
+              </>
+            ) : (
+              'Post Event'
+            )}
           </Button>
         </div>
       </DialogContent>

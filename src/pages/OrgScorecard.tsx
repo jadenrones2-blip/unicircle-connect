@@ -4,7 +4,15 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { AdminBreadcrumb } from '@/components/club-admin/AdminBreadcrumb';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ThumbsUp, ThumbsDown, Minus, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import {
+  Loader2,
+  ThumbsUp,
+  ThumbsDown,
+  Minus,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
 
@@ -45,9 +53,7 @@ interface ScorecardRow {
 type SortKey = 'name' | 'fit' | 'votes' | 'stage';
 type SortDir = 'asc' | 'desc';
 
-const STAGE_PALETTE = [
-  '#3b82f6', '#a855f7', '#f97316', '#06b6d4', '#10b981', '#ec4899',
-];
+const STAGE_PALETTE = ['#3b82f6', '#a855f7', '#f97316', '#06b6d4', '#10b981', '#ec4899'];
 
 function FitCell({ value }: { value: number | null }) {
   if (value == null) return <span className="text-zinc-700">—</span>;
@@ -70,17 +76,20 @@ function VoteCell({ tally }: { tally: VoteTally }) {
     <div className="flex items-center gap-2 text-xs">
       {tally.yes > 0 && (
         <span className="flex items-center gap-1 text-emerald-400">
-          <ThumbsUp className="w-3 h-3" />{tally.yes}
+          <ThumbsUp className="w-3 h-3" />
+          {tally.yes}
         </span>
       )}
       {tally.maybe > 0 && (
         <span className="flex items-center gap-1 text-yellow-400">
-          <Minus className="w-3 h-3" />{tally.maybe}
+          <Minus className="w-3 h-3" />
+          {tally.maybe}
         </span>
       )}
       {tally.no > 0 && (
         <span className="flex items-center gap-1 text-red-400">
-          <ThumbsDown className="w-3 h-3" />{tally.no}
+          <ThumbsDown className="w-3 h-3" />
+          {tally.no}
         </span>
       )}
     </div>
@@ -90,7 +99,7 @@ function VoteCell({ tally }: { tally: VoteTally }) {
 export default function OrgScorecard() {
   const { clubId } = useParams<{ clubId: string }>();
   const { ownedClubs } = useClubOwnership();
-  const clubName = ownedClubs.find(c => c.clubId === clubId)?.clubName || 'Club';
+  const clubName = ownedClubs.find((c) => c.clubId === clubId)?.clubName || 'Club';
 
   const [rows, setRows] = useState<ScorecardRow[]>([]);
   const [stageLabels, setStageLabels] = useState<{ id: string; label: string }[]>([]);
@@ -112,13 +121,17 @@ export default function OrgScorecard() {
         .eq('club_id', clubId)
         .order('order_index', { ascending: true });
 
-      if (stagesError) { toast.error('Failed to load stages'); setLoading(false); return; }
+      if (stagesError) {
+        toast.error('Failed to load stages');
+        setLoading(false);
+        return;
+      }
 
       const stageMap: Record<string, { label: string; color: string }> = {};
       (stages || []).forEach((s, i) => {
         stageMap[s.id] = { label: s.label, color: STAGE_PALETTE[i % STAGE_PALETTE.length] };
       });
-      setStageLabels((stages || []).map(s => ({ id: s.id, label: s.label })));
+      setStageLabels((stages || []).map((s) => ({ id: s.id, label: s.label })));
 
       // Fetch applicants
       const { data: applicants, error: appError } = await supabase
@@ -126,8 +139,16 @@ export default function OrgScorecard() {
         .select('id, first_name, last_name, major, year, stage_id, fit_score, final_decision')
         .eq('club_id', clubId);
 
-      if (appError) { toast.error('Failed to load applicants'); setLoading(false); return; }
-      if (!applicants?.length) { setRows([]); setLoading(false); return; }
+      if (appError) {
+        toast.error('Failed to load applicants');
+        setLoading(false);
+        return;
+      }
+      if (!applicants?.length) {
+        setRows([]);
+        setLoading(false);
+        return;
+      }
 
       const applicantIds = applicants.map((a: any) => a.id);
 
@@ -171,16 +192,17 @@ export default function OrgScorecard() {
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
-      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
       setSortDir('desc');
     }
   };
 
-  const filtered = rows.filter(r => {
+  const filtered = rows.filter((r) => {
     if (stageFilter !== 'all' && r.stageLabel !== stageFilter) return false;
-    if (decisionFilter !== 'all' && (r.final_decision || 'pending') !== decisionFilter) return false;
+    if (decisionFilter !== 'all' && (r.final_decision || 'pending') !== decisionFilter)
+      return false;
     return true;
   });
 
@@ -200,34 +222,47 @@ export default function OrgScorecard() {
 
   function SortIcon({ col }: { col: SortKey }) {
     if (sortKey !== col) return <ArrowUpDown className="w-3 h-3 text-zinc-600 ml-1" />;
-    return sortDir === 'desc'
-      ? <ArrowDown className="w-3 h-3 text-gold ml-1" />
-      : <ArrowUp className="w-3 h-3 text-gold ml-1" />;
+    return sortDir === 'desc' ? (
+      <ArrowDown className="w-3 h-3 text-gold ml-1" />
+    ) : (
+      <ArrowUp className="w-3 h-3 text-gold ml-1" />
+    );
   }
 
   // Count by stage label
-  const stageCounts = stageLabels.reduce((acc, s) => {
-    acc[s.label] = rows.filter(r => r.stageLabel === s.label).length;
-    return acc;
-  }, {} as Record<string, number>);
+  const stageCounts = stageLabels.reduce(
+    (acc, s) => {
+      acc[s.label] = rows.filter((r) => r.stageLabel === s.label).length;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   const decisionOptions = ['pending', 'accepted', 'rejected', 'waitlisted'];
-  const decisionCounts = decisionOptions.reduce((acc, d) => {
-    acc[d] = rows.filter(r => (r.final_decision || 'pending') === d).length;
-    return acc;
-  }, {} as Record<string, number>);
+  const decisionCounts = decisionOptions.reduce(
+    (acc, d) => {
+      acc[d] = rows.filter((r) => (r.final_decision || 'pending') === d).length;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full overflow-hidden" style={{ background: '#0A0A0A' }}>
         <ClubAdminSidebar />
         <main className="flex-1 flex flex-col min-h-screen min-w-0 overflow-hidden">
-          <header className="h-14 flex items-center px-4 gap-3 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <header
+            className="h-14 flex items-center px-4 gap-3 shrink-0"
+            style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          >
             <SidebarTrigger className="text-zinc-500 hover:text-white transition-colors" />
-            <AdminBreadcrumb items={[
-              { label: clubName, href: `/club-admin/clubs/${clubId}/events` },
-              { label: 'Scorecard' }
-            ]} />
+            <AdminBreadcrumb
+              items={[
+                { label: clubName, href: `/club-admin/clubs/${clubId}/events` },
+                { label: 'Scorecard' },
+              ]}
+            />
           </header>
 
           <div className="flex-1 p-5 sm:p-7 overflow-auto">
@@ -255,7 +290,7 @@ export default function OrgScorecard() {
                 >
                   All Stages ({rows.length})
                 </button>
-                {stageLabels.map(s => (
+                {stageLabels.map((s) => (
                   <button
                     key={s.id}
                     onClick={() => setStageFilter(s.label)}
@@ -275,18 +310,22 @@ export default function OrgScorecard() {
               >
                 All Decisions
               </button>
-              {decisionOptions.filter(d => decisionCounts[d] > 0).map(d => (
-                <button
-                  key={d}
-                  onClick={() => setDecisionFilter(d)}
-                  className="px-3 py-1 rounded-full text-xs font-medium transition-colors"
-                  style={decisionFilter === d
-                    ? { background: DECISION_COLORS[d], color: '#fff' }
-                    : { background: 'rgba(255,255,255,0.05)', color: '#a1a1aa' }}
-                >
-                  {DECISION_LABELS[d]} ({decisionCounts[d]})
-                </button>
-              ))}
+              {decisionOptions
+                .filter((d) => decisionCounts[d] > 0)
+                .map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setDecisionFilter(d)}
+                    className="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                    style={
+                      decisionFilter === d
+                        ? { background: DECISION_COLORS[d], color: '#fff' }
+                        : { background: 'rgba(255,255,255,0.05)', color: '#a1a1aa' }
+                    }
+                  >
+                    {DECISION_LABELS[d]} ({decisionCounts[d]})
+                  </button>
+                ))}
             </div>
 
             {loading ? (
@@ -304,28 +343,44 @@ export default function OrgScorecard() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-white/10 bg-white/[0.02]">
-                      <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-left w-10">#</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-left w-10">
+                        #
+                      </th>
                       <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-left">
-                        <button onClick={() => handleSort('name')} className="flex items-center hover:text-zinc-300 transition-colors">
+                        <button
+                          onClick={() => handleSort('name')}
+                          className="flex items-center hover:text-zinc-300 transition-colors"
+                        >
                           Name <SortIcon col="name" />
                         </button>
                       </th>
                       <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-left">
-                        <button onClick={() => handleSort('stage')} className="flex items-center hover:text-zinc-300 transition-colors">
+                        <button
+                          onClick={() => handleSort('stage')}
+                          className="flex items-center hover:text-zinc-300 transition-colors"
+                        >
                           Stage <SortIcon col="stage" />
                         </button>
                       </th>
                       <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-left">
-                        <button onClick={() => handleSort('fit')} className="flex items-center hover:text-zinc-300 transition-colors">
+                        <button
+                          onClick={() => handleSort('fit')}
+                          className="flex items-center hover:text-zinc-300 transition-colors"
+                        >
                           AI Fit <SortIcon col="fit" />
                         </button>
                       </th>
                       <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-left">
-                        <button onClick={() => handleSort('votes')} className="flex items-center hover:text-zinc-300 transition-colors">
+                        <button
+                          onClick={() => handleSort('votes')}
+                          className="flex items-center hover:text-zinc-300 transition-colors"
+                        >
                           Votes <SortIcon col="votes" />
                         </button>
                       </th>
-                      <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-left">Decision</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-left">
+                        Decision
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -336,7 +391,9 @@ export default function OrgScorecard() {
                       >
                         <td className="px-4 py-3 text-zinc-600 font-mono text-xs">{i + 1}</td>
                         <td className="px-4 py-3">
-                          <div className="font-medium text-white">{row.first_name} {row.last_name}</div>
+                          <div className="font-medium text-white">
+                            {row.first_name} {row.last_name}
+                          </div>
                           {(row.major || row.year) && (
                             <div className="text-xs text-zinc-500 mt-0.5">
                               {[row.major, row.year].filter(Boolean).join(' · ')}
@@ -362,7 +419,8 @@ export default function OrgScorecard() {
                             <span
                               className="px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"
                               style={{
-                                background: (DECISION_COLORS[row.final_decision] || '#71717a') + '22',
+                                background:
+                                  (DECISION_COLORS[row.final_decision] || '#71717a') + '22',
                                 color: DECISION_COLORS[row.final_decision] || '#71717a',
                               }}
                             >

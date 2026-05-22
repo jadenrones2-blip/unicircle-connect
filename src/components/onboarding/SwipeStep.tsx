@@ -9,9 +9,15 @@ import { toast } from 'sonner';
 import type { Club } from '@/data/mockData';
 
 const CATEGORY_COLORS: Record<string, string> = {
-  academic: '#60a5fa', cultural: '#fb923c', 'greek life': '#c084fc',
-  professional: '#818cf8', service: '#34d399', social: '#f472b6',
-  spiritual: '#2dd4bf', sports: '#f87171', 'tech / stem': '#22d3ee',
+  academic: '#60a5fa',
+  cultural: '#fb923c',
+  'greek life': '#c084fc',
+  professional: '#818cf8',
+  service: '#34d399',
+  social: '#f472b6',
+  spiritual: '#2dd4bf',
+  sports: '#f87171',
+  'tech / stem': '#22d3ee',
 };
 
 function color(cat: string) {
@@ -24,10 +30,17 @@ interface Props {
 }
 
 function Card({
-  club, isTop, offset, onLeft, onRight,
+  club,
+  isTop,
+  offset,
+  onLeft,
+  onRight,
 }: {
-  club: Club; isTop: boolean; offset: number;
-  onLeft: () => void; onRight: () => void;
+  club: Club;
+  isTop: boolean;
+  offset: number;
+  onLeft: () => void;
+  onRight: () => void;
 }) {
   const c = color(club.categoryBucket || club.category || '');
   const x = useMotionValue(0);
@@ -47,7 +60,8 @@ function Card({
         rotate: isTop ? rotate : 0,
         scale: 1 - offset * 0.05,
         zIndex: 10 - offset,
-        position: 'absolute', width: '100%',
+        position: 'absolute',
+        width: '100%',
         transformOrigin: 'bottom center',
       }}
       drag={isTop ? 'x' : false}
@@ -60,7 +74,12 @@ function Card({
     >
       <div
         className="relative rounded-3xl overflow-hidden select-none cursor-grab active:cursor-grabbing"
-        style={{ background: '#111', border: '1px solid rgba(255,255,255,0.08)', height: 420, boxShadow: isTop ? '0 20px 60px rgba(0,0,0,0.6)' : undefined }}
+        style={{
+          background: '#111',
+          border: '1px solid rgba(255,255,255,0.08)',
+          height: 420,
+          boxShadow: isTop ? '0 20px 60px rgba(0,0,0,0.6)' : undefined,
+        }}
       >
         {/* Color gradient header */}
         <div
@@ -74,8 +93,10 @@ function Card({
 
         {/* Category pill */}
         <div className="absolute top-4 left-4">
-          <span className="text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full"
-            style={{ background: `${c}20`, border: `1px solid ${c}40`, color: c }}>
+          <span
+            className="text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full"
+            style={{ background: `${c}20`, border: `1px solid ${c}40`, color: c }}
+          >
             {club.categoryBucket || club.category || 'Club'}
           </span>
         </div>
@@ -127,10 +148,10 @@ export default function SwipeStep({ interests, onDone }: Props) {
         const all = (data || []) as Club[];
         // Score against interests and take top 10
         const scored = all
-          .map(c => ({ club: c, score: calculateMatchScore(c, interests) }))
+          .map((c) => ({ club: c, score: calculateMatchScore(c, interests) }))
           .sort((a, b) => b.score - a.score)
           .slice(0, 10)
-          .map(s => s.club);
+          .map((s) => s.club);
         setClubs(scored);
         setLoading(false);
       })
@@ -140,24 +161,32 @@ export default function SwipeStep({ interests, onDone }: Props) {
   const visible = clubs.slice(index, index + 3);
   const finished = index >= clubs.length;
 
-  const saveClub = useCallback(async (club: Club) => {
-    if (!user) return;
-    try {
-      await (supabase as any).from('saved_clubs').upsert({
-        user_id: user.id,
-        club_id: club.id,
-      }, { onConflict: 'user_id,club_id' });
-      setSaved(s => s + 1);
-    } catch { /* non-fatal */ }
-  }, [user]);
+  const saveClub = useCallback(
+    async (club: Club) => {
+      if (!user) return;
+      try {
+        await (supabase as any).from('saved_clubs').upsert(
+          {
+            user_id: user.id,
+            club_id: club.id,
+          },
+          { onConflict: 'user_id,club_id' }
+        );
+        setSaved((s) => s + 1);
+      } catch {
+        /* non-fatal */
+      }
+    },
+    [user]
+  );
 
   const handleRight = useCallback(() => {
     if (visible[0]) saveClub(visible[0]);
-    setIndex(i => i + 1);
+    setIndex((i) => i + 1);
   }, [visible, saveClub]);
 
   const handleLeft = useCallback(() => {
-    setIndex(i => i + 1);
+    setIndex((i) => i + 1);
   }, []);
 
   const handleDone = () => {
@@ -196,7 +225,9 @@ export default function SwipeStep({ interests, onDone }: Props) {
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="text-center mb-2">
-        <span className="text-xs font-bold tracking-widest uppercase text-zinc-600 mb-2 block">Step 6 of 6</span>
+        <span className="text-xs font-bold tracking-widest uppercase text-zinc-600 mb-2 block">
+          Step 6 of 6
+        </span>
         <h2 className="text-2xl font-display font-bold text-white mb-1">Your top matches</h2>
         <p className="text-sm text-zinc-500">Swipe right to save · left to skip</p>
       </div>
@@ -214,16 +245,18 @@ export default function SwipeStep({ interests, onDone }: Props) {
               <p className="text-zinc-600 text-sm">That's all your matches</p>
             </motion.div>
           ) : (
-            [...visible].reverse().map((club, i) => (
-              <Card
-                key={club.id}
-                club={club}
-                isTop={i === visible.length - 1}
-                offset={visible.length - 1 - i}
-                onLeft={handleLeft}
-                onRight={handleRight}
-              />
-            ))
+            [...visible]
+              .reverse()
+              .map((club, i) => (
+                <Card
+                  key={club.id}
+                  club={club}
+                  isTop={i === visible.length - 1}
+                  offset={visible.length - 1 - i}
+                  onLeft={handleLeft}
+                  onRight={handleRight}
+                />
+              ))
           )}
         </AnimatePresence>
       </div>
@@ -234,7 +267,10 @@ export default function SwipeStep({ interests, onDone }: Props) {
           <div
             key={i}
             className="w-1.5 h-1.5 rounded-full transition-all"
-            style={{ background: i < index ? 'hsl(43 74% 56%)' : i === index ? '#fff' : 'rgba(255,255,255,0.15)' }}
+            style={{
+              background:
+                i < index ? 'hsl(43 74% 56%)' : i === index ? '#fff' : 'rgba(255,255,255,0.15)',
+            }}
           />
         ))}
       </div>

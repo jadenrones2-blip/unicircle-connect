@@ -25,23 +25,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Listen for auth changes first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setAuthState({ user: session?.user ?? null, session, loading: false });
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthState({ user: session?.user ?? null, session, loading: false });
+    });
 
     // Then get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAuthState({ user: session?.user ?? null, session, loading: false });
     });
 
-    return () => { subscription.unsubscribe(); };
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
     if (!email.toLowerCase().includes('.edu')) {
-      return { data: null, error: new Error('UniCircle requires a university email address (.edu).') };
+      return {
+        data: null,
+        error: new Error('UniCircle requires a university email address (.edu).'),
+      };
     }
     const { data, error } = await supabase.auth.signUp({
       email,

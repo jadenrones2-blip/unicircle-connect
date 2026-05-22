@@ -37,9 +37,12 @@ const statusConfig = {
   },
 };
 
-export default function ApplicationsSection({ applications, onWithdraw }: ApplicationsSectionProps) {
-  const activeApplications = applications.filter(app => app.status !== 'withdrawn');
-  
+export default function ApplicationsSection({
+  applications,
+  onWithdraw,
+}: ApplicationsSectionProps) {
+  const activeApplications = applications.filter((app) => app.status !== 'withdrawn');
+
   if (activeApplications.length === 0) {
     return (
       <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
@@ -57,7 +60,7 @@ export default function ApplicationsSection({ applications, onWithdraw }: Applic
       {activeApplications.map((application, index) => {
         const config = statusConfig[application.status];
         const StatusIcon = config.icon;
-        
+
         return (
           <motion.div
             key={application.id}
@@ -71,7 +74,7 @@ export default function ApplicationsSection({ applications, onWithdraw }: Applic
                 <StatusIcon className="h-5 w-5" />
               </div>
               <div>
-                <Link 
+                <Link
                   to={`/clubs/${application.club_id}`}
                   className="font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1"
                 >

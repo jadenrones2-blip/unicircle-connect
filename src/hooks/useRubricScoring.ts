@@ -19,7 +19,10 @@ export interface RubricScoreRow {
 }
 
 // Returns { description, weight } from a requirement's value JSON
-export function parseCriterionValue(req: RecruitmentRequirement): { description: string; weight: number } {
+export function parseCriterionValue(req: RecruitmentRequirement): {
+  description: string;
+  weight: number;
+} {
   const v = req.value as Record<string, unknown>;
   return {
     description: typeof v.description === 'string' ? v.description : '',
@@ -85,7 +88,11 @@ export function useRubricScoring(applicantId: string | null) {
       setScores(mine);
     } catch (err: any) {
       const msg = err?.message || String(err);
-      setScoringError(msg.includes('does not exist') ? 'Scoring table not set up yet — run the SQL migration.' : msg);
+      setScoringError(
+        msg.includes('does not exist')
+          ? 'Scoring table not set up yet — run the SQL migration.'
+          : msg
+      );
     } finally {
       setLoading(false);
     }
@@ -106,18 +113,16 @@ export function useRubricScoring(applicantId: string | null) {
     }));
 
     try {
-      const { error } = await (supabase as any)
-        .from('officer_rubric_scores')
-        .upsert(
-          {
-            applicant_id: applicantId,
-            officer_id: user.id,
-            requirement_id: requirementId,
-            score,
-            note: note || null,
-          },
-          { onConflict: 'applicant_id,officer_id,requirement_id' }
-        );
+      const { error } = await (supabase as any).from('officer_rubric_scores').upsert(
+        {
+          applicant_id: applicantId,
+          officer_id: user.id,
+          requirement_id: requirementId,
+          score,
+          note: note || null,
+        },
+        { onConflict: 'applicant_id,officer_id,requirement_id' }
+      );
       if (error) throw error;
       // Refresh all scores for team average
       fetchScores();
@@ -133,7 +138,7 @@ export function useRubricScoring(applicantId: string | null) {
   function teamAvgForCriterion(requirementId: string): number | null {
     const rows = allScores.filter((r) => r.requirement_id === requirementId);
     if (rows.length === 0) return null;
-    return Math.round(rows.reduce((s, r) => s + r.score, 0) / rows.length * 10) / 10;
+    return Math.round((rows.reduce((s, r) => s + r.score, 0) / rows.length) * 10) / 10;
   }
 
   return {

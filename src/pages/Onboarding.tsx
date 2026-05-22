@@ -48,19 +48,64 @@ const BROAD_AREAS = [
 ];
 
 const GOAL_OPTIONS = [
-  { value: 'career', label: 'Build my career network', emoji: '🚀', detail: 'Internships, referrals, industry connections' },
-  { value: 'community', label: 'Find my people', emoji: '👯', detail: 'Real friendships and a sense of belonging' },
-  { value: 'skills', label: 'Develop real skills', emoji: '⚡', detail: 'Hands-on experience and growth' },
+  {
+    value: 'career',
+    label: 'Build my career network',
+    emoji: '🚀',
+    detail: 'Internships, referrals, industry connections',
+  },
+  {
+    value: 'community',
+    label: 'Find my people',
+    emoji: '👯',
+    detail: 'Real friendships and a sense of belonging',
+  },
+  {
+    value: 'skills',
+    label: 'Develop real skills',
+    emoji: '⚡',
+    detail: 'Hands-on experience and growth',
+  },
   { value: 'impact', label: 'Make a difference', emoji: '🔥', detail: 'Causes worth fighting for' },
-  { value: 'explore', label: "Explore what's out there", emoji: '🌊', detail: "Still figuring it out — that's fine" },
+  {
+    value: 'explore',
+    label: "Explore what's out there",
+    emoji: '🌊',
+    detail: "Still figuring it out — that's fine",
+  },
 ];
 
 const VIBE_OPTIONS = [
-  { value: 'casual', label: 'Keep it casual', emoji: '😎', detail: 'Show up when I can, low commitment' },
-  { value: 'active', label: 'Be an active member', emoji: '⚡', detail: 'Regular meetings, events, and projects' },
-  { value: 'leader', label: 'Aim for a leadership role', emoji: '🎯', detail: 'Officer track — I want to help run things' },
-  { value: 'compete', label: 'Compete or perform', emoji: '🏆', detail: 'I want to be on a team or on a stage' },
-  { value: 'network', label: 'Network intentionally', emoji: '🤝', detail: 'Industry contacts and professional events' },
+  {
+    value: 'casual',
+    label: 'Keep it casual',
+    emoji: '😎',
+    detail: 'Show up when I can, low commitment',
+  },
+  {
+    value: 'active',
+    label: 'Be an active member',
+    emoji: '⚡',
+    detail: 'Regular meetings, events, and projects',
+  },
+  {
+    value: 'leader',
+    label: 'Aim for a leadership role',
+    emoji: '🎯',
+    detail: 'Officer track — I want to help run things',
+  },
+  {
+    value: 'compete',
+    label: 'Compete or perform',
+    emoji: '🏆',
+    detail: 'I want to be on a team or on a stage',
+  },
+  {
+    value: 'network',
+    label: 'Network intentionally',
+    emoji: '🤝',
+    detail: 'Industry contacts and professional events',
+  },
 ];
 
 const SECTOR_SPECIFICS: Record<string, SectorChip[]> = {
@@ -76,7 +121,7 @@ const SECTOR_SPECIFICS: Record<string, SectorChip[]> = {
     { value: 'aerospace', label: 'Space & Aerospace', emoji: '🚀' },
     { value: 'stem-research', label: 'STEM Research', emoji: '🔬' },
   ],
-  'professional': [
+  professional: [
     { value: 'finance', label: 'Finance & Investment', emoji: '📈' },
     { value: 'consulting', label: 'Consulting', emoji: '💡' },
     { value: 'marketing', label: 'Marketing & Brand', emoji: '📣' },
@@ -88,7 +133,7 @@ const SECTOR_SPECIFICS: Record<string, SectorChip[]> = {
     { value: 'healthcare-business', label: 'Healthcare Business', emoji: '🏥' },
     { value: 'nonprofit-social', label: 'Nonprofit & Social Enterprise', emoji: '🤲' },
   ],
-  'academic': [
+  academic: [
     { value: 'stem-research-academic', label: 'STEM Research', emoji: '🔬' },
     { value: 'humanities', label: 'Humanities & Social Sciences', emoji: '📚' },
     { value: 'pre-med', label: 'Pre-Med & Health Sciences', emoji: '🩺' },
@@ -99,7 +144,7 @@ const SECTOR_SPECIFICS: Record<string, SectorChip[]> = {
     { value: 'pre-law-academic', label: 'Pre-Law', emoji: '⚖️' },
     { value: 'linguistics', label: 'Linguistics & Languages', emoji: '🌐' },
   ],
-  'arts': [
+  arts: [
     { value: 'music', label: 'Music (Performance / Production)', emoji: '🎵' },
     { value: 'visual-art', label: 'Visual Art & Fine Art', emoji: '🎨' },
     { value: 'design', label: 'Design (Graphic / UX)', emoji: '✏️' },
@@ -109,7 +154,7 @@ const SECTOR_SPECIFICS: Record<string, SectorChip[]> = {
     { value: 'fashion', label: 'Fashion', emoji: '👗' },
     { value: 'theatre', label: 'Theatre & Acting', emoji: '🎭' },
   ],
-  'cultural': [
+  cultural: [
     { value: 'asian-pacific', label: 'Asian / Pacific Islander', emoji: '🌏' },
     { value: 'black-african', label: 'Black & African American', emoji: '✊' },
     { value: 'latinx', label: 'Latinx & Hispanic', emoji: '🌮' },
@@ -119,7 +164,7 @@ const SECTOR_SPECIFICS: Record<string, SectorChip[]> = {
     { value: 'international', label: 'International Students', emoji: '🌍' },
     { value: 'indigenous', label: 'Indigenous & Native American', emoji: '🦅' },
   ],
-  'service': [
+  service: [
     { value: 'environment-climate', label: 'Environmental & Climate', emoji: '🌱' },
     { value: 'education-equity', label: 'Education Equity', emoji: '📚' },
     { value: 'healthcare-access', label: 'Healthcare Access', emoji: '🏥' },
@@ -128,7 +173,7 @@ const SECTOR_SPECIFICS: Record<string, SectorChip[]> = {
     { value: 'community-org', label: 'Community Organizing', emoji: '🤝' },
     { value: 'criminal-justice', label: 'Criminal Justice Reform', emoji: '⚖️' },
   ],
-  'sports': [
+  sports: [
     { value: 'competitive-sports', label: 'Competitive / Club Sports', emoji: '🏆' },
     { value: 'recreational', label: 'Recreational & Intramural', emoji: '🎯' },
     { value: 'martial-arts', label: 'Martial Arts', emoji: '🥋' },
@@ -136,7 +181,7 @@ const SECTOR_SPECIFICS: Record<string, SectorChip[]> = {
     { value: 'fitness-wellness', label: 'Fitness & Wellness', emoji: '💪' },
     { value: 'esports', label: 'Esports', emoji: '🕹️' },
   ],
-  'spiritual': [
+  spiritual: [
     { value: 'christian', label: 'Christian & Faith-based', emoji: '✝️' },
     { value: 'muslim', label: 'Muslim & Islamic', emoji: '☪️' },
     { value: 'jewish', label: 'Jewish', emoji: '✡️' },
@@ -144,7 +189,7 @@ const SECTOR_SPECIFICS: Record<string, SectorChip[]> = {
     { value: 'buddhist', label: 'Buddhist & Mindfulness', emoji: '☸️' },
     { value: 'wellness-spiritual', label: 'Non-denominational Wellness', emoji: '🧘' },
   ],
-  'social': [
+  social: [
     { value: 'gaming-anime', label: 'Gaming & Anime', emoji: '🎮' },
     { value: 'cooking-food', label: 'Cooking & Food', emoji: '🍳' },
     { value: 'travel-outdoors', label: 'Travel & Outdoors', emoji: '✈️' },
@@ -169,10 +214,13 @@ function normalizeBucket(bucket: string): string {
   return (bucket || '').toLowerCase().trim();
 }
 
-function matchesArea(club: { categoryBucket?: string; category?: string }, areaValue: string): boolean {
+function matchesArea(
+  club: { categoryBucket?: string; category?: string },
+  areaValue: string
+): boolean {
   const bucket = normalizeBucket(club.categoryBucket || club.category || '');
   if (areaValue === 'greek life') {
-    return ['fraternity', 'sorority', 'greek life', 'greek'].some(t => bucket.includes(t));
+    return ['fraternity', 'sorority', 'greek life', 'greek'].some((t) => bucket.includes(t));
   }
   return bucket.includes(areaValue) || bucket === areaValue;
 }
@@ -180,7 +228,7 @@ function matchesArea(club: { categoryBucket?: string; category?: string }, areaV
 // ─── Steps ───────────────────────────────────────────────────────────────────
 
 const STEPS = ['major', 'goal', 'vibe', 'areas', 'specifics', 'resume', 'swipe'] as const;
-type Step = typeof STEPS[number];
+type Step = (typeof STEPS)[number];
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -208,9 +256,14 @@ export default function Onboarding() {
   const progress = ((stepIndex + 1) / STEPS.length) * 100;
 
   useEffect(() => {
-    if (!authLoading && !user) { navigate('/login'); return; }
+    if (!authLoading && !user) {
+      navigate('/login');
+      return;
+    }
     if (!authLoading && user && !retake) {
-      hasCompletedOnboarding(user.id).then((done) => { if (done) navigate('/dashboard'); });
+      hasCompletedOnboarding(user.id).then((done) => {
+        if (done) navigate('/dashboard');
+      });
     }
   }, [user, authLoading, navigate, hasCompletedOnboarding, retake]);
 
@@ -224,31 +277,33 @@ export default function Onboarding() {
         setClubs(rows);
         const computed: AreaOption[] = BROAD_AREAS.map((area) => ({
           ...area,
-          count: rows.filter(c => matchesArea(c, area.value)).length,
+          count: rows.filter((c) => matchesArea(c, area.value)).length,
         }));
         // Fall back to static list (count 0 hidden) if nothing matched
-        const withCounts = computed.filter(a => a.count > 0);
-        setAreaOptions(withCounts.length > 0 ? withCounts : computed.map(a => ({ ...a, count: 0 })));
+        const withCounts = computed.filter((a) => a.count > 0);
+        setAreaOptions(
+          withCounts.length > 0 ? withCounts : computed.map((a) => ({ ...a, count: 0 }))
+        );
         setClubsLoading(false);
       })
       .catch(() => {
         // Show static list on fetch failure
-        setAreaOptions(BROAD_AREAS.map(a => ({ ...a, count: 0 })));
+        setAreaOptions(BROAD_AREAS.map((a) => ({ ...a, count: 0 })));
         setClubsLoading(false);
       });
   }, []);
 
   // Sector chips for selected areas (deduplicated by value)
   const sectorSections = selectedAreas
-    .map(area => ({
+    .map((area) => ({
       area,
-      areaLabel: BROAD_AREAS.find(a => a.value === area)?.label || area,
+      areaLabel: BROAD_AREAS.find((a) => a.value === area)?.label || area,
       chips: SECTOR_SPECIFICS[area] || [],
     }))
-    .filter(s => s.chips.length > 0);
+    .filter((s) => s.chips.length > 0);
 
   const toggle = (value: string, list: string[], setList: (v: string[]) => void) => {
-    setList(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
+    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   };
 
   const handleNext = () => {
@@ -265,17 +320,17 @@ export default function Onboarding() {
     if (!user) return;
     const interests: { category: string; value: string }[] = [];
 
-    goals.forEach(v => interests.push({ category: 'goal', value: v }));
-    selectedVibe.forEach(v => interests.push({ category: 'vibe', value: v }));
-    selectedAreas.forEach(v => interests.push({ category: 'area', value: v }));
-    selectedSpecifics.forEach(v => interests.push({ category: 'specific', value: v }));
+    goals.forEach((v) => interests.push({ category: 'goal', value: v }));
+    selectedVibe.forEach((v) => interests.push({ category: 'vibe', value: v }));
+    selectedAreas.forEach((v) => interests.push({ category: 'area', value: v }));
+    selectedSpecifics.forEach((v) => interests.push({ category: 'specific', value: v }));
 
     const kw = extraKeywords || resumeKeywords;
     if (kw) {
-      kw.career_goals.forEach(v => interests.push({ category: 'resume_career', value: v }));
-      kw.interests.forEach(v => interests.push({ category: 'resume_interests', value: v }));
-      kw.skills.forEach(v => interests.push({ category: 'resume_skills', value: v }));
-      kw.vibe.forEach(v => interests.push({ category: 'resume_vibe', value: v }));
+      kw.career_goals.forEach((v) => interests.push({ category: 'resume_career', value: v }));
+      kw.interests.forEach((v) => interests.push({ category: 'resume_interests', value: v }));
+      kw.skills.forEach((v) => interests.push({ category: 'resume_skills', value: v }));
+      kw.vibe.forEach((v) => interests.push({ category: 'resume_vibe', value: v }));
     }
 
     // Save major to profile if entered
@@ -325,12 +380,13 @@ export default function Onboarding() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
-
               {/* ── STEP 0: MAJOR ── */}
               {step === 'major' && (
                 <div>
                   <div className="text-center mb-10">
-                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">Step 1 of 6</span>
+                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">
+                      Step 1 of 6
+                    </span>
                     <h1 className="text-3xl font-display font-bold text-white mb-2">
                       What's your major?
                     </h1>
@@ -342,11 +398,13 @@ export default function Onboarding() {
                     <input
                       type="text"
                       value={major}
-                      onChange={e => setMajor(e.target.value)}
+                      onChange={(e) => setMajor(e.target.value)}
                       placeholder="e.g. Computer Science, Biology, Undecided..."
                       className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-white/10 text-white placeholder:text-zinc-600 focus:border-gold/50 focus:outline-none text-sm"
                       autoFocus
-                      onKeyDown={e => { if (e.key === 'Enter') handleNext(); }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleNext();
+                      }}
                     />
                     <button
                       onClick={handleNext}
@@ -362,11 +420,15 @@ export default function Onboarding() {
               {step === 'goal' && (
                 <div>
                   <div className="text-center mb-8">
-                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">Step 1 of 5</span>
+                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">
+                      Step 1 of 5
+                    </span>
                     <h1 className="text-3xl font-display font-bold text-white mb-2">
                       What do you want most from clubs?
                     </h1>
-                    <p className="text-zinc-500 text-sm">Pick everything that resonates — no wrong answers.</p>
+                    <p className="text-zinc-500 text-sm">
+                      Pick everything that resonates — no wrong answers.
+                    </p>
                   </div>
 
                   <div className="space-y-3 mb-8">
@@ -414,11 +476,15 @@ export default function Onboarding() {
               {step === 'vibe' && (
                 <div>
                   <div className="text-center mb-8">
-                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">Step 2 of 5</span>
+                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">
+                      Step 2 of 5
+                    </span>
                     <h1 className="text-3xl font-display font-bold text-white mb-2">
                       How do you see yourself showing up?
                     </h1>
-                    <p className="text-zinc-500 text-sm">This helps us match you with clubs that fit your commitment level.</p>
+                    <p className="text-zinc-500 text-sm">
+                      This helps us match you with clubs that fit your commitment level.
+                    </p>
                   </div>
 
                   <div className="space-y-3 mb-8">
@@ -451,7 +517,11 @@ export default function Onboarding() {
                   </div>
 
                   <div className="flex justify-between">
-                    <Button variant="ghost" onClick={handleBack} className="text-zinc-500 hover:text-white">
+                    <Button
+                      variant="ghost"
+                      onClick={handleBack}
+                      className="text-zinc-500 hover:text-white"
+                    >
                       <ArrowLeft className="w-4 h-4 mr-2" /> Back
                     </Button>
                     <Button
@@ -469,11 +539,15 @@ export default function Onboarding() {
               {step === 'areas' && (
                 <div>
                   <div className="text-center mb-8">
-                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">Step 3 of 5</span>
+                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">
+                      Step 3 of 5
+                    </span>
                     <h1 className="text-3xl font-display font-bold text-white mb-2">
                       What areas light you up?
                     </h1>
-                    <p className="text-zinc-500 text-sm">Select all that apply — we'll get more specific next.</p>
+                    <p className="text-zinc-500 text-sm">
+                      Select all that apply — we'll get more specific next.
+                    </p>
                   </div>
 
                   {clubsLoading ? (
@@ -501,8 +575,17 @@ export default function Onboarding() {
                               </div>
                             )}
                             <span className="text-2xl">{area.emoji}</span>
-                            <p className={cn('text-sm font-medium', selected ? 'text-white' : 'text-zinc-300')}>{area.label}</p>
-                            {area.count > 0 && <p className="text-xs text-zinc-600">{area.count} clubs</p>}
+                            <p
+                              className={cn(
+                                'text-sm font-medium',
+                                selected ? 'text-white' : 'text-zinc-300'
+                              )}
+                            >
+                              {area.label}
+                            </p>
+                            {area.count > 0 && (
+                              <p className="text-xs text-zinc-600">{area.count} clubs</p>
+                            )}
                           </button>
                         );
                       })}
@@ -510,7 +593,11 @@ export default function Onboarding() {
                   )}
 
                   <div className="flex justify-between">
-                    <Button variant="ghost" onClick={handleBack} className="text-zinc-500 hover:text-white">
+                    <Button
+                      variant="ghost"
+                      onClick={handleBack}
+                      className="text-zinc-500 hover:text-white"
+                    >
                       <ArrowLeft className="w-4 h-4 mr-2" /> Back
                     </Button>
                     <Button
@@ -528,7 +615,9 @@ export default function Onboarding() {
               {step === 'specifics' && (
                 <div>
                   <div className="text-center mb-8">
-                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">Step 4 of 5</span>
+                    <span className="inline-block text-xs text-zinc-500 tracking-widest uppercase mb-4">
+                      Step 4 of 5
+                    </span>
                     <h1 className="text-3xl font-display font-bold text-white mb-2">
                       Get more specific
                     </h1>
@@ -554,7 +643,9 @@ export default function Onboarding() {
                               return (
                                 <button
                                   key={chip.value}
-                                  onClick={() => toggle(chip.value, selectedSpecifics, setSelectedSpecifics)}
+                                  onClick={() =>
+                                    toggle(chip.value, selectedSpecifics, setSelectedSpecifics)
+                                  }
                                   className={cn(
                                     'flex items-center gap-1.5 px-3 py-2 rounded-full border text-sm font-medium transition-all',
                                     selected
@@ -575,7 +666,11 @@ export default function Onboarding() {
                   )}
 
                   <div className="flex justify-between">
-                    <Button variant="ghost" onClick={handleBack} className="text-zinc-500 hover:text-white">
+                    <Button
+                      variant="ghost"
+                      onClick={handleBack}
+                      className="text-zinc-500 hover:text-white"
+                    >
                       <ArrowLeft className="w-4 h-4 mr-2" /> Back
                     </Button>
                     <Button
@@ -591,7 +686,10 @@ export default function Onboarding() {
               {/* ── STEP 5: RESUME ── */}
               {step === 'resume' && (
                 <ResumeUploadStep
-                  onKeywordsExtracted={async (kw) => { setResumeKeywords(kw); await saveAndNavigate(kw); }}
+                  onKeywordsExtracted={async (kw) => {
+                    setResumeKeywords(kw);
+                    await saveAndNavigate(kw);
+                  }}
                   onSkip={() => saveAndNavigate()}
                 />
               )}
@@ -603,7 +701,6 @@ export default function Onboarding() {
                   onDone={() => navigate(redirectTo || '/dashboard')}
                 />
               )}
-
             </motion.div>
           </AnimatePresence>
         </div>

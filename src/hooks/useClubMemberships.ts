@@ -71,85 +71,88 @@ export function useClubMemberships() {
     }
   }, []);
 
-  const applyToClub = useCallback(async (userId: string, clubId: string, clubName: string, notes?: string) => {
-    try {
-      // Get the current user's email from auth
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) {
-        return { success: false, error: 'User email not found. Please log in again.' };
-      }
+  const applyToClub = useCallback(
+    async (userId: string, clubId: string, clubName: string, notes?: string) => {
+      try {
+        // Get the current user's email from auth
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user?.email) {
+          return { success: false, error: 'User email not found. Please log in again.' };
+        }
 
-      // Get user's profile for name info
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('display_name')
-        .eq('user_id', userId)
-        .maybeSingle();
+        // Get user's profile for name info
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('user_id', userId)
+          .maybeSingle();
 
-      // Parse name from profile or email
-      let firstName = 'Student';
-      let lastName = '';
-      
-      if (profileData?.display_name) {
-        const nameParts = profileData.display_name.trim().split(' ');
-        firstName = nameParts[0] || 'Student';
-        lastName = nameParts.slice(1).join(' ') || '';
-      } else {
-        // Use email prefix as fallback
-        const emailPrefix = user.email.split('@')[0];
-        firstName = emailPrefix;
-      }
+        // Parse name from profile or email
+        let firstName = 'Student';
+        let lastName = '';
 
-      // Create club_applications record (for dashboard tracking)
-      const { data, error: insertError } = await supabase
-        .from('club_applications')
-        .insert({
-          user_id: userId,
-          club_id: clubId,
-          club_name: clubName,
-          notes: notes || null,
-        })
-        .select()
-        .single();
+        if (profileData?.display_name) {
+          const nameParts = profileData.display_name.trim().split(' ');
+          firstName = nameParts[0] || 'Student';
+          lastName = nameParts.slice(1).join(' ') || '';
+        } else {
+          // Use email prefix as fallback
+          const emailPrefix = user.email.split('@')[0];
+          firstName = emailPrefix;
+        }
 
-      if (insertError) throw insertError;
+        // Create club_applications record (for dashboard tracking)
+        const { data, error: insertError } = await supabase
+          .from('club_applications')
+          .insert({
+            user_id: userId,
+            club_id: clubId,
+            club_name: clubName,
+            notes: notes || null,
+          })
+          .select()
+          .single();
 
-      // Also create applicants record (for recruitment pipeline)
-      // This allows club admins to see the applicant in their kanban
-      // and allows students to see their progress in the recruitment tracker
-      // Get the first stage for this club (if any exists)
-      const { data: firstStage } = await supabase
-        .from('recruitment_stages')
-        .select('id')
-        .eq('club_id', clubId)
-        .order('order_index', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        if (insertError) throw insertError;
 
-      // Insert into applicants table - this may fail due to RLS if the club
-      // hasn't enabled recruitment, but we still want the club_applications to succeed
-      await supabase
-        .from('applicants')
-        .insert({
+        // Also create applicants record (for recruitment pipeline)
+        // This allows club admins to see the applicant in their kanban
+        // and allows students to see their progress in the recruitment tracker
+        // Get the first stage for this club (if any exists)
+        const { data: firstStage } = await supabase
+          .from('recruitment_stages')
+          .select('id')
+          .eq('club_id', clubId)
+          .order('order_index', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        // Insert into applicants table - this may fail due to RLS if the club
+        // hasn't enabled recruitment, but we still want the club_applications to succeed
+        await supabase.from('applicants').insert({
           club_id: clubId,
           first_name: firstName,
           last_name: lastName,
           email: user.email,
           stage_id: firstStage?.id || null,
         });
-      // Note: We don't throw on error here because the club may not have
-      // recruitment enabled, but the application should still go through
+        // Note: We don't throw on error here because the club may not have
+        // recruitment enabled, but the application should still go through
 
-      setApplications(prev => [data as ClubApplication, ...prev]);
-      return { success: true, data };
-    } catch (err: any) {
-      // Handle unique constraint violation (already applied)
-      if (err.code === '23505') {
-        return { success: false, error: 'You have already applied to this club' };
+        setApplications((prev) => [data as ClubApplication, ...prev]);
+        return { success: true, data };
+      } catch (err: any) {
+        // Handle unique constraint violation (already applied)
+        if (err.code === '23505') {
+          return { success: false, error: 'You have already applied to this club' };
+        }
+        return { success: false, error: err.message };
       }
-      return { success: false, error: err.message };
-    }
-  }, []);
+    },
+    []
+  );
 
   const withdrawApplication = useCallback(async (applicationId: string) => {
     try {
@@ -159,8 +162,8 @@ export function useClubMemberships() {
         .eq('id', applicationId);
 
       if (updateError) throw updateError;
-      setApplications(prev =>
-        prev.map(app =>
+      setApplications((prev) =>
+        prev.map((app) =>
           app.id === applicationId ? { ...app, status: 'withdrawn' as const } : app
         )
       );
@@ -183,7 +186,7 @@ export function useClubMemberships() {
         .single();
 
       if (insertError) throw insertError;
-      setMemberships(prev => [data as ClubMembership, ...prev]);
+      setMemberships((prev) => [data as ClubMembership, ...prev]);
       return { success: true, data };
     } catch (err: any) {
       return { success: false, error: err.message };
@@ -198,20 +201,26 @@ export function useClubMemberships() {
         .eq('id', membershipId);
 
       if (deleteError) throw deleteError;
-      setMemberships(prev => prev.filter(m => m.id !== membershipId));
+      setMemberships((prev) => prev.filter((m) => m.id !== membershipId));
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message };
     }
   }, []);
 
-  const hasApplied = useCallback((clubId: string) => {
-    return applications.some(app => app.club_id === clubId && app.status === 'pending');
-  }, [applications]);
+  const hasApplied = useCallback(
+    (clubId: string) => {
+      return applications.some((app) => app.club_id === clubId && app.status === 'pending');
+    },
+    [applications]
+  );
 
-  const isMember = useCallback((clubId: string) => {
-    return memberships.some(m => m.club_id === clubId);
-  }, [memberships]);
+  const isMember = useCallback(
+    (clubId: string) => {
+      return memberships.some((m) => m.club_id === clubId);
+    },
+    [memberships]
+  );
 
   return {
     memberships,

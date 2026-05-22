@@ -1,8 +1,8 @@
-import { memo } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import type { Club, RecruitingStatus } from "@/data/mockData";
+import { memo } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import type { Club, RecruitingStatus } from '@/data/mockData';
 
 interface ClubListItemProps {
   club: Club;
@@ -10,37 +10,39 @@ interface ClubListItemProps {
 
 const getStatusStyles = (status: RecruitingStatus) => {
   switch (status) {
-    case "open":
-      return "bg-green-500/10 text-green-600 border-green-500/20";
-    case "upcoming":
-      return "bg-gold/10 text-gold border-gold/20";
-    case "closed":
-      return "bg-muted text-muted-foreground border-border";
+    case 'open':
+      return 'bg-green-500/10 text-green-600 border-green-500/20';
+    case 'upcoming':
+      return 'bg-gold/10 text-gold border-gold/20';
+    case 'closed':
+      return 'bg-muted text-muted-foreground border-border';
   }
 };
 
 const getStatusLabel = (status: RecruitingStatus) => {
   switch (status) {
-    case "open":
-      return "Open";
-    case "upcoming":
-      return "Upcoming";
-    case "closed":
-      return "Closed";
+    case 'open':
+      return 'Open';
+    case 'upcoming':
+      return 'Upcoming';
+    case 'closed':
+      return 'Closed';
   }
 };
 
 const isGreekOrg = (club: Club): boolean => {
   const searchText = `${club.name} ${club.category} ${club.categoryBucket || ''}`.toLowerCase();
-  return searchText.includes('panhellenic') || 
-         searchText.includes('interfraternity') || 
-         searchText.includes('fraternity') || 
-         searchText.includes('sorority');
+  return (
+    searchText.includes('panhellenic') ||
+    searchText.includes('interfraternity') ||
+    searchText.includes('fraternity') ||
+    searchText.includes('sorority')
+  );
 };
 
 const ClubListItemComponent = ({ club }: ClubListItemProps) => {
   const showGreekTag = isGreekOrg(club);
-  
+
   return (
     <Link
       to={`/clubs/${club.id}`}
@@ -69,14 +71,12 @@ const ClubListItemComponent = ({ club }: ClubListItemProps) => {
           )}
         </div>
         {club.description && (
-          <p className="text-sm text-muted-foreground line-clamp-1">
-            {club.description}
-          </p>
+          <p className="text-sm text-muted-foreground line-clamp-1">{club.description}</p>
         )}
       </div>
 
       <div className="flex items-center gap-3 flex-shrink-0">
-        {club.recruitingStatus !== "closed" && (
+        {club.recruitingStatus !== 'closed' && (
           <Badge
             variant="outline"
             className={`text-xs hidden sm:inline-flex ${getStatusStyles(club.recruitingStatus)}`}
@@ -90,6 +90,6 @@ const ClubListItemComponent = ({ club }: ClubListItemProps) => {
   );
 };
 
-ClubListItemComponent.displayName = "ClubListItem";
+ClubListItemComponent.displayName = 'ClubListItem';
 
 export default memo(ClubListItemComponent);

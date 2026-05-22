@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { useMemo } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { motion } from 'framer-motion';
+import { useMemo } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Particle {
   id: number;
@@ -14,11 +14,11 @@ interface Particle {
 
 const FloatingParticles = () => {
   const isMobile = useIsMobile();
-  
+
   // Disable particles entirely on mobile for better performance
   const particles = useMemo<Particle[]>(() => {
     if (isMobile) return [];
-    
+
     // Reduced from 30 to 15 particles for better performance
     return Array.from({ length: 15 }, (_, i) => ({
       id: i,
@@ -57,11 +57,11 @@ const FloatingParticles = () => {
             duration: particle.duration,
             delay: particle.delay,
             repeat: Infinity,
-            ease: "easeInOut",
+            ease: 'easeInOut',
           }}
         />
       ))}
-      
+
       {/* Reduced accent particles from 8 to 4 */}
       {[...Array(4)].map((_, i) => (
         <motion.div
@@ -83,7 +83,7 @@ const FloatingParticles = () => {
             duration: 8 + i * 2,
             delay: i * 0.5,
             repeat: Infinity,
-            ease: "easeInOut",
+            ease: 'easeInOut',
           }}
         />
       ))}

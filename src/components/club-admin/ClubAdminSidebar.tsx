@@ -1,5 +1,23 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Plus, LogOut, ArrowLeft, Settings, User, Users, BarChart2, BookUser, UserCircle2, Kanban, Trophy, Link2, LayoutDashboard, Zap, Inbox } from 'lucide-react';
+import {
+  Home,
+  Calendar,
+  Plus,
+  LogOut,
+  ArrowLeft,
+  Settings,
+  User,
+  Users,
+  BarChart2,
+  BookUser,
+  UserCircle2,
+  Kanban,
+  Trophy,
+  Link2,
+  LayoutDashboard,
+  Zap,
+  Inbox,
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
 import { useAdminProfile } from '@/hooks/useAdminProfile';
@@ -39,10 +57,12 @@ export function ClubAdminSidebar() {
     <Sidebar collapsible="icon" className="border-r border-border">
       <SidebarContent>
         {/* Portal indicator */}
-        <div className={cn(
-          "flex items-center gap-2 px-4 py-3 border-b border-border bg-gold/5",
-          collapsed ? "justify-center px-2" : ""
-        )}>
+        <div
+          className={cn(
+            'flex items-center gap-2 px-4 py-3 border-b border-border bg-gold/5',
+            collapsed ? 'justify-center px-2' : ''
+          )}
+        >
           <div className="w-2 h-2 rounded-full bg-gold shrink-0" />
           {!collapsed && (
             <span className="text-[11px] font-bold text-gold uppercase tracking-widest">
@@ -53,15 +73,12 @@ export function ClubAdminSidebar() {
 
         {/* Admin Profile Header */}
         {profile && (
-          <div className={cn(
-            "p-3 border-b border-border",
-            collapsed ? "flex justify-center" : ""
-          )}>
-            <Link 
+          <div className={cn('p-3 border-b border-border', collapsed ? 'flex justify-center' : '')}>
+            <Link
               to="/club-admin/profile"
               className={cn(
-                "flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted",
-                location.pathname === '/club-admin/profile' && "bg-gold/10"
+                'flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted',
+                location.pathname === '/club-admin/profile' && 'bg-gold/10'
               )}
             >
               <Avatar className="w-9 h-9 border border-gold/30">
@@ -75,9 +92,7 @@ export function ClubAdminSidebar() {
                   <p className="text-sm font-medium text-foreground truncate">
                     {profile.display_name}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {profile.role_title}
-                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{profile.role_title}</p>
                 </div>
               )}
             </Link>
@@ -96,9 +111,7 @@ export function ClubAdminSidebar() {
                     to="/club-admin"
                     className={cn(
                       'flex items-center gap-2 px-3 py-2 rounded-md transition-colors',
-                      isActive('/club-admin')
-                        ? 'bg-gold/10 text-gold'
-                        : 'hover:bg-muted'
+                      isActive('/club-admin') ? 'bg-gold/10 text-gold' : 'hover:bg-muted'
                     )}
                   >
                     <Home className="w-4 h-4" />
@@ -112,9 +125,7 @@ export function ClubAdminSidebar() {
                     to="/submit-event"
                     className={cn(
                       'flex items-center gap-2 px-3 py-2 rounded-md transition-colors',
-                      isActive('/submit-event')
-                        ? 'bg-gold/10 text-gold'
-                        : 'hover:bg-muted'
+                      isActive('/submit-event') ? 'bg-gold/10 text-gold' : 'hover:bg-muted'
                     )}
                   >
                     <Plus className="w-4 h-4" />
@@ -135,10 +146,12 @@ export function ClubAdminSidebar() {
               <SidebarMenu>
                 {ownedClubs.map((club) => (
                   <div key={club.clubId} className="space-y-1">
-                    <div className={cn(
-                      "px-3 py-1.5 text-xs font-medium text-muted-foreground truncate",
-                      collapsed && "hidden"
-                    )}>
+                    <div
+                      className={cn(
+                        'px-3 py-1.5 text-xs font-medium text-muted-foreground truncate',
+                        collapsed && 'hidden'
+                      )}
+                    >
                       {club.clubName}
                     </div>
                     <SidebarMenuItem>
@@ -211,7 +224,9 @@ export function ClubAdminSidebar() {
                           to={`/club-admin/clubs/${club.clubId}/people`}
                           className={cn(
                             'flex items-center gap-2 px-3 py-2 rounded-md transition-colors',
-                            location.pathname.includes(`/clubs/${club.clubId}/people`) || location.pathname.includes(`/clubs/${club.clubId}/pipeline`) || location.pathname.includes(`/clubs/${club.clubId}/scorecard`)
+                            location.pathname.includes(`/clubs/${club.clubId}/people`) ||
+                              location.pathname.includes(`/clubs/${club.clubId}/pipeline`) ||
+                              location.pathname.includes(`/clubs/${club.clubId}/scorecard`)
                               ? 'bg-gold/10 text-gold'
                               : 'hover:bg-muted'
                           )}

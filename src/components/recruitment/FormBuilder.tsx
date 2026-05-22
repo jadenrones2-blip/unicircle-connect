@@ -1,17 +1,38 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  DndContext, DragEndEvent, closestCenter,
-  PointerSensor, TouchSensor, useSensor, useSensors,
+  DndContext,
+  DragEndEvent,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core';
 import {
-  SortableContext, verticalListSortingStrategy,
-  useSortable, arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
-  GripVertical, Plus, Trash2, Eye, Save, Loader2,
-  AlignLeft, AlignJustify, ListChecks, Copy, Upload, X, Video,
-  ChevronDown, Check, Lightbulb, ExternalLink,
+  GripVertical,
+  Plus,
+  Trash2,
+  Eye,
+  Save,
+  Loader2,
+  AlignLeft,
+  AlignJustify,
+  ListChecks,
+  Copy,
+  Upload,
+  X,
+  Video,
+  ChevronDown,
+  Check,
+  Lightbulb,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,10 +40,18 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import * as pdfjsLib from 'pdfjs-dist';
 import { toast } from 'sonner';
@@ -31,7 +60,7 @@ import type { FormQuestion } from '@/hooks/useRecruitment';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
+  import.meta.url
 ).toString();
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -53,7 +82,11 @@ interface FormBuilderProps {
 const TYPES = [
   { value: 'short' as const, label: 'Short', icon: <AlignLeft className="w-3.5 h-3.5" /> },
   { value: 'long' as const, label: 'Long', icon: <AlignJustify className="w-3.5 h-3.5" /> },
-  { value: 'multiple_choice' as const, label: 'Multiple Choice', icon: <ListChecks className="w-3.5 h-3.5" /> },
+  {
+    value: 'multiple_choice' as const,
+    label: 'Multiple Choice',
+    icon: <ListChecks className="w-3.5 h-3.5" />,
+  },
   { value: 'video' as const, label: 'Video', icon: <Video className="w-3.5 h-3.5" /> },
 ];
 
@@ -67,7 +100,10 @@ const VIDEO_DURATION_OPTIONS = [
 // ─── Text parser ──────────────────────────────────────────────────────────────
 
 function parseQuestionsFromText(raw: string): FormQuestion[] {
-  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const lines = raw
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
   const questions: FormQuestion[] = [];
   let i = 0;
 
@@ -78,7 +114,10 @@ function parseQuestionsFromText(raw: string): FormQuestion[] {
       .replace(/^[Qq]?\d+[.)]\s*/, '')
       .trim();
 
-    if (!questionText) { i++; continue; }
+    if (!questionText) {
+      i++;
+      continue;
+    }
 
     // Look ahead for option lines: a) b) c) / A. B. / - or • or *
     const optionLines: string[] = [];
@@ -87,9 +126,13 @@ function parseQuestionsFromText(raw: string): FormQuestion[] {
       const nl = lines[j].trim();
       const optMatch = nl.match(/^[a-eA-E][.)]\s+(.+)/);
       const bulletMatch = nl.match(/^[-•*◦]\s+(.+)/);
-      if (optMatch) { optionLines.push(optMatch[1].trim()); j++; }
-      else if (bulletMatch) { optionLines.push(bulletMatch[1].trim()); j++; }
-      else break;
+      if (optMatch) {
+        optionLines.push(optMatch[1].trim());
+        j++;
+      } else if (bulletMatch) {
+        optionLines.push(bulletMatch[1].trim());
+        j++;
+      } else break;
     }
 
     if (optionLines.length >= 2) {
@@ -104,7 +147,9 @@ function parseQuestionsFromText(raw: string): FormQuestion[] {
     } else {
       const isLong =
         questionText.length > 80 ||
-        /\b(describe|explain|tell us|elaborate|discuss|write|share|summarize|why do you|how do you|what is your experience|what motivates)\b/i.test(questionText);
+        /\b(describe|explain|tell us|elaborate|discuss|write|share|summarize|why do you|how do you|what is your experience|what motivates)\b/i.test(
+          questionText
+        );
       questions.push({
         id: crypto.randomUUID(),
         type: isLong ? 'long' : 'short',
@@ -168,14 +213,19 @@ interface CardProps {
 }
 
 function InlineQuestionCard({
-  question, onChange, onDelete, onDuplicate, focusOnMount, dragHandleProps,
+  question,
+  onChange,
+  onDelete,
+  onDuplicate,
+  focusOnMount,
+  dragHandleProps,
 }: CardProps) {
   const labelRef = useRef<HTMLInputElement>(null);
   const optionRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (focusOnMount) setTimeout(() => labelRef.current?.focus(), 50);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const setType = (type: FormQuestion['type']) => {
@@ -309,12 +359,20 @@ function InlineQuestionCard({
             <div key={idx} className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full border border-zinc-600 shrink-0" />
               <input
-                ref={(el) => { optionRefs.current[idx] = el; }}
+                ref={(el) => {
+                  optionRefs.current[idx] = el;
+                }}
                 value={opt}
                 onChange={(e) => updateOption(idx, e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') { e.preventDefault(); addOptionAfter(idx); }
-                  if (e.key === 'Backspace' && !opt && options.length > 1) { e.preventDefault(); removeOption(idx); }
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addOptionAfter(idx);
+                  }
+                  if (e.key === 'Backspace' && !opt && options.length > 1) {
+                    e.preventDefault();
+                    removeOption(idx);
+                  }
                 }}
                 placeholder={`Option ${idx + 1}`}
                 className="flex-1 bg-transparent text-sm text-zinc-300 placeholder:text-zinc-600 focus:outline-none border-b border-transparent focus:border-white/15 py-0.5 transition-colors"
@@ -367,10 +425,7 @@ function SortableInlineCard(props: Omit<CardProps, 'dragHandleProps'>) {
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={isDragging ? 'opacity-50 z-50 relative' : ''}
     >
-      <InlineQuestionCard
-        {...props}
-        dragHandleProps={{ attributes, listeners }}
-      />
+      <InlineQuestionCard {...props} dragHandleProps={{ attributes, listeners }} />
     </div>
   );
 }
@@ -416,18 +471,18 @@ function ImportQuestionsModal({
   };
 
   const updateParsed = (id: string, updates: Partial<FormQuestion>) => {
-    setParsed(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q));
+    setParsed((prev) => prev.map((q) => (q.id === id ? { ...q, ...updates } : q)));
   };
 
   const deleteParsed = (id: string) => {
-    setParsed(prev => prev.filter(q => q.id !== id));
+    setParsed((prev) => prev.filter((q) => q.id !== id));
   };
 
   const handleImport = () => {
-    const cleaned = parsed.map(q => ({
+    const cleaned = parsed.map((q) => ({
       ...q,
       label: q.label.trim(),
-      options: q.type === 'multiple_choice' ? q.options.filter(o => o.trim()) : [],
+      options: q.type === 'multiple_choice' ? q.options.filter((o) => o.trim()) : [],
     }));
     onImport(cleaned);
     setPasteText('');
@@ -454,10 +509,13 @@ function ImportQuestionsModal({
         <div className="flex-1 overflow-y-auto space-y-4 pr-1">
           {/* Tabs */}
           <div className="flex gap-1 p-1 rounded-lg bg-zinc-900 border border-white/10 w-fit">
-            {(['paste', 'upload'] as const).map(t => (
+            {(['paste', 'upload'] as const).map((t) => (
               <button
                 key={t}
-                onClick={() => { setTab(t); reset(); }}
+                onClick={() => {
+                  setTab(t);
+                  reset();
+                }}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                   tab === t ? 'bg-zinc-800 text-white' : 'text-zinc-500 hover:text-zinc-300'
                 }`}
@@ -473,11 +531,15 @@ function ImportQuestionsModal({
               <p className="text-xs text-zinc-500 leading-relaxed">
                 Paste questions one per line. Number them for clarity. Add options on the next lines
                 starting with <code className="bg-zinc-900 px-1 rounded text-zinc-400">a)</code> or{' '}
-                <code className="bg-zinc-900 px-1 rounded text-zinc-400">-</code> to create multiple choice questions.
+                <code className="bg-zinc-900 px-1 rounded text-zinc-400">-</code> to create multiple
+                choice questions.
               </p>
               <Textarea
                 value={pasteText}
-                onChange={(e) => { setPasteText(e.target.value); setParsed([]); }}
+                onChange={(e) => {
+                  setPasteText(e.target.value);
+                  setParsed([]);
+                }}
                 placeholder={`1. What is your major?\n2. Why do you want to join our club?\n3. Preferred meeting time?\na) Morning\nb) Afternoon\nc) Evening`}
                 rows={8}
                 className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 text-sm resize-none font-mono"
@@ -488,8 +550,8 @@ function ImportQuestionsModal({
               <p className="text-xs text-zinc-500">
                 Upload a <code className="bg-zinc-900 px-1 rounded text-zinc-400">.txt</code>,{' '}
                 <code className="bg-zinc-900 px-1 rounded text-zinc-400">.docx</code>, or{' '}
-                <code className="bg-zinc-900 px-1 rounded text-zinc-400">.pdf</code> file containing your questions.
-                Text is extracted client-side — nothing is uploaded.
+                <code className="bg-zinc-900 px-1 rounded text-zinc-400">.pdf</code> file containing
+                your questions. Text is extracted client-side — nothing is uploaded.
               </p>
               <label className="flex flex-col items-center justify-center gap-3 px-6 py-10 rounded-xl border-2 border-dashed border-white/10 cursor-pointer hover:border-white/20 hover:bg-white/[0.02] transition-colors">
                 <Upload className="w-6 h-6 text-zinc-500" />
@@ -498,7 +560,9 @@ function ImportQuestionsModal({
                     {file ? file.name : 'Click to select a file'}
                   </p>
                   {file ? (
-                    <p className="text-xs text-zinc-600 mt-0.5">{(file.size / 1024).toFixed(0)} KB</p>
+                    <p className="text-xs text-zinc-600 mt-0.5">
+                      {(file.size / 1024).toFixed(0)} KB
+                    </p>
                   ) : (
                     <p className="text-xs text-zinc-600 mt-0.5">.txt · .docx · .pdf</p>
                   )}
@@ -508,7 +572,10 @@ function ImportQuestionsModal({
                   type="file"
                   accept=".txt,.docx,.pdf"
                   className="hidden"
-                  onChange={(e) => { setFile(e.target.files?.[0] || null); setParsed([]); }}
+                  onChange={(e) => {
+                    setFile(e.target.files?.[0] || null);
+                    setParsed([]);
+                  }}
                 />
               </label>
             </div>
@@ -531,7 +598,8 @@ function ImportQuestionsModal({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium text-zinc-400">
-                  {parsed.length} question{parsed.length !== 1 ? 's' : ''} detected — tweak types and options before adding
+                  {parsed.length} question{parsed.length !== 1 ? 's' : ''} detected — tweak types
+                  and options before adding
                 </p>
                 <button
                   onClick={reset}
@@ -541,7 +609,7 @@ function ImportQuestionsModal({
                 </button>
               </div>
               <div className="space-y-2">
-                {parsed.map(q => (
+                {parsed.map((q) => (
                   <InlineQuestionCard
                     key={q.id}
                     question={q}
@@ -567,7 +635,8 @@ function ImportQuestionsModal({
             disabled={parsed.length === 0}
             className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Add {parsed.length > 0 ? parsed.length : ''} question{parsed.length !== 1 ? 's' : ''} to form
+            Add {parsed.length > 0 ? parsed.length : ''} question{parsed.length !== 1 ? 's' : ''} to
+            form
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -578,8 +647,14 @@ function ImportQuestionsModal({
 // ─── Preview Modal ────────────────────────────────────────────────────────────
 
 function PreviewModal({
-  open, onClose, questions,
-}: { open: boolean; onClose: () => void; questions: FormQuestion[] }) {
+  open,
+  onClose,
+  questions,
+}: {
+  open: boolean;
+  onClose: () => void;
+  questions: FormQuestion[];
+}) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-xl bg-zinc-950 border-white/10 text-white">
@@ -600,22 +675,35 @@ function PreviewModal({
                 {q.required && <span className="text-red-400 ml-1">*</span>}
               </Label>
               {q.type === 'short' && <Input disabled className="bg-zinc-900 border-white/10" />}
-              {q.type === 'long' && <Textarea disabled rows={4} className="bg-zinc-900 border-white/10 resize-none" />}
+              {q.type === 'long' && (
+                <Textarea disabled rows={4} className="bg-zinc-900 border-white/10 resize-none" />
+              )}
               {q.type === 'video' && (
                 <div className="flex items-center gap-3 px-4 py-5 rounded-lg border border-dashed border-white/15 bg-zinc-900/40">
                   <Video className="w-5 h-5 text-zinc-600 shrink-0" />
                   <div>
                     <p className="text-sm text-zinc-500">Video response</p>
                     <p className="text-xs text-zinc-600">
-                      Up to {Math.floor((q.maxDuration ?? 60) / 60) > 0 ? `${Math.floor((q.maxDuration ?? 60) / 60)}m ` : ''}{(q.maxDuration ?? 60) % 60 > 0 ? `${(q.maxDuration ?? 60) % 60}s` : ''} — record or upload
+                      Up to{' '}
+                      {Math.floor((q.maxDuration ?? 60) / 60) > 0
+                        ? `${Math.floor((q.maxDuration ?? 60) / 60)}m `
+                        : ''}
+                      {(q.maxDuration ?? 60) % 60 > 0 ? `${(q.maxDuration ?? 60) % 60}s` : ''} —
+                      record or upload
                     </p>
                   </div>
                 </div>
               )}
               {q.type === 'multiple_choice' && (
                 <div className="space-y-1.5">
-                  {(q.options.filter(o => o.trim()).length > 0 ? q.options.filter(o => o.trim()) : ['Option 1', 'Option 2']).map((opt) => (
-                    <label key={opt} className="flex items-center gap-2.5 text-sm text-zinc-400 cursor-pointer">
+                  {(q.options.filter((o) => o.trim()).length > 0
+                    ? q.options.filter((o) => o.trim())
+                    : ['Option 1', 'Option 2']
+                  ).map((opt) => (
+                    <label
+                      key={opt}
+                      className="flex items-center gap-2.5 text-sm text-zinc-400 cursor-pointer"
+                    >
                       <input type="radio" disabled className="accent-yellow-500" />
                       {opt}
                     </label>
@@ -630,7 +718,9 @@ function PreviewModal({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close Preview</Button>
+          <Button variant="outline" onClick={onClose}>
+            Close Preview
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -662,16 +752,30 @@ function NewFormDialog({
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Round 2 — Interview Form"
             className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600"
-            onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) { onCreate(name.trim()); setName(''); } }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && name.trim()) {
+                onCreate(name.trim());
+                setName('');
+              }
+            }}
             autoFocus
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="border-white/20 text-white hover:bg-white/10">Cancel</Button>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            Cancel
+          </Button>
           <Button
             className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90"
             disabled={!name.trim()}
-            onClick={() => { onCreate(name.trim()); setName(''); }}
+            onClick={() => {
+              onCreate(name.trim());
+              setName('');
+            }}
           >
             Create Form
           </Button>
@@ -741,7 +845,10 @@ function AISuggestModal({
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
-      if (!token) { toast.error('Please log in'); return; }
+      if (!token) {
+        toast.error('Please log in');
+        return;
+      }
 
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/suggest-form-questions`,
@@ -811,7 +918,6 @@ function AISuggestModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-
           {/* Club context card */}
           {clubLoading ? (
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/5 border border-white/8">
@@ -820,7 +926,9 @@ function AISuggestModal({
             </div>
           ) : clubInfo?.name ? (
             <div className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5 space-y-1.5">
-              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Club context loaded</p>
+              <p className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+                Club context loaded
+              </p>
               <p className="text-sm font-medium text-white">{clubInfo.name}</p>
               {clubInfo.description && (
                 <p className="text-xs text-zinc-400 line-clamp-3">{clubInfo.description}</p>
@@ -829,7 +937,11 @@ function AISuggestModal({
                 <div className="flex flex-wrap gap-2 pt-0.5">
                   {clubInfo.website && (
                     <a
-                      href={clubInfo.website.startsWith('http') ? clubInfo.website : `https://${clubInfo.website}`}
+                      href={
+                        clubInfo.website.startsWith('http')
+                          ? clubInfo.website
+                          : `https://${clubInfo.website}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-[11px] text-gold hover:text-gold/80 underline underline-offset-2"
@@ -840,7 +952,11 @@ function AISuggestModal({
                   )}
                   {clubInfo.instagram && (
                     <a
-                      href={clubInfo.instagram.startsWith('http') ? clubInfo.instagram : `https://instagram.com/${clubInfo.instagram.replace('@', '')}`}
+                      href={
+                        clubInfo.instagram.startsWith('http')
+                          ? clubInfo.instagram
+                          : `https://instagram.com/${clubInfo.instagram.replace('@', '')}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-300 underline underline-offset-2"
@@ -853,26 +969,39 @@ function AISuggestModal({
               )}
               {clubInfo.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 pt-0.5">
-                  {clubInfo.tags.slice(0, 5).map(tag => (
-                    <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/8 text-zinc-500 border border-white/8">{tag}</span>
+                  {clubInfo.tags.slice(0, 5).map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/8 text-zinc-500 border border-white/8"
+                    >
+                      {tag}
+                    </span>
                   ))}
                 </div>
               )}
-              <p className="text-[10px] text-zinc-600 pt-0.5">Claude will use this profile to generate relevant questions automatically.</p>
+              <p className="text-[10px] text-zinc-600 pt-0.5">
+                Claude will use this profile to generate relevant questions automatically.
+              </p>
             </div>
           ) : (
             <div className="rounded-lg bg-white/5 border border-white/8 px-3 py-2.5">
-              <p className="text-xs text-zinc-500">No club profile found — questions will be based on what you describe below.</p>
+              <p className="text-xs text-zinc-500">
+                No club profile found — questions will be based on what you describe below.
+              </p>
             </div>
           )}
 
           <div className="space-y-2">
             <Label className="text-zinc-300">
-              Anything specific you're looking for? <span className="text-zinc-500 font-normal">(optional)</span>
+              Anything specific you're looking for?{' '}
+              <span className="text-zinc-500 font-normal">(optional)</span>
             </Label>
             <Textarea
               value={lookingFor}
-              onChange={(e) => { setLookingFor(e.target.value); setSuggested([]); }}
+              onChange={(e) => {
+                setLookingFor(e.target.value);
+                setSuggested([]);
+              }}
               placeholder="e.g. Strong commitment, previous project experience, interest in competing nationally — leave blank to generate based on club profile alone"
               rows={3}
               className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 text-sm resize-none"
@@ -886,9 +1015,15 @@ function AISuggestModal({
               className="w-full bg-gold text-zinc-900 font-semibold hover:bg-gold/90 disabled:opacity-40"
             >
               {loading ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</>
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating…
+                </>
               ) : (
-                <><Lightbulb className="w-4 h-4 mr-2" />Generate Questions</>
+                <>
+                  <Lightbulb className="w-4 h-4 mr-2" />
+                  Generate Questions
+                </>
               )}
             </Button>
           )}
@@ -904,11 +1039,11 @@ function AISuggestModal({
                     key={q.id}
                     question={q}
                     onChange={(id, updates) =>
-                      setSuggested((prev) => prev.map((s) => s.id === id ? { ...s, ...updates } : s))
+                      setSuggested((prev) =>
+                        prev.map((s) => (s.id === id ? { ...s, ...updates } : s))
+                      )
                     }
-                    onDelete={(id) =>
-                      setSuggested((prev) => prev.filter((s) => s.id !== id))
-                    }
+                    onDelete={(id) => setSuggested((prev) => prev.filter((s) => s.id !== id))}
                   />
                 ))}
               </div>
@@ -917,7 +1052,11 @@ function AISuggestModal({
         </div>
 
         <DialogFooter className="pt-4 border-t border-white/10 mt-2 shrink-0">
-          <Button variant="outline" onClick={handleClose} className="border-white/20 text-white hover:bg-white/10">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            className="border-white/20 text-white hover:bg-white/10"
+          >
             Cancel
           </Button>
           <Button
@@ -925,7 +1064,8 @@ function AISuggestModal({
             disabled={suggested.length === 0}
             className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90 disabled:opacity-40"
           >
-            Add {suggested.length > 0 ? suggested.length : ''} question{suggested.length !== 1 ? 's' : ''}
+            Add {suggested.length > 0 ? suggested.length : ''} question
+            {suggested.length !== 1 ? 's' : ''}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -951,7 +1091,7 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor),
+    useSensor(TouchSensor)
   );
 
   const isSchemaErr = (err: any) =>
@@ -993,12 +1133,19 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
           .eq('club_id', clubId)
           .maybeSingle();
         if (fallback) {
-          const row: FormRecord = { id: fallback.id, form_name: 'Default Form', is_active: true, questions: fallback.questions || [] };
+          const row: FormRecord = {
+            id: fallback.id,
+            form_name: 'Default Form',
+            is_active: true,
+            questions: fallback.questions || [],
+          };
           setForms([row]);
           setActiveFormId(row.id);
           setQuestions(row.questions);
         }
-      } catch { /* no form exists yet */ }
+      } catch {
+        /* no form exists yet */
+      }
     } finally {
       setLoading(false);
     }
@@ -1006,7 +1153,7 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
 
   useEffect(() => {
     loadForms();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clubId]);
 
   const switchToForm = (form: FormRecord) => {
@@ -1027,16 +1174,16 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
   };
 
   const handleChange = (id: string, updates: Partial<FormQuestion>) => {
-    setQuestions(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q));
+    setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, ...updates } : q)));
   };
 
   const handleDelete = (id: string) => {
-    setQuestions(prev => prev.filter(q => q.id !== id));
+    setQuestions((prev) => prev.filter((q) => q.id !== id));
   };
 
   const handleDuplicate = (id: string) => {
-    setQuestions(prev => {
-      const idx = prev.findIndex(q => q.id === id);
+    setQuestions((prev) => {
+      const idx = prev.findIndex((q) => q.id === id);
       if (idx === -1) return prev;
       const copy = { ...prev[idx], id: crypto.randomUUID() };
       const next = [...prev];
@@ -1047,20 +1194,23 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
 
   const handleAddQuestion = () => {
     const id = crypto.randomUUID();
-    setQuestions(prev => [...prev, { id, type: 'short', label: '', required: false, options: [] }]);
+    setQuestions((prev) => [
+      ...prev,
+      { id, type: 'short', label: '', required: false, options: [] },
+    ]);
     setFocusId(id);
   };
 
   const handleImport = (imported: FormQuestion[]) => {
-    setQuestions(prev => [...prev, ...imported]);
+    setQuestions((prev) => [...prev, ...imported]);
   };
 
   const handleSave = async () => {
     setSaving(true);
-    const cleaned = questions.map(q => ({
+    const cleaned = questions.map((q) => ({
       ...q,
       label: q.label.trim(),
-      options: q.type === 'multiple_choice' ? q.options.filter(o => o.trim()) : [],
+      options: q.type === 'multiple_choice' ? q.options.filter((o) => o.trim()) : [],
     }));
     try {
       if (activeFormId) {
@@ -1078,7 +1228,11 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
             .eq('id', activeFormId));
         }
         if (error) throw error;
-        setForms(prev => prev.map(f => f.id === activeFormId ? { ...f, questions: cleaned, form_name: formName } : f));
+        setForms((prev) =>
+          prev.map((f) =>
+            f.id === activeFormId ? { ...f, questions: cleaned, form_name: formName } : f
+          )
+        );
         toast.success('Form saved!');
       } else {
         // No form yet — try insert with all columns, fall back to minimal
@@ -1097,7 +1251,12 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
             .single());
         }
         if (error) throw error;
-        const newForm: FormRecord = { id: data.id, form_name: formName, is_active: true, questions: cleaned };
+        const newForm: FormRecord = {
+          id: data.id,
+          form_name: formName,
+          is_active: true,
+          questions: cleaned,
+        };
         setForms([newForm]);
         setActiveFormId(newForm.id);
         toast.success('Form saved!');
@@ -1129,8 +1288,13 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
           .single());
       }
       if (error) throw error;
-      const newForm: FormRecord = { id: data?.id || crypto.randomUUID(), form_name: name, is_active: false, questions: [] };
-      setForms(prev => [...prev, newForm]);
+      const newForm: FormRecord = {
+        id: data?.id || crypto.randomUUID(),
+        form_name: name,
+        is_active: false,
+        questions: [],
+      };
+      setForms((prev) => [...prev, newForm]);
       switchToForm(newForm);
       toast.success(`"${name}" created`);
     } catch (err: any) {
@@ -1153,7 +1317,7 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
         .update({ is_active: true })
         .eq('id', formId);
       if (error) throw error;
-      setForms(prev => prev.map(f => ({ ...f, is_active: f.id === formId })));
+      setForms((prev) => prev.map((f) => ({ ...f, is_active: f.id === formId })));
       toast.success('Active form updated — students will now see this form');
     } catch {
       toast.error('Failed to set active form');
@@ -1170,7 +1334,7 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
     );
   }
 
-  const currentForm = forms.find(f => f.id === activeFormId) ?? null;
+  const currentForm = forms.find((f) => f.id === activeFormId) ?? null;
   const isCurrentActive = currentForm?.is_active ?? false;
 
   return (
@@ -1180,16 +1344,22 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
         {forms.length > 0 ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="border-white/10 text-zinc-300 hover:text-white gap-2 max-w-[220px]">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-white/10 text-zinc-300 hover:text-white gap-2 max-w-[220px]"
+              >
                 <span className="truncate">{currentForm?.form_name || 'Select form'}</span>
                 {isCurrentActive && (
-                  <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-gold/15 text-gold text-[10px] font-semibold leading-none">LIVE</span>
+                  <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-gold/15 text-gold text-[10px] font-semibold leading-none">
+                    LIVE
+                  </span>
                 )}
                 <ChevronDown className="w-3.5 h-3.5 shrink-0 text-zinc-500" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-zinc-950 border-white/10 text-white min-w-[200px]">
-              {forms.map(f => (
+              {forms.map((f) => (
                 <DropdownMenuItem
                   key={f.id}
                   onClick={() => switchToForm(f)}
@@ -1197,7 +1367,11 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
                 >
                   <span className="truncate text-sm">{f.form_name || 'Untitled'}</span>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    {f.is_active && <span className="px-1.5 py-0.5 rounded-full bg-gold/15 text-gold text-[10px] font-semibold">LIVE</span>}
+                    {f.is_active && (
+                      <span className="px-1.5 py-0.5 rounded-full bg-gold/15 text-gold text-[10px] font-semibold">
+                        LIVE
+                      </span>
+                    )}
                     {f.id === activeFormId && <Check className="w-3.5 h-3.5 text-zinc-400" />}
                   </div>
                 </DropdownMenuItem>
@@ -1213,7 +1387,12 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button variant="outline" size="sm" className="border-white/10 text-zinc-400 hover:text-white" onClick={() => setNewFormOpen(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-white/10 text-zinc-400 hover:text-white"
+            onClick={() => setNewFormOpen(true)}
+          >
             <Plus className="w-3.5 h-3.5 mr-1.5" />
             New form
           </Button>
@@ -1242,7 +1421,12 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
           </Button>
         )}
 
-        <Button variant="outline" size="sm" onClick={() => setNewFormOpen(true)} className="border-white/10 text-zinc-400 hover:text-white shrink-0">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setNewFormOpen(true)}
+          className="border-white/10 text-zinc-400 hover:text-white shrink-0"
+        >
           <Plus className="w-3.5 h-3.5 mr-1" />
           New Form
         </Button>
@@ -1251,8 +1435,8 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
       {/* Action buttons */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <p className="text-sm text-zinc-500">
-          Standard fields (name, email, major, year, GPA) are always included.
-          Add custom questions below — drag to reorder.
+          Standard fields (name, email, major, year, GPA) are always included. Add custom questions
+          below — drag to reorder.
         </p>
         <div className="flex gap-2 shrink-0">
           <Button
@@ -1278,7 +1462,11 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
             Preview
           </Button>
           <Button variant="gold" size="sm" onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />}
+            {saving ? (
+              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-1.5" />
+            )}
             Save Form
           </Button>
         </div>
@@ -1286,9 +1474,11 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
 
       {/* Standard fields hint */}
       <div className="rounded-xl border border-white/5 bg-white/[0.015] px-4 py-3">
-        <p className="text-xs text-zinc-600 uppercase tracking-wider mb-2 font-medium">Always included</p>
+        <p className="text-xs text-zinc-600 uppercase tracking-wider mb-2 font-medium">
+          Always included
+        </p>
         <div className="flex flex-wrap gap-1.5">
-          {['First Name', 'Last Name', 'Email', 'Major', 'Year', 'GPA', 'Resume'].map(f => (
+          {['First Name', 'Last Name', 'Email', 'Major', 'Year', 'GPA', 'Resume'].map((f) => (
             <span
               key={f}
               className="px-2.5 py-1 rounded-full bg-white/5 text-zinc-500 text-xs border border-white/8"
@@ -1302,9 +1492,12 @@ export function FormBuilder({ clubId }: FormBuilderProps) {
       {/* Questions list */}
       {questions.length > 0 ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext
+            items={questions.map((q) => q.id)}
+            strategy={verticalListSortingStrategy}
+          >
             <div className="space-y-3">
-              {questions.map(q => (
+              {questions.map((q) => (
                 <SortableInlineCard
                   key={q.id}
                   question={q}

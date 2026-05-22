@@ -99,14 +99,16 @@ export default function SavedClubsSection({
               >
                 <div className="flex items-center gap-2 flex-wrap mb-3">
                   {matchedCategories.slice(0, 2).map((cat) => (
-                    <Badge key={cat} variant="outline" className="text-xs border-primary/30 text-primary">
+                    <Badge
+                      key={cat}
+                      variant="outline"
+                      className="text-xs border-primary/30 text-primary"
+                    >
                       {cat}
                     </Badge>
                   ))}
                 </div>
-                <h4 className="font-display font-semibold text-foreground mb-2">
-                  {club.name}
-                </h4>
+                <h4 className="font-display font-semibold text-foreground mb-2">{club.name}</h4>
                 {club.description && (
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                     {club.description}

@@ -39,7 +39,9 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
               <Users className="w-5 h-5 text-gold" />
             </div>
             <div>
-              <CardTitle className="text-base font-display font-bold tracking-tight">Start Recruiting</CardTitle>
+              <CardTitle className="text-base font-display font-bold tracking-tight">
+                Start Recruiting
+              </CardTitle>
               <p className="text-sm text-muted-foreground">{clubName}</p>
             </div>
           </div>
@@ -69,7 +71,9 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
               <Users className="w-5 h-5 text-yellow-600" />
             </div>
             <div>
-              <CardTitle className="text-base font-display font-bold tracking-tight">Finish Setup</CardTitle>
+              <CardTitle className="text-base font-display font-bold tracking-tight">
+                Finish Setup
+              </CardTitle>
               <p className="text-sm text-muted-foreground">{clubName}</p>
             </div>
           </div>
@@ -78,7 +82,12 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
           <p className="text-sm text-muted-foreground mb-4">
             Complete your recruitment pipeline setup to start tracking applicants.
           </p>
-          <Button variant="outline" size="sm" asChild className="w-full border-yellow-500/50 hover:bg-yellow-500/10">
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="w-full border-yellow-500/50 hover:bg-yellow-500/10"
+          >
             <Link to={`/club-admin/clubs/${clubId}/recruitment`}>
               Complete Setup
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -90,9 +99,9 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
   }
 
   // Active recruitment - show stats
-  const applicantsByStage = stages.map(stage => ({
+  const applicantsByStage = stages.map((stage) => ({
     label: stage.label,
-    count: applicants.filter(a => a.stage_id === stage.id).length
+    count: applicants.filter((a) => a.stage_id === stage.id).length,
   }));
 
   return (
@@ -104,7 +113,9 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
               <Users className="w-5 h-5 text-gold" />
             </div>
             <div>
-              <CardTitle className="text-base font-display font-bold tracking-tight">Recruitment</CardTitle>
+              <CardTitle className="text-base font-display font-bold tracking-tight">
+                Recruitment
+              </CardTitle>
               <p className="text-sm text-muted-foreground">{clubName}</p>
             </div>
           </div>
@@ -119,11 +130,13 @@ export function RecruitmentDashboardCard({ clubId, clubName }: RecruitmentDashbo
           {applicantsByStage.map((stage, idx) => (
             <div key={idx} className="flex-1 text-center">
               <div className="text-lg font-display font-bold text-foreground">{stage.count}</div>
-              <div className="text-[10px] text-muted-foreground truncate uppercase tracking-wider font-medium">{stage.label}</div>
+              <div className="text-[10px] text-muted-foreground truncate uppercase tracking-wider font-medium">
+                {stage.label}
+              </div>
             </div>
           ))}
         </div>
-        
+
         <Button variant="outline" size="sm" asChild className="w-full">
           <Link to={`/club-admin/clubs/${clubId}/recruitment`}>
             Open Pipeline

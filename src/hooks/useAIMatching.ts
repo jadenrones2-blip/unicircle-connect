@@ -27,17 +27,23 @@ function loadCache(userId: string): Record<string, AIMatchResult> | null {
     if (entry.userId !== userId) return null;
     if (Date.now() - entry.ts > CACHE_TTL) return null;
     return entry.scores;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 function saveCache(userId: string, scores: Record<string, AIMatchResult>) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ userId, ts: Date.now(), scores }));
-  } catch { /* storage full */ }
+  } catch {
+    /* storage full */
+  }
 }
 
 export function clearAIMatchCache() {
-  try { localStorage.removeItem(CACHE_KEY); } catch {}
+  try {
+    localStorage.removeItem(CACHE_KEY);
+  } catch {}
 }
 
 /**
@@ -53,7 +59,7 @@ export function useAIMatching(
   enrichments: Record<string, ClubEnrichment>,
   interestValues: string[],
   resumeKeywords: string[],
-  userId: string | null,
+  userId: string | null
 ) {
   const [aiScores, setAiScores] = useState<Record<string, AIMatchResult>>({});
   const [loading, setLoading] = useState(false);
@@ -63,14 +69,17 @@ export function useAIMatching(
 
     // Check cache first
     const cached = loadCache(userId);
-    if (cached) { setAiScores(cached); return; }
+    if (cached) {
+      setAiScores(cached);
+      return;
+    }
 
     setLoading(true);
 
     try {
       // Step 1: cluster-score all clubs, take top 30
       const withCluster = clubs
-        .map(club => ({
+        .map((club) => ({
           club,
           clusterScore: calculateMatchScore(club, interestValues, resumeKeywords),
         }))
@@ -78,7 +87,10 @@ export function useAIMatching(
         .sort((a, b) => b.clusterScore - a.clusterScore)
         .slice(0, 30);
 
-      if (!withCluster.length) { setLoading(false); return; }
+      if (!withCluster.length) {
+        setLoading(false);
+        return;
+      }
 
       // Step 2: fetch major from profile
       const { data: profileData } = await (supabase as any)
@@ -89,9 +101,22 @@ export function useAIMatching(
       const major = profileData?.major ?? null;
 
       // Step 3: separate interests by type
-      const CAREER_KEYS = new Set(['tech_career', 'finance_career', 'startup_career', 'consulting_career', 'healthcare_career', 'research_career', 'creative_career', 'nonprofit_career', 'law_career', 'marketing_career', 'education_career', 'government_career']);
-      const careerGoals = interestValues.filter(v => CAREER_KEYS.has(v));
-      const interests = interestValues.filter(v => !CAREER_KEYS.has(v));
+      const CAREER_KEYS = new Set([
+        'tech_career',
+        'finance_career',
+        'startup_career',
+        'consulting_career',
+        'healthcare_career',
+        'research_career',
+        'creative_career',
+        'nonprofit_career',
+        'law_career',
+        'marketing_career',
+        'education_career',
+        'government_career',
+      ]);
+      const careerGoals = interestValues.filter((v) => CAREER_KEYS.has(v));
+      const interests = interestValues.filter((v) => !CAREER_KEYS.has(v));
 
       // Step 4: build club payload with enrichment
       const clubPayload = withCluster.map(({ club }) => ({
@@ -107,24 +132,27 @@ export function useAIMatching(
 
       // Step 5: call edge function
       const { data: session } = await supabase.auth.getSession();
-      if (!session?.session) { setLoading(false); return; }
+      if (!session?.session) {
+        setLoading(false);
+        return;
+      }
 
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-match-clubs`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.session.access_token}`,
-          },
-          body: JSON.stringify({
-            student: { major, careerGoals, interests, resumeKeywords },
-            clubs: clubPayload,
-          }),
-        }
-      );
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-match-clubs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.session.access_token}`,
+        },
+        body: JSON.stringify({
+          student: { major, careerGoals, interests, resumeKeywords },
+          clubs: clubPayload,
+        }),
+      });
 
-      if (!res.ok) { setLoading(false); return; }
+      if (!res.ok) {
+        setLoading(false);
+        return;
+      }
       const { results } = await res.json();
 
       // Step 6: build score map, merge with cluster scores for non-AI clubs
@@ -152,16 +180,27 @@ export function useAIMatching(
    * Get the best available score for a club.
    * Returns AI score if available, otherwise cluster score.
    */
-  const getScore = useCallback((clubId: string): AIMatchResult | null => {
-    if (aiScores[clubId]) return aiScores[clubId];
-    const clusterScore = calculateMatchScore(
-      clubs.find(c => c.id === clubId) as Club,
-      interestValues,
-      resumeKeywords,
-    );
-    if (clusterScore > 0) return { score: clusterScore, reason: '', source: 'cluster' };
-    return null;
-  }, [aiScores, clubs, interestValues, resumeKeywords]);
+  const getScore = useCallback(
+    (clubId: string): AIMatchResult | null => {
+      if (aiScores[clubId]) return aiScores[clubId];
+      const clusterScore = calculateMatchScore(
+        clubs.find((c) => c.id === clubId) as Club,
+        interestValues,
+        resumeKeywords
+      );
+      if (clusterScore > 0) return { score: clusterScore, reason: '', source: 'cluster' };
+      return null;
+    },
+    [aiScores, clubs, interestValues, resumeKeywords]
+  );
 
-  return { aiScores, loading, getScore, refresh: () => { clearAIMatchCache(); runAIMatching(); } };
+  return {
+    aiScores,
+    loading,
+    getScore,
+    refresh: () => {
+      clearAIMatchCache();
+      runAIMatching();
+    },
+  };
 }

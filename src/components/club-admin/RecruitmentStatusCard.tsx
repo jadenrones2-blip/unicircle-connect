@@ -1,11 +1,11 @@
-import { motion } from "framer-motion";
-import { Users, Lock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { motion } from 'framer-motion';
+import { Users, Lock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
-export type RecruitmentCycle = "fall" | "winter" | "spring" | "rolling" | "none";
-export type RecruitmentStatus = "open" | "upcoming" | "closed";
+export type RecruitmentCycle = 'fall' | 'winter' | 'spring' | 'rolling' | 'none';
+export type RecruitmentStatus = 'open' | 'upcoming' | 'closed';
 
 interface RecruitmentStatusCardProps {
   clubId: string;
@@ -14,7 +14,6 @@ interface RecruitmentStatusCardProps {
   currentCycle: RecruitmentCycle;
   onUpdate?: () => void;
 }
-
 
 export function RecruitmentStatusCard({}: RecruitmentStatusCardProps) {
   return (

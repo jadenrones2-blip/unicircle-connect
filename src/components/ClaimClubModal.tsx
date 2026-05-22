@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Loader2, Shield, Mail, CheckCircle2, LogIn } from "lucide-react";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Loader2, Shield, Mail, CheckCircle2, LogIn } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -22,13 +22,13 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from "@/components/ui/form";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+} from '@/components/ui/form';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const claimSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100),
-  proofLink: z.string().trim().url("Must be a valid URL").max(500).optional().or(z.literal("")),
+  name: z.string().trim().min(1, 'Name is required').max(100),
+  proofLink: z.string().trim().url('Must be a valid URL').max(500).optional().or(z.literal('')),
 });
 
 type ClaimFormData = z.infer<typeof claimSchema>;
@@ -45,27 +45,27 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
   const { user, loading: authLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const [sentEmail, setSentEmail] = useState("");
+  const [sentEmail, setSentEmail] = useState('');
 
   const form = useForm<ClaimFormData>({
     resolver: zodResolver(claimSchema),
     defaultValues: {
-      name: "",
-      proofLink: "",
+      name: '',
+      proofLink: '',
     },
   });
 
   const onSubmit = async (data: ClaimFormData) => {
     if (!user) {
-      toast.error("You must be logged in to claim a club");
+      toast.error('You must be logged in to claim a club');
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const { data: session } = await supabase.auth.getSession();
-      
+
       const { data: response, error } = await supabase.functions.invoke('verify-club-claim', {
         body: {
           action: 'send-verification',
@@ -104,8 +104,8 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
       setEmailSent(true);
       form.reset();
     } catch (error: any) {
-      console.error("Error submitting claim request:", error);
-      toast.error(error.message || "Failed to submit claim request. Please try again.");
+      console.error('Error submitting claim request:', error);
+      toast.error(error.message || 'Failed to submit claim request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -113,7 +113,7 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
 
   const handleClose = () => {
     setEmailSent(false);
-    setSentEmail("");
+    setSentEmail('');
     form.reset();
     onClose();
   };
@@ -130,7 +130,8 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
             <DialogHeader className="text-center">
               <DialogTitle className="text-center">Login Required</DialogTitle>
               <DialogDescription className="text-center">
-                You need to be logged in to claim ownership of <span className="font-medium text-foreground">{clubName}</span>.
+                You need to be logged in to claim ownership of{' '}
+                <span className="font-medium text-foreground">{clubName}</span>.
               </DialogDescription>
             </DialogHeader>
 
@@ -153,11 +154,7 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
             </div>
 
             <div className="flex gap-3 mt-6">
-              <Button
-                variant="outline"
-                onClick={handleClose}
-                className="flex-1"
-              >
+              <Button variant="outline" onClick={handleClose} className="flex-1">
                 Cancel
               </Button>
               <Button
@@ -190,10 +187,11 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
             <DialogHeader className="text-center">
               <DialogTitle className="text-center">Check Your Email</DialogTitle>
               <DialogDescription className="text-center">
-                We've sent a verification link to <span className="font-medium text-foreground">{sentEmail}</span>
+                We've sent a verification link to{' '}
+                <span className="font-medium text-foreground">{sentEmail}</span>
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="mt-6 p-4 rounded-lg bg-muted/50 text-left">
               <h4 className="text-sm font-medium text-foreground mb-2">Next steps:</h4>
               <ol className="text-sm text-muted-foreground space-y-1.5">
@@ -216,11 +214,7 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
               Link expires in 1 hour. Check your spam folder if you don't see it.
             </p>
 
-            <Button
-              variant="outline"
-              onClick={handleClose}
-              className="mt-6 w-full"
-            >
+            <Button variant="outline" onClick={handleClose} className="mt-6 w-full">
               Done
             </Button>
           </div>
@@ -233,7 +227,9 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
                 Claim {clubName}
               </DialogTitle>
               <DialogDescription>
-                We'll send a verification link to <span className="font-medium text-foreground">{user?.email}</span> to confirm ownership.
+                We'll send a verification link to{' '}
+                <span className="font-medium text-foreground">{user?.email}</span> to confirm
+                ownership.
               </DialogDescription>
             </DialogHeader>
 
@@ -260,10 +256,7 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
                     <FormItem>
                       <FormLabel>Proof Link (Optional)</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="https://instagram.com/yourclub" 
-                          {...field} 
-                        />
+                        <Input placeholder="https://instagram.com/yourclub" {...field} />
                       </FormControl>
                       <FormDescription>
                         Link to your club's official social media or website
@@ -274,27 +267,17 @@ const ClaimClubModal = ({ isOpen, onClose, clubName, clubId }: ClaimClubModalPro
                 />
 
                 <div className="flex gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleClose}
-                    className="flex-1"
-                  >
+                  <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
                     Cancel
                   </Button>
-                  <Button
-                    type="submit"
-                    variant="gold"
-                    className="flex-1"
-                    disabled={isSubmitting}
-                  >
+                  <Button type="submit" variant="gold" className="flex-1" disabled={isSubmitting}>
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Sending...
                       </>
                     ) : (
-                      "Send Verification"
+                      'Send Verification'
                     )}
                   </Button>
                 </div>

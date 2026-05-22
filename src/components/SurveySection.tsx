@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
-import { MessageSquare } from "lucide-react";
-import surveyQR from "@/assets/survey-qr-code.png";
+import { motion } from 'framer-motion';
+import { MessageSquare } from 'lucide-react';
+import surveyQR from '@/assets/survey-qr-code.png';
 
 const SurveySection = () => {
   return (
@@ -48,9 +48,7 @@ const SurveySection = () => {
             />
           </motion.a>
 
-          <p className="text-xs text-muted-foreground mt-3">
-            Scan the QR code or tap to open
-          </p>
+          <p className="text-xs text-muted-foreground mt-3">Scan the QR code or tap to open</p>
         </motion.div>
       </div>
     </section>

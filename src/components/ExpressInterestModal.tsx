@@ -57,7 +57,6 @@ const ExpressInterestModal = ({ isOpen, onClose, clubName, clubId }: ExpressInte
                 </button>
                 <div className="flex items-center gap-3">
                   <div>
-                    <div>
                     <h2 className="text-xl font-display font-semibold">Express Interest</h2>
                     {clubName && (
                       <p className="text-sm text-primary-foreground/80">{clubName}</p>

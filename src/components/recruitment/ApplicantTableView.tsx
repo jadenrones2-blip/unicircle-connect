@@ -35,12 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -107,9 +102,13 @@ export function ApplicantTableView({
     }
 
     if (filterStrictPass === 'pass') {
-      result = result.filter((a) => (a as unknown as { passes_strict_filters?: boolean }).passes_strict_filters === true);
+      result = result.filter(
+        (a) => (a as unknown as { passes_strict_filters?: boolean }).passes_strict_filters === true
+      );
     } else if (filterStrictPass === 'fail') {
-      result = result.filter((a) => (a as unknown as { passes_strict_filters?: boolean }).passes_strict_filters === false);
+      result = result.filter(
+        (a) => (a as unknown as { passes_strict_filters?: boolean }).passes_strict_filters === false
+      );
     }
 
     // Sort
@@ -158,7 +157,11 @@ export function ApplicantTableView({
       return <Badge variant="outline">Not scored</Badge>;
     }
     if (score >= 80) {
-      return <Badge variant="default" className="bg-accent/20 text-accent border-accent/30">{score}</Badge>;
+      return (
+        <Badge variant="default" className="bg-accent/20 text-accent border-accent/30">
+          {score}
+        </Badge>
+      );
     }
     if (score >= 60) {
       return <Badge className="bg-gold/10 text-gold border-gold/20">{score}</Badge>;
@@ -256,7 +259,11 @@ export function ApplicantTableView({
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10 hover:text-white">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-white/20 text-white hover:bg-white/10 hover:text-white"
+              >
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
               </Button>
@@ -314,24 +321,22 @@ export function ApplicantTableView({
       {/* Bulk Actions Bar */}
       {selectedIds.size > 0 && (
         <div className="flex flex-wrap items-center gap-3 p-3 mb-4 rounded-lg bg-primary/5 border border-primary/20">
-          <span className="text-sm font-medium">
-            {selectedIds.size} selected
-          </span>
+          <span className="text-sm font-medium">{selectedIds.size} selected</span>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="gold"
-              size="sm"
-              onClick={runAIScreening}
-              disabled={screening}
-            >
+            <Button variant="gold" size="sm" onClick={runAIScreening} disabled={screening}>
               {screening && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Run AI Screening
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" disabled={bulkMoving} className="border-white/20 text-white hover:bg-white/10 hover:text-white">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={bulkMoving}
+                  className="border-white/20 text-white hover:bg-white/10 hover:text-white"
+                >
                   {bulkMoving ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
@@ -342,10 +347,7 @@ export function ApplicantTableView({
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 {stages.map((stage) => (
-                  <DropdownMenuItem
-                    key={stage.id}
-                    onClick={() => bulkMoveToStage(stage.id)}
-                  >
+                  <DropdownMenuItem key={stage.id} onClick={() => bulkMoveToStage(stage.id)}>
                     Move to {stage.label}
                   </DropdownMenuItem>
                 ))}
@@ -363,11 +365,7 @@ export function ApplicantTableView({
             </Button>
           </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedIds(new Set())}
-          >
+          <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
             Clear selection
           </Button>
         </div>
@@ -381,8 +379,7 @@ export function ApplicantTableView({
               <TableHead className="w-12">
                 <Checkbox
                   checked={
-                    filteredApplicants.length > 0 &&
-                    selectedIds.size === filteredApplicants.length
+                    filteredApplicants.length > 0 && selectedIds.size === filteredApplicants.length
                   }
                   onCheckedChange={toggleSelectAll}
                 />
@@ -444,7 +441,12 @@ export function ApplicantTableView({
                     onClick={(e) => {
                       // Don't open drawer if clicking checkbox or buttons
                       const target = e.target as HTMLElement;
-                      if (target.closest('button, input, [role="menuitem"], [data-radix-collection-item]')) return;
+                      if (
+                        target.closest(
+                          'button, input, [role="menuitem"], [data-radix-collection-item]'
+                        )
+                      )
+                        return;
                       onOpenDrawer?.(applicant);
                     }}
                   >
@@ -456,13 +458,17 @@ export function ApplicantTableView({
                     </TableCell>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2.5">
-                        <ApplicantAvatar firstName={applicant.first_name} lastName={applicant.last_name} size="md" />
-                        <span>{applicant.first_name} {applicant.last_name}</span>
+                        <ApplicantAvatar
+                          firstName={applicant.first_name}
+                          lastName={applicant.last_name}
+                          size="md"
+                        />
+                        <span>
+                          {applicant.first_name} {applicant.last_name}
+                        </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {applicant.email}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{applicant.email}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{getStageName(applicant.stage_id)}</Badge>
                     </TableCell>

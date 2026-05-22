@@ -25,7 +25,9 @@ function formatTime(t: string): string {
 
 function formatDate(d: string): string {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', {
-    weekday: 'long', month: 'short', day: 'numeric',
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
   });
 }
 
@@ -73,11 +75,12 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
     setLoading(false);
   }, [clubId]);
 
-  useEffect(() => { fetchSlots(); }, [fetchSlots]);
+  useEffect(() => {
+    fetchSlots();
+  }, [fetchSlots]);
 
-  const previewCount = date && startTime && endTime
-    ? generateTimes(startTime, endTime, duration).length
-    : 0;
+  const previewCount =
+    date && startTime && endTime ? generateTimes(startTime, endTime, duration).length : 0;
 
   const handleGenerate = async () => {
     if (!date || !startTime || !endTime) {
@@ -95,7 +98,7 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
     }
 
     setGenerating(true);
-    const rows = times.map(t => ({
+    const rows = times.map((t) => ({
       club_id: clubId,
       date,
       start_time: t,
@@ -117,13 +120,13 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
 
   const handleDelete = async (slotId: string) => {
     setDeleting(slotId);
-    const { error } = await (supabase as any)
-      .from('interview_slots')
-      .delete()
-      .eq('id', slotId);
+    const { error } = await (supabase as any).from('interview_slots').delete().eq('id', slotId);
     setDeleting(null);
-    if (error) { toast.error('Failed to delete slot'); return; }
-    setSlots(prev => prev.filter(s => s.id !== slotId));
+    if (error) {
+      toast.error('Failed to delete slot');
+      return;
+    }
+    setSlots((prev) => prev.filter((s) => s.id !== slotId));
   };
 
   // Group slots by date
@@ -133,17 +136,19 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
     return acc;
   }, {});
 
-  const totalBooked = slots.filter(s => s.booked_at).length;
+  const totalBooked = slots.filter((s) => s.booked_at).length;
 
   return (
     <div className="space-y-6">
-
       {/* Booking link */}
       <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/8">
         <Link2 className="w-4 h-4 text-zinc-400 shrink-0" />
         <span className="text-xs text-zinc-400 truncate flex-1">{bookingUrl}</span>
         <button
-          onClick={() => { navigator.clipboard.writeText(bookingUrl); toast.success('Link copied'); }}
+          onClick={() => {
+            navigator.clipboard.writeText(bookingUrl);
+            toast.success('Link copied');
+          }}
           className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors shrink-0"
         >
           <Copy className="w-3.5 h-3.5" /> Copy
@@ -160,7 +165,7 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
             <Input
               type="date"
               value={date}
-              onChange={e => setDate(e.target.value)}
+              onChange={(e) => setDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
               className="h-8 text-xs bg-zinc-800 border-white/10 text-white"
             />
@@ -170,7 +175,7 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
             <Input
               type="time"
               value={startTime}
-              onChange={e => setStartTime(e.target.value)}
+              onChange={(e) => setStartTime(e.target.value)}
               className="h-8 text-xs bg-zinc-800 border-white/10 text-white"
             />
           </div>
@@ -179,7 +184,7 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
             <Input
               type="time"
               value={endTime}
-              onChange={e => setEndTime(e.target.value)}
+              onChange={(e) => setEndTime(e.target.value)}
               className="h-8 text-xs bg-zinc-800 border-white/10 text-white"
             />
           </div>
@@ -187,7 +192,7 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
             <label className="text-[10px] text-zinc-500 mb-1 block">Slot length</label>
             <select
               value={duration}
-              onChange={e => setDuration(Number(e.target.value))}
+              onChange={(e) => setDuration(Number(e.target.value))}
               className="h-8 w-full text-xs bg-zinc-800 border border-white/10 text-white rounded-md px-2"
             >
               <option value={15}>15 min</option>
@@ -204,12 +209,18 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
           disabled={generating || previewCount === 0}
           className="bg-gold hover:bg-gold/90 text-zinc-900 font-semibold text-xs h-8 px-4"
         >
-          {generating
-            ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Generating…</>
-            : previewCount > 0
-            ? <><Calendar className="w-3.5 h-3.5 mr-1.5" /> Generate {previewCount} slot{previewCount !== 1 ? 's' : ''}</>
-            : 'Generate slots'
-          }
+          {generating ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Generating…
+            </>
+          ) : previewCount > 0 ? (
+            <>
+              <Calendar className="w-3.5 h-3.5 mr-1.5" /> Generate {previewCount} slot
+              {previewCount !== 1 ? 's' : ''}
+            </>
+          ) : (
+            'Generate slots'
+          )}
         </Button>
       </div>
 
@@ -242,7 +253,7 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
                   {formatDate(d)}
                 </p>
                 <div className="space-y-1.5">
-                  {daySlots.map(slot => (
+                  {daySlots.map((slot) => (
                     <div
                       key={slot.id}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border text-xs ${
@@ -251,8 +262,12 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
                           : 'border-white/8 bg-zinc-900/60'
                       }`}
                     >
-                      <Clock className={`w-3.5 h-3.5 shrink-0 ${slot.booked_at ? 'text-emerald-400' : 'text-zinc-500'}`} />
-                      <span className={`font-medium shrink-0 ${slot.booked_at ? 'text-emerald-300' : 'text-zinc-200'}`}>
+                      <Clock
+                        className={`w-3.5 h-3.5 shrink-0 ${slot.booked_at ? 'text-emerald-400' : 'text-zinc-500'}`}
+                      />
+                      <span
+                        className={`font-medium shrink-0 ${slot.booked_at ? 'text-emerald-300' : 'text-zinc-200'}`}
+                      >
                         {formatTime(slot.start_time)}
                       </span>
                       <span className="text-zinc-600 shrink-0">{slot.duration_minutes} min</span>
@@ -260,7 +275,9 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
                       {slot.booked_at ? (
                         <>
                           <Check className="w-3 h-3 text-emerald-400 shrink-0" />
-                          <span className="text-emerald-300 truncate font-medium">{slot.booked_by_name}</span>
+                          <span className="text-emerald-300 truncate font-medium">
+                            {slot.booked_by_name}
+                          </span>
                           <span className="text-zinc-500 truncate">{slot.booked_by_email}</span>
                         </>
                       ) : (
@@ -271,10 +288,11 @@ export function InterviewScheduler({ clubId, clubName }: InterviewSchedulerProps
                             disabled={deleting === slot.id}
                             className="text-zinc-600 hover:text-red-400 transition-colors shrink-0"
                           >
-                            {deleting === slot.id
-                              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              : <Trash2 className="w-3.5 h-3.5" />
-                            }
+                            {deleting === slot.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
                           </button>
                         </>
                       )}

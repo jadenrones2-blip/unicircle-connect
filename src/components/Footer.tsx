@@ -1,28 +1,27 @@
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { useSoundEffects } from "@/hooks/useSoundEffects";
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 const Footer = () => {
   const { playHover } = useSoundEffects();
 
   const navLinks = [
-    { label: "Home",    href: "/" },
-    { label: "Clubs",   href: "/clubs" },
-    { label: "Events",  href: "/events" },
-    { label: "Demo",    href: "/demo" },
-    { label: "Our Story", href: "/story" },
+    { label: 'Home', href: '/' },
+    { label: 'Clubs', href: '/clubs' },
+    { label: 'Events', href: '/events' },
+    { label: 'Demo', href: '/demo' },
+    { label: 'Our Story', href: '/story' },
   ];
 
   const legalLinks = [
-    { label: "Terms of Service", href: "/terms" },
-    { label: "Privacy Policy",   href: "/privacy" },
+    { label: 'Terms of Service', href: '/terms' },
+    { label: 'Privacy Policy', href: '/privacy' },
   ];
 
   return (
     <footer className="border-t border-border/20 bg-background">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-14 py-12 sm:py-16">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -50,7 +49,6 @@ const Footer = () => {
               </Link>
             ))}
           </nav>
-
         </div>
 
         <div className="mt-10 pt-8 border-t border-border/20 flex flex-col sm:flex-row items-center justify-between gap-4">

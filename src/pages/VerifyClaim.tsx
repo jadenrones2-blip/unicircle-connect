@@ -97,7 +97,7 @@ export default function VerifyClaim() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      
+
       <main className="flex-1 pt-24 pb-16 flex items-center justify-center">
         <div className="container mx-auto px-4 max-w-md text-center">
           {status === 'loading' && (
@@ -108,9 +108,7 @@ export default function VerifyClaim() {
               <h1 className="text-2xl font-display font-bold text-foreground">
                 Verifying your claim...
               </h1>
-              <p className="text-muted-foreground">
-                Please wait while we verify your ownership.
-              </p>
+              <p className="text-muted-foreground">Please wait while we verify your ownership.</p>
             </div>
           )}
 
@@ -125,19 +123,26 @@ export default function VerifyClaim() {
                     Ownership Verified!
                   </h1>
                   {isProvisional ? (
-                    <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10">
+                    <Badge
+                      variant="outline"
+                      className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10"
+                    >
                       <Shield className="w-3 h-3 mr-1" />
                       Provisional
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="border-green-500/50 text-green-600 bg-green-500/10">
+                    <Badge
+                      variant="outline"
+                      className="border-green-500/50 text-green-600 bg-green-500/10"
+                    >
                       <Shield className="w-3 h-3 mr-1" />
                       Verified
                     </Badge>
                   )}
                 </div>
                 <p className="text-muted-foreground">
-                  You are now the verified owner of <span className="text-gold font-medium">{result.clubName}</span>.
+                  You are now the verified owner of{' '}
+                  <span className="text-gold font-medium">{result.clubName}</span>.
                 </p>
               </div>
 
@@ -146,7 +151,9 @@ export default function VerifyClaim() {
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-medium text-foreground text-sm mb-1">Provisional Account</h4>
+                      <h4 className="font-medium text-foreground text-sm mb-1">
+                        Provisional Account
+                      </h4>
                       <p className="text-sm text-muted-foreground mb-2">
                         {result.restrictions.message}
                       </p>
@@ -165,7 +172,8 @@ export default function VerifyClaim() {
                         </li>
                       </ul>
                       <p className="text-xs text-muted-foreground mt-2">
-                        To get full access, verify with a .edu email or have another verified admin confirm you.
+                        To get full access, verify with a .edu email or have another verified admin
+                        confirm you.
                       </p>
                     </div>
                   </div>
@@ -191,10 +199,7 @@ export default function VerifyClaim() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/clubs/${result.clubId}`)}
-                >
+                <Button variant="outline" onClick={() => navigate(`/clubs/${result.clubId}`)}>
                   View Club Profile
                 </Button>
                 <Button
@@ -224,16 +229,10 @@ export default function VerifyClaim() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/clubs')}
-                >
+                <Button variant="outline" onClick={() => navigate('/clubs')}>
                   Browse Clubs
                 </Button>
-                <Button
-                  variant="gold"
-                  onClick={() => navigate('/')}
-                >
+                <Button variant="gold" onClick={() => navigate('/')}>
                   Go Home
                 </Button>
               </div>

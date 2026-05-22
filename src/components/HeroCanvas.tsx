@@ -76,7 +76,9 @@ function Scene() {
       drag.current.lastX = e.clientX;
       drag.current.lastY = e.clientY;
     };
-    const onUp = () => { drag.current.active = false; };
+    const onUp = () => {
+      drag.current.active = false;
+    };
 
     window.addEventListener('mousedown', onDown);
     window.addEventListener('mousemove', onMove);
@@ -98,14 +100,9 @@ function Scene() {
     // Main slow Y spin
     const autoY = t * 0.18;
     // Multi-frequency X wobble — looks like it's breathing
-    const autoX =
-      Math.sin(t * 0.31) * 0.55 +
-      Math.sin(t * 0.77) * 0.22 +
-      Math.sin(t * 0.13) * 0.18;
+    const autoX = Math.sin(t * 0.31) * 0.55 + Math.sin(t * 0.77) * 0.22 + Math.sin(t * 0.13) * 0.18;
     // Subtle Z roll
-    const autoZ =
-      Math.sin(t * 0.19) * 0.14 +
-      Math.sin(t * 0.53) * 0.08;
+    const autoZ = Math.sin(t * 0.19) * 0.14 + Math.sin(t * 0.53) * 0.08;
 
     // Gentle float on Y position
     const floatY = Math.sin(t * 0.42) * 0.12 + Math.sin(t * 0.27) * 0.06;
@@ -125,11 +122,7 @@ function Scene() {
       {/* Primary ring */}
       <mesh>
         <torusGeometry args={[2.4, 0.13, 64, 128]} />
-        <meshStandardMaterial
-          color="#d8d8d8"
-          metalness={0.96}
-          roughness={0.07}
-        />
+        <meshStandardMaterial color="#d8d8d8" metalness={0.96} roughness={0.07} />
       </mesh>
 
       <EchoRings />
@@ -146,10 +139,7 @@ function Scene() {
 // ─── Canvas ───────────────────────────────────────────────────────────────────
 export default function HeroCanvas() {
   return (
-    <div
-      className="absolute inset-0 w-full h-full"
-      style={{ zIndex: 0, cursor: 'grab' }}
-    >
+    <div className="absolute inset-0 w-full h-full" style={{ zIndex: 0, cursor: 'grab' }}>
       <Canvas
         camera={{ position: [0, 0, 7], fov: 50 }}
         style={{ background: '#0D0D0D' }}

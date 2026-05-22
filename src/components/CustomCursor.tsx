@@ -19,9 +19,7 @@ export default function CustomCursor() {
 
     const onOver = (e: MouseEvent) => {
       const el = e.target as HTMLElement;
-      setHovering(
-        !!(el.closest('a') || el.closest('button') || el.closest('[data-cursor-hover]'))
-      );
+      setHovering(!!(el.closest('a') || el.closest('button') || el.closest('[data-cursor-hover]')));
     };
 
     const onDown = () => setClicking(true);

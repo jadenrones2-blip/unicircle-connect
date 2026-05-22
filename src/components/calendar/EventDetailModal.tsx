@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Calendar, MapPin, ExternalLink, Building2, AtSign, FileText, CalendarPlus, Users, Loader2 } from 'lucide-react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Calendar,
+  MapPin,
+  ExternalLink,
+  Building2,
+  AtSign,
+  FileText,
+  CalendarPlus,
+  Users,
+  Loader2,
+} from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
@@ -79,7 +84,9 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
   };
 
   const displayTitle = isErrorData(event.title)
-    ? (event.club_handle ? `@${event.club_handle}` : 'Event')
+    ? event.club_handle
+      ? `@${event.club_handle}`
+      : 'Event'
     : event.title;
 
   const displayCaption = isErrorData(event.caption) ? null : event.caption;
@@ -87,7 +94,10 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
   const buildGoogleCalendarUrl = () => {
     const toGCal = (iso: string) => {
       try {
-        return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+        return new Date(iso)
+          .toISOString()
+          .replace(/[-:]/g, '')
+          .replace(/\.\d{3}Z$/, 'Z');
       } catch {
         return '';
       }
@@ -105,15 +115,21 @@ export function EventDetailModal({ event, isOpen, onClose }: EventDetailModalPro
     try {
       const w = window.open(url, '_blank', 'noopener,noreferrer');
       if (w) return;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     try {
       const topWindow = window.top;
       const w = topWindow?.open?.(url, '_blank', 'noopener,noreferrer');
       if (w) return;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     try {
       if (window.top) window.top.location.href = url;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   };
 
   const handleRsvp = async () => {

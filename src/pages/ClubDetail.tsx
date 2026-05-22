@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
-import { motion } from "framer-motion";
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Calendar,
@@ -16,25 +16,25 @@ import {
   Globe,
   Settings,
   Star,
-} from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ClaimClubModal from "@/components/ClaimClubModal";
-import SaveClubButton from "@/components/SaveClubButton";
-import ClubMessageButton from "@/components/ClubMessageButton";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useClubs } from "@/hooks/useExternalDB";
-import { useClubOwnership } from "@/hooks/useClubOwnership";
-import { useAuth } from "@/hooks/useAuth";
-import { useSavedClubs } from "@/hooks/useSavedClubs";
-import { dataClient, dataClient as supabase } from "@/integrations/supabase/dataClient";
-import { supabase as mainSupabase } from "@/integrations/supabase/client";
-import { ExternalEvent } from "@/hooks/useExternalEvents";
-import { EventDetailModal } from "@/components/calendar/EventDetailModal";
-import { formatEventDate, formatEventTime } from "@/lib/formatters";
+} from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import ClaimClubModal from '@/components/ClaimClubModal';
+import SaveClubButton from '@/components/SaveClubButton';
+import ClubMessageButton from '@/components/ClubMessageButton';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useClubs } from '@/hooks/useExternalDB';
+import { useClubOwnership } from '@/hooks/useClubOwnership';
+import { useAuth } from '@/hooks/useAuth';
+import { useSavedClubs } from '@/hooks/useSavedClubs';
+import { dataClient, dataClient as supabase } from '@/integrations/supabase/dataClient';
+import { supabase as mainSupabase } from '@/integrations/supabase/client';
+import { ExternalEvent } from '@/hooks/useExternalEvents';
+import { EventDetailModal } from '@/components/calendar/EventDetailModal';
+import { formatEventDate, formatEventTime } from '@/lib/formatters';
 
 interface ClubReview {
   id: string;
@@ -122,12 +122,19 @@ const ClubDetail = () => {
       .channel(`club-claimed-${normalizedId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'club_owners', filter: `club_id=eq.${normalizedId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'club_owners',
+          filter: `club_id=eq.${normalizedId}`,
+        },
         () => setIsClubClaimed(true)
       )
       .subscribe();
 
-    return () => { mainSupabase.removeChannel(channel); };
+    return () => {
+      mainSupabase.removeChannel(channel);
+    };
   }, [id]);
 
   // Reviews state
@@ -142,7 +149,7 @@ const ClubDetail = () => {
     if (user) fetchSavedClubs(user.id);
   }, [user, fetchSavedClubs]);
 
-  const club = useMemo(() => clubs.find(c => c.id === id), [clubs, id]);
+  const club = useMemo(() => clubs.find((c) => c.id === id), [clubs, id]);
   const isOwner = id ? isOwnerOf(id) : false;
 
   // Extract bare instagram handle (strip URL prefix and @)
@@ -169,7 +176,7 @@ const ClubDetail = () => {
         .order('start_time', { ascending: true })
         .limit(20);
 
-      let results: ExternalEvent[] = (byId || []) as ExternalEvent[];
+      const results: ExternalEvent[] = (byId || []) as ExternalEvent[];
 
       // Also fetch by instagram handle if we have one
       if (instagramHandle) {
@@ -213,7 +220,10 @@ const ClubDetail = () => {
         .eq('club_id', id)
         .order('created_at', { ascending: false });
 
-      if (error) { setReviews([]); return; }
+      if (error) {
+        setReviews([]);
+        return;
+      }
 
       const fetched = (data || []) as ClubReview[];
       setReviews(fetched);
@@ -221,7 +231,10 @@ const ClubDetail = () => {
       if (user) {
         const mine = fetched.find((r) => r.user_id === user.id) || null;
         setUserReview(mine);
-        if (mine) { setReviewRating(mine.rating); setReviewBody(mine.body || ''); }
+        if (mine) {
+          setReviewRating(mine.rating);
+          setReviewBody(mine.body || '');
+        }
       }
     } catch {
       setReviews([]);
@@ -236,8 +249,14 @@ const ClubDetail = () => {
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) { toast.error('Please log in to write a review'); return; }
-    if (reviewRating === 0) { toast.error('Please select a star rating'); return; }
+    if (!user) {
+      toast.error('Please log in to write a review');
+      return;
+    }
+    if (reviewRating === 0) {
+      toast.error('Please select a star rating');
+      return;
+    }
     if (!id) return;
     setReviewSubmitting(true);
     try {
@@ -258,9 +277,10 @@ const ClubDetail = () => {
     }
   };
 
-  const averageRating = reviews.length > 0
-    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
-    : null;
+  const averageRating =
+    reviews.length > 0
+      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+      : null;
 
   // Refetch events when user returns to this tab
   useEffect(() => {
@@ -307,8 +327,10 @@ const ClubDetail = () => {
     );
   }
 
-  const description = (club as any).description?.slice(0, 160) || `Learn more about ${club.name} on UniCircle.`;
-  const ogImage = (club as any).logo_url || (club as any).cover_image || 'https://unicircle.app/og-image.png';
+  const description =
+    (club as any).description?.slice(0, 160) || `Learn more about ${club.name} on UniCircle.`;
+  const ogImage =
+    (club as any).logo_url || (club as any).cover_image || 'https://unicircle.app/og-image.png';
 
   return (
     <main className="min-h-screen bg-background">
@@ -321,14 +343,16 @@ const ClubDetail = () => {
         <meta property="og:url" content={`https://unicircle.app/clubs/${(club as any).id}`} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          "name": club.name,
-          "description": (club as any).description,
-          "url": `https://unicircle.app/clubs/${(club as any).id}`,
-          "logo": (club as any).logo_url,
-        })}</script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: club.name,
+            description: (club as any).description,
+            url: `https://unicircle.app/clubs/${(club as any).id}`,
+            logo: (club as any).logo_url,
+          })}
+        </script>
       </Helmet>
       <Header />
 
@@ -354,8 +378,8 @@ const ClubDetail = () => {
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
               <div className="flex-1">
                 {/* Back Link */}
-                <Link 
-                  to="/clubs" 
+                <Link
+                  to="/clubs"
                   className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
                 >
                   <ArrowLeft className="w-4 h-4 mr-1" />
@@ -369,11 +393,11 @@ const ClubDetail = () => {
                   </h1>
                   {/* Only show Open/Upcoming status, hide Closed */}
                   {club.recruitingStatus !== 'closed' && (
-                    <Badge 
+                    <Badge
                       variant="outline"
                       className={`mt-2 ${
-                        club.recruitingStatus === 'open' 
-                          ? 'bg-green-500/10 text-green-600 border-green-500/20' 
+                        club.recruitingStatus === 'open'
+                          ? 'bg-green-500/10 text-green-600 border-green-500/20'
                           : 'bg-gold/10 text-gold border-gold/20'
                       }`}
                     >
@@ -384,25 +408,29 @@ const ClubDetail = () => {
 
                 {/* Category - only show if exists */}
                 {club.category && (
-                  <Badge variant="secondary" className="mb-4">{club.category}</Badge>
+                  <Badge variant="secondary" className="mb-4">
+                    {club.category}
+                  </Badge>
                 )}
 
                 {/* Description with fallback */}
                 <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
-                  {club.description || (isClubClaimed
-                    ? "This club's profile is being set up by its officers."
-                    : "This club profile is community-maintained. Leaders can claim and update it."
-                  )}
+                  {club.description ||
+                    (isClubClaimed
+                      ? "This club's profile is being set up by its officers."
+                      : 'This club profile is community-maintained. Leaders can claim and update it.')}
                 </p>
 
                 {/* Tags - only show if there are non-empty tags */}
-                {club.tags.filter(t => t && t.trim()).length > 0 && (
+                {club.tags.filter((t) => t && t.trim()).length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-6">
-                    {club.tags.filter(t => t && t.trim()).map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-sm">
-                        {tag}
-                      </Badge>
-                    ))}
+                    {club.tags
+                      .filter((t) => t && t.trim())
+                      .map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-sm">
+                          {tag}
+                        </Badge>
+                      ))}
                   </div>
                 )}
 
@@ -410,7 +438,7 @@ const ClubDetail = () => {
                 {hasContactInfo && (
                   <div className="flex flex-wrap gap-4 mt-6">
                     {club.email && (
-                      <a 
+                      <a
                         href={`mailto:${club.email}`}
                         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
                       >
@@ -419,8 +447,12 @@ const ClubDetail = () => {
                       </a>
                     )}
                     {club.instagram && (
-                      <a 
-                        href={club.instagram.startsWith('http') ? club.instagram : `https://instagram.com/${club.instagram.replace('@', '')}`}
+                      <a
+                        href={
+                          club.instagram.startsWith('http')
+                            ? club.instagram
+                            : `https://instagram.com/${club.instagram.replace('@', '')}`
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -430,8 +462,10 @@ const ClubDetail = () => {
                       </a>
                     )}
                     {club.website && (
-                      <a 
-                        href={club.website.startsWith('http') ? club.website : `https://${club.website}`}
+                      <a
+                        href={
+                          club.website.startsWith('http') ? club.website : `https://${club.website}`
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -449,9 +483,7 @@ const ClubDetail = () => {
                 {/* Apply Now — only when actively recruiting AND club has set up their form */}
                 {club.recruitingStatus === 'open' && hasActiveForm && (
                   <Button variant="gold" size="lg" className="w-full" asChild>
-                    <Link to={`/clubs/${id}/apply`}>
-                      Apply Now
-                    </Link>
+                    <Link to={`/clubs/${id}/apply`}>Apply Now</Link>
                   </Button>
                 )}
                 <ClubMessageButton clubId={club.id} clubName={club.name} />
@@ -466,15 +498,20 @@ const ClubDetail = () => {
                       variant="button"
                     />
                   </div>
-                  <Button variant="outline" size="lg" className="border-white/20 text-white hover:border-gold hover:text-gold shrink-0" onClick={() => {
-                    const url = window.location.href;
-                    if (navigator.share) {
-                      navigator.share({ title: club.name, url });
-                    } else {
-                      navigator.clipboard.writeText(url);
-                      toast.success('Link copied to clipboard!');
-                    }
-                  }}>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="border-white/20 text-white hover:border-gold hover:text-gold shrink-0"
+                    onClick={() => {
+                      const url = window.location.href;
+                      if (navigator.share) {
+                        navigator.share({ title: club.name, url });
+                      } else {
+                        navigator.clipboard.writeText(url);
+                        toast.success('Link copied to clipboard!');
+                      }
+                    }}
+                  >
                     <Share2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -490,14 +527,10 @@ const ClubDetail = () => {
                     Claim this club
                   </Button>
                 )}
-                
+
                 {/* Manage Club Button - only show if owner */}
                 {!ownershipLoading && isOwner && (
-                  <Button 
-                    variant="gold" 
-                    size="sm"
-                    asChild
-                  >
+                  <Button variant="gold" size="sm" asChild>
                     <Link to={`/club-admin/clubs/${id}/edit`}>
                       <Settings className="w-4 h-4 mr-2" />
                       Manage Club
@@ -517,7 +550,7 @@ const ClubDetail = () => {
             <TabsList className="mb-8">
               <TabsTrigger value="about">About</TabsTrigger>
               <TabsTrigger value="events">
-                Events ({eventsLoading ? "..." : clubEvents.length})
+                Events ({eventsLoading ? '...' : clubEvents.length})
               </TabsTrigger>
               <TabsTrigger value="reviews">
                 Reviews{reviews.length > 0 ? ` (${reviews.length})` : ''}
@@ -529,22 +562,17 @@ const ClubDetail = () => {
                 {club.description ? (
                   <div className="premium-card p-6">
                     <h3 className="font-display text-xl font-semibold mb-4">What We Do</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {club.description}
-                    </p>
+                    <p className="text-muted-foreground leading-relaxed">{club.description}</p>
                   </div>
                 ) : (
                   <div className="premium-card p-6 border-dashed">
                     <h3 className="font-display text-xl font-semibold mb-4">About This Club</h3>
                     <p className="text-muted-foreground leading-relaxed mb-4">
-                      This club profile is community-maintained and doesn't have detailed information yet.
+                      This club profile is community-maintained and doesn't have detailed
+                      information yet.
                     </p>
                     {!isOwner && !isClubClaimed && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsClaimModalOpen(true)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => setIsClaimModalOpen(true)}>
                         <Shield className="w-4 h-4 mr-2" />
                         Are you a leader? Claim to update
                       </Button>
@@ -555,15 +583,21 @@ const ClubDetail = () => {
                   <h3 className="font-display text-xl font-semibold mb-4">How to Join</h3>
                   <ol className="space-y-3 text-muted-foreground">
                     <li className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold text-primary-foreground flex items-center justify-center text-sm font-semibold">1</span>
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        1
+                      </span>
                       <span>Click "Express Interest" to email the club directly</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold text-primary-foreground flex items-center justify-center text-sm font-semibold">2</span>
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        2
+                      </span>
                       <span>Attend one of their open events or info sessions</span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold text-primary-foreground flex items-center justify-center text-sm font-semibold">3</span>
+                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gold text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        3
+                      </span>
                       <span>Follow their social media for updates on applications</span>
                     </li>
                   </ol>
@@ -590,7 +624,10 @@ const ClubDetail = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         className="premium-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:border-gold/30 transition-colors"
-                        onClick={() => { setSelectedEvent(event); setIsEventModalOpen(true); }}
+                        onClick={() => {
+                          setSelectedEvent(event);
+                          setIsEventModalOpen(true);
+                        }}
                       >
                         <div>
                           <h4 className="font-display font-semibold text-foreground">{title}</h4>
@@ -611,7 +648,15 @@ const ClubDetail = () => {
                             )}
                           </div>
                         </div>
-                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); setIsEventModalOpen(true); }}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedEvent(event);
+                            setIsEventModalOpen(true);
+                          }}
+                        >
                           <ExternalLink className="w-4 h-4 mr-2" />
                           Details
                         </Button>
@@ -633,7 +678,9 @@ const ClubDetail = () => {
                 {/* Average rating */}
                 {averageRating && (
                   <div className="flex items-center gap-3 p-4 rounded-xl bg-zinc-900 border border-white/10">
-                    <span className="text-4xl font-display font-bold text-gold">{averageRating}</span>
+                    <span className="text-4xl font-display font-bold text-gold">
+                      {averageRating}
+                    </span>
                     <div>
                       <StarRating rating={Math.round(Number(averageRating))} readOnly />
                       <p className="text-sm text-zinc-400 mt-1">
@@ -658,11 +705,18 @@ const ClubDetail = () => {
                 ) : (
                   <div className="space-y-4">
                     {reviews.map((review) => (
-                      <div key={review.id} className="p-4 rounded-xl bg-zinc-900 border border-white/10">
+                      <div
+                        key={review.id}
+                        className="p-4 rounded-xl bg-zinc-900 border border-white/10"
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <StarRating rating={review.rating} readOnly />
                           <span className="text-xs text-zinc-500">
-                            {new Date(review.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {new Date(review.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
                           </span>
                         </div>
                         <p className="text-sm text-zinc-400 font-medium mb-1">Anonymous</p>
@@ -681,7 +735,10 @@ const ClubDetail = () => {
                   </h3>
                   {!user ? (
                     <p className="text-zinc-400 text-sm">
-                      <Link to="/login" className="text-gold hover:underline">Log in</Link> to write a review.
+                      <Link to="/login" className="text-gold hover:underline">
+                        Log in
+                      </Link>{' '}
+                      to write a review.
                     </p>
                   ) : (
                     <form onSubmit={handleSubmitReview} className="space-y-4">
@@ -690,7 +747,9 @@ const ClubDetail = () => {
                         <StarRating rating={reviewRating} onRate={setReviewRating} />
                       </div>
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-2">Review (optional)</label>
+                        <label className="block text-sm text-zinc-400 mb-2">
+                          Review (optional)
+                        </label>
                         <textarea
                           value={reviewBody}
                           onChange={(e) => setReviewBody(e.target.value)}
@@ -732,7 +791,10 @@ const ClubDetail = () => {
       <EventDetailModal
         event={selectedEvent}
         isOpen={isEventModalOpen}
-        onClose={() => { setIsEventModalOpen(false); setSelectedEvent(null); }}
+        onClose={() => {
+          setIsEventModalOpen(false);
+          setSelectedEvent(null);
+        }}
       />
     </main>
   );

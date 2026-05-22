@@ -24,9 +24,12 @@ export default function Founder() {
             transition={{ delay: 0.06 }}
             className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.0] tracking-tight mb-16"
           >
-            I worked for years<br />
-            <span className="text-[#F5C842]">to get to the right room.</span><br />
-            Then I walked into<br />
+            I worked for years
+            <br />
+            <span className="text-[#F5C842]">to get to the right room.</span>
+            <br />
+            Then I walked into
+            <br />
             <span className="text-[#F5C842]">the wrong one.</span>
           </motion.h1>
         </div>
@@ -36,7 +39,6 @@ export default function Founder() {
       <section className="px-6 pb-24">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
-
             {/* Photo — Jaden only */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -57,7 +59,8 @@ export default function Founder() {
                 <div className="text-white font-semibold text-lg">Jaden Rones</div>
                 <div className="text-[#F5C842] text-sm mt-1">Founder & CEO · UCSD</div>
                 <div className="text-zinc-500 text-sm mt-3 leading-relaxed">
-                  Transfer student. Built UniCircle from scratch — design, frontend, backend, all of it.
+                  Transfer student. Built UniCircle from scratch — design, frontend, backend, all of
+                  it.
                 </div>
               </div>
             </motion.div>
@@ -70,45 +73,66 @@ export default function Founder() {
               className="space-y-8 text-base text-zinc-400 leading-relaxed"
             >
               <p className="text-zinc-200 text-xl leading-relaxed">
-                It all started at a school I wasn't fit for. Leaving meant that I would have to work hard because I wanted more — more access, more opportunity, more people who were actually trying to go somewhere. Getting into UCSD felt like finally making it to the right room.
+                It all started at a school I wasn't fit for. Leaving meant that I would have to work
+                hard because I wanted more — more access, more opportunity, more people who were
+                actually trying to go somewhere. Getting into UCSD felt like finally making it to
+                the right room.
               </p>
 
               <p>
-                I got there and did what basically every college student does: I fell into Greek life. It seemed like the obvious path to community, to connection, to the "real college experience." I went through it hoping to find the people I'd been looking for: driven, ambitious, constantly trying to better themselves.
+                I got there and did what basically every college student does: I fell into Greek
+                life. It seemed like the obvious path to community, to connection, to the "real
+                college experience." I went through it hoping to find the people I'd been looking
+                for: driven, ambitious, constantly trying to better themselves.
               </p>
 
               <p>
-                It wasn't that. I spent months in rooms that felt off, and the problem was that I didn't know what else to try. What would actually fit? What was worth the time? What wouldn't be so exclusive that I'd never get in?
+                It wasn't that. I spent months in rooms that felt off, and the problem was that I
+                didn't know what else to try. What would actually fit? What was worth the time? What
+                wouldn't be so exclusive that I'd never get in?
               </p>
 
               <p className="text-zinc-200">
-                I kept hearing "you are the average of the 5 people you surround yourself with." And I knew I wasn't where I needed to be.
+                I kept hearing "you are the average of the 5 people you surround yourself with." And
+                I knew I wasn't where I needed to be.
               </p>
 
               <p>
-                The clubs I actually wanted to be involved with were the ones full of people who made me feel like I was growing, and I barely knew they existed. UCSD has 600+ clubs. I found maybe 10. Figuring out who was even recruiting meant sifting through dead Instagram pages and Google Forms from two quarters ago.
+                The clubs I actually wanted to be involved with were the ones full of people who
+                made me feel like I was growing, and I barely knew they existed. UCSD has 600+
+                clubs. I found maybe 10. Figuring out who was even recruiting meant sifting through
+                dead Instagram pages and Google Forms from two quarters ago.
               </p>
 
               <p>
-                I wasted months with the wrong people in the wrong place. Not because the right community wasn't there, but because I had no way to find it.
+                I wasted months with the wrong people in the wrong place. Not because the right
+                community wasn't there, but because I had no way to find it.
               </p>
 
               <p>
-                So I started talking to the people running those clubs. The recruitment chairs, the presidents. I asked how they managed everything. The answer was always the same: Google Form, spreadsheet, group chat. Deliberations running until 2 am. Matching hundreds of applicant names to Venmo transactions by hand, every quarter, starting from scratch.
+                So I started talking to the people running those clubs. The recruitment chairs, the
+                presidents. I asked how they managed everything. The answer was always the same:
+                Google Form, spreadsheet, group chat. Deliberations running until 2 am. Matching
+                hundreds of applicant names to Venmo transactions by hand, every quarter, starting
+                from scratch.
               </p>
 
               <div className="border-l-2 border-[#F5C842] pl-6 py-2">
                 <p className="text-zinc-200 italic text-lg">
-                  "The most important thing about college isn't the GPA. It's who you're surrounded by."
+                  "The most important thing about college isn't the GPA. It's who you're surrounded
+                  by."
                 </p>
               </div>
 
               <p>
-                That's why I built UniCircle. One place for students to find every club, see who's recruiting right now, and actually apply. And a real pipeline for the clubs running those processes, so they can spend their time on the people, not the spreadsheet.
+                That's why I built UniCircle. One place for students to find every club, see who's
+                recruiting right now, and actually apply. And a real pipeline for the clubs running
+                those processes, so they can spend their time on the people, not the spreadsheet.
               </p>
 
               <p className="text-zinc-200">
-                The plan is simple — campus by campus, until every student has a real shot at finding their people.
+                The plan is simple — campus by campus, until every student has a real shot at
+                finding their people.
               </p>
 
               <div className="pt-4 flex flex-col sm:flex-row gap-4">
@@ -135,7 +159,9 @@ export default function Founder() {
       {/* Founders */}
       <section className="border-t border-white/[0.06] px-6 py-16">
         <div className="max-w-5xl mx-auto">
-          <p className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-10">The team</p>
+          <p className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-10">
+            The team
+          </p>
           <div className="grid grid-cols-2 sm:grid-cols-2 gap-8 max-w-lg">
             {[
               {
@@ -182,8 +208,8 @@ export default function Founder() {
         <div className="max-w-5xl mx-auto grid grid-cols-3 divide-x divide-white/[0.06]">
           {[
             { value: 'UCSD + SDSU', label: 'Launching at' },
-            { value: '800+',        label: 'Member org already in' },
-            { value: '2026',        label: 'First pilots this year' },
+            { value: '800+', label: 'Member org already in' },
+            { value: '2026', label: 'First pilots this year' },
           ].map((s) => (
             <div key={s.label} className="px-8 first:pl-0 last:pr-0 text-center">
               <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{s.value}</div>

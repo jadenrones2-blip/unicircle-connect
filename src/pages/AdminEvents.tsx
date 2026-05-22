@@ -7,7 +7,17 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Check, ExternalLink, RefreshCw, X, Zap, Trash2, Square, CheckSquare } from 'lucide-react';
+import {
+  Loader2,
+  Check,
+  ExternalLink,
+  RefreshCw,
+  X,
+  Zap,
+  Trash2,
+  Square,
+  CheckSquare,
+} from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
@@ -19,12 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface EditingEvent {
   id: string;
@@ -170,7 +175,9 @@ export default function AdminEvents() {
           eventsInserted: data.eventsInserted || 0,
           eventsDuplicate: data.eventsDuplicate || 0,
         });
-        toast.success(`Found ${data.eventsInserted || 0} new events across Eventbrite, Partiful & Luma`);
+        toast.success(
+          `Found ${data.eventsInserted || 0} new events across Eventbrite, Partiful & Luma`
+        );
         fetchUnverifiedEvents();
       } else {
         toast.error(data?.error || 'Multi-scraper failed');
@@ -199,7 +206,9 @@ export default function AdminEvents() {
           eventsInserted: data.eventsInserted || 0,
           eventsDuplicate: data.eventsDuplicate || 0,
         });
-        toast.success(`Instagram: ${data.eventsInserted || 0} new events extracted from ${data.accountsScraped || 0} clubs`);
+        toast.success(
+          `Instagram: ${data.eventsInserted || 0} new events extracted from ${data.accountsScraped || 0} clubs`
+        );
         fetchUnverifiedEvents();
       } else {
         toast.error(data?.error || 'Instagram scraper failed');
@@ -214,16 +223,16 @@ export default function AdminEvents() {
   const handleScrapeInstagram = async () => {
     setScraping(true);
     setScrapeResult(null);
-    
+
     try {
       const { data, error } = await supabase.functions.invoke('scrape-events');
-      
+
       if (error) {
         console.error('Scrape error:', error);
         toast.error('Failed to scrape Instagram');
         return;
       }
-      
+
       if (data?.success) {
         setScrapeResult({
           clubsProcessed: data.clubsSearched || 0,
@@ -245,7 +254,7 @@ export default function AdminEvents() {
   };
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -257,13 +266,13 @@ export default function AdminEvents() {
     if (selectedIds.size === events.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(events.map(e => e.id)));
+      setSelectedIds(new Set(events.map((e) => e.id)));
     }
   };
 
   const handleBulkReject = async () => {
     if (selectedIds.size === 0) return;
-    
+
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
     if (!token) {
@@ -343,8 +352,12 @@ export default function AdminEvents() {
       original_end_time: event.end_time,
       original_location: event.location,
       corrected_title: event.corrected_title || '',
-      corrected_start_time: event.corrected_start_time ? formatDateTimeLocal(event.corrected_start_time) : '',
-      corrected_end_time: event.corrected_end_time ? formatDateTimeLocal(event.corrected_end_time) : '',
+      corrected_start_time: event.corrected_start_time
+        ? formatDateTimeLocal(event.corrected_start_time)
+        : '',
+      corrected_end_time: event.corrected_end_time
+        ? formatDateTimeLocal(event.corrected_end_time)
+        : '',
       corrected_location: event.corrected_location || '',
     });
   };
@@ -360,21 +373,21 @@ export default function AdminEvents() {
 
   const handleApprove = async () => {
     if (!editingEvent) return;
-    
+
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
     if (!token) {
       toast.error('You must be logged in to approve events. Go to /login?role=admin');
       return;
     }
-    
+
     setSaving(true);
-    
+
     const updates: Record<string, unknown> = {
       verified: true,
       reviewed_at: new Date().toISOString(),
     };
-    
+
     if (editingEvent.corrected_title.trim()) {
       updates.corrected_title = editingEvent.corrected_title.trim();
     }
@@ -398,49 +411,49 @@ export default function AdminEvents() {
       toast.error('Failed to approve event');
     } else {
       toast.success('Event approved and will now appear on calendar!');
-      
+
       const finalTitle = editingEvent.corrected_title.trim() || editingEvent.title;
-      const finalStartTime = editingEvent.corrected_start_time 
+      const finalStartTime = editingEvent.corrected_start_time
         ? new Date(editingEvent.corrected_start_time).toISOString()
         : editingEvent.original_start_time;
-      const finalLocation = editingEvent.corrected_location.trim() || editingEvent.original_location;
-      
+      const finalLocation =
+        editingEvent.corrected_location.trim() || editingEvent.original_location;
+
       if (editingEvent.club_handle) {
-        supabase.functions.invoke('notify-event-approved', {
-          body: {
-            eventTitle: finalTitle,
-            clubHandle: editingEvent.club_handle,
-            startTime: finalStartTime,
-            location: finalLocation,
-          },
-        }).catch((err) => {
-          console.error('Failed to send approval notification:', err);
-        });
+        supabase.functions
+          .invoke('notify-event-approved', {
+            body: {
+              eventTitle: finalTitle,
+              clubHandle: editingEvent.club_handle,
+              startTime: finalStartTime,
+              location: finalLocation,
+            },
+          })
+          .catch((err) => {
+            console.error('Failed to send approval notification:', err);
+          });
       }
-      
+
       setEditingEvent(null);
       fetchUnverifiedEvents();
     }
-    
+
     setSaving(false);
   };
 
   const handleReject = async () => {
     if (!editingEvent) return;
-    
+
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
     if (!token) {
       toast.error('You must be logged in to reject events. Go to /login?role=admin');
       return;
     }
-    
+
     setRejecting(true);
-    
-    const { error: dbError } = await dataClient
-      .from('events')
-      .delete()
-      .eq('id', editingEvent.id);
+
+    const { error: dbError } = await dataClient.from('events').delete().eq('id', editingEvent.id);
 
     if (dbError) {
       console.error('Error rejecting event:', dbError);
@@ -450,7 +463,7 @@ export default function AdminEvents() {
       setEditingEvent(null);
       fetchUnverifiedEvents();
     }
-    
+
     setRejecting(false);
   };
 
@@ -492,7 +505,7 @@ export default function AdminEvents() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      
+
       <main className="flex-1 pt-24 pb-16">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
@@ -512,11 +525,19 @@ export default function AdminEvents() {
                 {scrapingCSI ? 'Scraping CSI...' : 'Scrape CSI Contacts'}
               </Button>
               <Button variant="outline" onClick={handleScrapeMulti} disabled={scrapingMulti}>
-                {scrapingMulti ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
+                {scrapingMulti ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4 mr-2" />
+                )}
                 {scrapingMulti ? 'Searching...' : 'Scrape Web'}
               </Button>
               <Button variant="outline" onClick={handleScrapeApify} disabled={scrapingApify}>
-                {scrapingApify ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Zap className="w-4 h-4 mr-2" />}
+                {scrapingApify ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="w-4 h-4 mr-2" />
+                )}
                 {scrapingApify ? 'Scraping IG...' : 'Scrape Instagram'}
               </Button>
               <Button variant="gold" onClick={handleScrapeInstagram} disabled={scraping}>
@@ -539,7 +560,9 @@ export default function AdminEvents() {
               <div className="flex items-center gap-6 text-sm">
                 <div>
                   <span className="text-muted-foreground">Clubs Searched:</span>{' '}
-                  <span className="font-semibold text-foreground">{scrapeResult.clubsProcessed}</span>
+                  <span className="font-semibold text-foreground">
+                    {scrapeResult.clubsProcessed}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Events Extracted:</span>{' '}
@@ -548,12 +571,17 @@ export default function AdminEvents() {
               </div>
               {scrapeResult.clubBreakdown && Object.keys(scrapeResult.clubBreakdown).length > 0 && (
                 <div className="border-t border-border pt-3">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Events by Club</h4>
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                    Events by Club
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(scrapeResult.clubBreakdown)
                       .sort(([, a], [, b]) => b - a)
                       .map(([club, count]) => (
-                        <span key={club} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold/10 text-sm">
+                        <span
+                          key={club}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gold/10 text-sm"
+                        >
                           <span className="text-foreground font-medium">{club}</span>
                           <span className="text-gold font-semibold">{count}</span>
                         </span>
@@ -570,7 +598,9 @@ export default function AdminEvents() {
               <div className="flex items-center gap-6 text-sm">
                 <div>
                   <span className="text-muted-foreground">Clubs Scraped:</span>{' '}
-                  <span className="font-semibold text-foreground">{csiScrapeResult.clubsScraped}</span>
+                  <span className="font-semibold text-foreground">
+                    {csiScrapeResult.clubsScraped}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">With Email:</span>{' '}
@@ -578,30 +608,41 @@ export default function AdminEvents() {
                 </div>
                 <div>
                   <span className="text-muted-foreground">With Instagram:</span>{' '}
-                  <span className="font-semibold text-foreground">{csiScrapeResult.withInstagram}</span>
+                  <span className="font-semibold text-foreground">
+                    {csiScrapeResult.withInstagram}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Credits Used:</span>{' '}
-                  <span className="font-semibold text-foreground">{csiScrapeResult.creditsUsed}</span>
+                  <span className="font-semibold text-foreground">
+                    {csiScrapeResult.creditsUsed}
+                  </span>
                 </div>
               </div>
-              {csiScrapeResult.categoryBreakdown && Object.keys(csiScrapeResult.categoryBreakdown).length > 0 && (
-                <div className="border-t border-border pt-3">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Clubs by Category</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(csiScrapeResult.categoryBreakdown)
-                      .sort(([, a], [, b]) => b - a)
-                      .map(([cat, count]) => (
-                        <span key={cat} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm">
-                          <span className="text-foreground font-medium">{cat}</span>
-                          <span className="text-muted-foreground font-semibold">{count}</span>
-                        </span>
-                      ))}
+              {csiScrapeResult.categoryBreakdown &&
+                Object.keys(csiScrapeResult.categoryBreakdown).length > 0 && (
+                  <div className="border-t border-border pt-3">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      Clubs by Category
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(csiScrapeResult.categoryBreakdown)
+                        .sort(([, a], [, b]) => b - a)
+                        .map(([cat, count]) => (
+                          <span
+                            key={cat}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted text-sm"
+                          >
+                            <span className="text-foreground font-medium">{cat}</span>
+                            <span className="text-muted-foreground font-semibold">{count}</span>
+                          </span>
+                        ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
               <p className="text-xs text-muted-foreground pt-1">
-                Contacts saved to <span className="font-mono">csi_club_contacts</span> table in Supabase. Export from Table Editor to get your outreach CSV.
+                Contacts saved to <span className="font-mono">csi_club_contacts</span> table in
+                Supabase. Export from Table Editor to get your outreach CSV.
               </p>
             </div>
           )}
@@ -612,19 +653,27 @@ export default function AdminEvents() {
               <div className="flex items-center gap-6 text-sm">
                 <div>
                   <span className="text-muted-foreground">Handles Scraped:</span>{' '}
-                  <span className="font-semibold text-foreground">{lumaScrapeResult.handlesScraped}</span>
+                  <span className="font-semibold text-foreground">
+                    {lumaScrapeResult.handlesScraped}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Events Found:</span>{' '}
-                  <span className="font-semibold text-foreground">{lumaScrapeResult.eventsFound}</span>
+                  <span className="font-semibold text-foreground">
+                    {lumaScrapeResult.eventsFound}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">New Events:</span>{' '}
-                  <span className="font-semibold text-green-500">{lumaScrapeResult.eventsInserted}</span>
+                  <span className="font-semibold text-green-500">
+                    {lumaScrapeResult.eventsInserted}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Duplicates Skipped:</span>{' '}
-                  <span className="font-semibold text-muted-foreground">{lumaScrapeResult.eventsDuplicate}</span>
+                  <span className="font-semibold text-muted-foreground">
+                    {lumaScrapeResult.eventsDuplicate}
+                  </span>
                 </div>
               </div>
             </div>
@@ -632,23 +681,33 @@ export default function AdminEvents() {
 
           {multiScrapeResult && (
             <div className="premium-card p-4 mb-6 border-border space-y-2">
-              <h4 className="text-sm font-semibold text-foreground">Web Scrape — Eventbrite, Partiful, Luma</h4>
+              <h4 className="text-sm font-semibold text-foreground">
+                Web Scrape — Eventbrite, Partiful, Luma
+              </h4>
               <div className="flex items-center gap-6 text-sm">
                 <div>
                   <span className="text-muted-foreground">Searches Run:</span>{' '}
-                  <span className="font-semibold text-foreground">{multiScrapeResult.searchesRun}</span>
+                  <span className="font-semibold text-foreground">
+                    {multiScrapeResult.searchesRun}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Events Found:</span>{' '}
-                  <span className="font-semibold text-foreground">{multiScrapeResult.eventsFound}</span>
+                  <span className="font-semibold text-foreground">
+                    {multiScrapeResult.eventsFound}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">New Events:</span>{' '}
-                  <span className="font-semibold text-green-500">{multiScrapeResult.eventsInserted}</span>
+                  <span className="font-semibold text-green-500">
+                    {multiScrapeResult.eventsInserted}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Duplicates:</span>{' '}
-                  <span className="font-semibold text-muted-foreground">{multiScrapeResult.eventsDuplicate}</span>
+                  <span className="font-semibold text-muted-foreground">
+                    {multiScrapeResult.eventsDuplicate}
+                  </span>
                 </div>
               </div>
             </div>
@@ -656,27 +715,39 @@ export default function AdminEvents() {
 
           {apifyScrapeResult && (
             <div className="premium-card p-4 mb-6 border-border space-y-2">
-              <h4 className="text-sm font-semibold text-foreground">Instagram Scrape — Club Accounts</h4>
+              <h4 className="text-sm font-semibold text-foreground">
+                Instagram Scrape — Club Accounts
+              </h4>
               <div className="flex items-center gap-6 text-sm flex-wrap">
                 <div>
                   <span className="text-muted-foreground">Accounts:</span>{' '}
-                  <span className="font-semibold text-foreground">{apifyScrapeResult.accountsScraped}</span>
+                  <span className="font-semibold text-foreground">
+                    {apifyScrapeResult.accountsScraped}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Posts Scraped:</span>{' '}
-                  <span className="font-semibold text-foreground">{apifyScrapeResult.postsScraped}</span>
+                  <span className="font-semibold text-foreground">
+                    {apifyScrapeResult.postsScraped}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Event Posts:</span>{' '}
-                  <span className="font-semibold text-foreground">{apifyScrapeResult.postsWithEventKeywords}</span>
+                  <span className="font-semibold text-foreground">
+                    {apifyScrapeResult.postsWithEventKeywords}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">New Events:</span>{' '}
-                  <span className="font-semibold text-green-500">{apifyScrapeResult.eventsInserted}</span>
+                  <span className="font-semibold text-green-500">
+                    {apifyScrapeResult.eventsInserted}
+                  </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Duplicates:</span>{' '}
-                  <span className="font-semibold text-muted-foreground">{apifyScrapeResult.eventsDuplicate}</span>
+                  <span className="font-semibold text-muted-foreground">
+                    {apifyScrapeResult.eventsDuplicate}
+                  </span>
                 </div>
               </div>
             </div>
@@ -736,7 +807,10 @@ export default function AdminEvents() {
                 </TableHeader>
                 <TableBody>
                   {events.map((event) => (
-                    <TableRow key={event.id} className={selectedIds.has(event.id) ? 'bg-muted/50' : ''}>
+                    <TableRow
+                      key={event.id}
+                      className={selectedIds.has(event.id) ? 'bg-muted/50' : ''}
+                    >
                       <TableCell>
                         <Checkbox
                           checked={selectedIds.has(event.id)}
@@ -755,12 +829,10 @@ export default function AdminEvents() {
                       </TableCell>
                       <TableCell className="max-w-[200px]">
                         <p className="text-sm text-muted-foreground truncate">
-                          {isErrorData(event.caption) ? '—' : (event.caption || '—')}
+                          {isErrorData(event.caption) ? '—' : event.caption || '—'}
                         </p>
                       </TableCell>
-                      <TableCell className="text-sm">
-                        {formatDateTime(event.posted_at)}
-                      </TableCell>
+                      <TableCell className="text-sm">{formatDateTime(event.posted_at)}</TableCell>
                       <TableCell>
                         {event.source_url ? (
                           <button
@@ -815,13 +887,15 @@ export default function AdminEvents() {
 
               {/* Original Data Preview */}
               <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Scraped Data</h3>
-                
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                  Scraped Data
+                </h3>
+
                 <div>
                   <span className="text-sm text-muted-foreground">Title:</span>
                   <p className="text-foreground text-sm break-words">{editingEvent.title}</p>
                 </div>
-                
+
                 {editingEvent.caption && !isErrorData(editingEvent.caption) && (
                   <div>
                     <span className="text-sm text-muted-foreground">Caption:</span>
@@ -834,11 +908,15 @@ export default function AdminEvents() {
                 <div className="grid grid-cols-2 gap-4 text-sm pt-2 border-t border-border">
                   <div>
                     <span className="text-muted-foreground">Start:</span>
-                    <p className="text-foreground">{formatDateTime(editingEvent.original_start_time)}</p>
+                    <p className="text-foreground">
+                      {formatDateTime(editingEvent.original_start_time)}
+                    </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">End:</span>
-                    <p className="text-foreground">{formatDateTime(editingEvent.original_end_time)}</p>
+                    <p className="text-foreground">
+                      {formatDateTime(editingEvent.original_end_time)}
+                    </p>
                   </div>
                   <div className="col-span-2">
                     <span className="text-muted-foreground">Location:</span>
@@ -856,15 +934,18 @@ export default function AdminEvents() {
               {/* Corrected Fields */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                  Corrections <span className="font-normal">(leave blank to use scraped values)</span>
+                  Corrections{' '}
+                  <span className="font-normal">(leave blank to use scraped values)</span>
                 </h3>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="corrected_title">Corrected Title</Label>
                   <Input
                     id="corrected_title"
                     value={editingEvent.corrected_title}
-                    onChange={(e) => setEditingEvent({ ...editingEvent, corrected_title: e.target.value })}
+                    onChange={(e) =>
+                      setEditingEvent({ ...editingEvent, corrected_title: e.target.value })
+                    }
                     placeholder="e.g. Spring Social Mixer"
                   />
                 </div>
@@ -876,7 +957,9 @@ export default function AdminEvents() {
                       id="corrected_start_time"
                       type="datetime-local"
                       value={editingEvent.corrected_start_time}
-                      onChange={(e) => setEditingEvent({ ...editingEvent, corrected_start_time: e.target.value })}
+                      onChange={(e) =>
+                        setEditingEvent({ ...editingEvent, corrected_start_time: e.target.value })
+                      }
                     />
                   </div>
                   <div className="space-y-2">
@@ -885,7 +968,9 @@ export default function AdminEvents() {
                       id="corrected_end_time"
                       type="datetime-local"
                       value={editingEvent.corrected_end_time}
-                      onChange={(e) => setEditingEvent({ ...editingEvent, corrected_end_time: e.target.value })}
+                      onChange={(e) =>
+                        setEditingEvent({ ...editingEvent, corrected_end_time: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -895,7 +980,9 @@ export default function AdminEvents() {
                   <Input
                     id="corrected_location"
                     value={editingEvent.corrected_location}
-                    onChange={(e) => setEditingEvent({ ...editingEvent, corrected_location: e.target.value })}
+                    onChange={(e) =>
+                      setEditingEvent({ ...editingEvent, corrected_location: e.target.value })
+                    }
                     placeholder="e.g. Student Union Room 201"
                   />
                 </div>
@@ -912,7 +999,11 @@ export default function AdminEvents() {
                   Reject
                 </Button>
                 <div className="flex gap-3">
-                  <Button variant="outline" onClick={() => setEditingEvent(null)} disabled={saving || rejecting}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditingEvent(null)}
+                    disabled={saving || rejecting}
+                  >
                     <X className="w-4 h-4 mr-2" />
                     Cancel
                   </Button>

@@ -3,7 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
@@ -74,8 +80,12 @@ export function WaitlistModal({ open, onClose, clubId }: WaitlistModalProps) {
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/8">
               <div>
-                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-500 mb-0.5">Exclusive Access</p>
-                <h2 className="text-lg font-display font-bold text-white tracking-tight">Request Early Access</h2>
+                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-500 mb-0.5">
+                  Exclusive Access
+                </p>
+                <h2 className="text-lg font-display font-bold text-white tracking-tight">
+                  Request Early Access
+                </h2>
               </div>
               <button
                 onClick={onClose}
@@ -88,7 +98,8 @@ export function WaitlistModal({ open, onClose, clubId }: WaitlistModalProps) {
             {/* Body */}
             <div className="flex-1 overflow-y-auto px-6 py-6">
               <p className="text-sm text-zinc-400 mb-8 leading-relaxed">
-                UniCircle's recruitment infrastructure is invite-only. Answer three questions and we'll prioritize your access based on fit.
+                UniCircle's recruitment infrastructure is invite-only. Answer three questions and
+                we'll prioritize your access based on fit.
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -105,7 +116,9 @@ export function WaitlistModal({ open, onClose, clubId }: WaitlistModalProps) {
                     onChange={(e) => setVolume(e.target.value)}
                     className="bg-white/5 border-white/10 text-white placeholder:text-zinc-600 focus:border-white/30 focus:ring-0"
                   />
-                  <p className="text-[11px] text-zinc-600">How many applicants do you expect per recruitment cycle?</p>
+                  <p className="text-[11px] text-zinc-600">
+                    How many applicants do you expect per recruitment cycle?
+                  </p>
                 </div>
 
                 {/* Bottleneck */}
@@ -142,7 +155,9 @@ export function WaitlistModal({ open, onClose, clubId }: WaitlistModalProps) {
                     onChange={(e) => setDate(e.target.value)}
                     className="bg-white/5 border-white/10 text-white focus:border-white/30 focus:ring-0 [color-scheme:dark]"
                   />
-                  <p className="text-[11px] text-zinc-600">When does your next recruitment cycle begin?</p>
+                  <p className="text-[11px] text-zinc-600">
+                    When does your next recruitment cycle begin?
+                  </p>
                 </div>
 
                 <button

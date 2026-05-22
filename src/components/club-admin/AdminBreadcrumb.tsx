@@ -14,7 +14,7 @@ interface AdminBreadcrumbProps {
 
 export function AdminBreadcrumb({ items, className }: AdminBreadcrumbProps) {
   return (
-    <nav aria-label="Breadcrumb" className={cn("flex items-center gap-3 text-sm", className)}>
+    <nav aria-label="Breadcrumb" className={cn('flex items-center gap-3 text-sm', className)}>
       {/* Portal badge */}
       <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-gold/8 border border-gold/20 text-[10px] font-bold text-gold uppercase tracking-wider shrink-0">
         <span className="w-1.5 h-1.5 rounded-full bg-gold inline-block" />
@@ -38,7 +38,7 @@ export function AdminBreadcrumb({ items, className }: AdminBreadcrumbProps) {
           <li key={index} className="flex items-center">
             <ChevronRight className="w-4 h-4 text-muted-foreground/50 mx-1" />
             {item.href ? (
-              <Link 
+              <Link
                 to={item.href}
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >

@@ -8,7 +8,7 @@ import { Loader2, Star, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STAGES = ['applied', 'under_review', 'interview', 'accepted', 'rejected', 'member'] as const;
-type Stage = typeof STAGES[number];
+type Stage = (typeof STAGES)[number];
 
 const STAGE_COLORS: Record<Stage, string> = {
   applied: '#3b82f6',
@@ -56,10 +56,14 @@ export default function OrgPipeline() {
       .eq('organization_id', clubId)
       .order('created_at', { ascending: false });
 
-    if (error) { toast.error('Failed to load people'); setLoading(false); return; }
+    if (error) {
+      toast.error('Failed to load people');
+      setLoading(false);
+      return;
+    }
 
     const ids = peopleData?.map((p: Person) => p.id) || [];
-    let reviewMap: Record<string, number> = {};
+    const reviewMap: Record<string, number> = {};
 
     if (ids.length > 0) {
       const { data: reviews } = await (supabase as any)
@@ -82,22 +86,33 @@ export default function OrgPipeline() {
       }
     }
 
-    setPeople((peopleData || []).map((p: Person) => ({ ...p, avg_score: reviewMap[p.id] ?? null })));
+    setPeople(
+      (peopleData || []).map((p: Person) => ({ ...p, avg_score: reviewMap[p.id] ?? null }))
+    );
     setLoading(false);
   };
 
-  useEffect(() => { fetchPeople(); }, [clubId]);
+  useEffect(() => {
+    fetchPeople();
+  }, [clubId]);
 
   const handleDragStart = (personId: string) => setDragging(personId);
-  const handleDragEnd = () => { setDragging(null); setDragOver(null); };
+  const handleDragEnd = () => {
+    setDragging(null);
+    setDragOver(null);
+  };
 
   const handleDrop = async (stage: Stage) => {
     if (!dragging || !stage) return;
-    const person = people.find(p => p.id === dragging);
-    if (!person || person.stage === stage) { setDragging(null); setDragOver(null); return; }
+    const person = people.find((p) => p.id === dragging);
+    if (!person || person.stage === stage) {
+      setDragging(null);
+      setDragOver(null);
+      return;
+    }
 
     // Optimistic update
-    setPeople(prev => prev.map(p => p.id === dragging ? { ...p, stage } : p));
+    setPeople((prev) => prev.map((p) => (p.id === dragging ? { ...p, stage } : p)));
     setDragging(null);
     setDragOver(null);
 
@@ -108,7 +123,7 @@ export default function OrgPipeline() {
     }
   };
 
-  const byStage = (stage: Stage) => people.filter(p => p.stage === stage);
+  const byStage = (stage: Stage) => people.filter((p) => p.stage === stage);
 
   return (
     <SidebarProvider>
@@ -120,7 +135,9 @@ export default function OrgPipeline() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-display font-bold text-white">Pipeline</h1>
-              <p className="text-zinc-500 text-sm mt-0.5">Drag cards to move people between stages</p>
+              <p className="text-zinc-500 text-sm mt-0.5">
+                Drag cards to move people between stages
+              </p>
             </div>
             <Link to={`/club-admin/clubs/${clubId}/people`}>
               <Button variant="outline" className="border-white/10 text-zinc-300 hover:bg-white/5">
@@ -135,7 +152,7 @@ export default function OrgPipeline() {
             </div>
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-4 flex-1 min-h-0">
-              {STAGES.map(stage => {
+              {STAGES.map((stage) => {
                 const cards = byStage(stage);
                 const color = STAGE_COLORS[stage];
                 const isOver = dragOver === stage;
@@ -144,7 +161,10 @@ export default function OrgPipeline() {
                   <div
                     key={stage}
                     className="flex-shrink-0 w-60 flex flex-col"
-                    onDragOver={e => { e.preventDefault(); setDragOver(stage); }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOver(stage);
+                    }}
                     onDragLeave={() => setDragOver(null)}
                     onDrop={() => handleDrop(stage)}
                   >
@@ -177,7 +197,7 @@ export default function OrgPipeline() {
                           Drop here
                         </div>
                       )}
-                      {cards.map(person => (
+                      {cards.map((person) => (
                         <div
                           key={person.id}
                           draggable
@@ -201,7 +221,7 @@ export default function OrgPipeline() {
                             <Link
                               to={`/club-admin/clubs/${clubId}/people/${person.id}`}
                               className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500 hover:text-white flex-shrink-0"
-                              onClick={e => e.stopPropagation()}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <ChevronRight className="w-3.5 h-3.5" />
                             </Link>
@@ -210,7 +230,9 @@ export default function OrgPipeline() {
                           {person.avg_score != null && (
                             <div className="mt-2 flex items-center gap-1">
                               <Star className="w-3 h-3 text-gold fill-gold" />
-                              <span className="text-xs text-zinc-400">{person.avg_score.toFixed(1)}</span>
+                              <span className="text-xs text-zinc-400">
+                                {person.avg_score.toFixed(1)}
+                              </span>
                             </div>
                           )}
                         </div>

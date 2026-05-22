@@ -4,8 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Slide { emoji: string; title: string; body: string; }
-interface Spotlight { id: string; club_id: string; club_name: string; slides: Slide[]; }
+interface Slide {
+  emoji: string;
+  title: string;
+  body: string;
+}
+interface Spotlight {
+  id: string;
+  club_id: string;
+  club_name: string;
+  slides: Slide[];
+}
 
 export default function SpotlightCarousel() {
   const [spotlights, setSpotlights] = useState<Spotlight[]>([]);
@@ -31,25 +40,41 @@ export default function SpotlightCarousel() {
   const slides = current?.slides || [];
   const slide = slides[slideIndex] ?? slides[0];
 
-  const prevClub = () => { setClubIndex(i => (i - 1 + spotlights.length) % spotlights.length); setSlideIndex(0); };
-  const nextClub = () => { setClubIndex(i => (i + 1) % spotlights.length); setSlideIndex(0); };
-  const prevSlide = () => setSlideIndex(i => Math.max(0, i - 1));
-  const nextSlide = () => setSlideIndex(i => Math.min(slides.length - 1, i + 1));
+  const prevClub = () => {
+    setClubIndex((i) => (i - 1 + spotlights.length) % spotlights.length);
+    setSlideIndex(0);
+  };
+  const nextClub = () => {
+    setClubIndex((i) => (i + 1) % spotlights.length);
+    setSlideIndex(0);
+  };
+  const prevSlide = () => setSlideIndex((i) => Math.max(0, i - 1));
+  const nextSlide = () => setSlideIndex((i) => Math.min(slides.length - 1, i + 1));
 
   return (
     <div className="mb-8">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Zap className="w-4 h-4 text-gold" />
-          <h2 className="font-display text-base font-bold text-white tracking-tight">Club Spotlights</h2>
+          <h2 className="font-display text-base font-bold text-white tracking-tight">
+            Club Spotlights
+          </h2>
         </div>
         {spotlights.length > 1 && (
           <div className="flex items-center gap-1">
-            <button onClick={prevClub} className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/5 transition-all">
+            <button
+              onClick={prevClub}
+              className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/5 transition-all"
+            >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs text-zinc-600">{clubIndex + 1} / {spotlights.length}</span>
-            <button onClick={nextClub} className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/5 transition-all">
+            <span className="text-xs text-zinc-600">
+              {clubIndex + 1} / {spotlights.length}
+            </span>
+            <button
+              onClick={nextClub}
+              className="w-6 h-6 rounded-lg flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/5 transition-all"
+            >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -73,7 +98,9 @@ export default function SpotlightCarousel() {
                 {current.club_name}
               </p>
               <h3 className="text-base font-bold text-white mb-1 leading-snug">{slide?.title}</h3>
-              {slide?.body && <p className="text-sm text-zinc-400 leading-relaxed line-clamp-3">{slide.body}</p>}
+              {slide?.body && (
+                <p className="text-sm text-zinc-400 leading-relaxed line-clamp-3">{slide.body}</p>
+              )}
             </div>
           </div>
 
@@ -82,7 +109,11 @@ export default function SpotlightCarousel() {
             <div className="flex items-center gap-3">
               {slides.length > 1 && (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={prevSlide} disabled={slideIndex === 0} className="p-0.5 text-zinc-700 hover:text-zinc-400 disabled:opacity-30 transition-colors">
+                  <button
+                    onClick={prevSlide}
+                    disabled={slideIndex === 0}
+                    className="p-0.5 text-zinc-700 hover:text-zinc-400 disabled:opacity-30 transition-colors"
+                  >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
                   <div className="flex gap-1">
@@ -91,11 +122,18 @@ export default function SpotlightCarousel() {
                         key={i}
                         onClick={() => setSlideIndex(i)}
                         className="w-1.5 h-1.5 rounded-full transition-all"
-                        style={{ background: i === slideIndex ? 'hsl(43 74% 56%)' : 'rgba(255,255,255,0.15)' }}
+                        style={{
+                          background:
+                            i === slideIndex ? 'hsl(43 74% 56%)' : 'rgba(255,255,255,0.15)',
+                        }}
                       />
                     ))}
                   </div>
-                  <button onClick={nextSlide} disabled={slideIndex === slides.length - 1} className="p-0.5 text-zinc-700 hover:text-zinc-400 disabled:opacity-30 transition-colors">
+                  <button
+                    onClick={nextSlide}
+                    disabled={slideIndex === slides.length - 1}
+                    className="p-0.5 text-zinc-700 hover:text-zinc-400 disabled:opacity-30 transition-colors"
+                  >
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

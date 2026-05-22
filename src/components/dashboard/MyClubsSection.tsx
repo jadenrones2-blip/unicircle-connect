@@ -57,7 +57,7 @@ export default function MyClubsSection({ memberships, onRemoveMembership }: MyCl
                 <StatusIcon className="h-5 w-5" />
               </div>
               <div>
-                <Link 
+                <Link
                   to={`/clubs/${membership.club_id}`}
                   className="font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1"
                 >

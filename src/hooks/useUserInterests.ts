@@ -21,7 +21,7 @@ export function useUserInterests() {
         .from('user_interests')
         .select('*')
         .eq('user_id', userId);
-      
+
       if (fetchError) throw fetchError;
       return data as UserInterest[];
     } catch (err) {
@@ -33,43 +33,38 @@ export function useUserInterests() {
     }
   }, []);
 
-  const saveInterests = useCallback(async (
-    userId: string,
-    interests: { category: string; value: string }[]
-  ) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Delete existing interests first
-      await supabase
-        .from('user_interests')
-        .delete()
-        .eq('user_id', userId);
+  const saveInterests = useCallback(
+    async (userId: string, interests: { category: string; value: string }[]) => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Delete existing interests first
+        await supabase.from('user_interests').delete().eq('user_id', userId);
 
-      // Insert new interests
-      const records = interests.map(i => ({
-        user_id: userId,
-        interest_category: i.category,
-        interest_value: i.value,
-      }));
+        // Insert new interests
+        const records = interests.map((i) => ({
+          user_id: userId,
+          interest_category: i.category,
+          interest_value: i.value,
+        }));
 
-      if (records.length > 0) {
-        const { error: insertError } = await supabase
-          .from('user_interests')
-          .insert(records);
-        
-        if (insertError) throw insertError;
+        if (records.length > 0) {
+          const { error: insertError } = await supabase.from('user_interests').insert(records);
+
+          if (insertError) throw insertError;
+        }
+
+        return { success: true };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to save interests';
+        setError(message);
+        return { success: false, error: message };
+      } finally {
+        setLoading(false);
       }
-
-      return { success: true };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save interests';
-      setError(message);
-      return { success: false, error: message };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const hasCompletedOnboarding = useCallback(async (userId: string) => {
     try {
@@ -78,7 +73,7 @@ export function useUserInterests() {
         .select('id')
         .eq('user_id', userId)
         .limit(1);
-      
+
       if (fetchError) throw fetchError;
       return data && data.length > 0;
     } catch {

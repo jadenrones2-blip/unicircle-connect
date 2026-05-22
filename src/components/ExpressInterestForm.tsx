@@ -1,19 +1,19 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Check, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Check, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { useClubs, submitInterest } from "@/hooks/useExternalDB";
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { useClubs, submitInterest } from '@/hooks/useExternalDB';
 
 interface ExpressInterestFormProps {
   preselectedClubId?: string;
@@ -21,16 +21,16 @@ interface ExpressInterestFormProps {
   showClubSelector?: boolean;
 }
 
-const ExpressInterestForm = ({ 
-  preselectedClubId, 
+const ExpressInterestForm = ({
+  preselectedClubId,
   onSuccess,
-  showClubSelector = true 
+  showClubSelector = true,
 }: ExpressInterestFormProps) => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    clubId: preselectedClubId || "",
-    message: ""
+    name: '',
+    email: '',
+    clubId: preselectedClubId || '',
+    message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -38,35 +38,35 @@ const ExpressInterestForm = ({
 
   const { data: clubs, loading: clubsLoading } = useClubs();
 
-  const selectedClub = clubs.find(c => c.id === formData.clubId);
+  const selectedClub = clubs.find((c) => c.id === formData.clubId);
 
   // Update clubId when preselectedClubId changes
   useEffect(() => {
     if (preselectedClubId) {
-      setFormData(prev => ({ ...prev, clubId: preselectedClubId }));
+      setFormData((prev) => ({ ...prev, clubId: preselectedClubId }));
     }
   }, [preselectedClubId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     const result = await submitInterest({
       name: formData.name,
       email: formData.email,
       clubId: formData.clubId,
-      clubName: selectedClub?.name || "",
+      clubName: selectedClub?.name || '',
       message: formData.message,
     });
-    
+
     setIsSubmitting(false);
 
     if (result.success) {
       setIsSubmitted(true);
-      
+
       toast({
-        title: "Interest Submitted!",
-        description: selectedClub 
+        title: 'Interest Submitted!',
+        description: selectedClub
           ? `${selectedClub.name} will reach out to you soon.`
           : "We'll connect you with the right club soon.",
       });
@@ -76,24 +76,24 @@ const ExpressInterestForm = ({
       }
     } else {
       toast({
-        title: "Submission Failed",
-        description: result.error || "Please try again later.",
-        variant: "destructive",
+        title: 'Submission Failed',
+        description: result.error || 'Please try again later.',
+        variant: 'destructive',
       });
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }));
   };
 
   const handleClubChange = (value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      clubId: value
+      clubId: value,
     }));
   };
 
@@ -109,10 +109,9 @@ const ExpressInterestForm = ({
         </div>
         <h3 className="text-xl font-display font-semibold text-foreground">You're on the list!</h3>
         <p className="text-muted-foreground text-center mt-2">
-          {selectedClub 
+          {selectedClub
             ? `${selectedClub.name} will reach out to you with next steps.`
-            : "The club will reach out to you with next steps."
-          }
+            : 'The club will reach out to you with next steps.'}
         </p>
       </motion.div>
     );
@@ -147,7 +146,7 @@ const ExpressInterestForm = ({
           />
         </div>
       </div>
-      
+
       {showClubSelector && (
         <div className="space-y-2">
           <Label htmlFor="club">Select Club *</Label>
@@ -157,21 +156,13 @@ const ExpressInterestForm = ({
               <span>Loading clubs...</span>
             </div>
           ) : (
-            <Select 
-              value={formData.clubId} 
-              onValueChange={handleClubChange}
-              required
-            >
+            <Select value={formData.clubId} onValueChange={handleClubChange} required>
               <SelectTrigger className="bg-background">
                 <SelectValue placeholder="Choose a club to join" />
               </SelectTrigger>
               <SelectContent className="bg-card border-border z-50">
                 {clubs.map((club) => (
-                  <SelectItem 
-                    key={club.id} 
-                    value={club.id}
-                    className="cursor-pointer"
-                  >
+                  <SelectItem key={club.id} value={club.id} className="cursor-pointer">
                     <div className="flex items-center gap-2">
                       <span>{club.name}</span>
                       <span className="text-xs text-muted-foreground">({club.category})</span>
@@ -183,7 +174,7 @@ const ExpressInterestForm = ({
           )}
         </div>
       )}
-      
+
       <div className="space-y-2">
         <Label htmlFor="message">Why are you interested? (Optional)</Label>
         <Textarea
@@ -202,18 +193,20 @@ const ExpressInterestForm = ({
         variant="gold"
         size="lg"
         className="w-full"
-        disabled={isSubmitting || clubsLoading || (!preselectedClubId && showClubSelector && !formData.clubId)}
+        disabled={
+          isSubmitting ||
+          clubsLoading ||
+          (!preselectedClubId && showClubSelector && !formData.clubId)
+        }
       >
         {isSubmitting ? (
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
             className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
           />
         ) : (
-          <>
-            Submit Interest
-          </>
+          <>Submit Interest</>
         )}
       </Button>
     </form>

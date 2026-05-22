@@ -2,11 +2,7 @@ import { CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -67,13 +63,11 @@ export function EventFilters({
             {startDate ? format(startDate, 'MMM d, yyyy') : 'From date'}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-background border border-border z-50" align="start">
-          <Calendar
-            mode="single"
-            selected={startDate}
-            onSelect={onStartDateChange}
-            initialFocus
-          />
+        <PopoverContent
+          className="w-auto p-0 bg-background border border-border z-50"
+          align="start"
+        >
+          <Calendar mode="single" selected={startDate} onSelect={onStartDateChange} initialFocus />
         </PopoverContent>
       </Popover>
 
@@ -91,7 +85,10 @@ export function EventFilters({
             {endDate ? format(endDate, 'MMM d, yyyy') : 'To date'}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-background border border-border z-50" align="start">
+        <PopoverContent
+          className="w-auto p-0 bg-background border border-border z-50"
+          align="start"
+        >
           <Calendar
             mode="single"
             selected={endDate}

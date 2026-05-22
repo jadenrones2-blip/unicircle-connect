@@ -1,30 +1,30 @@
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 
 const steps = [
   {
-    num: "01",
-    side: "Students",
+    num: '01',
+    side: 'Students',
     title: "Browse what's open.",
-    body: "See every club recruiting right now — filter by category, match score, or vibe.",
+    body: 'See every club recruiting right now — filter by category, match score, or vibe.',
   },
   {
-    num: "02",
-    side: "Students",
-    title: "Apply in one place.",
+    num: '02',
+    side: 'Students',
+    title: 'Apply in one place.',
     body: "Fill out the club's form, upload your resume, done. No Venmo, no group chats.",
   },
   {
-    num: "03",
-    side: "Orgs",
-    title: "Score together.",
-    body: "Every officer reviews on the same rubric. Decisions are structured, not vibes in a group chat.",
+    num: '03',
+    side: 'Orgs',
+    title: 'Score together.',
+    body: 'Every officer reviews on the same rubric. Decisions are structured, not vibes in a group chat.',
   },
   {
-    num: "04",
-    side: "Orgs",
-    title: "Decide and notify.",
+    num: '04',
+    side: 'Orgs',
+    title: 'Decide and notify.',
     body: "Accept or pass. Applicants get emailed automatically — you don't write a thing.",
   },
 ];
@@ -33,7 +33,6 @@ const HowItWorksSection = () => {
   return (
     <section className="py-32 md:py-48 border-t border-white/[0.07]">
       <div className="max-w-6xl mx-auto px-6">
-
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -45,7 +44,9 @@ const HowItWorksSection = () => {
               How it works
             </p>
             <h2 className="font-display font-black text-4xl sm:text-5xl md:text-6xl text-white leading-[1.0] tracking-tight max-w-sm">
-              Simple on<br />both sides.
+              Simple on
+              <br />
+              both sides.
             </h2>
           </motion.div>
 
@@ -78,7 +79,7 @@ const HowItWorksSection = () => {
               key={s.num}
               initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
+              viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
               className="group flex items-start gap-8 md:gap-16 py-10 border-b border-white/[0.06] hover:border-white/[0.12] transition-colors duration-500 cursor-default"
             >
@@ -95,9 +96,7 @@ const HowItWorksSection = () => {
                 <h3 className="font-display font-black text-2xl md:text-3xl text-white leading-tight flex-1">
                   {s.title}
                 </h3>
-                <p className="text-zinc-500 text-sm leading-relaxed md:max-w-xs">
-                  {s.body}
-                </p>
+                <p className="text-zinc-500 text-sm leading-relaxed md:max-w-xs">{s.body}</p>
               </div>
 
               {/* Arrow on hover */}
@@ -105,7 +104,6 @@ const HowItWorksSection = () => {
             </motion.div>
           ))}
         </div>
-
       </div>
     </section>
   );

@@ -1,54 +1,74 @@
-import { useEffect, useDeferredValue, useMemo, useState } from "react";
-import { Helmet } from "react-helmet-async";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useDeferredValue, useMemo, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Loader2, Search, X, AlertCircle,
-  LayoutGrid, GraduationCap, Globe, Shield, Star,
-  Briefcase, Heart, MessageSquare, Users, Flame, Trophy, Cpu,
+  Loader2,
+  Search,
+  X,
+  AlertCircle,
+  LayoutGrid,
+  GraduationCap,
+  Globe,
+  Shield,
+  Star,
+  Briefcase,
+  Heart,
+  MessageSquare,
+  Users,
+  Flame,
+  Trophy,
+  Cpu,
   type LucideIcon,
-} from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import ClubCard from "@/components/ClubCard";
-import RequestNewClubModal from "@/components/RequestNewClubModal";
-import RecommendationChat from "@/components/RecommendationChat";
-import CampusSearch from "@/components/CampusSearch";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useClubs } from "@/hooks/useExternalDB";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useSavedClubs } from "@/hooks/useSavedClubs";
-import { useUserInterests } from "@/hooks/useUserInterests";
-import { calculateMatchScore, getTopMatchTerm, resumeHitsClub } from "@/lib/clubRecommendations";
-import { useAIMatching } from "@/hooks/useAIMatching";
-import { useClubsContext } from "@/contexts/ClubsContext";
-import { toast } from "sonner";
+} from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import ClubCard from '@/components/ClubCard';
+import RequestNewClubModal from '@/components/RequestNewClubModal';
+import RecommendationChat from '@/components/RecommendationChat';
+import CampusSearch from '@/components/CampusSearch';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useClubs } from '@/hooks/useExternalDB';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useSavedClubs } from '@/hooks/useSavedClubs';
+import { useUserInterests } from '@/hooks/useUserInterests';
+import { calculateMatchScore, getTopMatchTerm, resumeHitsClub } from '@/lib/clubRecommendations';
+import { useAIMatching } from '@/hooks/useAIMatching';
+import { useClubsContext } from '@/contexts/ClubsContext';
+import { toast } from 'sonner';
 
 const CATEGORIES: { label: string; color: string; icon: LucideIcon }[] = [
-  { label: 'All',          color: 'hsl(43 74% 56%)', icon: LayoutGrid },
-  { label: 'Academic',     color: '#60a5fa',          icon: GraduationCap },
-  { label: 'Cultural',     color: '#fb923c',          icon: Globe },
-  { label: 'Fraternity',   color: '#a78bfa',          icon: Shield },
-  { label: 'Greek Life',   color: '#c084fc',          icon: Star },
-  { label: 'Professional', color: '#818cf8',          icon: Briefcase },
-  { label: 'Service',      color: '#34d399',          icon: Heart },
-  { label: 'Social',       color: '#f472b6',          icon: MessageSquare },
-  { label: 'Sorority',     color: '#fb7185',          icon: Users },
-  { label: 'Spiritual',    color: '#2dd4bf',          icon: Flame },
-  { label: 'Sports',       color: '#f87171',          icon: Trophy },
-  { label: 'Tech / STEM',  color: '#22d3ee',          icon: Cpu },
+  { label: 'All', color: 'hsl(43 74% 56%)', icon: LayoutGrid },
+  { label: 'Academic', color: '#60a5fa', icon: GraduationCap },
+  { label: 'Cultural', color: '#fb923c', icon: Globe },
+  { label: 'Fraternity', color: '#a78bfa', icon: Shield },
+  { label: 'Greek Life', color: '#c084fc', icon: Star },
+  { label: 'Professional', color: '#818cf8', icon: Briefcase },
+  { label: 'Service', color: '#34d399', icon: Heart },
+  { label: 'Social', color: '#f472b6', icon: MessageSquare },
+  { label: 'Sorority', color: '#fb7185', icon: Users },
+  { label: 'Spiritual', color: '#2dd4bf', icon: Flame },
+  { label: 'Sports', color: '#f87171', icon: Trophy },
+  { label: 'Tech / STEM', color: '#22d3ee', icon: Cpu },
 ];
 
 // Greek life related terms for combined filtering
-const GREEK_LIFE_TERMS = ["fraternity", "sorority", "interfraternity", "panhellenic", "greek life", "greek"];
+const GREEK_LIFE_TERMS = [
+  'fraternity',
+  'sorority',
+  'interfraternity',
+  'panhellenic',
+  'greek life',
+  'greek',
+];
 
 const normalizeText = (value: string) =>
   value
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
 // Maps each club to the canonical filter bucket label (normalized) based on real DB values.
@@ -71,24 +91,31 @@ function loadFilters() {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as { search: string; category: string; recruiting: boolean };
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 const ClubsDirectory = () => {
   const saved = loadFilters();
-  const [searchText, setSearchText] = useState(saved?.search ?? "");
-  const [selectedCategory, setSelectedCategory] = useState(saved?.category ?? "All");
+  const [searchText, setSearchText] = useState(saved?.search ?? '');
+  const [selectedCategory, setSelectedCategory] = useState(saved?.category ?? 'All');
   const [recruitingOnly, setRecruitingOnly] = useState(saved?.recruiting ?? false);
 
   // Persist filters to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        search: searchText,
-        category: selectedCategory,
-        recruiting: recruitingOnly,
-      }));
-    } catch { /* storage full or unavailable */ }
+      localStorage.setItem(
+        LS_KEY,
+        JSON.stringify({
+          search: searchText,
+          category: selectedCategory,
+          recruiting: recruitingOnly,
+        })
+      );
+    } catch {
+      /* storage full or unavailable */
+    }
   }, [searchText, selectedCategory, recruitingOnly]);
   const deferredSearchText = useDeferredValue(searchText);
   const { data: clubs, loading, error } = useClubs();
@@ -98,7 +125,13 @@ const ClubsDirectory = () => {
   const { fetchInterests, fetchResumeSignals } = useUserInterests();
   const [interestValues, setInterestValues] = useState<string[]>([]);
   const [resumeSignals, setResumeSignals] = useState<string[]>([]);
-  const { getScore } = useAIMatching(clubs, enrichments, interestValues, resumeSignals, user?.id ?? null);
+  const { getScore } = useAIMatching(
+    clubs,
+    enrichments,
+    interestValues,
+    resumeSignals,
+    user?.id ?? null
+  );
   const [appliedClubIds, setAppliedClubIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -143,13 +176,11 @@ const ClubsDirectory = () => {
     const sorted = clubs.slice().sort((a, b) => a.name.localeCompare(b.name));
 
     return sorted.map((club) => {
-      const categoryBucketKey = normalizeText(club.categoryBucket || "");
-      const categoryKey = normalizeText(club.category || "");
-      const resolvedBucket = getFilterBucket(club.categoryBucket || "", club.category || "");
-      const searchParts = [club.name, club.description].filter(
-        (v): v is string => Boolean(v)
-      );
-      const searchKey = normalizeText(searchParts.join(" "));
+      const categoryBucketKey = normalizeText(club.categoryBucket || '');
+      const categoryKey = normalizeText(club.category || '');
+      const resolvedBucket = getFilterBucket(club.categoryBucket || '', club.category || '');
+      const searchParts = [club.name, club.description].filter((v): v is string => Boolean(v));
+      const searchKey = normalizeText(searchParts.join(' '));
 
       return { club, categoryBucketKey, categoryKey, resolvedBucket, searchKey };
     });
@@ -157,15 +188,14 @@ const ClubsDirectory = () => {
 
   // Filter clubs (deferred so typing stays responsive)
   const filteredClubs = useMemo(() => {
-    const selectedCategoryKey =
-      selectedCategory === "All" ? "" : normalizeText(selectedCategory);
+    const selectedCategoryKey = selectedCategory === 'All' ? '' : normalizeText(selectedCategory);
     const query = normalizeText(deferredSearchText);
-    const isGreekLifeFilter = selectedCategory === "Greek Life";
+    const isGreekLifeFilter = selectedCategory === 'Greek Life';
 
     return indexedClubs
       .filter(({ club, categoryBucketKey, categoryKey, resolvedBucket, searchKey }) => {
         let matchesCategory: boolean;
-        if (selectedCategory === "All") {
+        if (selectedCategory === 'All') {
           matchesCategory = true;
         } else if (isGreekLifeFilter) {
           matchesCategory = GREEK_LIFE_TERMS.some(
@@ -192,7 +222,13 @@ const ClubsDirectory = () => {
     const query = normalizeText(deferredSearchText);
     const counts: Record<string, number> = {};
 
-    for (const { categoryBucketKey, categoryKey, resolvedBucket, searchKey, club } of indexedClubs) {
+    for (const {
+      categoryBucketKey,
+      categoryKey,
+      resolvedBucket,
+      searchKey,
+      club,
+    } of indexedClubs) {
       const matchesSearch = !query || searchKey.includes(query);
       const matchesRecruiting = !recruitingOnly || club.recruitingStatus === 'open';
       if (!matchesSearch || !matchesRecruiting) continue;
@@ -214,12 +250,12 @@ const ClubsDirectory = () => {
   }, [indexedClubs, deferredSearchText, recruitingOnly]);
 
   const clearFilters = () => {
-    setSearchText("");
-    setSelectedCategory("All");
+    setSearchText('');
+    setSelectedCategory('All');
     setRecruitingOnly(false);
   };
 
-  const hasActiveFilters = searchText || selectedCategory !== "All" || recruitingOnly;
+  const hasActiveFilters = searchText || selectedCategory !== 'All' || recruitingOnly;
 
   // Match scores per club — blended if resume signals present
   const matchScores = useMemo(() => {
@@ -241,7 +277,10 @@ const ClubsDirectory = () => {
         return {
           club,
           score: aiResult?.score ?? 0,
-          reason: aiResult?.source === 'ai' ? aiResult.reason : getTopMatchTerm(club, interestValues, resumeSignals),
+          reason:
+            aiResult?.source === 'ai'
+              ? aiResult.reason
+              : getTopMatchTerm(club, interestValues, resumeSignals),
         };
       })
       .filter(({ score, club }) => score >= 40 && !appliedClubIds.has(club.id))
@@ -251,14 +290,19 @@ const ClubsDirectory = () => {
 
   const [showAllRanked, setShowAllRanked] = useState(false);
 
-
   return (
     <main className="min-h-screen bg-background">
       <Helmet>
         <title>Discover University Clubs | UniCircle</title>
-        <meta name="description" content="Explore hundreds of student clubs and organizations. Find the perfect club for your interests at UniCircle." />
+        <meta
+          name="description"
+          content="Explore hundreds of student clubs and organizations. Find the perfect club for your interests at UniCircle."
+        />
         <meta property="og:title" content="Discover University Clubs | UniCircle" />
-        <meta property="og:description" content="Explore hundreds of student clubs and organizations. Find your community on UniCircle." />
+        <meta
+          property="og:description"
+          content="Explore hundreds of student clubs and organizations. Find your community on UniCircle."
+        />
         <meta property="og:url" content="https://unicircle.app/clubs" />
         <meta property="og:type" content="website" />
       </Helmet>
@@ -267,14 +311,12 @@ const ClubsDirectory = () => {
       {/* Hero */}
       <section className="pt-28 pb-6 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="text-[10px] tracking-[0.22em] uppercase text-zinc-600 mb-2">
-            UC San Diego
-          </p>
+          <p className="text-[10px] tracking-[0.22em] uppercase text-zinc-600 mb-2">UC San Diego</p>
           <h1 className="text-3xl md:text-5xl font-display font-bold text-white tracking-tight mb-2">
             Student Organizations
           </h1>
           <p className="text-zinc-500 mb-6">
-            {loading ? "Loading clubs..." : `${clubs.length} clubs across every interest`}
+            {loading ? 'Loading clubs...' : `${clubs.length} clubs across every interest`}
           </p>
 
           {/* Search */}
@@ -289,7 +331,7 @@ const ClubsDirectory = () => {
             />
             {searchText && (
               <button
-                onClick={() => setSearchText("")}
+                onClick={() => setSearchText('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
                 aria-label="Clear search"
               >
@@ -327,9 +369,10 @@ const ClubsDirectory = () => {
                 <button
                   key={cat.label}
                   onClick={() => setSelectedCategory(cat.label)}
-                  style={isActive
-                    ? { background: cat.color, color: '#000', borderColor: cat.color }
-                    : { '--pill-hover': cat.color } as React.CSSProperties
+                  style={
+                    isActive
+                      ? { background: cat.color, color: '#000', borderColor: cat.color }
+                      : ({ '--pill-hover': cat.color } as React.CSSProperties)
                   }
                   className={`group shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150 whitespace-nowrap border ${
                     isActive
@@ -363,7 +406,9 @@ const ClubsDirectory = () => {
                   : 'bg-transparent text-zinc-500 border-white/10 hover:text-white'
               }`}
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${recruitingOnly ? 'bg-green-400' : 'bg-zinc-600'}`} />
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${recruitingOnly ? 'bg-green-400' : 'bg-zinc-600'}`}
+              />
               Recruiting Now
             </button>
           </div>
@@ -377,11 +422,13 @@ const ClubsDirectory = () => {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="text-sm font-semibold text-white">Your Top Matches</h2>
-                <p className="text-[11px] text-zinc-600 mt-0.5">Ranked by how well each club fits your interests</p>
+                <p className="text-[11px] text-zinc-600 mt-0.5">
+                  Ranked by how well each club fits your interests
+                </p>
               </div>
               {recommendedClubs.length > 5 && (
                 <button
-                  onClick={() => setShowAllRanked(v => !v)}
+                  onClick={() => setShowAllRanked((v) => !v)}
                   className="text-xs text-gold hover:text-gold/80 transition-colors"
                 >
                   {showAllRanked ? 'Show less' : `See all ${recommendedClubs.length}`}
@@ -389,39 +436,43 @@ const ClubsDirectory = () => {
               )}
             </div>
             <div className="space-y-2">
-              {(showAllRanked ? recommendedClubs : recommendedClubs.slice(0, 5)).map(({ club, score, reason }, i) => (
-                <a
-                  key={club.id}
-                  href={`/clubs/${club.id}`}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/[0.07] bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors group"
-                >
-                  {/* Rank */}
-                  <span className="w-7 shrink-0 text-center text-sm font-bold text-zinc-600 group-hover:text-zinc-400 transition-colors">
-                    {i + 1}
-                  </span>
-                  {/* Club info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-zinc-100 truncate">{club.name}</p>
-                    {reason ? (
-                      <p className="text-[11px] text-gold/80 truncate mt-0.5">{reason}</p>
-                    ) : (
-                      <p className="text-[11px] text-zinc-600 truncate mt-0.5">{club.categoryBucket || club.category}</p>
-                    )}
-                  </div>
-                  {/* Match score bar */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className="w-20 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-gold/70"
-                        style={{ width: `${score}%` }}
-                      />
-                    </div>
-                    <span className="text-[11px] font-semibold text-zinc-400 w-8 text-right tabular-nums">
-                      {score}%
+              {(showAllRanked ? recommendedClubs : recommendedClubs.slice(0, 5)).map(
+                ({ club, score, reason }, i) => (
+                  <a
+                    key={club.id}
+                    href={`/clubs/${club.id}`}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/[0.07] bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors group"
+                  >
+                    {/* Rank */}
+                    <span className="w-7 shrink-0 text-center text-sm font-bold text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                      {i + 1}
                     </span>
-                  </div>
-                </a>
-              ))}
+                    {/* Club info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-zinc-100 truncate">{club.name}</p>
+                      {reason ? (
+                        <p className="text-[11px] text-gold/80 truncate mt-0.5">{reason}</p>
+                      ) : (
+                        <p className="text-[11px] text-zinc-600 truncate mt-0.5">
+                          {club.categoryBucket || club.category}
+                        </p>
+                      )}
+                    </div>
+                    {/* Match score bar */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="w-20 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gold/70"
+                          style={{ width: `${score}%` }}
+                        />
+                      </div>
+                      <span className="text-[11px] font-semibold text-zinc-400 w-8 text-right tabular-nums">
+                        {score}%
+                      </span>
+                    </div>
+                  </a>
+                )
+              )}
             </div>
           </div>
         </section>
@@ -453,7 +504,8 @@ const ClubsDirectory = () => {
             <>
               {/* Results count */}
               <p className="text-xs text-zinc-600 mb-5">
-                {filteredClubs.length} clubs{selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''}
+                {filteredClubs.length} clubs
+                {selectedCategory !== 'All' ? ` in ${selectedCategory}` : ''}
               </p>
 
               {filteredClubs.length > 0 ? (
@@ -478,7 +530,6 @@ const ClubsDirectory = () => {
                           isSaved={isSaved(club.id)}
                           onToggleSave={handleToggleSave}
                           matchScore={matchScores[club.id]}
-
                         />
                       </motion.div>
                     ))}
@@ -504,7 +555,10 @@ const ClubsDirectory = () => {
                   {/* Suggest categories that do have results */}
                   {(() => {
                     const suggestions = CATEGORIES.filter(
-                      (c) => c.label !== 'All' && c.label !== selectedCategory && (categoryCounts[c.label] ?? 0) > 0
+                      (c) =>
+                        c.label !== 'All' &&
+                        c.label !== selectedCategory &&
+                        (categoryCounts[c.label] ?? 0) > 0
                     ).slice(0, 4);
                     return suggestions.length > 0 ? (
                       <div className="mb-6">
@@ -515,13 +569,18 @@ const ClubsDirectory = () => {
                             return (
                               <button
                                 key={cat.label}
-                                onClick={() => { setSelectedCategory(cat.label); setSearchText(""); }}
+                                onClick={() => {
+                                  setSelectedCategory(cat.label);
+                                  setSearchText('');
+                                }}
                                 style={{ borderColor: `${cat.color}40`, color: cat.color }}
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border bg-transparent hover:opacity-80 transition-opacity"
                               >
                                 <Icon className="w-3 h-3" />
                                 {cat.label}
-                                <span className="text-[10px] opacity-60">{categoryCounts[cat.label]}</span>
+                                <span className="text-[10px] opacity-60">
+                                  {categoryCounts[cat.label]}
+                                </span>
                               </button>
                             );
                           })}
@@ -546,7 +605,6 @@ const ClubsDirectory = () => {
       </section>
 
       <Footer />
-
 
       <RecommendationChat clubs={clubs} />
     </main>

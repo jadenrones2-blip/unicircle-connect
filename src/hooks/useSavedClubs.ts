@@ -42,7 +42,13 @@ export function useSavedClubs() {
         throw error;
       }
       setSavedClubs((prev) => [
-        { id: '', user_id: userId, club_id: clubId, club_name: clubName, created_at: new Date().toISOString() },
+        {
+          id: '',
+          user_id: userId,
+          club_id: clubId,
+          club_name: clubName,
+          created_at: new Date().toISOString(),
+        },
         ...prev,
       ]);
       return { success: true };

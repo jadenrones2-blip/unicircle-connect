@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ChevronRight, ChevronDown, ChevronUp, Loader2, Pencil, Trash2, Check, X } from 'lucide-react';
+import {
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Pencil,
+  Trash2,
+  Check,
+  X,
+} from 'lucide-react';
 import { ApplicantCard } from './ApplicantCard';
 import type { RecruitmentStage, Applicant } from '@/hooks/useRecruitment';
 import { getStageColor } from '@/lib/stageColors';
-import {Badge} from "@/components/ui/badge.tsx";
+import { Badge } from '@/components/ui/badge.tsx';
 
 interface AttendanceEvent {
   id: string;
@@ -36,7 +45,28 @@ interface StageColumnProps {
   onToggleSelect: (id: string) => void;
 }
 
-export function StageColumn({ stage, applicants, allStages, officerScoreMap, nextStageId, nextStageLabel, isIntake, attendanceEvents, onDeleteApplicant, onOpenDrawer, onAdvanceRound, onMoveApplicant, onRenameStage, onDeleteStage, editingStageId, editingStageLabel, setEditingStageId, setEditingStageLabel, selectedApplicants, onToggleSelect }: StageColumnProps) {
+export function StageColumn({
+  stage,
+  applicants,
+  allStages,
+  officerScoreMap,
+  nextStageId,
+  nextStageLabel,
+  isIntake,
+  attendanceEvents,
+  onDeleteApplicant,
+  onOpenDrawer,
+  onAdvanceRound,
+  onMoveApplicant,
+  onRenameStage,
+  onDeleteStage,
+  editingStageId,
+  editingStageLabel,
+  setEditingStageId,
+  setEditingStageLabel,
+  selectedApplicants,
+  onToggleSelect,
+}: StageColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   });
@@ -46,7 +76,7 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
 
   const stageColor = getStageColor(stage, allStages ?? [stage]);
 
-  const acceptedApplicants = applicants.filter(a => a.final_decision === 'accepted');
+  const acceptedApplicants = applicants.filter((a) => a.final_decision === 'accepted');
   const canAdvance = !!nextStageId && acceptedApplicants.length > 0 && !!onAdvanceRound;
 
   // Sort: screened applicants by score desc, unscreened at the bottom
@@ -60,54 +90,76 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
   const handleAdvance = async () => {
     if (!canAdvance || !nextStageId) return;
     setAdvancing(true);
-    await onAdvanceRound!(acceptedApplicants.map(a => a.id), nextStageId);
+    await onAdvanceRound!(
+      acceptedApplicants.map((a) => a.id),
+      nextStageId
+    );
     setAdvancing(false);
   };
 
   return (
-      <div className={`flex flex-col w-72 shrink-0 ${
-          isIntake ? 'border-blue-500 pl-2' : ''
-      }`}>
+    <div className={`flex flex-col w-72 shrink-0 ${isIntake ? 'border-blue-500 pl-2' : ''}`}>
       <div className="flex items-center justify-between mb-3 px-1 group">
         {editingStageId === stage.id ? (
           <div className="flex items-center gap-1 flex-1 mr-2">
             <input
               autoFocus
               value={editingStageLabel}
-              onChange={e => setEditingStageLabel?.(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') { onRenameStage?.(stage.id, editingStageLabel || ''); setEditingStageId?.(null); }
+              onChange={(e) => setEditingStageLabel?.(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  onRenameStage?.(stage.id, editingStageLabel || '');
+                  setEditingStageId?.(null);
+                }
                 if (e.key === 'Escape') setEditingStageId?.(null);
               }}
               className="flex-1 text-sm font-medium bg-zinc-800 border border-gold/40 rounded px-2 py-0.5 text-white outline-none"
             />
-            <button onClick={() => { onRenameStage?.(stage.id, editingStageLabel || ''); setEditingStageId?.(null); }} className="text-green-400 hover:text-green-300"><Check className="w-3.5 h-3.5" /></button>
-            <button onClick={() => setEditingStageId?.(null)} className="text-zinc-500 hover:text-zinc-300"><X className="w-3.5 h-3.5" /></button>
+            <button
+              onClick={() => {
+                onRenameStage?.(stage.id, editingStageLabel || '');
+                setEditingStageId?.(null);
+              }}
+              className="text-green-400 hover:text-green-300"
+            >
+              <Check className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setEditingStageId?.(null)}
+              className="text-zinc-500 hover:text-zinc-300"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
         ) : (
           <div className="flex items-center gap-1.5 flex-1 mr-2">
             <span style={{ background: stageColor }} className="w-2 h-2 rounded-full shrink-0" />
-              <div className="flex items-center gap-2">
-                  <h3 className="font-medium text-sm text-zinc-200">
-                      {stage.label}
-                  </h3>
-                  {isIntake && (
-                      <Badge variant="outline" className="bg-blue-500/20 text-blue-400">
-                          Applied
-                      </Badge>
-                  )}
-              </div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-medium text-sm text-zinc-200">{stage.label}</h3>
+              {isIntake && (
+                <Badge variant="outline" className="bg-blue-500/20 text-blue-400">
+                  Applied
+                </Badge>
+              )}
+            </div>
             {onRenameStage && (
               <button
-                onClick={() => { setEditingStageId?.(stage.id); setEditingStageLabel?.(stage.label); }}
+                onClick={() => {
+                  setEditingStageId?.(stage.id);
+                  setEditingStageLabel?.(stage.label);
+                }}
                 className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-zinc-300 transition-opacity"
-              ><Pencil className="w-3 h-3" /></button>
+              >
+                <Pencil className="w-3 h-3" />
+              </button>
             )}
             {onDeleteStage && (
               <button
                 onClick={() => onDeleteStage(stage.id)}
                 className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 transition-opacity"
-              ><Trash2 className="w-3 h-3" /></button>
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
             )}
           </div>
         )}
@@ -116,7 +168,11 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
             <button
               onClick={handleAdvance}
               disabled={!canAdvance || advancing}
-              title={canAdvance ? `Move ${acceptedApplicants.length} accepted → ${nextStageLabel}` : 'Mark applicants as Accepted in the drawer first'}
+              title={
+                canAdvance
+                  ? `Move ${acceptedApplicants.length} accepted → ${nextStageLabel}`
+                  : 'Mark applicants as Accepted in the drawer first'
+              }
               className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full transition-colors ${
                 canAdvance
                   ? 'bg-gold/20 text-gold hover:bg-gold/30 cursor-pointer'
@@ -142,13 +198,11 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
       <div
         ref={setNodeRef}
         className={`flex-1 min-h-[200px] p-2 rounded-lg border-2 border-dashed transition-colors ${
-          isOver
-            ? 'border-gold/50 bg-gold/5'
-            : 'border-white/15 bg-white/5'
+          isOver ? 'border-gold/50 bg-gold/5' : 'border-white/15 bg-white/5'
         }`}
       >
         <SortableContext
-          items={sortedApplicants.map(a => a.id)}
+          items={sortedApplicants.map((a) => a.id)}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2">
@@ -182,7 +236,11 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
             onClick={() => setAttendanceOpen((o) => !o)}
           >
             <span className="font-medium">Attendance</span>
-            {attendanceOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            {attendanceOpen ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
           </button>
           {attendanceOpen && (
             <div className="border-t border-white/10 px-3 py-2 space-y-2">
@@ -191,8 +249,10 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
                 return (
                   <div key={ev.id}>
                     <p className="text-xs text-zinc-500 mb-1 truncate">
-                      <span className="font-medium text-zinc-300">{attended.length}/{applicants.length}</span> attended{' '}
-                      <span className="italic">{ev.title}</span>
+                      <span className="font-medium text-zinc-300">
+                        {attended.length}/{applicants.length}
+                      </span>{' '}
+                      attended <span className="italic">{ev.title}</span>
                     </p>
                     <div className="space-y-0.5">
                       {applicants.map((a) => (
@@ -202,7 +262,11 @@ export function StageColumn({ stage, applicants, allStages, officerScoreMap, nex
                           ) : (
                             <span className="text-zinc-600">—</span>
                           )}
-                          <span className={ev.rsvpEmails.has(a.email) ? 'text-zinc-300' : 'text-zinc-600'}>
+                          <span
+                            className={
+                              ev.rsvpEmails.has(a.email) ? 'text-zinc-300' : 'text-zinc-600'
+                            }
+                          >
                             {a.first_name} {a.last_name}
                           </span>
                         </div>

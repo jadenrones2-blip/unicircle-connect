@@ -2,7 +2,14 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  LogOut, RefreshCw, Calendar, Users, Loader2, UserCircle, ChevronRight, X,
+  LogOut,
+  RefreshCw,
+  Calendar,
+  Users,
+  Loader2,
+  UserCircle,
+  ChevronRight,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,9 +35,18 @@ export default function Dashboard() {
   const { fetchInterests } = useUserInterests();
   const { data: clubs, loading: clubsLoading, refetch } = useClubs();
   const { applications, fetchApplications, withdrawApplication } = useClubMemberships();
-  const { savedClubs, fetchSavedClubs, saveClub, unsaveClub, isSaved: isClubSaved } = useSavedClubs();
+  const {
+    savedClubs,
+    fetchSavedClubs,
+    saveClub,
+    unsaveClub,
+    isSaved: isClubSaved,
+  } = useSavedClubs();
 
-  const [profile, setProfile] = useState<{ display_name: string | null; avatar_url: string | null } | null>(null);
+  const [profile, setProfile] = useState<{
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null>(null);
   const [interests, setInterests] = useState<{ category: string; value: string }[]>([]);
   const [interestsLoading, setInterestsLoading] = useState(true);
   const [topView, setTopView] = useState<'clubs' | 'events'>('clubs');
@@ -38,9 +54,9 @@ export default function Dashboard() {
   const [selectedEvent, setSelectedEvent] = useState<ExternalEvent | null>(null);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
-  const interestValues = useMemo(() => interests.map(i => i.value), [interests]);
+  const interestValues = useMemo(() => interests.map((i) => i.value), [interests]);
   const resumeSignalValues = useMemo(
-    () => interests.filter(i => i.category.startsWith('resume')).map(i => i.value),
+    () => interests.filter((i) => i.category.startsWith('resume')).map((i) => i.value),
     [interests]
   );
   const { events: clubEvents } = useRecommendedEvents(clubs, interestValues, 8);
@@ -63,20 +79,23 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
     setInterestsLoading(true);
-    Promise.all([
-      fetchInterests(user.id),
-      fetchApplications(user.id),
-      fetchSavedClubs(user.id),
-    ]).then(([interestsData]) => {
-      setInterests(interestsData.map(i => ({ category: i.interest_category, value: i.interest_value })));
-      setInterestsLoading(false);
-    }).catch(() => setInterestsLoading(false));
+    Promise.all([fetchInterests(user.id), fetchApplications(user.id), fetchSavedClubs(user.id)])
+      .then(([interestsData]) => {
+        setInterests(
+          interestsData.map((i) => ({ category: i.interest_category, value: i.interest_value }))
+        );
+        setInterestsLoading(false);
+      })
+      .catch(() => setInterestsLoading(false));
   }, [user, fetchInterests, fetchApplications, fetchSavedClubs]);
 
   // Upcoming events from saved clubs
   useEffect(() => {
-    if (!savedClubs.length) { setUpcomingEvents([]); return; }
-    const savedIds = savedClubs.map(s => s.club_id);
+    if (!savedClubs.length) {
+      setUpcomingEvents([]);
+      return;
+    }
+    const savedIds = savedClubs.map((s) => s.club_id);
     const now = new Date().toISOString();
     dataClient
       .from('events')
@@ -110,19 +129,21 @@ export default function Dashboard() {
         () => refreshApplications()
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, refreshApplications]);
 
   // ── Top 10: proper 60/40 interest+resume scoring ──
   const topMatches = useMemo(() => {
     if (!clubs.length || !interestValues.length) return [];
     return clubs
-      .map(club => ({
+      .map((club) => ({
         club,
         score: calculateMatchScore(club, interestValues, resumeSignalValues),
         reason: getTopMatchTerm(club, interestValues, resumeSignalValues) ?? undefined,
       }))
-      .filter(c => c.score > 0)
+      .filter((c) => c.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, 10);
   }, [clubs, interestValues, resumeSignalValues]);
@@ -132,17 +153,22 @@ export default function Dashboard() {
     const seen = new Set<string | number>();
     const all: ExternalEvent[] = [];
     for (const e of [...(clubEvents as unknown as ExternalEvent[]), ...upcomingEvents]) {
-      if (!seen.has(e.id)) { seen.add(e.id); all.push(e); }
+      if (!seen.has(e.id)) {
+        seen.add(e.id);
+        all.push(e);
+      }
     }
     return all
       .sort((a, b) =>
-        (a.corrected_start_time || a.start_time || '').localeCompare(b.corrected_start_time || b.start_time || '')
+        (a.corrected_start_time || a.start_time || '').localeCompare(
+          b.corrected_start_time || b.start_time || ''
+        )
       )
       .slice(0, 6);
   }, [clubEvents, upcomingEvents]);
 
   const activeApplications = useMemo(
-    () => applications.filter(a => a.status !== 'withdrawn'),
+    () => applications.filter((a) => a.status !== 'withdrawn'),
     [applications]
   );
 
@@ -180,7 +206,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-
       {/* ── Header ── */}
       <header className="border-b border-border bg-background/95 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
@@ -189,29 +214,49 @@ export default function Dashboard() {
           </Link>
           <div className="flex items-center gap-1">
             <Link to="/clubs">
-              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3 text-xs tracking-wide uppercase">
-                <Users className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Clubs</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground px-2 sm:px-3 text-xs tracking-wide uppercase"
+              >
+                <Users className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Clubs</span>
               </Button>
             </Link>
             <Link to="/events">
-              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3 text-xs tracking-wide uppercase">
-                <Calendar className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Events</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground px-2 sm:px-3 text-xs tracking-wide uppercase"
+              >
+                <Calendar className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Events</span>
               </Button>
             </Link>
             <Link to="/profile">
-              <Button variant="ghost" size="sm" className="text-muted-foreground px-2 sm:px-3 text-xs tracking-wide uppercase">
-                <UserCircle className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Profile</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground px-2 sm:px-3 text-xs tracking-wide uppercase"
+              >
+                <UserCircle className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Profile</span>
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="px-2 sm:px-3 text-xs tracking-wide uppercase">
-              <LogOut className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Sign Out</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="px-2 sm:px-3 text-xs tracking-wide uppercase"
+            >
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
             </Button>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 pb-24 max-w-5xl">
-
         {/* ── 1. Greeting ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -220,10 +265,15 @@ export default function Dashboard() {
         >
           <div>
             <p className="text-[11px] font-bold tracking-[0.18em] uppercase text-zinc-600 mb-1">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+              })}
             </p>
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-white leading-tight">
-              {greeting}{displayName ? `, ${displayName}` : ''} 👋
+              {greeting}
+              {displayName ? `, ${displayName}` : ''} 👋
             </h1>
           </div>
           <div className="flex items-center gap-4 shrink-0">
@@ -233,12 +283,18 @@ export default function Dashboard() {
                 <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Saved</p>
               </div>
               <div>
-                <p className="text-xl font-black text-white leading-none">{activeApplications.length}</p>
+                <p className="text-xl font-black text-white leading-none">
+                  {activeApplications.length}
+                </p>
                 <p className="text-[10px] text-zinc-600 uppercase tracking-wider">Applied</p>
               </div>
             </div>
             {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="Profile" className="w-10 h-10 rounded-xl object-cover ring-2 ring-gold/30" />
+              <img
+                src={profile.avatar_url}
+                alt="Profile"
+                className="w-10 h-10 rounded-xl object-cover ring-2 ring-gold/30"
+              />
             ) : (
               <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center text-sm font-black text-gold">
                 {(displayName[0] ?? '?').toUpperCase()}
@@ -286,7 +342,9 @@ export default function Dashboard() {
               </div>
               <p className="text-xs text-zinc-600 hidden sm:block">
                 {topView === 'clubs'
-                  ? (resumeSignalValues.length > 0 ? 'Ranked by interests & resume' : 'Ranked by quiz answers')
+                  ? resumeSignalValues.length > 0
+                    ? 'Ranked by interests & resume'
+                    : 'Ranked by quiz answers'
                   : 'Upcoming from your interests'}
               </p>
             </div>
@@ -338,9 +396,11 @@ export default function Dashboard() {
                         className="absolute top-3 left-3 z-10 w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-black select-none"
                         style={{
                           background:
-                            index === 0 ? 'rgba(196,150,28,0.92)' :
-                            index === 1 ? 'rgba(168,168,188,0.85)' :
-                            'rgba(0,0,0,0.78)',
+                            index === 0
+                              ? 'rgba(196,150,28,0.92)'
+                              : index === 1
+                                ? 'rgba(168,168,188,0.85)'
+                                : 'rgba(0,0,0,0.78)',
                           color: index <= 1 ? '#0a0a0a' : '#9ca3af',
                           border: '1px solid rgba(255,255,255,0.12)',
                           backdropFilter: 'blur(4px)',
@@ -361,7 +421,10 @@ export default function Dashboard() {
               )}
               {topMatches.length > 0 && (
                 <div className="mt-6 text-center">
-                  <Link to="/clubs" className="text-xs text-zinc-500 hover:text-gold transition-colors">
+                  <Link
+                    to="/clubs"
+                    className="text-xs text-zinc-500 hover:text-gold transition-colors"
+                  >
                     Explore all clubs →
                   </Link>
                 </div>
@@ -381,11 +444,14 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
-                  {combinedEvents.map(event => (
+                  {combinedEvents.map((event) => (
                     <DashboardEventCard
                       key={event.id}
                       event={event}
-                      onClick={() => { setSelectedEvent(event); setIsEventModalOpen(true); }}
+                      onClick={() => {
+                        setSelectedEvent(event);
+                        setIsEventModalOpen(true);
+                      }}
                     />
                   ))}
                 </div>
@@ -410,16 +476,27 @@ export default function Dashboard() {
                   className="flex items-center justify-between p-4 rounded-xl bg-zinc-900 border border-white/[0.07] group"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-white truncate">{app.club_name || app.club_id}</p>
-                    <p className="text-[11px] text-zinc-500 mt-0.5 capitalize">{app.stage || app.status}</p>
+                    <p className="text-sm font-semibold text-white truncate">
+                      {app.club_name || app.club_id}
+                    </p>
+                    <p className="text-[11px] text-zinc-500 mt-0.5 capitalize">
+                      {app.stage || app.status}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 ml-3">
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                      app.status === 'accepted' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                      app.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                      'bg-gold/10 text-gold border-gold/20'
-                    }`}>
-                      {app.status === 'pending' ? 'Under Review' : (app.status as string).charAt(0).toUpperCase() + (app.status as string).slice(1)}
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                        app.status === 'accepted'
+                          ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                          : app.status === 'rejected'
+                            ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                            : 'bg-gold/10 text-gold border-gold/20'
+                      }`}
+                    >
+                      {app.status === 'pending'
+                        ? 'Under Review'
+                        : (app.status as string).charAt(0).toUpperCase() +
+                          (app.status as string).slice(1)}
                     </span>
                     {app.status === 'pending' && (
                       <button
@@ -447,28 +524,36 @@ export default function Dashboard() {
           <p className="text-xs text-zinc-600 tracking-[0.12em] uppercase">Keep exploring</p>
           <div className="flex gap-2 flex-wrap">
             <Link to="/clubs">
-              <Button variant="outline" size="sm" className="text-xs">All Clubs</Button>
+              <Button variant="outline" size="sm" className="text-xs">
+                All Clubs
+              </Button>
             </Link>
             <Link to="/events">
-              <Button variant="outline" size="sm" className="text-xs">All Events</Button>
+              <Button variant="outline" size="sm" className="text-xs">
+                All Events
+              </Button>
             </Link>
             <Button
               variant="ghost"
               size="sm"
               className="text-xs text-zinc-600"
-              onClick={() => { refetch(); }}
+              onClick={() => {
+                refetch();
+              }}
             >
               <RefreshCw className="w-3 h-3 mr-1" /> Refresh
             </Button>
           </div>
         </motion.div>
-
       </main>
 
       <EventDetailModal
         event={selectedEvent}
         isOpen={isEventModalOpen}
-        onClose={() => { setIsEventModalOpen(false); setSelectedEvent(null); }}
+        onClose={() => {
+          setIsEventModalOpen(false);
+          setSelectedEvent(null);
+        }}
       />
     </div>
   );

@@ -1,18 +1,18 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  format, 
-  startOfMonth, 
-  endOfMonth, 
-  startOfWeek, 
-  endOfWeek, 
-  eachDayOfInterval, 
-  isSameMonth, 
-  isSameDay, 
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
   isToday,
   parseISO,
   addMonths,
-  subMonths
+  subMonths,
 } from 'date-fns';
 import { ChevronLeft, ChevronRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,8 +47,8 @@ export function MonthlyCalendar({ events, loading, error, onRefetch }: MonthlyCa
   // Group events by date
   const eventsByDate = useMemo(() => {
     const grouped: Record<string, ExternalEvent[]> = {};
-    
-    events.forEach(event => {
+
+    events.forEach((event) => {
       const dateKey = format(parseISO(event.start_time), 'yyyy-MM-dd');
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
@@ -59,8 +59,8 @@ export function MonthlyCalendar({ events, loading, error, onRefetch }: MonthlyCa
     return grouped;
   }, [events]);
 
-  const handlePrevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
-  const handleNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
+  const handlePrevMonth = () => setCurrentMonth((prev) => subMonths(prev, 1));
+  const handleNextMonth = () => setCurrentMonth((prev) => addMonths(prev, 1));
   const handleToday = () => setCurrentMonth(new Date());
 
   const handleEventClick = (event: ExternalEvent) => {
@@ -107,7 +107,13 @@ export function MonthlyCalendar({ events, loading, error, onRefetch }: MonthlyCa
           <Button variant="outline" size="sm" onClick={handleToday} className="h-8 text-xs">
             Today
           </Button>
-          <Button variant="ghost" size="icon" onClick={onRefetch} disabled={loading} className="h-8 w-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onRefetch}
+            disabled={loading}
+            className="h-8 w-8"
+          >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
@@ -129,11 +135,8 @@ export function MonthlyCalendar({ events, loading, error, onRefetch }: MonthlyCa
       >
         {/* Weekday Headers */}
         <div className="grid grid-cols-7 border-b border-border bg-muted/50">
-          {WEEKDAYS.map(day => (
-            <div 
-              key={day} 
-              className="p-3 text-center text-sm font-medium text-muted-foreground"
-            >
+          {WEEKDAYS.map((day) => (
+            <div key={day} className="p-3 text-center text-sm font-medium text-muted-foreground">
               {day}
             </div>
           ))}
@@ -154,19 +157,21 @@ export function MonthlyCalendar({ events, loading, error, onRefetch }: MonthlyCa
                 } ${isDayToday ? 'bg-gold/5' : ''}`}
               >
                 {/* Day Number */}
-                <div className={`text-[10px] md:text-sm font-medium mb-1 ${
-                  isDayToday 
-                    ? 'w-5 h-5 md:w-7 md:h-7 rounded-full bg-gold text-primary-foreground flex items-center justify-center' 
-                    : isCurrentMonth 
-                      ? 'text-foreground' 
-                      : 'text-muted-foreground/50'
-                }`}>
+                <div
+                  className={`text-[10px] md:text-sm font-medium mb-1 ${
+                    isDayToday
+                      ? 'w-5 h-5 md:w-7 md:h-7 rounded-full bg-gold text-primary-foreground flex items-center justify-center'
+                      : isCurrentMonth
+                        ? 'text-foreground'
+                        : 'text-muted-foreground/50'
+                  }`}
+                >
                   {format(day, 'd')}
                 </div>
 
                 {/* Events */}
                 <div className="space-y-1">
-                  {dayEvents.slice(0, 3).map(event => (
+                  {dayEvents.slice(0, 3).map((event) => (
                     <button
                       key={event.id}
                       onClick={() => handleEventClick(event)}
@@ -176,8 +181,8 @@ export function MonthlyCalendar({ events, loading, error, onRefetch }: MonthlyCa
                     </button>
                   ))}
                   {dayEvents.length > 3 && (
-                    <Badge 
-                      variant="secondary" 
+                    <Badge
+                      variant="secondary"
                       className="text-xs cursor-pointer hover:bg-muted"
                       onClick={() => {
                         // Show the 4th event on click

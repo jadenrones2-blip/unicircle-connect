@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback, useMemo} from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -69,21 +69,17 @@ export function useRecruitmentRequirements(clubId: string | undefined) {
     loadData();
   }, [clubId, user, fetchRequirements]);
 
-  const addRequirement = async (
-    type: 'strict' | 'ai',
-    criterion: string,
-    value: Json
-  ) => {
+  const addRequirement = async (type: 'strict' | 'ai', criterion: string, value: Json) => {
     if (!clubId || !user) return false;
 
-    const { error } = await supabase
-      .from('recruitment_requirements')
-      .insert([{
+    const { error } = await supabase.from('recruitment_requirements').insert([
+      {
         club_id: clubId,
         type,
         criterion,
         value,
-      }]);
+      },
+    ]);
 
     if (error) {
       console.error('Error adding requirement:', error);
@@ -96,16 +92,10 @@ export function useRecruitmentRequirements(clubId: string | undefined) {
     return true;
   };
 
-  const updateRequirement = async (
-    id: string,
-    updates: { criterion?: string; value?: Json }
-  ) => {
+  const updateRequirement = async (id: string, updates: { criterion?: string; value?: Json }) => {
     if (!user) return false;
 
-    const { error } = await supabase
-      .from('recruitment_requirements')
-      .update(updates)
-      .eq('id', id);
+    const { error } = await supabase.from('recruitment_requirements').update(updates).eq('id', id);
 
     if (error) {
       console.error('Error updating requirement:', error);
@@ -121,10 +111,7 @@ export function useRecruitmentRequirements(clubId: string | undefined) {
   const deleteRequirement = async (id: string) => {
     if (!user) return false;
 
-    const { error } = await supabase
-      .from('recruitment_requirements')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('recruitment_requirements').delete().eq('id', id);
 
     if (error) {
       console.error('Error deleting requirement:', error);
@@ -138,14 +125,11 @@ export function useRecruitmentRequirements(clubId: string | undefined) {
   };
 
   const strictFilters = useMemo(
-      () => requirements.filter((r) => r.type === 'strict'),
-      [requirements]
+    () => requirements.filter((r) => r.type === 'strict'),
+    [requirements]
   );
 
-  const aiCriteria = useMemo(
-      () => requirements.filter((r) => r.type === 'ai'),
-      [requirements]
-  );
+  const aiCriteria = useMemo(() => requirements.filter((r) => r.type === 'ai'), [requirements]);
 
   return {
     requirements,

@@ -10,12 +10,20 @@ export default function ApplyBySlug() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!slug) { setNotFound(true); setLoading(false); return; }
+    if (!slug) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
 
     (async () => {
       // If it looks like a UUID, use directly
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-      if (isUUID) { setClubId(slug); setLoading(false); return; }
+      if (isUUID) {
+        setClubId(slug);
+        setLoading(false);
+        return;
+      }
 
       try {
         const { dataClient } = await import('@/integrations/supabase/dataClient');

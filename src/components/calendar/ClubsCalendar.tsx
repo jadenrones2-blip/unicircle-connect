@@ -6,7 +6,22 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { EventClickArg } from '@fullcalendar/core';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
 import { EventDetailModal } from './EventDetailModal';
-import { Loader2, Calendar, MapPin, Search, X, Users, BookOpen, Briefcase, Music, UtensilsCrossed, LayoutGrid, Clock, ChevronRight, type LucideIcon } from 'lucide-react';
+import {
+  Loader2,
+  Calendar,
+  MapPin,
+  Search,
+  X,
+  Users,
+  BookOpen,
+  Briefcase,
+  Music,
+  UtensilsCrossed,
+  LayoutGrid,
+  Clock,
+  ChevronRight,
+  type LucideIcon,
+} from 'lucide-react';
 import { dataClient } from '@/integrations/supabase/dataClient';
 import { supabase } from '@/integrations/supabase/client';
 import { formatEventDate, formatEventTime } from '@/lib/formatters';
@@ -44,24 +59,107 @@ function getDisplayTitle(event: ExternalEvent): string {
 }
 
 const EVENT_TYPES = [
-  { label: 'All',         icon: LayoutGrid,      color: 'hsl(43 74% 56%)',  keywords: [] },
-  { label: 'Social',      icon: Users,            color: '#f472b6',          keywords: ['social', 'mixer', 'hangout', 'party', 'game night', 'trivia', 'karaoke', 'bonding', 'picnic', 'gathering'] },
-  { label: 'Food',        icon: UtensilsCrossed,  color: '#fb923c',          keywords: ['food', 'pizza', 'lunch', 'dinner', 'potluck', 'free food', 'snacks', 'boba', 'brunch', 'eat', 'taco', 'bbq'] },
-  { label: 'Workshop',    icon: BookOpen,         color: '#60a5fa',          keywords: ['workshop', 'training', 'seminar', 'lecture', 'info session', 'webinar', 'panel', 'talk', 'speaker', 'learn'] },
-  { label: 'Recruitment', icon: Briefcase,        color: '#818cf8',          keywords: ['recruitment', 'rush', 'apply', 'applications', 'interest meeting', 'info night', 'recruiting'] },
-  { label: 'Performance', icon: Music,            color: '#2dd4bf',          keywords: ['concert', 'performance', 'show', 'showcase', 'exhibit', 'demo', 'film', 'screening', 'recital'] },
+  { label: 'All', icon: LayoutGrid, color: 'hsl(43 74% 56%)', keywords: [] },
+  {
+    label: 'Social',
+    icon: Users,
+    color: '#f472b6',
+    keywords: [
+      'social',
+      'mixer',
+      'hangout',
+      'party',
+      'game night',
+      'trivia',
+      'karaoke',
+      'bonding',
+      'picnic',
+      'gathering',
+    ],
+  },
+  {
+    label: 'Food',
+    icon: UtensilsCrossed,
+    color: '#fb923c',
+    keywords: [
+      'food',
+      'pizza',
+      'lunch',
+      'dinner',
+      'potluck',
+      'free food',
+      'snacks',
+      'boba',
+      'brunch',
+      'eat',
+      'taco',
+      'bbq',
+    ],
+  },
+  {
+    label: 'Workshop',
+    icon: BookOpen,
+    color: '#60a5fa',
+    keywords: [
+      'workshop',
+      'training',
+      'seminar',
+      'lecture',
+      'info session',
+      'webinar',
+      'panel',
+      'talk',
+      'speaker',
+      'learn',
+    ],
+  },
+  {
+    label: 'Recruitment',
+    icon: Briefcase,
+    color: '#818cf8',
+    keywords: [
+      'recruitment',
+      'rush',
+      'apply',
+      'applications',
+      'interest meeting',
+      'info night',
+      'recruiting',
+    ],
+  },
+  {
+    label: 'Performance',
+    icon: Music,
+    color: '#2dd4bf',
+    keywords: [
+      'concert',
+      'performance',
+      'show',
+      'showcase',
+      'exhibit',
+      'demo',
+      'film',
+      'screening',
+      'recital',
+    ],
+  },
 ] as const;
 
-type EventTypeLabel = typeof EVENT_TYPES[number]['label'];
+type EventTypeLabel = (typeof EVENT_TYPES)[number]['label'];
 
 function inferEventType(event: ExternalEvent, foodFlagIds?: Set<string>): EventTypeLabel {
   // AI-classified food flag takes priority over keyword matching
   if (foodFlagIds?.has(String(event.id))) return 'Food';
-  const text = [(event.corrected_title || event.title || ''), (event.caption || ''), (event.description || '')]
-    .join(' ').toLowerCase();
+  const text = [
+    event.corrected_title || event.title || '',
+    event.caption || '',
+    event.description || '',
+  ]
+    .join(' ')
+    .toLowerCase();
   for (const t of EVENT_TYPES) {
     if (t.label === 'All') continue;
-    if (t.keywords.some(kw => text.includes(kw))) return t.label;
+    if (t.keywords.some((kw) => text.includes(kw))) return t.label;
   }
   return 'All';
 }
@@ -105,14 +203,14 @@ export default function ClubsCalendar() {
       }
 
       // Apply coalesce logic for corrected fields
-      const processedEvents = (data as ExternalEvent[]).map(event => ({
+      const processedEvents = (data as ExternalEvent[]).map((event) => ({
         ...event,
         title: event.corrected_title || event.title,
         start_time: event.corrected_start_time || event.start_time,
         end_time: event.corrected_end_time || event.end_time,
         location: event.corrected_location || event.location,
       }));
-      
+
       // Deduplicate by normalized title
       const seen = new Set<string>();
       const dedupedEvents = processedEvents.filter((event) => {
@@ -137,8 +235,8 @@ export default function ClubsCalendar() {
           source: event.source,
           clubHandle: event.club_handle,
           sourceUrl: event.source_url,
-          caption: event.caption
-        }
+          caption: event.caption,
+        },
       }));
       setEvents(formattedEvents);
     } catch (err) {
@@ -149,7 +247,7 @@ export default function ClubsCalendar() {
 
   useEffect(() => {
     fetchEvents();
-    
+
     // Poll for updates every 30 seconds
     const pollInterval = setInterval(fetchEvents, 30000);
 
@@ -179,7 +277,7 @@ export default function ClubsCalendar() {
       corrected_location: null,
       reviewed_at: null,
       posted_at: null,
-      created_at: null
+      created_at: null,
     });
     setIsModalOpen(true);
   };
@@ -204,8 +302,9 @@ export default function ClubsCalendar() {
       const title = (e.title || '').toLowerCase();
       const handle = (e.extendedProps.clubHandle || '').toLowerCase();
       const matchesSearch = !q || title.includes(q) || handle.includes(q);
-      const raw = rawEvents.find(r => r.id === e.id);
-      const matchesType = selectedType === 'All' || !raw || inferEventType(raw, foodFlags) === selectedType;
+      const raw = rawEvents.find((r) => r.id === e.id);
+      const matchesType =
+        selectedType === 'All' || !raw || inferEventType(raw, foodFlags) === selectedType;
       return matchesSearch && matchesType;
     });
   }, [events, searchText, selectedType, rawEvents, foodFlags]);
@@ -215,19 +314,24 @@ export default function ClubsCalendar() {
   // Events grouped by category for the "All" browse view
   const eventsByCategory = useMemo(() => {
     const q = normalizeQ(searchText);
-    return EVENT_TYPES.filter(t => t.label !== 'All').map(t => ({
-      ...t,
-      events: rawEvents.filter(e => {
-        const title = (e.corrected_title || e.title || '').toLowerCase();
-        const handle = (e.club_handle || '').toLowerCase();
-        const loc = (e.corrected_location || e.location || '').toLowerCase();
-        const matchesSearch = !q || title.includes(q) || handle.includes(q) || loc.includes(q);
-        return matchesSearch && inferEventType(e, foodFlags) === t.label;
-      }),
-    })).filter(t => t.events.length > 0);
+    return EVENT_TYPES.filter((t) => t.label !== 'All')
+      .map((t) => ({
+        ...t,
+        events: rawEvents.filter((e) => {
+          const title = (e.corrected_title || e.title || '').toLowerCase();
+          const handle = (e.club_handle || '').toLowerCase();
+          const loc = (e.corrected_location || e.location || '').toLowerCase();
+          const matchesSearch = !q || title.includes(q) || handle.includes(q) || loc.includes(q);
+          return matchesSearch && inferEventType(e, foodFlags) === t.label;
+        }),
+      }))
+      .filter((t) => t.events.length > 0);
   }, [rawEvents, searchText, foodFlags]);
 
-  const openEvent = (e: ExternalEvent) => { setSelectedEvent(e); setIsModalOpen(true); };
+  const openEvent = (e: ExternalEvent) => {
+    setSelectedEvent(e);
+    setIsModalOpen(true);
+  };
 
   if (loading && events.length === 0) {
     return (
@@ -239,7 +343,6 @@ export default function ClubsCalendar() {
 
   return (
     <div className="clubs-calendar space-y-6">
-
       {/* ── Top bar: search + view toggle ── */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <div className="relative flex-1 max-w-md">
@@ -252,7 +355,10 @@ export default function ClubsCalendar() {
             className="pl-9 pr-9 h-10 bg-white/5 border-white/10 text-foreground placeholder:text-muted-foreground focus:border-gold/50 rounded-xl"
           />
           {searchText && (
-            <button onClick={() => setSearchText('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <button
+              onClick={() => setSearchText('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
               <X className="w-4 h-4" />
             </button>
           )}
@@ -286,7 +392,9 @@ export default function ClubsCalendar() {
               onClick={() => setSelectedType(t.label)}
               style={isActive ? { background: t.color, color: '#000', borderColor: t.color } : {}}
               className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
-                isActive ? 'border-transparent' : 'bg-transparent text-zinc-500 border-white/10 hover:text-white hover:border-white/20'
+                isActive
+                  ? 'border-transparent'
+                  : 'bg-transparent text-zinc-500 border-white/10 hover:text-white hover:border-white/20'
               }`}
             >
               <Icon className="w-3 h-3" />
@@ -301,7 +409,11 @@ export default function ClubsCalendar() {
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
-          headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay',
+          }}
           events={filteredCalendarEvents}
           eventClick={handleEventClick}
           height="auto"
@@ -330,7 +442,10 @@ export default function ClubsCalendar() {
                 {/* Section header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}20`, border: `1px solid ${color}40` }}>
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ background: `${color}20`, border: `1px solid ${color}40` }}
+                    >
                       <Icon className="w-3.5 h-3.5" style={{ color }} />
                     </div>
                     <h3 className="font-display font-semibold text-white text-base">{label}</h3>
@@ -346,8 +461,14 @@ export default function ClubsCalendar() {
 
                 {/* Horizontal scroll row */}
                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
-                  {catEvents.slice(0, 10).map(e => (
-                    <EventBrowseCard key={e.id} event={e} color={color} icon={Icon} onClick={() => openEvent(e)} />
+                  {catEvents.slice(0, 10).map((e) => (
+                    <EventBrowseCard
+                      key={e.id}
+                      event={e}
+                      color={color}
+                      icon={Icon}
+                      onClick={() => openEvent(e)}
+                    />
                   ))}
                 </div>
               </div>
@@ -355,10 +476,16 @@ export default function ClubsCalendar() {
           ) : (
             /* ── Filtered grid ── */
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredEvents.map(e => {
-                const cat = EVENT_TYPES.find(t => t.label === selectedType);
+              {filteredEvents.map((e) => {
+                const cat = EVENT_TYPES.find((t) => t.label === selectedType);
                 return (
-                  <EventBrowseCard key={e.id} event={e} color={cat?.color ?? 'hsl(43 74% 56%)'} icon={cat?.icon} onClick={() => openEvent(e)} />
+                  <EventBrowseCard
+                    key={e.id}
+                    event={e}
+                    color={cat?.color ?? 'hsl(43 74% 56%)'}
+                    icon={cat?.icon}
+                    onClick={() => openEvent(e)}
+                  />
                 );
               })}
             </div>
@@ -369,22 +496,35 @@ export default function ClubsCalendar() {
       <EventDetailModal
         event={selectedEvent}
         isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); setSelectedEvent(null); }}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedEvent(null);
+        }}
       />
     </div>
   );
 }
 
 /* ── Eventbrite-style event card ── */
-function EventBrowseCard({ event, color, icon: Icon, onClick }: { event: ExternalEvent; color: string; icon?: LucideIcon; onClick: () => void }) {
+function EventBrowseCard({
+  event,
+  color,
+  icon: Icon,
+  onClick,
+}: {
+  event: ExternalEvent;
+  color: string;
+  icon?: LucideIcon;
+  onClick: () => void;
+}) {
   const date = event.corrected_start_time || event.start_time;
   const d = date ? new Date(date) : null;
-  const dayNum  = d ? d.toLocaleDateString('en-US', { day: '2-digit' }) : '—';
+  const dayNum = d ? d.toLocaleDateString('en-US', { day: '2-digit' }) : '—';
   const dayName = d ? d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase() : '';
-  const month   = d ? d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '';
-  const time    = date ? formatEventTime(date) : '';
-  const loc     = event.corrected_location || event.location;
-  const title   = event.corrected_title || event.title || 'Event';
+  const month = d ? d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '';
+  const time = date ? formatEventTime(date) : '';
+  const loc = event.corrected_location || event.location;
+  const title = event.corrected_title || event.title || 'Event';
 
   return (
     <button
@@ -392,11 +532,21 @@ function EventBrowseCard({ event, color, icon: Icon, onClick }: { event: Externa
       className="shrink-0 w-56 text-left bg-zinc-900 border border-white/[0.07] rounded-2xl overflow-hidden hover:border-white/20 hover:bg-zinc-800 transition-all group"
     >
       {/* Color banner with date */}
-      <div className="h-20 relative flex items-end px-4 pb-3" style={{ background: `radial-gradient(ellipse at 90% -30%, ${color}45, transparent 60%), linear-gradient(135deg, ${color}25, ${color}08)`, borderBottom: `1px solid ${color}25` }}>
+      <div
+        className="h-20 relative flex items-end px-4 pb-3"
+        style={{
+          background: `radial-gradient(ellipse at 90% -30%, ${color}45, transparent 60%), linear-gradient(135deg, ${color}25, ${color}08)`,
+          borderBottom: `1px solid ${color}25`,
+        }}
+      >
         <div className="absolute top-3 left-4 flex items-baseline gap-1.5">
-          <span className="text-2xl font-black leading-none" style={{ color }}>{dayNum}</span>
+          <span className="text-2xl font-black leading-none" style={{ color }}>
+            {dayNum}
+          </span>
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold" style={{ color, opacity: 0.8 }}>{month}</span>
+            <span className="text-[10px] font-bold" style={{ color, opacity: 0.8 }}>
+              {month}
+            </span>
             <span className="text-[10px] font-bold text-zinc-500">{dayName}</span>
           </div>
         </div>
@@ -416,7 +566,9 @@ function EventBrowseCard({ event, color, icon: Icon, onClick }: { event: Externa
           {title}
         </p>
         {event.club_handle && (
-          <p className="text-xs font-medium mb-2" style={{ color }}>@{event.club_handle}</p>
+          <p className="text-xs font-medium mb-2" style={{ color }}>
+            @{event.club_handle}
+          </p>
         )}
         <div className="flex flex-col gap-1">
           {time && (

@@ -34,14 +34,20 @@ async function resizeImageToBase64(file: File): Promise<string> {
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d');
-      if (!ctx) { reject(new Error('Canvas not available')); return; }
+      if (!ctx) {
+        reject(new Error('Canvas not available'));
+        return;
+      }
       ctx.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(objectUrl);
       // Strip the data:image/...;base64, prefix — edge function expects raw base64
       const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
       resolve(dataUrl.split(',')[1]);
     };
-    img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Failed to load image')); };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load image'));
+    };
     img.src = objectUrl;
   });
 }
@@ -88,7 +94,9 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
   const extractEventDetails = async (imageBase64: string) => {
     try {
       // Get user auth token — edge function requires Bearer token
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         toast.error('Please log in to use flyer auto-fill');
         return;
@@ -100,8 +108,8 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify({ imageBase64 }),
         }
@@ -124,15 +132,22 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
       const result = await response.json();
       if (!result.success) throw new Error(result.error || 'Extraction failed');
 
-
       const data = result.data as ExtractedEventData;
       setLastResult(data);
 
-      const extractedCount = [data.title, data.date, data.time, data.location, data.description].filter(Boolean).length;
+      const extractedCount = [
+        data.title,
+        data.date,
+        data.time,
+        data.location,
+        data.description,
+      ].filter(Boolean).length;
       if (extractedCount === 0) {
         toast.warning("Couldn't read any details. Try a clearer image.");
       } else {
-        toast.success(`Auto-filled ${extractedCount} field${extractedCount > 1 ? 's' : ''} from flyer`);
+        toast.success(
+          `Auto-filled ${extractedCount} field${extractedCount > 1 ? 's' : ''} from flyer`
+        );
         onExtracted(data);
       }
     } catch (err: any) {
@@ -167,7 +182,10 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
             <img
               src={previewUrl}
               alt="Flyer preview"
-              className={cn('w-full h-32 object-cover transition-opacity', extracting && 'opacity-50')}
+              className={cn(
+                'w-full h-32 object-cover transition-opacity',
+                extracting && 'opacity-50'
+              )}
             />
             {extracting && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/60">
@@ -203,7 +221,9 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
                   lastResult.time && 'Time',
                   lastResult.location && 'Location',
                   lastResult.description && 'Description',
-                ].filter(Boolean).join(' · ')}
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </p>
             </div>
           )}
@@ -222,7 +242,9 @@ export function FlyerAutoFill({ onExtracted, disabled }: FlyerAutoFillProps) {
           <div className="text-left">
             <h4 className="font-medium text-foreground flex items-center gap-2">
               Auto-fill from Flyer
-              <span className="text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold font-normal">AI</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-gold/10 text-gold font-normal">
+                AI
+              </span>
             </h4>
             <p className="text-sm text-muted-foreground">Upload a flyer or Instagram screenshot</p>
           </div>

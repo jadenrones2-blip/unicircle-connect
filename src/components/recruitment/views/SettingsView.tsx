@@ -1,5 +1,16 @@
 import { useState } from 'react';
-import { Link2, Copy, Plus, Pencil, Trash2, Check, X, Loader2, Download, QrCode } from 'lucide-react';
+import {
+  Link2,
+  Copy,
+  Plus,
+  Pencil,
+  Trash2,
+  Check,
+  X,
+  Loader2,
+  Download,
+  QrCode,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { RequirementsBuilder } from '../RequirementsBuilder';
@@ -21,7 +32,15 @@ interface SettingsViewProps {
 
 // ── Section wrapper ───────────────────────────────────────────────────────────
 
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="border border-white/8 rounded-xl overflow-hidden">
       <div className="px-5 py-4 border-b border-white/8 bg-zinc-900/40">
@@ -34,8 +53,14 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
 }
 
 export function SettingsView({
-  clubId, clubName, applyUrl, stages, settings,
-  onUpdateStage, onAddStage, onDeleteStage,
+  clubId,
+  clubName,
+  applyUrl,
+  stages,
+  settings,
+  onUpdateStage,
+  onAddStage,
+  onDeleteStage,
 }: SettingsViewProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState('');
@@ -67,14 +92,19 @@ export function SettingsView({
 
   return (
     <div className="flex flex-col gap-5 max-w-2xl">
-
       {/* Apply Link */}
-      <Section title="Apply Link & QR Code" subtitle="Share with students at tables, on Instagram, or anywhere">
+      <Section
+        title="Apply Link & QR Code"
+        subtitle="Share with students at tables, on Instagram, or anywhere"
+      >
         <div className="flex items-center gap-3 p-3 rounded-lg bg-zinc-900 border border-white/8 mb-4">
           <Link2 className="w-4 h-4 text-gold shrink-0" />
           <span className="flex-1 text-sm text-zinc-300 font-mono truncate">{applyUrl}</span>
           <button
-            onClick={() => { navigator.clipboard.writeText(applyUrl); toast.success('Copied!'); }}
+            onClick={() => {
+              navigator.clipboard.writeText(applyUrl);
+              toast.success('Copied!');
+            }}
             className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors shrink-0"
           >
             <Copy className="w-3 h-3" /> Copy
@@ -99,11 +129,18 @@ export function SettingsView({
                 <p className="text-sm font-medium text-white">QR Code for Tabling</p>
               </div>
               <p className="text-xs text-zinc-500 leading-relaxed">
-                Show this at your table. Students scan to instantly express interest — no form filling required at the table. They complete the full application later from their dashboard.
+                Show this at your table. Students scan to instantly express interest — no form
+                filling required at the table. They complete the full application later from their
+                dashboard.
               </p>
             </div>
             <button
-              onClick={() => window.open(`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(applyUrl + '?source=qr')}&bgcolor=ffffff&color=000000&margin=10`, '_blank')}
+              onClick={() =>
+                window.open(
+                  `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(applyUrl + '?source=qr')}&bgcolor=ffffff&color=000000&margin=10`,
+                  '_blank'
+                )
+              }
               className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors w-fit"
             >
               <Download className="w-3 h-3" /> Download QR
@@ -112,29 +149,49 @@ export function SettingsView({
         </div>
 
         <p className="text-xs text-zinc-600 mt-3">
-          Build your form in the <span className="text-zinc-400">Form</span> tab before sharing this link.
+          Build your form in the <span className="text-zinc-400">Form</span> tab before sharing this
+          link.
         </p>
       </Section>
 
       {/* Pipeline Stages */}
-      <Section title="Pipeline Stages" subtitle="Manage the stages applicants move through during recruitment">
+      <Section
+        title="Pipeline Stages"
+        subtitle="Manage the stages applicants move through during recruitment"
+      >
         <div className="space-y-2">
-          {stages.map(stage => (
-            <div key={stage.id} className="flex items-center gap-2 p-2.5 rounded-lg border border-white/8 bg-zinc-900/50">
+          {stages.map((stage) => (
+            <div
+              key={stage.id}
+              className="flex items-center gap-2 p-2.5 rounded-lg border border-white/8 bg-zinc-900/50"
+            >
               {editingId === stage.id ? (
                 <>
                   <Input
                     value={editLabel}
-                    onChange={e => setEditLabel(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') handleRename(stage.id); if (e.key === 'Escape') setEditingId(null); }}
+                    onChange={(e) => setEditLabel(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleRename(stage.id);
+                      if (e.key === 'Escape') setEditingId(null);
+                    }}
                     className="h-7 text-sm bg-zinc-800 border-white/15 text-white flex-1"
                     autoFocus
                   />
-                  <button onClick={() => handleRename(stage.id)} disabled={saving}
-                    className="p-1.5 text-emerald-400 hover:bg-emerald-400/10 rounded transition-colors">
-                    {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  <button
+                    onClick={() => handleRename(stage.id)}
+                    disabled={saving}
+                    className="p-1.5 text-emerald-400 hover:bg-emerald-400/10 rounded transition-colors"
+                  >
+                    {saving ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Check className="w-3.5 h-3.5" />
+                    )}
                   </button>
-                  <button onClick={() => setEditingId(null)} className="p-1.5 text-zinc-500 hover:text-white rounded transition-colors">
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="p-1.5 text-zinc-500 hover:text-white rounded transition-colors"
+                  >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </>
@@ -142,10 +199,15 @@ export function SettingsView({
                 <>
                   <span className="flex-1 text-sm text-zinc-300">{stage.label}</span>
                   {stage.is_intake && (
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gold/10 text-gold border border-gold/20">Intake</span>
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gold/10 text-gold border border-gold/20">
+                      Intake
+                    </span>
                   )}
                   <button
-                    onClick={() => { setEditingId(stage.id); setEditLabel(stage.label); }}
+                    onClick={() => {
+                      setEditingId(stage.id);
+                      setEditLabel(stage.label);
+                    }}
                     className="p-1.5 text-zinc-600 hover:text-zinc-300 transition-colors rounded"
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -168,17 +230,30 @@ export function SettingsView({
             <div className="flex items-center gap-2">
               <Input
                 value={newLabel}
-                onChange={e => setNewLabel(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setAddingStage(false); }}
+                onChange={(e) => setNewLabel(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAdd();
+                  if (e.key === 'Escape') setAddingStage(false);
+                }}
                 placeholder="Stage name…"
                 className="h-7 text-sm bg-zinc-800 border-white/15 text-white flex-1"
                 autoFocus
               />
-              <button onClick={handleAdd} disabled={saving || !newLabel.trim()}
-                className="p-1.5 text-emerald-400 hover:bg-emerald-400/10 rounded transition-colors disabled:opacity-40">
-                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+              <button
+                onClick={handleAdd}
+                disabled={saving || !newLabel.trim()}
+                className="p-1.5 text-emerald-400 hover:bg-emerald-400/10 rounded transition-colors disabled:opacity-40"
+              >
+                {saving ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Check className="w-3.5 h-3.5" />
+                )}
               </button>
-              <button onClick={() => setAddingStage(false)} className="p-1.5 text-zinc-500 hover:text-white rounded transition-colors">
+              <button
+                onClick={() => setAddingStage(false)}
+                className="p-1.5 text-zinc-500 hover:text-white rounded transition-colors"
+              >
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -194,20 +269,28 @@ export function SettingsView({
       </Section>
 
       {/* Interview Scheduling */}
-      <Section title="Interview Scheduling" subtitle="Create time slots — students book directly from their stage advance email">
+      <Section
+        title="Interview Scheduling"
+        subtitle="Create time slots — students book directly from their stage advance email"
+      >
         <InterviewScheduler clubId={clubId} clubName={clubName} />
       </Section>
 
       {/* Screening Rubric */}
-      <Section title="Screening Rubric" subtitle="Define what Claude evaluates when screening applicants">
+      <Section
+        title="Screening Rubric"
+        subtitle="Define what Claude evaluates when screening applicants"
+      >
         <RequirementsBuilder clubId={clubId} />
       </Section>
 
       {/* Visibility */}
-      <Section title="Student Visibility" subtitle="Control what applicants can see about their status">
+      <Section
+        title="Student Visibility"
+        subtitle="Control what applicants can see about their status"
+      >
         <StudentVisibilitySettings clubId={clubId} settings={settings} />
       </Section>
-
     </div>
   );
 }

@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { CheckCircle2, Clock, UserCheck, Send } from "lucide-react";
+import { motion } from 'framer-motion';
+import { CheckCircle2, Clock, UserCheck, Send } from 'lucide-react';
 
 interface Applicant {
   id: string;
@@ -8,18 +8,18 @@ interface Applicant {
 }
 
 const stages = [
-  { id: "intake", label: "Applied", icon: Clock },
-  { id: "review", label: "Review", icon: UserCheck },
-  { id: "final", label: "Final", icon: CheckCircle2 },
-  { id: "offer", label: "Offer", icon: Send },
+  { id: 'intake', label: 'Applied', icon: Clock },
+  { id: 'review', label: 'Review', icon: UserCheck },
+  { id: 'final', label: 'Final', icon: CheckCircle2 },
+  { id: 'offer', label: 'Offer', icon: Send },
 ];
 
 const applicants: Applicant[] = [
-  { id: "1", name: "Alex K.", stage: 0 },
-  { id: "2", name: "Jordan M.", stage: 1 },
-  { id: "3", name: "Casey L.", stage: 2 },
-  { id: "4", name: "Morgan P.", stage: 3 },
-  { id: "5", name: "Taylor R.", stage: 0 },
+  { id: '1', name: 'Alex K.', stage: 0 },
+  { id: '2', name: 'Jordan M.', stage: 1 },
+  { id: '3', name: 'Casey L.', stage: 2 },
+  { id: '4', name: 'Morgan P.', stage: 3 },
+  { id: '5', name: 'Taylor R.', stage: 0 },
 ];
 
 const containerVariants = {
@@ -54,14 +54,12 @@ export function PipelinePreview() {
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
+        viewport={{ once: true, margin: '-50px' }}
         className="grid grid-cols-2 sm:grid-cols-4 gap-3"
       >
         {stages.map((stage) => {
           const StageIcon = stage.icon;
-          const stageApplicants = applicants.filter(
-            (a) => a.stage === stages.indexOf(stage)
-          );
+          const stageApplicants = applicants.filter((a) => a.stage === stages.indexOf(stage));
 
           return (
             <motion.div key={stage.id} variants={stageVariants} className="flex flex-col">

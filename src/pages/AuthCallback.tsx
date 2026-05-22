@@ -21,7 +21,7 @@ export default function AuthCallback() {
       }
 
       // Small delay on mobile to allow session to propagate
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise((r) => setTimeout(r, 300));
 
       const { data, error } = await supabase.auth.getSession();
 

@@ -3,34 +3,54 @@ import { ArrowRight, MapPin, Clock, Calendar, Users, Compass, Network } from 'lu
 import { Button } from '@/components/ui/button';
 
 const PERKS = [
-  { icon: Compass, title: "Discover Your Community",  body: "Find clubs, orgs, and people that actually match your interests and goals." },
-  { icon: Network, title: "Meet Your Co-Founders",    body: "SIC is where campus ideas get built. UniCircle is where builders find each other." },
-  { icon: Users,   title: "Scale Your Student Org",   body: "See the tools UCSD clubs use to run recruitment, events, and member ops." },
+  {
+    icon: Compass,
+    title: 'Discover Your Community',
+    body: 'Find clubs, orgs, and people that actually match your interests and goals.',
+  },
+  {
+    icon: Network,
+    title: 'Meet Your Co-Founders',
+    body: 'SIC is where campus ideas get built. UniCircle is where builders find each other.',
+  },
+  {
+    icon: Users,
+    title: 'Scale Your Student Org',
+    body: 'See the tools UCSD clubs use to run recruitment, events, and member ops.',
+  },
 ];
 
 const PROMPTS = [
-  "What would you automate if you had an engineer for one day?",
+  'What would you automate if you had an engineer for one day?',
   "What's one thing your org runs on a Google Form that should be a product?",
-  "Who on your e-board spends hours on tasks a 10-line prompt could replace?",
+  'Who on your e-board spends hours on tasks a 10-line prompt could replace?',
 ];
 
 export default function TablingLanding() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 relative overflow-hidden">
-
       {/* Ambient glows */}
-      <div className="pointer-events-none absolute top-0 right-0 w-[500px] h-[500px]
-                      bg-[radial-gradient(circle,rgba(124,58,237,0.18)_0%,transparent_70%)] -translate-y-1/4 translate-x-1/4" />
-      <div className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px]
-                      bg-[radial-gradient(circle,rgba(196,150,28,0.13)_0%,transparent_70%)] translate-y-1/4 -translate-x-1/4" />
-      <div className="pointer-events-none absolute inset-0"
-           style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px)', backgroundSize: '72px 72px' }} />
+      <div
+        className="pointer-events-none absolute top-0 right-0 w-[500px] h-[500px]
+                      bg-[radial-gradient(circle,rgba(124,58,237,0.18)_0%,transparent_70%)] -translate-y-1/4 translate-x-1/4"
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 w-[400px] h-[400px]
+                      bg-[radial-gradient(circle,rgba(196,150,28,0.13)_0%,transparent_70%)] translate-y-1/4 -translate-x-1/4"
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.022) 1px,transparent 1px)',
+          backgroundSize: '72px 72px',
+        }}
+      />
 
       {/* Top accent bar */}
       <div className="h-[3px] bg-gradient-to-r from-[#7C3AED] via-[hsl(43,74%,56%)] to-[#7C3AED]" />
 
       <div className="relative z-10 max-w-2xl mx-auto px-6 pt-14 pb-24">
-
         {/* Club chips */}
         <div className="flex items-center gap-3 flex-wrap mb-10">
           <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.09] rounded-full px-4 py-2">
@@ -54,11 +74,14 @@ export default function TablingLanding() {
 
         {/* Headline */}
         <h1 className="font-display text-5xl sm:text-6xl font-black leading-[0.95] mb-5 tracking-tight">
-          THE CAMPUS<br />
+          THE CAMPUS
+          <br />
           <span className="text-violet-400">IS UNFINISHED.</span>
         </h1>
         <p className="text-zinc-400 text-lg leading-relaxed mb-10">
-          We're bringing together builders, org leaders, and founders-in-training at Library Walk. Come find your circle, see what's being built on campus, and connect with people who are actually doing things.
+          We're bringing together builders, org leaders, and founders-in-training at Library Walk.
+          Come find your circle, see what's being built on campus, and connect with people who are
+          actually doing things.
         </p>
 
         {/* Event details card */}
@@ -93,7 +116,10 @@ export default function TablingLanding() {
           </p>
           <div className="flex flex-col gap-3">
             {PERKS.map(({ icon: Icon, title, body }) => (
-              <div key={title} className="flex items-start gap-4 bg-white/[0.02] border border-white/[0.05] rounded-xl p-4">
+              <div
+                key={title}
+                className="flex items-start gap-4 bg-white/[0.02] border border-white/[0.05] rounded-xl p-4"
+              >
                 <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <Icon className="w-4 h-4 text-violet-400" />
                 </div>
@@ -107,13 +133,14 @@ export default function TablingLanding() {
         </div>
 
         {/* Primary CTA */}
-        <div className="bg-gradient-to-br from-violet-500/10 to-[hsl(43,74%,56%)]/5
-                        border border-violet-500/20 rounded-2xl p-8 mb-10 text-center">
-          <h2 className="text-2xl font-bold text-zinc-100 mb-2">
-            Create your UniCircle account
-          </h2>
+        <div
+          className="bg-gradient-to-br from-violet-500/10 to-[hsl(43,74%,56%)]/5
+                        border border-violet-500/20 rounded-2xl p-8 mb-10 text-center"
+        >
+          <h2 className="text-2xl font-bold text-zinc-100 mb-2">Create your UniCircle account</h2>
           <p className="text-sm text-zinc-500 mb-6 max-w-sm mx-auto">
-            Discover clubs, connect with builders, and track everything happening on campus — all in one place.
+            Discover clubs, connect with builders, and track everything happening on campus — all in
+            one place.
           </p>
           <Link to="/signup">
             <Button className="h-13 px-10 text-base font-bold rounded-xl bg-violet-600 hover:bg-violet-500 transition-colors">
@@ -123,7 +150,9 @@ export default function TablingLanding() {
           </Link>
           <p className="text-xs text-zinc-700 mt-4">
             Already have an account?{' '}
-            <Link to="/login" className="text-violet-500 hover:text-violet-400">Sign in →</Link>
+            <Link to="/login" className="text-violet-500 hover:text-violet-400">
+              Sign in →
+            </Link>
           </p>
         </div>
 
@@ -148,8 +177,10 @@ export default function TablingLanding() {
           <div className="flex flex-col gap-4">
             {PROMPTS.map((q, i) => (
               <div key={i} className="flex items-start gap-3">
-                <span className="text-[10px] font-bold text-violet-500 bg-violet-500/10
-                                 border border-violet-500/20 rounded px-2 py-1 flex-shrink-0 mt-0.5 tracking-widest">
+                <span
+                  className="text-[10px] font-bold text-violet-500 bg-violet-500/10
+                                 border border-violet-500/20 rounded px-2 py-1 flex-shrink-0 mt-0.5 tracking-widest"
+                >
                   0{i + 1}
                 </span>
                 <p className="text-zinc-400 text-sm leading-relaxed">{q}</p>
@@ -162,7 +193,9 @@ export default function TablingLanding() {
         <div className="mt-14 pt-6 border-t border-white/[0.04] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[hsl(43,74%,56%)]" />
-            <span className="text-xs font-bold tracking-widest text-zinc-700 uppercase">unicircle.app</span>
+            <span className="text-xs font-bold tracking-widest text-zinc-700 uppercase">
+              unicircle.app
+            </span>
           </div>
           <p className="text-xs text-zinc-700">@unicircle.ucsd · @ucsd.sic</p>
         </div>

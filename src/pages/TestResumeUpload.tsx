@@ -24,10 +24,7 @@ export default function TestResumeUpload() {
             Test Page - No Auth Required
           </span>
         </div>
-        <ResumeUploadStep
-          onKeywordsExtracted={handleKeywordsExtracted}
-          onSkip={handleSkip}
-        />
+        <ResumeUploadStep onKeywordsExtracted={handleKeywordsExtracted} onSkip={handleSkip} />
       </div>
     </div>
   );

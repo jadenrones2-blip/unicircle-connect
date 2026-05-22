@@ -2,8 +2,16 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Calendar, MapPin, Clock, Users, ArrowRight, Loader2,
-  Zap, ExternalLink, BookmarkPlus, CheckCircle,
+  Calendar,
+  MapPin,
+  Clock,
+  Users,
+  ArrowRight,
+  Loader2,
+  Zap,
+  ExternalLink,
+  BookmarkPlus,
+  CheckCircle,
 } from 'lucide-react';
 import Header from '@/components/Header';
 import { useClubs } from '@/hooks/useExternalDB';
@@ -34,7 +42,10 @@ function formatEventDate(iso: string): string {
   const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   if (isToday) return `Today · ${time}`;
   if (isTomorrow) return `Tomorrow · ${time}`;
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ` · ${time}`;
+  return (
+    d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) +
+    ` · ${time}`
+  );
 }
 
 export default function Discover() {
@@ -58,21 +69,26 @@ export default function Discover() {
     const name = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
     setFirstName(name.split(' ')[0]);
 
-    fetchInterests(user.id).then(d => {
-      if (d) setInterestValues(d.map(i => i.interest_value));
+    fetchInterests(user.id).then((d) => {
+      if (d) setInterestValues(d.map((i) => i.interest_value));
     });
-    fetchResumeSignals(user.id).then(s => setResumeSignals(s));
+    fetchResumeSignals(user.id).then((s) => setResumeSignals(s));
     if (user.id) savedClubs; // trigger load
   }, [user]);
 
-  const { events, loading: eventsLoading } = useClubMatchedEvents(clubs, interestValues, resumeSignals, 5);
+  const { events, loading: eventsLoading } = useClubMatchedEvents(
+    clubs,
+    interestValues,
+    resumeSignals,
+    5
+  );
 
   // Top 5 club picks
   const topClubs = useMemo(() => {
     if (!interestValues.length && !resumeSignals.length) return [];
-    const savedIds = new Set(savedClubs.map(s => s.club_id));
+    const savedIds = new Set(savedClubs.map((s) => s.club_id));
     return clubs
-      .map(club => ({
+      .map((club) => ({
         club,
         score: calculateMatchScore(club, interestValues, resumeSignals),
         reason: getTopMatchTerm(club, interestValues, resumeSignals),
@@ -91,7 +107,11 @@ export default function Discover() {
 
   const loading = clubsLoading || authLoading;
   const hasSignals = interestValues.length > 0 || resumeSignals.length > 0;
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
 
   if (loading) {
     return (
@@ -106,16 +126,12 @@ export default function Discover() {
       <Header />
 
       <div className="max-w-2xl mx-auto px-4 pt-24 pb-20">
-
         {/* Personal greeting */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <p className="text-xs tracking-[0.18em] uppercase text-muted-foreground mb-1">{today}</p>
           <h1 className="text-2xl font-display font-bold text-foreground">
-            {getGreeting()}{firstName ? `, ${firstName}` : ''}.
+            {getGreeting()}
+            {firstName ? `, ${firstName}` : ''}.
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Here's what UniCircle picked for you this week.
@@ -134,7 +150,10 @@ export default function Discover() {
               <Calendar className="w-4 h-4 text-gold" />
               <h2 className="text-sm font-semibold text-foreground">5 Events for You This Week</h2>
             </div>
-            <Link to="/events" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+            <Link
+              to="/events"
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+            >
               See all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -202,7 +221,7 @@ export default function Discover() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0 opacity-0 group-hover:opacity-100"
-                      onClick={e => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
@@ -225,7 +244,10 @@ export default function Discover() {
               <Zap className="w-4 h-4 text-gold" />
               <h2 className="text-sm font-semibold text-foreground">Your Top Club Picks</h2>
             </div>
-            <Link to="/clubs" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
+            <Link
+              to="/clubs"
+              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+            >
               Browse all <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
@@ -275,14 +297,19 @@ export default function Discover() {
                       {reason ? (
                         <p className="text-[11px] text-gold/80 mt-0.5 truncate">{reason}</p>
                       ) : (
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{club.categoryBucket || club.category}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {club.categoryBucket || club.category}
+                        </p>
                       )}
                     </div>
 
                     {/* Match bar + actions */}
                     <div className="flex items-center gap-2 shrink-0">
                       <div className="w-16 h-1.5 rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full bg-gold/60" style={{ width: `${score}%` }} />
+                        <div
+                          className="h-full rounded-full bg-gold/60"
+                          style={{ width: `${score}%` }}
+                        />
                       </div>
                       <span className="text-[11px] font-semibold text-muted-foreground w-7 text-right tabular-nums">
                         {score}%
@@ -292,7 +319,11 @@ export default function Discover() {
                         className={`p-1.5 rounded-lg transition-colors ${saved ? 'text-gold' : 'text-muted-foreground hover:text-gold opacity-0 group-hover:opacity-100'}`}
                         title={saved ? 'Saved' : 'Save club'}
                       >
-                        {saved ? <CheckCircle className="w-3.5 h-3.5" /> : <BookmarkPlus className="w-3.5 h-3.5" />}
+                        {saved ? (
+                          <CheckCircle className="w-3.5 h-3.5" />
+                        ) : (
+                          <BookmarkPlus className="w-3.5 h-3.5" />
+                        )}
                       </button>
                     </div>
                   </motion.div>

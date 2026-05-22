@@ -1,10 +1,10 @@
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Clock, MapPin, ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import type { Event } from "@/data/mockData";
-import { clubs } from "@/data/mockData";
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Clock, MapPin, ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import type { Event } from '@/data/mockData';
+import { clubs } from '@/data/mockData';
 
 interface EventCardProps {
   event: Event;
@@ -13,26 +13,26 @@ interface EventCardProps {
 }
 
 const typeColors = {
-  recruitment: "bg-gold text-primary-foreground",
-  event: "bg-primary text-primary-foreground",
-  workshop: "bg-blue-500 text-white",
-  social: "bg-green-500 text-white"
+  recruitment: 'bg-gold text-primary-foreground',
+  event: 'bg-primary text-primary-foreground',
+  workshop: 'bg-blue-500 text-white',
+  social: 'bg-green-500 text-white',
 };
 
 const typeLabels = {
-  recruitment: "Recruitment",
-  event: "Event",
-  workshop: "Workshop",
-  social: "Social"
+  recruitment: 'Recruitment',
+  event: 'Event',
+  workshop: 'Workshop',
+  social: 'Social',
 };
 
 const EventCard = ({ event, index }: EventCardProps) => {
   const eventDate = new Date(event.date);
   const day = eventDate.getDate();
   const month = eventDate.toLocaleDateString('en-US', { month: 'short' });
-  
+
   // Get club's recruiting status
-  const club = clubs.find(c => c.id === event.clubId);
+  const club = clubs.find((c) => c.id === event.clubId);
   const recruitingStatus = club?.recruitingStatus;
 
   return (
@@ -60,27 +60,29 @@ const EventCard = ({ event, index }: EventCardProps) => {
                 {typeLabels[event.type]}
               </Badge>
               {event.type === 'recruitment' && recruitingStatus && (
-                <Badge 
+                <Badge
                   variant="outline"
                   className={`text-xs ${
-                    recruitingStatus === 'open' 
-                      ? 'bg-green-500/10 text-green-600 border-green-500/20' 
+                    recruitingStatus === 'open'
+                      ? 'bg-green-500/10 text-green-600 border-green-500/20'
                       : recruitingStatus === 'upcoming'
                         ? 'bg-gold/10 text-gold border-gold/20'
                         : 'bg-muted text-muted-foreground border-border'
                   }`}
                 >
-                  {recruitingStatus === 'open' ? 'Open' : recruitingStatus === 'upcoming' ? 'Upcoming' : 'Closed'}
+                  {recruitingStatus === 'open'
+                    ? 'Open'
+                    : recruitingStatus === 'upcoming'
+                      ? 'Upcoming'
+                      : 'Closed'}
                 </Badge>
               )}
             </div>
           </div>
 
           <p className="text-xs text-gold font-medium mb-2">{event.clubName}</p>
-          
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-            {event.description}
-          </p>
+
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{event.description}</p>
 
           {/* Event Details */}
           <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
@@ -95,12 +97,7 @@ const EventCard = ({ event, index }: EventCardProps) => {
           </div>
 
           {/* Action */}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="w-full"
-            asChild
-          >
+          <Button variant="outline" size="sm" className="w-full" asChild>
             <Link to={`/clubs/${event.clubId}`}>
               <ExternalLink className="w-3.5 h-3.5 mr-2" />
               View Club

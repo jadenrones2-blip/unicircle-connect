@@ -8,13 +8,23 @@ const INTEREST_KEYWORD_MAP: Record<string, string[]> = {
   network: ['networking', 'social', 'community', 'connect', 'professional'],
   skills: ['workshop', 'training', 'learn', 'development', 'education'],
   squad: ['team', 'group', 'community', 'club', 'organization'],
-  
+
   // Career goals
-  tech_career: ['tech', 'engineering', 'software', 'data', 'computer', 'coding', 'stem', 'ai', 'machine learning'],
+  tech_career: [
+    'tech',
+    'engineering',
+    'software',
+    'data',
+    'computer',
+    'coding',
+    'stem',
+    'ai',
+    'machine learning',
+  ],
   finance_career: ['finance', 'business', 'consulting', 'investment', 'economics', 'accounting'],
   healthcare_career: ['health', 'medical', 'pre-med', 'biology', 'wellness', 'nursing'],
   startups_career: ['startup', 'entrepreneur', 'innovation', 'venture', 'founder'],
-  
+
   // Rabbit holes (interests)
   arts: ['art', 'creative', 'design', 'music', 'theater', 'dance', 'film'],
   sports: ['sports', 'fitness', 'athletic', 'recreation', 'gym', 'running', 'basketball'],
@@ -59,7 +69,7 @@ export function useEventRecommendations(
 
     // Get future events only (verified or null verified)
     const now = new Date();
-    const futureEvents = events.filter(event => {
+    const futureEvents = events.filter((event) => {
       const eventDate = new Date(event.start_time);
       const isVerifiedOrPending = event.verified === true || event.verified === null;
       return eventDate >= now && isVerifiedOrPending;
@@ -69,9 +79,9 @@ export function useEventRecommendations(
     const userKeywords: string[] = [];
     const userCategories: string[] = [];
 
-    interests.forEach(interest => {
+    interests.forEach((interest) => {
       const value = interest.interest_value.toLowerCase();
-      
+
       // Get keywords for this interest
       const keywords = INTEREST_KEYWORD_MAP[value] || [];
       userKeywords.push(...keywords);
@@ -82,7 +92,7 @@ export function useEventRecommendations(
     });
 
     // Score each event
-    const scoredEvents: ScoredEvent[] = futureEvents.map(event => {
+    const scoredEvents: ScoredEvent[] = futureEvents.map((event) => {
       let score = 0;
       const matchedInterests: string[] = [];
 
@@ -94,7 +104,7 @@ export function useEventRecommendations(
       const searchText = `${eventTitle} ${eventCaption} ${eventLocation} ${clubHandle}`;
 
       // Score based on keyword matches
-      userKeywords.forEach(keyword => {
+      userKeywords.forEach((keyword) => {
         if (searchText.includes(keyword.toLowerCase())) {
           score += 2;
           if (!matchedInterests.includes(keyword)) {
@@ -104,7 +114,7 @@ export function useEventRecommendations(
       });
 
       // Bonus for title matches (more relevant)
-      userKeywords.forEach(keyword => {
+      userKeywords.forEach((keyword) => {
         if (eventTitle.includes(keyword.toLowerCase())) {
           score += 3; // Extra points for title match
         }
@@ -119,7 +129,7 @@ export function useEventRecommendations(
 
     // Sort by score (descending), then by date (ascending)
     return scoredEvents
-      .filter(e => e.score > 0)
+      .filter((e) => e.score > 0)
       .sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
         return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();

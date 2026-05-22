@@ -8,13 +8,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { ArrowLeft, Star, Loader2, Trash2, Edit2, Check, X, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 const STAGES = ['member', 'applied', 'under_review', 'interview', 'accepted', 'rejected'] as const;
-type Stage = typeof STAGES[number];
+type Stage = (typeof STAGES)[number];
 
 const STAGE_COLORS: Record<Stage, string> = {
   member: '#b8860b',
@@ -57,21 +69,27 @@ interface Review {
   reviewer_name?: string;
 }
 
-function StarRating({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
+function StarRating({
+  value,
+  onChange,
+  label,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  label: string;
+}) {
   return (
     <div className="space-y-1">
       <Label className="text-zinc-400 text-xs">{label}</Label>
       <div className="flex gap-1">
-        {[1, 2, 3, 4, 5].map(n => (
+        {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
             type="button"
             onClick={() => onChange(n)}
             className="transition-transform hover:scale-110"
           >
-            <Star
-              className={`w-5 h-5 ${n <= value ? 'text-gold fill-gold' : 'text-zinc-600'}`}
-            />
+            <Star className={`w-5 h-5 ${n <= value ? 'text-gold fill-gold' : 'text-zinc-600'}`} />
           </button>
         ))}
       </div>
@@ -95,7 +113,12 @@ export default function OrgPersonProfile() {
 
   // Review form
   const [myReview, setMyReview] = useState<Review | null>(null);
-  const [reviewForm, setReviewForm] = useState({ culture_fit: 0, experience: 0, involvement: 0, notes: '' });
+  const [reviewForm, setReviewForm] = useState({
+    culture_fit: 0,
+    experience: 0,
+    involvement: 0,
+    notes: '',
+  });
   const [submittingReview, setSubmittingReview] = useState(false);
 
   // Email
@@ -113,7 +136,11 @@ export default function OrgPersonProfile() {
 
     const [personRes, reviewsRes] = await Promise.all([
       (supabase as any).from('people').select('*').eq('id', personId).single(),
-      (supabase as any).from('reviews').select('*').eq('person_id', personId).order('created_at', { ascending: false }),
+      (supabase as any)
+        .from('reviews')
+        .select('*')
+        .eq('person_id', personId)
+        .order('created_at', { ascending: false }),
     ]);
 
     if (personRes.error || !personRes.data) {
@@ -129,19 +156,24 @@ export default function OrgPersonProfile() {
 
     // Fetch display names for reviewers from profiles
     if (reviewList.length > 0) {
-      const reviewerIds = [...new Set(reviewList.map(r => r.reviewer_id))];
+      const reviewerIds = [...new Set(reviewList.map((r) => r.reviewer_id))];
       const { data: profiles } = await (supabase as any)
         .from('admin_profiles')
         .select('user_id, display_name')
         .in('user_id', reviewerIds);
 
       const nameMap: Record<string, string> = {};
-      (profiles || []).forEach((p: any) => { nameMap[p.user_id] = p.display_name; });
+      (profiles || []).forEach((p: any) => {
+        nameMap[p.user_id] = p.display_name;
+      });
 
-      const enriched = reviewList.map(r => ({ ...r, reviewer_name: nameMap[r.reviewer_id] || 'Anonymous' }));
+      const enriched = reviewList.map((r) => ({
+        ...r,
+        reviewer_name: nameMap[r.reviewer_id] || 'Anonymous',
+      }));
       setReviews(enriched);
 
-      const mine = enriched.find(r => r.reviewer_id === user?.id);
+      const mine = enriched.find((r) => r.reviewer_id === user?.id);
       if (mine) {
         setMyReview(mine);
         setReviewForm({
@@ -158,7 +190,9 @@ export default function OrgPersonProfile() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, [personId]);
+  useEffect(() => {
+    fetchData();
+  }, [personId]);
 
   const handleSave = async () => {
     if (!personId || !editForm.first_name?.trim() || !editForm.last_name?.trim()) {
@@ -166,17 +200,24 @@ export default function OrgPersonProfile() {
       return;
     }
     setSaving(true);
-    const { error } = await (supabase as any).from('people').update({
-      first_name: editForm.first_name?.trim(),
-      last_name: editForm.last_name?.trim(),
-      email: editForm.email?.trim() || null,
-      year: editForm.year || null,
-      major: editForm.major?.trim() || null,
-      stage: editForm.stage,
-      notes: editForm.notes?.trim() || null,
-    }).eq('id', personId);
+    const { error } = await (supabase as any)
+      .from('people')
+      .update({
+        first_name: editForm.first_name?.trim(),
+        last_name: editForm.last_name?.trim(),
+        email: editForm.email?.trim() || null,
+        year: editForm.year || null,
+        major: editForm.major?.trim() || null,
+        stage: editForm.stage,
+        notes: editForm.notes?.trim() || null,
+      })
+      .eq('id', personId);
 
-    if (error) { toast.error('Failed to save'); setSaving(false); return; }
+    if (error) {
+      toast.error('Failed to save');
+      setSaving(false);
+      return;
+    }
     toast.success('Saved');
     setEditing(false);
     fetchData();
@@ -186,8 +227,11 @@ export default function OrgPersonProfile() {
   const handleStageChange = async (stage: Stage) => {
     if (!personId) return;
     const { error } = await (supabase as any).from('people').update({ stage }).eq('id', personId);
-    if (error) { toast.error('Failed to update stage'); return; }
-    setPerson(p => p ? { ...p, stage } : p);
+    if (error) {
+      toast.error('Failed to update stage');
+      return;
+    }
+    setPerson((p) => (p ? { ...p, stage } : p));
   };
 
   const handleSubmitReview = async () => {
@@ -211,7 +255,11 @@ export default function OrgPersonProfile() {
       ? await (supabase as any).from('reviews').update(payload).eq('id', myReview.id)
       : await (supabase as any).from('reviews').insert(payload);
 
-    if (error) { toast.error('Failed to save review'); setSubmittingReview(false); return; }
+    if (error) {
+      toast.error('Failed to save review');
+      setSubmittingReview(false);
+      return;
+    }
     toast.success(myReview ? 'Review updated' : 'Review submitted');
     fetchData();
     setSubmittingReview(false);
@@ -232,7 +280,11 @@ export default function OrgPersonProfile() {
         body: emailForm.body.trim(),
       },
     });
-    if (error) { toast.error('Failed to send email'); setSendingEmail(false); return; }
+    if (error) {
+      toast.error('Failed to send email');
+      setSendingEmail(false);
+      return;
+    }
     toast.success('Email sent');
     setEmailOpen(false);
     setEmailForm({ subject: '', body: '' });
@@ -243,20 +295,27 @@ export default function OrgPersonProfile() {
     if (!personId) return;
     setDeleting(true);
     const { error } = await (supabase as any).from('people').delete().eq('id', personId);
-    if (error) { toast.error('Failed to delete'); setDeleting(false); return; }
+    if (error) {
+      toast.error('Failed to delete');
+      setDeleting(false);
+      return;
+    }
     toast.success('Person deleted');
     navigate(`/club-admin/clubs/${clubId}/people`);
   };
 
-  const avgScore = reviews.length > 0
-    ? (() => {
-        const all: number[] = [];
-        reviews.forEach(r => {
-          [r.culture_fit, r.experience, r.involvement].filter(Boolean).forEach(s => all.push(s as number));
-        });
-        return all.length ? all.reduce((a, b) => a + b, 0) / all.length : null;
-      })()
-    : null;
+  const avgScore =
+    reviews.length > 0
+      ? (() => {
+          const all: number[] = [];
+          reviews.forEach((r) => {
+            [r.culture_fit, r.experience, r.involvement]
+              .filter(Boolean)
+              .forEach((s) => all.push(s as number));
+          });
+          return all.length ? all.reduce((a, b) => a + b, 0) / all.length : null;
+        })()
+      : null;
 
   if (loading) {
     return (
@@ -330,34 +389,44 @@ export default function OrgPersonProfile() {
             <div className="lg:col-span-1 space-y-4">
               {/* Stage card */}
               <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Stage</p>
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+                  Stage
+                </p>
                 <Select value={person.stage} onValueChange={handleStageChange}>
                   <SelectTrigger className="bg-white/5 border-white/10 text-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#111] border-white/10">
-                    {STAGES.map(s => (
-                      <SelectItem key={s} value={s} className="text-white">{STAGE_LABELS[s]}</SelectItem>
+                    {STAGES.map((s) => (
+                      <SelectItem key={s} value={s} className="text-white">
+                        {STAGE_LABELS[s]}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
 
                 {avgScore != null && (
                   <div className="mt-4 pt-4 border-t border-white/5">
-                    <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Avg Score</p>
+                    <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
+                      Avg Score
+                    </p>
                     <div className="flex items-center gap-2">
                       <Star className="w-4 h-4 text-gold fill-gold" />
                       <span className="text-xl font-bold text-white">{avgScore.toFixed(1)}</span>
                       <span className="text-zinc-500 text-xs">/ 5</span>
                     </div>
-                    <p className="text-zinc-600 text-xs mt-1">{reviews.length} review{reviews.length !== 1 ? 's' : ''}</p>
+                    <p className="text-zinc-600 text-xs mt-1">
+                      {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
                 )}
               </div>
 
               {/* Person details */}
               <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Details</p>
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+                  Details
+                </p>
                 {editing ? (
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-2">
@@ -365,7 +434,9 @@ export default function OrgPersonProfile() {
                         <Label className="text-zinc-400 text-xs">First Name</Label>
                         <Input
                           value={editForm.first_name || ''}
-                          onChange={e => setEditForm(f => ({ ...f, first_name: e.target.value }))}
+                          onChange={(e) =>
+                            setEditForm((f) => ({ ...f, first_name: e.target.value }))
+                          }
                           className="bg-white/5 border-white/10 text-white mt-1 h-8 text-sm"
                         />
                       </div>
@@ -373,7 +444,9 @@ export default function OrgPersonProfile() {
                         <Label className="text-zinc-400 text-xs">Last Name</Label>
                         <Input
                           value={editForm.last_name || ''}
-                          onChange={e => setEditForm(f => ({ ...f, last_name: e.target.value }))}
+                          onChange={(e) =>
+                            setEditForm((f) => ({ ...f, last_name: e.target.value }))
+                          }
                           className="bg-white/5 border-white/10 text-white mt-1 h-8 text-sm"
                         />
                       </div>
@@ -382,7 +455,7 @@ export default function OrgPersonProfile() {
                       <Label className="text-zinc-400 text-xs">Email</Label>
                       <Input
                         value={editForm.email || ''}
-                        onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
+                        onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
                         className="bg-white/5 border-white/10 text-white mt-1 h-8 text-sm"
                       />
                     </div>
@@ -391,19 +464,24 @@ export default function OrgPersonProfile() {
                         <Label className="text-zinc-400 text-xs">Major</Label>
                         <Input
                           value={editForm.major || ''}
-                          onChange={e => setEditForm(f => ({ ...f, major: e.target.value }))}
+                          onChange={(e) => setEditForm((f) => ({ ...f, major: e.target.value }))}
                           className="bg-white/5 border-white/10 text-white mt-1 h-8 text-sm"
                         />
                       </div>
                       <div>
                         <Label className="text-zinc-400 text-xs">Year</Label>
-                        <Select value={editForm.year || ''} onValueChange={v => setEditForm(f => ({ ...f, year: v }))}>
+                        <Select
+                          value={editForm.year || ''}
+                          onValueChange={(v) => setEditForm((f) => ({ ...f, year: v }))}
+                        >
                           <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1 h-8 text-sm">
                             <SelectValue placeholder="Select" />
                           </SelectTrigger>
                           <SelectContent className="bg-[#111] border-white/10">
-                            {['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'].map(y => (
-                              <SelectItem key={y} value={y} className="text-white">{y}</SelectItem>
+                            {['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'].map((y) => (
+                              <SelectItem key={y} value={y} className="text-white">
+                                {y}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -413,16 +491,35 @@ export default function OrgPersonProfile() {
                       <Label className="text-zinc-400 text-xs">Notes</Label>
                       <Textarea
                         value={editForm.notes || ''}
-                        onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
+                        onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))}
                         className="bg-white/5 border-white/10 text-white mt-1 text-sm resize-none"
                         rows={3}
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={handleSave} disabled={saving} size="sm" className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90 flex-1">
-                        {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Check className="w-3.5 h-3.5 mr-1" /> Save</>}
+                      <Button
+                        onClick={handleSave}
+                        disabled={saving}
+                        size="sm"
+                        className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90 flex-1"
+                      >
+                        {saving ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <>
+                            <Check className="w-3.5 h-3.5 mr-1" /> Save
+                          </>
+                        )}
                       </Button>
-                      <Button onClick={() => { setEditing(false); setEditForm(person); }} size="sm" variant="ghost" className="text-zinc-400">
+                      <Button
+                        onClick={() => {
+                          setEditing(false);
+                          setEditForm(person);
+                        }}
+                        size="sm"
+                        variant="ghost"
+                        className="text-zinc-400"
+                      >
                         <X className="w-3.5 h-3.5" />
                       </Button>
                     </div>
@@ -433,16 +530,22 @@ export default function OrgPersonProfile() {
                       { label: 'Major', value: person.major },
                       { label: 'Year', value: person.year },
                       { label: 'Notes', value: person.notes },
-                    ].map(({ label, value }) => value ? (
-                      <div key={label}>
-                        <dt className="text-zinc-600 text-xs">{label}</dt>
-                        <dd className="text-zinc-300 text-sm mt-0.5">{value}</dd>
-                      </div>
-                    ) : null)}
+                    ].map(({ label, value }) =>
+                      value ? (
+                        <div key={label}>
+                          <dt className="text-zinc-600 text-xs">{label}</dt>
+                          <dd className="text-zinc-300 text-sm mt-0.5">{value}</dd>
+                        </div>
+                      ) : null
+                    )}
                     <div>
                       <dt className="text-zinc-600 text-xs">Added</dt>
                       <dd className="text-zinc-300 text-sm mt-0.5">
-                        {new Date(person.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {new Date(person.created_at).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
                       </dd>
                     </div>
                   </dl>
@@ -458,15 +561,27 @@ export default function OrgPersonProfile() {
                   {myReview ? 'My Review' : 'Add Review'}
                 </p>
                 <div className="grid grid-cols-3 gap-4 mb-4">
-                  <StarRating label="Culture Fit" value={reviewForm.culture_fit} onChange={v => setReviewForm(f => ({ ...f, culture_fit: v }))} />
-                  <StarRating label="Experience" value={reviewForm.experience} onChange={v => setReviewForm(f => ({ ...f, experience: v }))} />
-                  <StarRating label="Involvement" value={reviewForm.involvement} onChange={v => setReviewForm(f => ({ ...f, involvement: v }))} />
+                  <StarRating
+                    label="Culture Fit"
+                    value={reviewForm.culture_fit}
+                    onChange={(v) => setReviewForm((f) => ({ ...f, culture_fit: v }))}
+                  />
+                  <StarRating
+                    label="Experience"
+                    value={reviewForm.experience}
+                    onChange={(v) => setReviewForm((f) => ({ ...f, experience: v }))}
+                  />
+                  <StarRating
+                    label="Involvement"
+                    value={reviewForm.involvement}
+                    onChange={(v) => setReviewForm((f) => ({ ...f, involvement: v }))}
+                  />
                 </div>
                 <div className="mb-3">
                   <Label className="text-zinc-400 text-xs">Notes (optional)</Label>
                   <Textarea
                     value={reviewForm.notes}
-                    onChange={e => setReviewForm(f => ({ ...f, notes: e.target.value }))}
+                    onChange={(e) => setReviewForm((f) => ({ ...f, notes: e.target.value }))}
                     className="bg-white/5 border-white/10 text-white mt-1 text-sm resize-none"
                     rows={2}
                     placeholder="Add any comments..."
@@ -478,43 +593,64 @@ export default function OrgPersonProfile() {
                   size="sm"
                   className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90"
                 >
-                  {submittingReview ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : myReview ? 'Update Review' : 'Submit Review'}
+                  {submittingReview ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : myReview ? (
+                    'Update Review'
+                  ) : (
+                    'Submit Review'
+                  )}
                 </Button>
               </div>
 
               {/* All reviews */}
-              {reviews.filter(r => r.reviewer_id !== user?.id).length > 0 && (
+              {reviews.filter((r) => r.reviewer_id !== user?.id).length > 0 && (
                 <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">Team Reviews</p>
+                  <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-4">
+                    Team Reviews
+                  </p>
                   <div className="space-y-4">
-                    {reviews.filter(r => r.reviewer_id !== user?.id).map(r => (
-                      <div key={r.id} className="pb-4 border-b border-white/5 last:border-0 last:pb-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-zinc-300">{r.reviewer_name}</span>
-                          <span className="text-xs text-zinc-600">
-                            {new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </span>
+                    {reviews
+                      .filter((r) => r.reviewer_id !== user?.id)
+                      .map((r) => (
+                        <div
+                          key={r.id}
+                          className="pb-4 border-b border-white/5 last:border-0 last:pb-0"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-zinc-300">
+                              {r.reviewer_name}
+                            </span>
+                            <span className="text-xs text-zinc-600">
+                              {new Date(r.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                          <div className="flex gap-4 text-xs text-zinc-500 mb-2">
+                            {r.culture_fit != null && (
+                              <span className="flex items-center gap-1">
+                                <Star className="w-3 h-3 text-gold fill-gold" /> {r.culture_fit}{' '}
+                                Culture
+                              </span>
+                            )}
+                            {r.experience != null && (
+                              <span className="flex items-center gap-1">
+                                <Star className="w-3 h-3 text-gold fill-gold" /> {r.experience}{' '}
+                                Experience
+                              </span>
+                            )}
+                            {r.involvement != null && (
+                              <span className="flex items-center gap-1">
+                                <Star className="w-3 h-3 text-gold fill-gold" /> {r.involvement}{' '}
+                                Involvement
+                              </span>
+                            )}
+                          </div>
+                          {r.notes && <p className="text-sm text-zinc-400">{r.notes}</p>}
                         </div>
-                        <div className="flex gap-4 text-xs text-zinc-500 mb-2">
-                          {r.culture_fit != null && (
-                            <span className="flex items-center gap-1">
-                              <Star className="w-3 h-3 text-gold fill-gold" /> {r.culture_fit} Culture
-                            </span>
-                          )}
-                          {r.experience != null && (
-                            <span className="flex items-center gap-1">
-                              <Star className="w-3 h-3 text-gold fill-gold" /> {r.experience} Experience
-                            </span>
-                          )}
-                          {r.involvement != null && (
-                            <span className="flex items-center gap-1">
-                              <Star className="w-3 h-3 text-gold fill-gold" /> {r.involvement} Involvement
-                            </span>
-                          )}
-                        </div>
-                        {r.notes && <p className="text-sm text-zinc-400">{r.notes}</p>}
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               )}
@@ -538,7 +674,7 @@ export default function OrgPersonProfile() {
               <Label className="text-zinc-400 text-xs">Subject</Label>
               <Input
                 value={emailForm.subject}
-                onChange={e => setEmailForm(f => ({ ...f, subject: e.target.value }))}
+                onChange={(e) => setEmailForm((f) => ({ ...f, subject: e.target.value }))}
                 className="bg-white/5 border-white/10 text-white mt-1"
                 placeholder="e.g. Interview Invitation"
               />
@@ -547,7 +683,7 @@ export default function OrgPersonProfile() {
               <Label className="text-zinc-400 text-xs">Message</Label>
               <Textarea
                 value={emailForm.body}
-                onChange={e => setEmailForm(f => ({ ...f, body: e.target.value }))}
+                onChange={(e) => setEmailForm((f) => ({ ...f, body: e.target.value }))}
                 className="bg-white/5 border-white/10 text-white mt-1 resize-none"
                 rows={6}
                 placeholder="Write your message..."
@@ -555,9 +691,22 @@ export default function OrgPersonProfile() {
             </div>
           </div>
           <DialogFooter className="mt-2">
-            <Button variant="ghost" onClick={() => setEmailOpen(false)} className="text-zinc-400">Cancel</Button>
-            <Button onClick={handleSendEmail} disabled={sendingEmail} className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90">
-              {sendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Mail className="w-3.5 h-3.5 mr-1.5" />Send Email</>}
+            <Button variant="ghost" onClick={() => setEmailOpen(false)} className="text-zinc-400">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendEmail}
+              disabled={sendingEmail}
+              className="bg-gold text-zinc-900 font-semibold hover:bg-gold/90"
+            >
+              {sendingEmail ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Mail className="w-3.5 h-3.5 mr-1.5" />
+                  Send Email
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -570,11 +719,21 @@ export default function OrgPersonProfile() {
             <DialogTitle>Delete Person</DialogTitle>
           </DialogHeader>
           <p className="text-zinc-400 text-sm">
-            Are you sure you want to delete <span className="text-white font-medium">{person.first_name} {person.last_name}</span>? This will also delete all their reviews.
+            Are you sure you want to delete{' '}
+            <span className="text-white font-medium">
+              {person.first_name} {person.last_name}
+            </span>
+            ? This will also delete all their reviews.
           </p>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteOpen(false)} className="text-zinc-400">Cancel</Button>
-            <Button onClick={handleDelete} disabled={deleting} className="bg-red-500 hover:bg-red-600 text-white font-semibold">
+            <Button variant="ghost" onClick={() => setDeleteOpen(false)} className="text-zinc-400">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-red-500 hover:bg-red-600 text-white font-semibold"
+            >
               {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete'}
             </Button>
           </DialogFooter>

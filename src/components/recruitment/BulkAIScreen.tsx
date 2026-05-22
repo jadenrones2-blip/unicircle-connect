@@ -25,7 +25,13 @@ interface BulkAIScreenProps {
   onConfigureRubric: () => void;
 }
 
-export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigureRubric }: BulkAIScreenProps) {
+export function BulkAIScreen({
+  clubId,
+  stages,
+  applicants,
+  onComplete,
+  onConfigureRubric,
+}: BulkAIScreenProps) {
   const { aiCriteria, strictFilters } = useRecruitmentRequirements(clubId);
   const [open, setOpen] = useState(false);
   const [targetStageId, setTargetStageId] = useState<string>('all');
@@ -37,9 +43,7 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
   const [done, setDone] = useState(false);
 
   const targetApplicants =
-    targetStageId === 'all'
-      ? applicants
-      : applicants.filter((a) => a.stage_id === targetStageId);
+    targetStageId === 'all' ? applicants : applicants.filter((a) => a.stage_id === targetStageId);
 
   const handleClose = (v: boolean) => {
     if (running) return;
@@ -118,12 +122,16 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
         const updatePromises: Promise<unknown>[] = [];
         if (acceptIds.length > 0) {
           updatePromises.push(
-            (supabase.from('applicants') as any).update({ final_decision: 'accepted' }).in('id', acceptIds)
+            (supabase.from('applicants') as any)
+              .update({ final_decision: 'accepted' })
+              .in('id', acceptIds)
           );
         }
         if (rejectIds.length > 0) {
           updatePromises.push(
-            (supabase.from('applicants') as any).update({ final_decision: 'rejected' }).in('id', rejectIds)
+            (supabase.from('applicants') as any)
+              .update({ final_decision: 'rejected' })
+              .in('id', rejectIds)
           );
         }
 
@@ -158,9 +166,7 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
 
       <DialogContent className="sm:max-w-[460px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            Bulk AI Screening
-          </DialogTitle>
+          <DialogTitle className="flex items-center gap-2">Bulk AI Screening</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5 mt-1">
@@ -188,9 +194,14 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
           {/* Rubric summary */}
           <div className="rounded-lg bg-white/5 border border-white/10 p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">Rubric</p>
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">
+                Rubric
+              </p>
               <button
-                onClick={() => { setOpen(false); onConfigureRubric(); }}
+                onClick={() => {
+                  setOpen(false);
+                  onConfigureRubric();
+                }}
                 className="flex items-center gap-1 text-xs text-zinc-500 hover:text-gold transition-colors"
               >
                 <Settings2 className="w-3 h-3" />
@@ -201,7 +212,10 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
               <p className="text-xs text-zinc-500">
                 No rubric set up yet.{' '}
                 <button
-                  onClick={() => { setOpen(false); onConfigureRubric(); }}
+                  onClick={() => {
+                    setOpen(false);
+                    onConfigureRubric();
+                  }}
                   className="text-gold underline underline-offset-2 hover:no-underline"
                 >
                   Configure the rubric
@@ -212,15 +226,19 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
               <div className="space-y-1">
                 {strictFilters.length > 0 && (
                   <p className="text-xs text-zinc-400">
-                    <span className="font-medium text-zinc-300">{strictFilters.length} strict filter{strictFilters.length !== 1 ? 's' : ''}</span>
-                    {' '}— auto-fail candidates who don&apos;t qualify
+                    <span className="font-medium text-zinc-300">
+                      {strictFilters.length} strict filter{strictFilters.length !== 1 ? 's' : ''}
+                    </span>{' '}
+                    — auto-fail candidates who don&apos;t qualify
                   </p>
                 )}
                 {aiCriteria.length > 0 && (
                   <>
                     <p className="text-xs text-zinc-400 mb-1.5">
-                      <span className="font-medium text-zinc-300">{aiCriteria.length} AI criteria</span>
-                      {' '}— Claude will evaluate each applicant against:
+                      <span className="font-medium text-zinc-300">
+                        {aiCriteria.length} AI criteria
+                      </span>{' '}
+                      — Claude will evaluate each applicant against:
                     </p>
                     <div className="space-y-1 pl-1">
                       {aiCriteria.slice(0, 3).map((c) => {
@@ -233,14 +251,18 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
                         );
                       })}
                       {aiCriteria.length > 3 && (
-                        <p className="text-xs text-zinc-600 pl-4.5">+{aiCriteria.length - 3} more</p>
+                        <p className="text-xs text-zinc-600 pl-4.5">
+                          +{aiCriteria.length - 3} more
+                        </p>
                       )}
                     </div>
                   </>
                 )}
                 <div className="flex items-center gap-1.5 pt-1.5 border-t border-white/5 mt-1.5">
                   <Star className="w-3 h-3 text-gold fill-gold" />
-                  <p className="text-xs text-zinc-500">Claude will flag ~10–15% of candidates as Standouts</p>
+                  <p className="text-xs text-zinc-500">
+                    Claude will flag ~10–15% of candidates as Standouts
+                  </p>
                 </div>
               </div>
             )}
@@ -310,7 +332,9 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
                     <div className="text-zinc-500">Accept</div>
                   </div>
                   <div className="rounded bg-yellow-500/10 border border-yellow-500/20 px-2 py-1.5">
-                    <div className="text-yellow-400 font-medium">{rejectBelow}–{acceptAbove - 1}</div>
+                    <div className="text-yellow-400 font-medium">
+                      {rejectBelow}–{acceptAbove - 1}
+                    </div>
                     <div className="text-zinc-500">Pending</div>
                   </div>
                   <div className="rounded bg-red-500/10 border border-red-500/20 px-2 py-1.5">
@@ -326,8 +350,12 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
           {(running || done) && (
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs text-zinc-400">
-                <span>{done ? 'Screening complete' : `Screening in batches of ${BATCH_SIZE}...`}</span>
-                <span>{progress.done} / {progress.total}</span>
+                <span>
+                  {done ? 'Screening complete' : `Screening in batches of ${BATCH_SIZE}...`}
+                </span>
+                <span>
+                  {progress.done} / {progress.total}
+                </span>
               </div>
               <Progress
                 value={progress.total > 0 ? (progress.done / progress.total) * 100 : 0}
@@ -348,7 +376,8 @@ export function BulkAIScreen({ clubId, stages, applicants, onComplete, onConfigu
               </>
             ) : (
               <>
-                Run AI Screen — {targetApplicants.length} applicant{targetApplicants.length !== 1 ? 's' : ''}
+                Run AI Screen — {targetApplicants.length} applicant
+                {targetApplicants.length !== 1 ? 's' : ''}
               </>
             )}
           </Button>

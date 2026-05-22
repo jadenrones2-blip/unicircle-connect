@@ -29,11 +29,11 @@ export function EventPreviewCard({
   const day = eventDate?.getDate() || '--';
   const month = eventDate?.toLocaleDateString('en-US', { month: 'short' }) || '---';
 
-  const formattedTime = time 
-    ? new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
+  const formattedTime = time
+    ? new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
+        hour: 'numeric',
         minute: '2-digit',
-        hour12: true 
+        hour12: true,
       })
     : null;
 
@@ -45,7 +45,10 @@ export function EventPreviewCard({
           Preview
         </span>
         {isDraft && (
-          <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10 text-xs">
+          <Badge
+            variant="outline"
+            className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10 text-xs"
+          >
             Draft
           </Badge>
         )}
@@ -80,9 +83,7 @@ export function EventPreviewCard({
             <h3 className="font-display text-base font-semibold text-foreground truncate">
               {title || 'Event Title'}
             </h3>
-            <p className="text-sm text-gold font-medium truncate">
-              @{clubName || 'clubhandle'}
-            </p>
+            <p className="text-sm text-gold font-medium truncate">@{clubName || 'clubhandle'}</p>
 
             <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
               {formattedTime && (
@@ -103,9 +104,7 @@ export function EventPreviewCard({
 
         {/* Description */}
         {description && (
-          <p className="mt-3 text-sm text-muted-foreground line-clamp-2">
-            {description}
-          </p>
+          <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{description}</p>
         )}
 
         {/* Instagram Link */}

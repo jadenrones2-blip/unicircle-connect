@@ -2,39 +2,146 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  Users, Star, CheckCircle, Clock,
-  Calendar, ArrowRight, TrendingUp,
-  FileText, ChevronRight, Eye,
+  Users,
+  Star,
+  CheckCircle,
+  Clock,
+  Calendar,
+  ArrowRight,
+  TrendingUp,
+  FileText,
+  ChevronRight,
+  Eye,
 } from 'lucide-react';
 import Header from '@/components/Header';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const STAGES = [
-  { id: 'applied',     label: 'Applied',      color: '#6366f1' },
-  { id: 'screening',   label: 'Screening',    color: '#f59e0b' },
-  { id: 'coffee_chat', label: 'Coffee Chat',  color: '#3b82f6' },
-  { id: 'final',       label: 'Final Round',  color: '#8b5cf6' },
-  { id: 'accepted',    label: 'Accepted',     color: '#10b981' },
+  { id: 'applied', label: 'Applied', color: '#6366f1' },
+  { id: 'screening', label: 'Screening', color: '#f59e0b' },
+  { id: 'coffee_chat', label: 'Coffee Chat', color: '#3b82f6' },
+  { id: 'final', label: 'Final Round', color: '#8b5cf6' },
+  { id: 'accepted', label: 'Accepted', color: '#10b981' },
 ];
 
 const APPLICANTS = [
-  { id: 1,  name: 'Sarah Chen',      major: 'CS',        year: 'Junior',    score: 87, stage: 'applied',     initials: 'SC', tag: 'Strong',   color: '#6366f1' },
-  { id: 2,  name: 'Marcus Johnson',  major: 'Business',  year: 'Sophomore', score: 72, stage: 'applied',     initials: 'MJ', tag: null,       color: '#6366f1' },
-  { id: 3,  name: 'Tyler Brooks',    major: 'ECE',       year: 'Junior',    score: 65, stage: 'applied',     initials: 'TB', tag: null,       color: '#6366f1' },
-  { id: 4,  name: 'Priya Patel',     major: 'Cog Sci',   year: 'Senior',    score: 91, stage: 'screening',   initials: 'PP', tag: 'Top Pick', color: '#f59e0b' },
-  { id: 5,  name: 'Alex Kim',        major: 'Math-CS',   year: 'Junior',    score: 78, stage: 'screening',   initials: 'AK', tag: null,       color: '#f59e0b' },
-  { id: 6,  name: 'Jordan Lee',      major: 'Economics', year: 'Sophomore', score: 84, stage: 'coffee_chat', initials: 'JL', tag: 'Strong',   color: '#3b82f6' },
-  { id: 7,  name: 'Maya Rodriguez',  major: 'Biology',   year: 'Junior',    score: 76, stage: 'coffee_chat', initials: 'MR', tag: null,       color: '#3b82f6' },
-  { id: 8,  name: 'Kevin Zhang',     major: 'CS',        year: 'Senior',    score: 93, stage: 'final',       initials: 'KZ', tag: 'Top Pick', color: '#8b5cf6' },
-  { id: 9,  name: 'Aisha Williams',  major: 'Poli Sci',  year: 'Junior',    score: 88, stage: 'accepted',    initials: 'AW', tag: 'Accepted', color: '#10b981' },
-  { id: 10, name: 'Daniel Park',     major: 'Math',      year: 'Sophomore', score: 85, stage: 'accepted',    initials: 'DP', tag: 'Accepted', color: '#10b981' },
+  {
+    id: 1,
+    name: 'Sarah Chen',
+    major: 'CS',
+    year: 'Junior',
+    score: 87,
+    stage: 'applied',
+    initials: 'SC',
+    tag: 'Strong',
+    color: '#6366f1',
+  },
+  {
+    id: 2,
+    name: 'Marcus Johnson',
+    major: 'Business',
+    year: 'Sophomore',
+    score: 72,
+    stage: 'applied',
+    initials: 'MJ',
+    tag: null,
+    color: '#6366f1',
+  },
+  {
+    id: 3,
+    name: 'Tyler Brooks',
+    major: 'ECE',
+    year: 'Junior',
+    score: 65,
+    stage: 'applied',
+    initials: 'TB',
+    tag: null,
+    color: '#6366f1',
+  },
+  {
+    id: 4,
+    name: 'Priya Patel',
+    major: 'Cog Sci',
+    year: 'Senior',
+    score: 91,
+    stage: 'screening',
+    initials: 'PP',
+    tag: 'Top Pick',
+    color: '#f59e0b',
+  },
+  {
+    id: 5,
+    name: 'Alex Kim',
+    major: 'Math-CS',
+    year: 'Junior',
+    score: 78,
+    stage: 'screening',
+    initials: 'AK',
+    tag: null,
+    color: '#f59e0b',
+  },
+  {
+    id: 6,
+    name: 'Jordan Lee',
+    major: 'Economics',
+    year: 'Sophomore',
+    score: 84,
+    stage: 'coffee_chat',
+    initials: 'JL',
+    tag: 'Strong',
+    color: '#3b82f6',
+  },
+  {
+    id: 7,
+    name: 'Maya Rodriguez',
+    major: 'Biology',
+    year: 'Junior',
+    score: 76,
+    stage: 'coffee_chat',
+    initials: 'MR',
+    tag: null,
+    color: '#3b82f6',
+  },
+  {
+    id: 8,
+    name: 'Kevin Zhang',
+    major: 'CS',
+    year: 'Senior',
+    score: 93,
+    stage: 'final',
+    initials: 'KZ',
+    tag: 'Top Pick',
+    color: '#8b5cf6',
+  },
+  {
+    id: 9,
+    name: 'Aisha Williams',
+    major: 'Poli Sci',
+    year: 'Junior',
+    score: 88,
+    stage: 'accepted',
+    initials: 'AW',
+    tag: 'Accepted',
+    color: '#10b981',
+  },
+  {
+    id: 10,
+    name: 'Daniel Park',
+    major: 'Math',
+    year: 'Sophomore',
+    score: 85,
+    stage: 'accepted',
+    initials: 'DP',
+    tag: 'Accepted',
+    color: '#10b981',
+  },
 ];
 
 const CATEGORIES = [
-  { name: 'Leadership',   weight: 30, scores: [8, 9, 7] },
-  { name: 'Technical',    weight: 25, scores: [7, 8, 9] },
-  { name: 'Culture Fit',  weight: 25, scores: [9, 8, 8] },
+  { name: 'Leadership', weight: 30, scores: [8, 9, 7] },
+  { name: 'Technical', weight: 25, scores: [7, 8, 9] },
+  { name: 'Culture Fit', weight: 25, scores: [9, 8, 8] },
   { name: 'Communication', weight: 20, scores: [8, 7, 9] },
 ];
 
@@ -43,7 +150,11 @@ const APPLICANT_STAGES = ['Applied', 'Screening', 'Interview', 'Decision'];
 
 // ─── Pipeline Tab ─────────────────────────────────────────────────────────────
 
-function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPLICANTS[0]) => void }) {
+function PipelineTab({
+  onSelectApplicant,
+}: {
+  onSelectApplicant: (a: (typeof APPLICANTS)[0]) => void;
+}) {
   return (
     <motion.div
       key="pipeline"
@@ -55,10 +166,10 @@ function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPL
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden mb-10">
         {[
-          { label: 'Applicants', value: '10',   icon: Users,       color: '#6366f1' },
-          { label: 'Avg Score',  value: '81.9', icon: Star,        color: '#F5C842' },
-          { label: 'Accepted',   value: '20%',  icon: TrendingUp,  color: '#10b981' },
-          { label: 'In Review',  value: '5',    icon: Eye,         color: '#8b5cf6' },
+          { label: 'Applicants', value: '10', icon: Users, color: '#6366f1' },
+          { label: 'Avg Score', value: '81.9', icon: Star, color: '#F5C842' },
+          { label: 'Accepted', value: '20%', icon: TrendingUp, color: '#10b981' },
+          { label: 'In Review', value: '5', icon: Eye, color: '#8b5cf6' },
         ].map((s) => (
           <div key={s.label} className="bg-[#0A0A0A] px-6 py-5 flex items-center gap-4">
             <s.icon className="w-5 h-5 flex-shrink-0" style={{ color: s.color }} />
@@ -74,13 +185,18 @@ function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPL
       <div className="overflow-x-auto pb-2">
         <div className="flex gap-5 min-w-max">
           {STAGES.map((stage) => {
-            const cards = APPLICANTS.filter(a => a.stage === stage.id);
+            const cards = APPLICANTS.filter((a) => a.stage === stage.id);
             return (
               <div key={stage.id} className="w-52">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stage.color }} />
-                    <span className="text-xs font-semibold text-white/60 tracking-wide uppercase">{stage.label}</span>
+                    <div
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: stage.color }}
+                    />
+                    <span className="text-xs font-semibold text-white/60 tracking-wide uppercase">
+                      {stage.label}
+                    </span>
                   </div>
                   <span className="text-xs text-white/30 tabular-nums">{cards.length}</span>
                 </div>
@@ -98,13 +214,21 @@ function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPL
                         <div className="flex items-center gap-2.5">
                           <div
                             className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-                            style={{ backgroundColor: a.color + '25', border: `1.5px solid ${a.color}40`, color: a.color }}
+                            style={{
+                              backgroundColor: a.color + '25',
+                              border: `1.5px solid ${a.color}40`,
+                              color: a.color,
+                            }}
                           >
                             {a.initials}
                           </div>
                           <div>
-                            <div className="text-[13px] font-semibold text-white leading-none">{a.name}</div>
-                            <div className="text-[11px] text-white/35 mt-0.5">{a.year} · {a.major}</div>
+                            <div className="text-[13px] font-semibold text-white leading-none">
+                              {a.name}
+                            </div>
+                            <div className="text-[11px] text-white/35 mt-0.5">
+                              {a.year} · {a.major}
+                            </div>
                           </div>
                         </div>
                         <ChevronRight className="w-3 h-3 text-white/15 group-hover:text-white/40 mt-0.5 transition-colors" />
@@ -115,11 +239,15 @@ function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPL
                           <span className="text-[12px] font-bold text-white">{a.score}</span>
                         </div>
                         {a.tag && (
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
-                            a.tag === 'Accepted' ? 'bg-emerald-500/15 text-emerald-400' :
-                            a.tag === 'Top Pick' ? 'bg-[#F5C842]/15 text-[#F5C842]' :
-                            'bg-blue-500/15 text-blue-400'
-                          }`}>
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                              a.tag === 'Accepted'
+                                ? 'bg-emerald-500/15 text-emerald-400'
+                                : a.tag === 'Top Pick'
+                                  ? 'bg-[#F5C842]/15 text-[#F5C842]'
+                                  : 'bg-blue-500/15 text-blue-400'
+                            }`}
+                          >
                             {a.tag}
                           </span>
                         )}
@@ -143,7 +271,13 @@ function PipelineTab({ onSelectApplicant }: { onSelectApplicant: (a: typeof APPL
 
 // ─── Evaluate Tab ─────────────────────────────────────────────────────────────
 
-function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; onSelect: (a: typeof APPLICANTS[0]) => void }) {
+function EvaluateTab({
+  selected,
+  onSelect,
+}: {
+  selected: (typeof APPLICANTS)[0];
+  onSelect: (a: (typeof APPLICANTS)[0]) => void;
+}) {
   const compositeScore = CATEGORIES.reduce((total, cat) => {
     const avg = cat.scores.reduce((a, b) => a + b, 0) / cat.scores.length;
     return total + (avg / 10) * cat.weight;
@@ -160,7 +294,9 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
     >
       {/* Applicant list */}
       <div>
-        <p className="text-[11px] font-semibold text-white/30 uppercase tracking-[0.15em] mb-4">Applicants</p>
+        <p className="text-[11px] font-semibold text-white/30 uppercase tracking-[0.15em] mb-4">
+          Applicants
+        </p>
         <div className="space-y-1.5">
           {APPLICANTS.slice(0, 7).map((a) => (
             <div
@@ -175,7 +311,11 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
               <div className="flex items-center gap-2.5">
                 <div
                   className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold"
-                  style={{ backgroundColor: a.color + '20', color: a.color, border: `1.5px solid ${a.color}35` }}
+                  style={{
+                    backgroundColor: a.color + '20',
+                    color: a.color,
+                    border: `1.5px solid ${a.color}35`,
+                  }}
                 >
                   {a.initials}
                 </div>
@@ -196,13 +336,19 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-              style={{ backgroundColor: selected.color + '20', color: selected.color, border: `1.5px solid ${selected.color}35` }}
+              style={{
+                backgroundColor: selected.color + '20',
+                color: selected.color,
+                border: `1.5px solid ${selected.color}35`,
+              }}
             >
               {selected.initials}
             </div>
             <div>
               <div className="text-base font-bold text-white">{selected.name}</div>
-              <div className="text-sm text-white/40">{selected.year} · {selected.major}</div>
+              <div className="text-sm text-white/40">
+                {selected.year} · {selected.major}
+              </div>
             </div>
           </div>
           <div className="text-right">
@@ -231,7 +377,9 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-white">{cat.name}</span>
-                    <span className="text-[11px] text-white/25 bg-white/[0.04] px-1.5 py-0.5 rounded">{cat.weight}%</span>
+                    <span className="text-[11px] text-white/25 bg-white/[0.04] px-1.5 py-0.5 rounded">
+                      {cat.weight}%
+                    </span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     {variance > 1 && (
@@ -239,7 +387,10 @@ function EvaluateTab({ selected, onSelect }: { selected: typeof APPLICANTS[0]; o
                         ±{variance}
                       </span>
                     )}
-                    <span className="text-sm font-bold text-white tabular-nums">{avg.toFixed(1)}<span className="text-white/25 font-normal text-xs">/10</span></span>
+                    <span className="text-sm font-bold text-white tabular-nums">
+                      {avg.toFixed(1)}
+                      <span className="text-white/25 font-normal text-xs">/10</span>
+                    </span>
                   </div>
                 </div>
                 <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden mb-2.5">
@@ -320,7 +471,13 @@ function ApplicantViewTab() {
               initial={{ width: 0 }}
               animate={{ width: `${(currentStage / (APPLICANT_STAGES.length - 1)) * 100}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
-              style={{ left: '1rem', top: '0.9375rem', position: 'absolute', height: '1px', backgroundColor: '#F5C842' }}
+              style={{
+                left: '1rem',
+                top: '0.9375rem',
+                position: 'absolute',
+                height: '1px',
+                backgroundColor: '#F5C842',
+              }}
             />
             <div className="relative flex justify-between">
               {APPLICANT_STAGES.map((stage, i) => {
@@ -333,12 +490,22 @@ function ApplicantViewTab() {
                     transition={{ delay: i * 0.1 }}
                     className="flex flex-col items-center gap-2.5"
                   >
-                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-all ${
-                      done ? 'border-[#F5C842] bg-[#F5C842] text-zinc-900' : 'border-white/15 bg-[#0A0A0A] text-white/25'
-                    }`}>
-                      {done ? <CheckCircle className="w-4 h-4" /> : <Clock className="w-3.5 h-3.5" />}
+                    <div
+                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 transition-all ${
+                        done
+                          ? 'border-[#F5C842] bg-[#F5C842] text-zinc-900'
+                          : 'border-white/15 bg-[#0A0A0A] text-white/25'
+                      }`}
+                    >
+                      {done ? (
+                        <CheckCircle className="w-4 h-4" />
+                      ) : (
+                        <Clock className="w-3.5 h-3.5" />
+                      )}
                     </div>
-                    <span className={`text-[11px] font-medium ${done ? 'text-white' : 'text-white/25'}`}>
+                    <span
+                      className={`text-[11px] font-medium ${done ? 'text-white' : 'text-white/25'}`}
+                    >
                       {stage}
                     </span>
                   </motion.div>
@@ -357,13 +524,39 @@ function ApplicantViewTab() {
         </div>
 
         {/* Activity feed */}
-        <p className="text-[11px] font-semibold text-white/25 uppercase tracking-[0.15em] mb-3">Updates</p>
+        <p className="text-[11px] font-semibold text-white/25 uppercase tracking-[0.15em] mb-3">
+          Updates
+        </p>
         <div className="space-y-2">
           {[
-            { icon: CheckCircle, color: 'text-emerald-400', label: 'Application received',         time: '2 days ago',      done: true },
-            { icon: FileText,    color: 'text-blue-400',    label: 'Resume reviewed by the team',  time: '1 day ago',       done: true },
-            { icon: Users,       color: 'text-[#F5C842]',   label: 'Moved to Screening round',     time: '18 hours ago',    done: true },
-            { icon: Calendar,    color: 'text-white/25',    label: 'Interview scheduling opens soon', time: 'Expected Mar 14', done: false },
+            {
+              icon: CheckCircle,
+              color: 'text-emerald-400',
+              label: 'Application received',
+              time: '2 days ago',
+              done: true,
+            },
+            {
+              icon: FileText,
+              color: 'text-blue-400',
+              label: 'Resume reviewed by the team',
+              time: '1 day ago',
+              done: true,
+            },
+            {
+              icon: Users,
+              color: 'text-[#F5C842]',
+              label: 'Moved to Screening round',
+              time: '18 hours ago',
+              done: true,
+            },
+            {
+              icon: Calendar,
+              color: 'text-white/25',
+              label: 'Interview scheduling opens soon',
+              time: 'Expected Mar 14',
+              done: false,
+            },
           ].map((item, i) => (
             <motion.div
               key={i}
@@ -376,7 +569,9 @@ function ApplicantViewTab() {
             >
               <item.icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${item.color}`} />
               <div>
-                <div className={`text-sm ${item.done ? 'text-white/80' : 'text-white/25'}`}>{item.label}</div>
+                <div className={`text-sm ${item.done ? 'text-white/80' : 'text-white/25'}`}>
+                  {item.label}
+                </div>
                 <div className="text-[11px] text-white/25 mt-0.5">{item.time}</div>
               </div>
             </motion.div>
@@ -392,16 +587,16 @@ function ApplicantViewTab() {
 type Tab = 'pipeline' | 'evaluate' | 'applicant';
 
 const TABS: { id: Tab; label: string; sub: string }[] = [
-  { id: 'pipeline',  label: 'Recruitment Pipeline',  sub: 'Move applicants through every stage' },
-  { id: 'evaluate',  label: 'Evaluation Engine',     sub: 'Weighted scoring, reviewer consensus' },
-  { id: 'applicant', label: 'Applicant View',        sub: 'Real-time status for every candidate' },
+  { id: 'pipeline', label: 'Recruitment Pipeline', sub: 'Move applicants through every stage' },
+  { id: 'evaluate', label: 'Evaluation Engine', sub: 'Weighted scoring, reviewer consensus' },
+  { id: 'applicant', label: 'Applicant View', sub: 'Real-time status for every candidate' },
 ];
 
 export default function Demo() {
   const [activeTab, setActiveTab] = useState<Tab>('pipeline');
   const [selectedApplicant, setSelectedApplicant] = useState(APPLICANTS[3]);
 
-  const handleSelectApplicant = (a: typeof APPLICANTS[0]) => {
+  const handleSelectApplicant = (a: (typeof APPLICANTS)[0]) => {
     setSelectedApplicant(a);
     setActiveTab('evaluate');
   };
@@ -427,8 +622,10 @@ export default function Demo() {
             transition={{ delay: 0.06 }}
             className="font-display text-6xl sm:text-7xl lg:text-[88px] font-bold text-white leading-[0.95] tracking-tight mb-8"
           >
-            Recruitment<br />
-            <span className="text-[#F5C842]">built for</span><br />
+            Recruitment
+            <br />
+            <span className="text-[#F5C842]">built for</span>
+            <br />
             campus.
           </motion.h1>
 
@@ -438,7 +635,8 @@ export default function Demo() {
             transition={{ delay: 0.12 }}
             className="text-white/45 text-lg max-w-md leading-relaxed"
           >
-            Replace spreadsheets, Google Forms, and Instagram DMs with one platform clubs actually use.
+            Replace spreadsheets, Google Forms, and Instagram DMs with one platform clubs actually
+            use.
           </motion.p>
         </div>
       </section>
@@ -448,9 +646,9 @@ export default function Demo() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
             {[
-              { value: '10+',   label: 'Pipeline stages' },
-              { value: '4×',    label: 'Faster decisions' },
-              { value: '100%',  label: 'Transparent to applicants' },
+              { value: '10+', label: 'Pipeline stages' },
+              { value: '4×', label: 'Faster decisions' },
+              { value: '100%', label: 'Transparent to applicants' },
             ].map((s) => (
               <div key={s.label} className="py-10 px-8 first:pl-0 last:pr-0">
                 <div className="text-4xl font-bold text-white mb-1">{s.value}</div>
@@ -463,7 +661,6 @@ export default function Demo() {
 
       {/* Demo area */}
       <section className="max-w-5xl mx-auto px-6 pt-20 pb-32">
-
         {/* Tab nav */}
         <div className="flex flex-col sm:flex-row gap-0 border-b border-white/[0.08] mb-14">
           {TABS.map((tab) => (
@@ -474,9 +671,11 @@ export default function Demo() {
                 activeTab === tab.id ? '' : 'opacity-40 hover:opacity-70'
               }`}
             >
-              <div className={`text-sm font-semibold tracking-wide mb-0.5 ${
-                activeTab === tab.id ? 'text-white' : 'text-white'
-              }`}>
+              <div
+                className={`text-sm font-semibold tracking-wide mb-0.5 ${
+                  activeTab === tab.id ? 'text-white' : 'text-white'
+                }`}
+              >
                 {tab.label}
               </div>
               <div className="text-xs text-white/35">{tab.sub}</div>
@@ -497,11 +696,13 @@ export default function Demo() {
             <PipelineTab key="pipeline" onSelectApplicant={handleSelectApplicant} />
           )}
           {activeTab === 'evaluate' && (
-            <EvaluateTab key="evaluate" selected={selectedApplicant} onSelect={setSelectedApplicant} />
+            <EvaluateTab
+              key="evaluate"
+              selected={selectedApplicant}
+              onSelect={setSelectedApplicant}
+            />
           )}
-          {activeTab === 'applicant' && (
-            <ApplicantViewTab key="applicant" />
-          )}
+          {activeTab === 'applicant' && <ApplicantViewTab key="applicant" />}
         </AnimatePresence>
       </section>
 
@@ -509,9 +710,12 @@ export default function Demo() {
       <section className="border-t border-white/[0.06] py-28 px-6">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-end justify-between gap-10">
           <div>
-            <p className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-5">Early Access</p>
+            <p className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-5">
+              Early Access
+            </p>
             <h2 className="font-display text-4xl sm:text-5xl font-bold text-white leading-tight">
-              Be a founding club.<br />
+              Be a founding club.
+              <br />
               <span className="text-white/35">Shape the product.</span>
             </h2>
           </div>
