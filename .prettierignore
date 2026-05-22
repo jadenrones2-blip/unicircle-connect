@@ -1,0 +1,7 @@
+dist
+node_modules
+.env
+.env.example
+public
+*.min.js
+supabase/.temp
