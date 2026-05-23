@@ -95,8 +95,9 @@ export function ApplicantCard({
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
+    opacity: isDragging ? 0 : undefined,
   };
 
   const getFitScoreBadge = () => {
@@ -136,7 +137,7 @@ export function ApplicantCard({
       onClick={() => !isDragging && onOpen?.(applicant)}
       className={`p-3 bg-zinc-900 transition-shadow
        ${isStandout ? 'border-gold/40 ring-1 ring-gold/20' : 'border-white/10'}
-       ${isDragging ? 'shadow-lg opacity-90 z-50' : 'hover:bg-zinc-800'}
+       ${isDragging ? '' : 'hover:bg-zinc-800'}
        ${onOpen ? 'cursor-pointer' : ''} 
       ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
     >

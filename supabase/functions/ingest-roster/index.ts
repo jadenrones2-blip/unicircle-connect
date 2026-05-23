@@ -142,7 +142,6 @@ serve(async (req) => {
         email: String(r.email || "").trim().toLowerCase(),
         major: r.major || null,
         status: ["applicant", "member", "alumni"].includes(r.status) ? r.status : "applicant",
-        gender: ["male", "female", "non-binary", "unspecified"].includes(r.gender) ? r.gender : "unspecified",
         grad_year: Number.isInteger(r.grad_year) ? r.grad_year : null,
         stage: "applied",
       }));

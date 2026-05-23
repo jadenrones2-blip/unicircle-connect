@@ -420,11 +420,6 @@ export default function OrgPeopleDashboard() {
                           status: ['applicant', 'member', 'alumni'].includes(edit.status)
                             ? edit.status
                             : 'applicant',
-                          gender: ['male', 'female', 'non-binary', 'unspecified'].includes(
-                            edit.gender
-                          )
-                            ? edit.gender
-                            : 'unspecified',
                           grad_year: Number.isInteger(edit.grad_year) ? edit.grad_year : null,
                           stage: 'applied',
                         },
