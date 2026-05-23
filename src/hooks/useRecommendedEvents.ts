@@ -188,12 +188,31 @@ export function useRecommendedEvents(clubs: Club[], interestValues: string[], li
         }
       }
 
-      // If club-based matching returned too few results, fall back to keyword search
-      if (merged.length < 3) {
+      // Also try matching by club_handle = club UUID (some scrapers store club IDs there)
+      if (scored.length > 0) {
+        const clubUuids = scored.map((c) => c.club.id);
+        const { data: byUuid } = await (dataClient as any)
+          .from('events')
+          .select(EVENT_FIELDS)
+          .gte('start_time', now)
+          .in('club_handle', clubUuids)
+          .order('start_time', { ascending: true })
+          .limit(40);
+        for (const ev of byUuid ?? []) {
+          if (!merged.find((e) => e.id === ev.id)) merged.push(ev);
+        }
+      }
+
+      // Keyword fallback — always runs to fill gaps, uses event title + club_handle name
+      {
         const keywords = interestValues
           .flatMap((v) => INTEREST_TO_CLUSTERS[v] ?? [])
-          .flatMap((cluster) => cluster.split('_')); // e.g. computer_science → ['computer', 'science']
-        const uniqueKw = [...new Set(keywords)].filter((k) => k.length > 3);
+          .flatMap((cluster) => cluster.split('_'));
+        // Also add scored club names as keywords for name-based matching
+        const clubNameWords = scored
+          .flatMap((c) => c.club.name.toLowerCase().split(/\s+/))
+          .filter((w) => w.length > 4);
+        const uniqueKw = [...new Set([...keywords, ...clubNameWords])].filter((k) => k.length > 3);
 
         if (uniqueKw.length > 0) {
           const { data: kwEvents } = await (dataClient as any)
@@ -201,15 +220,15 @@ export function useRecommendedEvents(clubs: Club[], interestValues: string[], li
             .select(EVENT_FIELDS)
             .gte('start_time', now)
             .order('start_time', { ascending: true })
-            .limit(200);
+            .limit(300);
 
-          const kwText = uniqueKw.join(' ').toLowerCase();
           for (const ev of kwEvents ?? []) {
-            const text = [ev.title, ev.corrected_title, ev.caption]
+            if (merged.find((e) => e.id === ev.id)) continue;
+            const text = [ev.title, ev.corrected_title, ev.caption, ev.club_handle]
               .filter(Boolean)
               .join(' ')
               .toLowerCase();
-            if (uniqueKw.some((kw) => text.includes(kw)) && !merged.find((e) => e.id === ev.id)) {
+            if (uniqueKw.some((kw) => text.includes(kw))) {
               merged.push(ev);
             }
           }
@@ -218,11 +237,12 @@ export function useRecommendedEvents(clubs: Club[], interestValues: string[], li
 
       const result: RecommendedEvent[] = merged
         .map((ev) => {
-          const info = lookup[ev.club_id] ??
+          const info =
+            lookup[ev.club_id] ??
             lookup[ev.club_handle] ?? { score: 5, name: ev.club_handle ?? '' };
           return { ...ev, club_name: info.name, matchScore: info.score };
         })
-        .filter((ev) => ev.matchScore > 0 && !isErrorTitle(ev.corrected_title ?? ev.title))
+        .filter((ev) => !isErrorTitle(ev.corrected_title ?? ev.title))
         .sort(
           (a, b) =>
             b.matchScore - a.matchScore ||

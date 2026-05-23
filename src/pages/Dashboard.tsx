@@ -85,19 +85,33 @@ export default function Dashboard() {
           interestsData.map((i) => ({ category: i.interest_category, value: i.interest_value }))
         );
         setInterestsLoading(false);
-        // Kick off events fetch immediately — no need to wait for savedClubs state update
+        // Kick off events fetch — match by club_id OR club_handle (some events store club UUID there)
         if (savedData?.length) {
           const savedIds = savedData.map((s) => s.club_id);
           const now = new Date().toISOString();
-          dataClient
-            .from('events')
-            .select('*')
-            .eq('verified', true)
-            .in('club_id', savedIds)
-            .gte('start_time', now)
-            .order('start_time', { ascending: true })
-            .limit(6)
-            .then(({ data }) => setUpcomingEvents((data || []) as ExternalEvent[]));
+          Promise.all([
+            dataClient
+              .from('events')
+              .select('*')
+              .in('club_id', savedIds)
+              .gte('start_time', now)
+              .order('start_time', { ascending: true })
+              .limit(6),
+            dataClient
+              .from('events')
+              .select('*')
+              .in('club_handle', savedIds)
+              .gte('start_time', now)
+              .order('start_time', { ascending: true })
+              .limit(6),
+          ]).then(([byId, byHandle]) => {
+            const seen = new Set<string>();
+            const merged: ExternalEvent[] = [];
+            for (const ev of [...(byId.data || []), ...(byHandle.data || [])]) {
+              if (!seen.has(ev.id)) { seen.add(ev.id); merged.push(ev as ExternalEvent); }
+            }
+            setUpcomingEvents(merged.slice(0, 6));
+          });
         }
       })
       .catch(() => setInterestsLoading(false));
