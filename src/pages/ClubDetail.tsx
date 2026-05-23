@@ -30,6 +30,8 @@ import { useClubs } from '@/hooks/useExternalDB';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedClubs } from '@/hooks/useSavedClubs';
+import { useClubBoard } from '@/hooks/useClubBoard';
+import { TeamMemberCard } from '@/components/club-admin/TeamMemberCard';
 import { dataClient, dataClient as supabase } from '@/integrations/supabase/dataClient';
 import { supabase as mainSupabase } from '@/integrations/supabase/client';
 import { ExternalEvent } from '@/hooks/useExternalEvents';
@@ -83,6 +85,7 @@ const ClubDetail = () => {
 
   const { data: clubs, loading: clubsLoading } = useClubs();
   const { isOwnerOf, loading: ownershipLoading } = useClubOwnership();
+  const { members: boardMembers, loading: boardLoading } = useClubBoard(id);
 
   const [clubEvents, setClubEvents] = useState<ExternalEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
@@ -552,6 +555,9 @@ const ClubDetail = () => {
               <TabsTrigger value="events">
                 Events ({eventsLoading ? '...' : clubEvents.length})
               </TabsTrigger>
+              <TabsTrigger value="board">
+                Board{boardMembers.length > 0 ? ` (${boardMembers.length})` : ''}
+              </TabsTrigger>
               <TabsTrigger value="reviews">
                 Reviews{reviews.length > 0 ? ` (${reviews.length})` : ''}
               </TabsTrigger>
@@ -603,6 +609,32 @@ const ClubDetail = () => {
                   </ol>
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="board">
+              {boardLoading ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="rounded-2xl border border-white/[0.07] bg-zinc-900/60 p-5 animate-pulse">
+                      <div className="w-24 h-24 rounded-2xl bg-white/10 mx-auto mb-4" />
+                      <div className="h-3 bg-white/10 rounded w-3/4 mx-auto mb-2" />
+                      <div className="h-2.5 bg-white/[0.06] rounded w-1/2 mx-auto" />
+                    </div>
+                  ))}
+                </div>
+              ) : boardMembers.length === 0 ? (
+                <div className="premium-card p-10 text-center border-dashed">
+                  <p className="text-muted-foreground text-sm">
+                    This club hasn't set up their board directory yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {boardMembers.map((member) => (
+                    <TeamMemberCard key={member.user_id} member={member} variant="public" />
+                  ))}
+                </div>
+              )}
             </TabsContent>
 
             <TabsContent value="events">

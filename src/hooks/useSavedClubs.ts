@@ -13,7 +13,7 @@ export function useSavedClubs() {
   const [savedClubs, setSavedClubs] = useState<SavedClub[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchSavedClubs = useCallback(async (userId: string) => {
+  const fetchSavedClubs = useCallback(async (userId: string): Promise<SavedClub[]> => {
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -23,9 +23,12 @@ export function useSavedClubs() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setSavedClubs(data || []);
+      const clubs = (data || []) as SavedClub[];
+      setSavedClubs(clubs);
+      return clubs;
     } catch (err) {
       console.error('Error fetching saved clubs:', err);
+      return [];
     } finally {
       setLoading(false);
     }

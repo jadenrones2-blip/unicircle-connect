@@ -92,22 +92,37 @@ export function useStudentRecruitment() {
           clubNameMap[(c as any).id] = (c as any).name;
         }
 
+        // Batch fetch all stages and settings for all clubs in two queries
+        const [{ data: allStages }, { data: allSettings }] = await Promise.all([
+          supabase
+            .from('recruitment_stages')
+            .select('*')
+            .in('club_id', clubIds as string[])
+            .order('order_index', { ascending: true }),
+          supabase
+            .from('recruitment_settings')
+            .select('*')
+            .in('club_id', clubIds as string[]),
+        ]);
+
+        const stagesByClub: Record<string, RecruitmentStage[]> = {};
+        for (const s of allStages ?? []) {
+          const cid = (s as any).club_id;
+          if (!stagesByClub[cid]) stagesByClub[cid] = [];
+          stagesByClub[cid].push(s as RecruitmentStage);
+        }
+
+        const settingsByClub: Record<string, ClubRecruitmentSettings> = {};
+        for (const s of allSettings ?? []) {
+          settingsByClub[(s as any).club_id] = s as ClubRecruitmentSettings;
+        }
+
         const enrichedApplications: StudentRecruitmentData[] = [];
 
         for (const app of applicantData) {
-          const { data: stagesData } = await supabase
-            .from('recruitment_stages')
-            .select('*')
-            .eq('club_id', app.club_id)
-            .order('order_index', { ascending: true });
+          const stages = stagesByClub[app.club_id] ?? [];
+          const settingsData = settingsByClub[app.club_id] ?? null;
 
-          const { data: settingsData } = await supabase
-            .from('recruitment_settings')
-            .select('*')
-            .eq('club_id', app.club_id)
-            .maybeSingle();
-
-          const stages = stagesData || [];
           const currentStageIndex = app.stage_id
             ? stages.findIndex((s: any) => s.id === app.stage_id)
             : 0;
@@ -121,8 +136,8 @@ export function useStudentRecruitment() {
               final_decision: (app as any).final_decision ?? null,
               is_quick_interest: (app as any).is_quick_interest ?? false,
             } as StudentApplication,
-            stages: stages as RecruitmentStage[],
-            settings: settingsData as ClubRecruitmentSettings | null,
+            stages,
+            settings: settingsData,
             currentStageIndex: currentStageIndex >= 0 ? currentStageIndex : 0,
             totalStages,
             progressPercent,

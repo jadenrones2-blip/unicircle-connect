@@ -77,9 +77,39 @@ export interface ClubEnrichment {
   instagram_photo_url: string | null;
 }
 
+// ── localStorage stale-while-revalidate ──────────────────────────────────────
+
+const LS_KEY = 'uc_clubs_v1';
+const LS_TTL = 6 * 60 * 60 * 1000; // 6 h
+
+function loadFromStorage(): Club[] | null {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > LS_TTL) {
+      localStorage.removeItem(LS_KEY);
+      return null;
+    }
+    return data as Club[];
+  } catch {
+    return null;
+  }
+}
+
+function saveToStorage(clubs: Club[]) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({ ts: Date.now(), data: clubs }));
+  } catch {
+    // storage quota exceeded — ignore
+  }
+}
+
 // ── cache (survives re-renders, cleared only on hard reload) ─────────────────
 
-let _cache: Club[] | null = null;
+// Seed module-level cache from localStorage on first import so components
+// that read _cache in useState() initializers get data immediately.
+let _cache: Club[] | null = loadFromStorage();
 let _fetchPromise: Promise<Club[]> | null = null;
 let _enrichmentCache: Record<string, ClubEnrichment> | null = null;
 
@@ -148,6 +178,7 @@ export function ClubsProvider({ children }: { children: ReactNode }) {
           const result = (records || []).map(transformClub);
           _cache = result;
           _fetchPromise = null;
+          saveToStorage(result);
           return result;
         })();
       }

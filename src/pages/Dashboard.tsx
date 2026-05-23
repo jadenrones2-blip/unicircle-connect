@@ -80,33 +80,28 @@ export default function Dashboard() {
     if (!user) return;
     setInterestsLoading(true);
     Promise.all([fetchInterests(user.id), fetchApplications(user.id), fetchSavedClubs(user.id)])
-      .then(([interestsData]) => {
+      .then(([interestsData, , savedData]) => {
         setInterests(
           interestsData.map((i) => ({ category: i.interest_category, value: i.interest_value }))
         );
         setInterestsLoading(false);
+        // Kick off events fetch immediately — no need to wait for savedClubs state update
+        if (savedData?.length) {
+          const savedIds = savedData.map((s) => s.club_id);
+          const now = new Date().toISOString();
+          dataClient
+            .from('events')
+            .select('*')
+            .eq('verified', true)
+            .in('club_id', savedIds)
+            .gte('start_time', now)
+            .order('start_time', { ascending: true })
+            .limit(6)
+            .then(({ data }) => setUpcomingEvents((data || []) as ExternalEvent[]));
+        }
       })
       .catch(() => setInterestsLoading(false));
   }, [user, fetchInterests, fetchApplications, fetchSavedClubs]);
-
-  // Upcoming events from saved clubs
-  useEffect(() => {
-    if (!savedClubs.length) {
-      setUpcomingEvents([]);
-      return;
-    }
-    const savedIds = savedClubs.map((s) => s.club_id);
-    const now = new Date().toISOString();
-    dataClient
-      .from('events')
-      .select('*')
-      .eq('verified', true)
-      .in('club_id', savedIds)
-      .gte('start_time', now)
-      .order('start_time', { ascending: true })
-      .limit(6)
-      .then(({ data }) => setUpcomingEvents((data || []) as ExternalEvent[]));
-  }, [savedClubs]);
 
   // Realtime: re-fetch applications when the applicants table changes for this user
   // (club admins move stages / set final decisions on the applicants table)
