@@ -22,7 +22,6 @@ const ProblemSection = () => {
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-6"
         >
@@ -33,7 +32,6 @@ const ProblemSection = () => {
         <motion.h2
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.1 }}
           className="font-display font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white leading-[1.0] tracking-tight mb-24 max-w-3xl"
         >
@@ -49,7 +47,6 @@ const ProblemSection = () => {
               key={f.label}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.7, delay: i * 0.15, ease: [0.16, 1, 0.3, 1] }}
             >
               <TiltCard className="group h-full">

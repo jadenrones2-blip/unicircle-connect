@@ -88,7 +88,6 @@ const KanbanMockup = () => {
             key={col.title}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ delay: 0.3 + colIdx * 0.1, duration: 0.5 }}
             className="flex flex-col min-w-[140px] md:min-w-0 snap-start"
           >
@@ -106,7 +105,6 @@ const KanbanMockup = () => {
                   key={card.name}
                   initial={{ opacity: 0, x: -10 }}
                   whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
                   transition={{ delay: 0.5 + colIdx * 0.1 + cardIdx * 0.08 }}
                   className="p-2.5 rounded-md bg-white/[0.05] border border-border/20 hover:border-gold/30 transition-colors cursor-default"
                 >
@@ -136,7 +134,6 @@ const KanbanMockup = () => {
         className="flex md:hidden items-center justify-center gap-2 pt-3 pb-1"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
         transition={{ delay: 1.2 }}
       >
         <motion.div
@@ -184,7 +181,6 @@ const AnalyticsMockup = () => {
               key={stat.label}
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
               transition={{ delay: 0.4 + i * 0.08 }}
               className="p-3 rounded-lg bg-white/[0.03] border border-border/15"
             >
@@ -210,14 +206,12 @@ const AnalyticsMockup = () => {
                 className="flex-1 flex flex-col items-center gap-1"
                 initial={{ height: 0 }}
                 whileInView={{ height: 'auto' }}
-                viewport={{ once: true }}
               >
                 <motion.div
                   className="w-full rounded-sm bg-gradient-to-t from-gold/60 to-gold/20"
                   style={{ height: `${h}%` }}
                   initial={{ scaleY: 0 }}
                   whileInView={{ scaleY: 1 }}
-                  viewport={{ once: true }}
                   transition={{ delay: 0.6 + i * 0.05, duration: 0.5, ease: 'easeOut' }}
                 />
                 <span className="text-[8px] text-white/30">{days[i]}</span>
@@ -271,7 +265,6 @@ const ApplicantViewMockup = () => {
             key={app.club}
             initial={{ opacity: 0, x: -15 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
             transition={{ delay: 0.4 + i * 0.12 }}
             className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.03] border border-border/15 mb-2.5 hover:border-gold/20 transition-colors cursor-default"
           >
@@ -288,7 +281,6 @@ const ApplicantViewMockup = () => {
                   className="h-full rounded-full bg-gold"
                   initial={{ width: 0 }}
                   whileInView={{ width: `${app.progress}%` }}
-                  viewport={{ once: true }}
                   transition={{ delay: 0.7 + i * 0.1, duration: 0.8 }}
                 />
               </div>
@@ -300,7 +292,6 @@ const ApplicantViewMockup = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
           transition={{ delay: 0.9 }}
           className="mt-4 p-3 rounded-lg bg-white/[0.03] border border-border/15"
         >
@@ -406,7 +397,6 @@ const ProductShowcase = () => {
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
             className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
           >
             Product
@@ -428,7 +418,6 @@ const ProductShowcase = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
           transition={{ delay: 0.2 }}
           className="flex gap-3 mb-8"
         >

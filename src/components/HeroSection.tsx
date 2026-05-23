@@ -5,7 +5,7 @@ const HeroSection = () => {
   return (
     <>
       {/* ── Section 1 — Black hero ───────────────────────────── */}
-      <section className="min-h-screen flex flex-col items-center justify-center text-center px-6 bg-black">
+      <section className="min-h-[100svh] flex flex-col items-center justify-center text-center px-6 bg-black">
         <div style={{ overflow: 'hidden' }}>
           <motion.span
             className="block font-display font-black text-white"
@@ -83,7 +83,7 @@ const HeroSection = () => {
       </section>
 
       {/* ── Section 2 — Photo + S2 headline ─────────────────── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+      <section className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-6 overflow-hidden">
         {/* Background photo */}
         <div className="absolute inset-0 z-0">
           <img

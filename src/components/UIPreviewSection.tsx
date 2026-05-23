@@ -93,7 +93,6 @@ const UIPreviewSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
           className="max-w-4xl mx-auto"
         >
           <div className="text-center mb-12">
@@ -231,7 +230,6 @@ const UIPreviewSection = () => {
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
             className="mt-8 text-center text-sm text-muted-foreground"
           >
             UniCircle isn't another app — it's the{' '}

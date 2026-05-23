@@ -35,7 +35,6 @@ const RecruitmentSection = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
@@ -56,7 +55,6 @@ const RecruitmentSection = () => {
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
               transition={{ duration: 0.5 }}
               className="space-y-6"
             >
@@ -73,7 +71,6 @@ const RecruitmentSection = () => {
                     key={item.title}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
                     transition={{ delay: index * 0.1, duration: 0.4 }}
                     className="flex gap-4 p-4 rounded-lg bg-background border border-border hover:border-gold/30 transition-colors"
                   >
@@ -101,7 +98,6 @@ const RecruitmentSection = () => {
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
               className="space-y-6"
             >
@@ -118,7 +114,6 @@ const RecruitmentSection = () => {
                     key={item.title}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
                     transition={{ delay: index * 0.1 + 0.1, duration: 0.4 }}
                     className="flex gap-4 p-4 rounded-lg bg-background border border-border hover:border-primary/30 transition-colors"
                   >

@@ -15,7 +15,6 @@ const WhyUnicircleSection = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
@@ -34,7 +33,6 @@ const WhyUnicircleSection = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
               transition={{ duration: 0.5 }}
               className="flex flex-col items-center gap-4 p-8 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default text-center"
               onMouseEnter={playHover}
@@ -49,7 +47,6 @@ const WhyUnicircleSection = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.5 }}
               className="flex flex-col items-center gap-4 p-8 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default text-center"
               onMouseEnter={playHover}
@@ -65,7 +62,6 @@ const WhyUnicircleSection = () => {
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
             className="text-center"
           >
             <Button

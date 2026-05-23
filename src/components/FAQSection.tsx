@@ -52,7 +52,6 @@ const FAQSection = () => {
             <motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
               className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
             >
               FAQ
@@ -67,7 +66,6 @@ const FAQSection = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ delay: 0.1, duration: 0.5 }}
           >
             <Accordion type="single" collapsible className="w-full divide-y divide-border/20">

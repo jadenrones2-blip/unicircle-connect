@@ -37,7 +37,6 @@ const HowItWorksSection = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
             <p className="text-xs tracking-[0.25em] uppercase text-[#F5C842] font-semibold mb-6">
@@ -53,7 +52,6 @@ const HowItWorksSection = () => {
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex gap-6"
           >
@@ -79,7 +77,6 @@ const HowItWorksSection = () => {
               key={s.num}
               initial={{ opacity: 0, y: 32 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
               transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
               className="group flex items-start gap-8 md:gap-16 py-10 border-b border-white/[0.06] hover:border-white/[0.12] transition-colors duration-500 cursor-default"
             >

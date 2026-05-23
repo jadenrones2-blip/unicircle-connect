@@ -24,7 +24,6 @@ const SolutionSection = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
@@ -45,7 +44,6 @@ const SolutionSection = () => {
                 key={item.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
                 transition={{ delay: index * 0.06, duration: 0.4 }}
               >
                 <TiltCard className="group flex items-start gap-4 p-5 rounded-xl glass-card glass-card-hover transition-all duration-300 cursor-default h-full">

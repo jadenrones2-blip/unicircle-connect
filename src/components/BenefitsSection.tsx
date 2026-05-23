@@ -27,7 +27,6 @@ const BenefitsSection = () => {
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
             className="text-[11px] font-semibold text-gold tracking-[0.25em] uppercase mb-8"
           >
             For applicants
@@ -46,7 +45,6 @@ const BenefitsSection = () => {
               key={b.number}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
               transition={{ delay: i * 0.1, duration: 0.5 }}
               className="bg-background px-8 py-10 sm:py-14"
             >

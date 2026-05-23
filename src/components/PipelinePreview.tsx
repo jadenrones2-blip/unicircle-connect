@@ -54,7 +54,6 @@ export function PipelinePreview() {
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, margin: '-50px' }}
         className="grid grid-cols-2 sm:grid-cols-4 gap-3"
       >
         {stages.map((stage) => {
@@ -80,7 +79,6 @@ export function PipelinePreview() {
                     variants={applicantVariants}
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true }}
                     className="p-2 rounded bg-card border border-gold/20 shadow-sm"
                   >
                     <p className="text-xs font-medium text-foreground leading-tight">
