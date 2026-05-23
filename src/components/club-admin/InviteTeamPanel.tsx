@@ -6,7 +6,6 @@ import {
   Trash2,
   Loader2,
   Users,
-  ShieldCheck,
   Clock,
   UserPlus,
   Mail,
@@ -262,85 +261,6 @@ export function InviteTeamPanel({ clubId, clubName, isOwner }: InviteTeamPanelPr
         ))}
       </div>
 
-      {/* Team members */}
-      <div className="space-y-2">
-        <h2 className="text-[11px] font-semibold text-zinc-600 uppercase tracking-wider mb-3">
-          Members · {officers.length + 1}
-        </h2>
-
-        {/* Current user row */}
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/[0.07] bg-zinc-900/40">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isOwner ? 'bg-gold/15 border border-gold/20' : 'bg-zinc-800 border border-white/[0.07]'}`}
-          >
-            <ShieldCheck className={`w-3.5 h-3.5 ${isOwner ? 'text-gold' : 'text-zinc-400'}`} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white">You</p>
-            <p className="text-xs text-zinc-600">
-              {isOwner ? 'Full access · cannot be removed' : 'Officer access'}
-            </p>
-          </div>
-          <span
-            className={`text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wide uppercase ${isOwner ? 'bg-gold/10 text-gold border border-gold/20' : 'bg-white/[0.05] text-zinc-400 border border-white/[0.08]'}`}
-          >
-            {isOwner ? 'Owner' : 'Officer'}
-          </span>
-        </div>
-
-        {/* Officer rows */}
-        {officers.map((officer) => (
-          <div
-            key={officer.id}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/[0.07] bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors group"
-          >
-            <div className="w-8 h-8 rounded-full bg-zinc-800 border border-white/[0.07] flex items-center justify-center shrink-0 text-xs font-bold text-zinc-300">
-              {(officer.email?.[0] ?? '?').toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-zinc-100 truncate">
-                {officer.email || 'Team member'}
-              </p>
-              <p className="text-xs text-zinc-600">
-                Joined{' '}
-                {new Date(officer.created_at).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/[0.05] text-zinc-400 border border-white/[0.08] uppercase tracking-wide capitalize">
-                {officer.role}
-              </span>
-              {isOwner && (
-                <button
-                  onClick={() => removeOfficer(officer.id)}
-                  disabled={removing === officer.id}
-                  className="p-1.5 rounded-lg text-zinc-700 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
-                  title="Remove member"
-                >
-                  {removing === officer.id ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-3.5 h-3.5" />
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {officers.length === 0 && (
-          <div className="flex items-center gap-3 px-4 py-5 rounded-xl border border-dashed border-white/[0.07]">
-            <Users className="w-4 h-4 text-zinc-700 shrink-0" />
-            <p className="text-sm text-zinc-600">
-              No co-admins yet.{isOwner && ' Generate an invite link to add your team.'}
-            </p>
-          </div>
-        )}
-      </div>
 
       {/* Active invite links */}
       {isOwner && activeInvites.length > 0 && (
