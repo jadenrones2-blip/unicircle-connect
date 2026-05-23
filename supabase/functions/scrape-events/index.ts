@@ -172,13 +172,32 @@ Deno.serve(async (req) => {
     const events = await extractEventsWithAI(combinedContent, cleanClubs, LOVABLE_API_KEY, currentYear);
     console.log(`Extracted ${events.length} events`);
 
+    // Stop words excluded from matching
+    const MATCH_STOP = new Set(['the','and','for','with','this','that','from','club','ucsd','university','california','san','diego','association','student','organization']);
+
+    function matchWords(a: string, b: string): number {
+      const words = (s: string) => new Set(
+        s.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 3 && !MATCH_STOP.has(w))
+      );
+      const wa = words(a); const wb = words(b);
+      if (!wa.size || !wb.size) return 0;
+      let hits = 0;
+      for (const w of wa) { if (wb.has(w) || [...wb].some(t => t.includes(w) || w.includes(t))) hits++; }
+      return hits / wa.size;
+    }
+
     // Insert events
     for (const event of events) {
       try {
-        const matchingClub = cleanClubs.find((c: Club) =>
-          c.name.toLowerCase().includes(event.club_name.toLowerCase()) ||
-          event.club_name.toLowerCase().includes(c.name.toLowerCase())
-        );
+        // Use word-overlap scoring instead of simple substring match
+        const searchText = [event.club_name, event.title].filter(Boolean).join(' ');
+        let bestClub: Club | null = null;
+        let bestScore = 0;
+        for (const club of cleanClubs) {
+          const score = matchWords(club.name, searchText);
+          if (score > bestScore) { bestScore = score; bestClub = club; }
+        }
+        const matchingClub = bestScore >= 0.45 ? bestClub : null;
 
         const eventRecord = {
           title: event.title,
