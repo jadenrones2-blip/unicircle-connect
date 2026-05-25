@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { dataClient } from '@/integrations/supabase/dataClient';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -515,9 +516,33 @@ export function useRecruitment(clubId: string | undefined) {
       prev.map((a) => (a.id === applicantId ? { ...a, final_decision: decision } : a))
     );
 
+    const applicant = applicants.find((a) => a.id === applicantId);
+
+    // On accept, auto-create a row in the external club_members table.
+    // Non-fatal if it fails — the Recruitment decision still stands.
+    if (decision === 'accepted' && applicant && clubId) {
+      try {
+        const { error: memberErr } = await dataClient.from('club_members').insert({
+          club_id: clubId,
+          name: `${applicant.first_name} ${applicant.last_name}`.trim(),
+          email: applicant.email,
+          major: applicant.major,
+          year: applicant.year,
+          status: 'active',
+          role: 'member',
+          joined_at: new Date().toISOString().split('T')[0],
+          notes: applicant.notes,
+        });
+        if (memberErr) {
+          console.error('[updateFinalDecision] club_members sync error:', memberErr);
+        }
+      } catch (e) {
+        console.error('[updateFinalDecision] club_members sync threw:', e);
+      }
+    }
+
     // Send final decision notification (accepted or rejected)
     if (clubName && (decision === 'accepted' || decision === 'rejected')) {
-      const applicant = applicants.find((a) => a.id === applicantId);
       if (applicant) {
         try {
           await supabase.functions.invoke('notify-applicant-stage', {
