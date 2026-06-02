@@ -21,14 +21,22 @@ const transformEvent = (record: Record<string, unknown>, clubs: Club[]): Event =
   const clubId = String(record.club_id || record.clubId || '');
   const club = clubs.find((c) => c.id === clubId);
 
+  // Native events use start_time (ISO timestamp); scraped events use date + time fields.
+  // Extract date string from whichever is present.
+  const rawStart = String(record.corrected_start_time || record.start_time || '');
+  const date = String(record.date || record.event_date || (rawStart ? rawStart.slice(0, 10) : ''));
+  const time = String(
+    record.time || record.event_time || (rawStart.includes('T') ? rawStart.slice(11, 16) : '')
+  );
+
   return {
     id: String(record.id || ''),
-    title: String(record.title || record.name || ''),
+    title: String(record.corrected_title || record.title || record.name || ''),
     clubId,
     clubName: String(record.club_name || record.clubName || club?.name || ''),
-    date: String(record.date || record.event_date || ''),
-    time: String(record.time || record.event_time || ''),
-    location: String(record.location || ''),
+    date,
+    time,
+    location: String(record.corrected_location || record.location || ''),
     type,
     description: String(record.description || ''),
     imageUrl: String(record.image_url || record.imageUrl || ''),
@@ -56,10 +64,15 @@ export function useEvents(clubs: Club[]): UseExternalDBResult<Event> {
     setError(null);
 
     try {
+      const _d = new Date();
+      const startOfToday = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}T00:00:00`;
       const { data: records, error: dbError } = await dataClient
         .from('events')
         .select('*')
-        .limit(100);
+        .eq('verified', true)
+        .gte('start_time', startOfToday)
+        .order('start_time', { ascending: true })
+        .limit(200);
 
       if (dbError) {
         // Gracefully handle missing table

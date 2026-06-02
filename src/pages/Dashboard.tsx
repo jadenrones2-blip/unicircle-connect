@@ -88,7 +88,8 @@ export default function Dashboard() {
         // Kick off events fetch — match by club_id OR club_handle (some events store club UUID there)
         if (savedData?.length) {
           const savedIds = savedData.map((s) => s.club_id);
-          const now = new Date().toISOString();
+          const _d = new Date();
+          const now = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}T00:00:00`;
           Promise.all([
             dataClient
               .from('events')

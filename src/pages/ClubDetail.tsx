@@ -167,7 +167,11 @@ const ClubDetail = () => {
     if (!id) return;
     setEventsLoading(true);
     try {
-      const now = new Date().toISOString();
+      // Use start-of-today in local time so naive timestamps stored by PostEventModal
+      // (no timezone suffix) compare correctly. UTC toISOString() is 7-8h ahead of
+      // Pacific and causes same-day events to be filtered out.
+      const d = new Date();
+      const startOfToday = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
       const normalizedId = id.trim().toLowerCase();
 
       // Build parallel queries: by club_id, by club_handle (native events use this),
@@ -178,7 +182,7 @@ const ClubDetail = () => {
           .select('*')
           .eq('verified', true)
           .eq('club_id', normalizedId)
-          .gte('start_time', now)
+          .gte('start_time', startOfToday)
           .order('start_time', { ascending: true })
           .limit(20) as unknown as Promise<{ data: unknown[] | null }>,
         dataClient
@@ -186,7 +190,7 @@ const ClubDetail = () => {
           .select('*')
           .eq('verified', true)
           .ilike('club_handle', normalizedId)
-          .gte('start_time', now)
+          .gte('start_time', startOfToday)
           .order('start_time', { ascending: true })
           .limit(20) as unknown as Promise<{ data: unknown[] | null }>,
       ];
@@ -198,7 +202,7 @@ const ClubDetail = () => {
             .select('*')
             .eq('verified', true)
             .ilike('club_handle', instagramHandle)
-            .gte('start_time', now)
+            .gte('start_time', startOfToday)
             .order('start_time', { ascending: true })
             .limit(20) as unknown as Promise<{ data: unknown[] | null }>
         );

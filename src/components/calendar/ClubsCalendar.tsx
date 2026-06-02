@@ -190,10 +190,13 @@ export default function ClubsCalendar() {
     setLoading(true);
 
     try {
+      const _d = new Date();
+      const startOfToday = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}T00:00:00`;
       const { data, error: dbError } = await dataClient
         .from('events')
         .select('*')
         .eq('verified', true)
+        .gte('start_time', startOfToday)
         .order('start_time', { ascending: true })
         .limit(500);
 
