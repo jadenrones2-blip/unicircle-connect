@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership, VerificationState } from '@/hooks/useClubOwnership';
@@ -10,13 +10,13 @@ import {
   Plus,
   Calendar,
   Settings,
-  CheckCircle2,
   AlertTriangle,
   XCircle,
-  Shield,
+  Users,
+  BarChart2,
 } from 'lucide-react';
 import { OnboardingChecklist } from '@/components/club-admin/OnboardingChecklist';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function VerificationPip({ state }: { state: VerificationState }) {
   const map = {
@@ -40,6 +40,14 @@ export default function ClubAdminDashboard() {
   const { ownedClubs, loading: ownershipLoading, hasProvisionalClub } = useClubOwnership();
   const { loading: profileLoading, isProfileComplete } = useAdminProfile();
 
+  // Active tab — defaults to first club, updates if ownedClubs changes
+  const [activeClubId, setActiveClubId] = useState<string | null>(null);
+  useEffect(() => {
+    if (ownedClubs.length > 0 && !activeClubId) {
+      setActiveClubId(ownedClubs[0].clubId);
+    }
+  }, [ownedClubs, activeClubId]);
+
   useEffect(() => {
     if (!authLoading && !user) navigate('/login?redirect=/club-admin');
   }, [user, authLoading, navigate]);
@@ -58,28 +66,20 @@ export default function ClubAdminDashboard() {
       !isProfileComplete
     )
       navigate('/admin-onboarding');
-  }, [
-    authLoading,
-    ownershipLoading,
-    profileLoading,
-    user,
-    ownedClubs,
-    isProfileComplete,
-    navigate,
-  ]);
+  }, [authLoading, ownershipLoading, profileLoading, user, ownedClubs, isProfileComplete, navigate]);
 
   if (authLoading || ownershipLoading || profileLoading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: '#0A0A0A' }}
-      >
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0A0A' }}>
         <Loader2 className="w-6 h-6 text-gold animate-spin" />
       </div>
     );
   }
 
   if (!user || !isProfileComplete || ownedClubs.length === 0) return null;
+
+  const activeClub = ownedClubs.find((c) => c.clubId === activeClubId) ?? ownedClubs[0];
+  const multiClub = ownedClubs.length > 1;
 
   return (
     <SidebarProvider>
@@ -96,7 +96,7 @@ export default function ClubAdminDashboard() {
             <span className="text-sm font-semibold text-white tracking-tight">Club Admin</span>
           </header>
 
-          <div className="p-5 sm:p-7 w-full">
+          <div className="p-5 sm:p-7 w-full max-w-4xl">
             {/* Provisional warning */}
             {hasProvisionalClub && (
               <motion.div
@@ -116,16 +116,14 @@ export default function ClubAdminDashboard() {
                     by a verified admin.
                   </p>
                   <ul className="mt-2 space-y-0.5">
-                    {[
-                      'Events saved as drafts',
-                      'No mass messages',
-                      'External links require review',
-                    ].map((r) => (
-                      <li key={r} className="flex items-center gap-2 text-xs text-zinc-600">
-                        <XCircle className="w-3 h-3 text-red-500/70 shrink-0" />
-                        {r}
-                      </li>
-                    ))}
+                    {['Events saved as drafts', 'No mass messages', 'External links require review'].map(
+                      (r) => (
+                        <li key={r} className="flex items-center gap-2 text-xs text-zinc-600">
+                          <XCircle className="w-3 h-3 text-red-500/70 shrink-0" />
+                          {r}
+                        </li>
+                      )
+                    )}
                   </ul>
                 </div>
               </motion.div>
@@ -136,111 +134,131 @@ export default function ClubAdminDashboard() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="mb-8"
+              className="mb-6"
             >
               <h1 className="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">
                 Welcome back.
               </h1>
-              <p className="text-sm text-zinc-500 mt-1">Here's what's happening with your clubs.</p>
+              <p className="text-sm text-zinc-500 mt-1">
+                {multiClub
+                  ? `You manage ${ownedClubs.length} clubs. Select one below.`
+                  : "Here's what's happening with your club."}
+              </p>
             </motion.div>
 
-            {/* Onboarding checklists */}
-            {ownedClubs.map((club) => (
-              <div key={`checklist-${club.clubId}`} className="mb-8">
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600">
-                    Setup
-                  </p>
-                  <span className="text-[10px] text-zinc-500">·</span>
-                  <p className="text-[10px] font-semibold tracking-wide uppercase text-gold truncate">
-                    {club.clubName}
-                  </p>
-                </div>
-                <OnboardingChecklist club={club} />
-              </div>
-            ))}
-
-            {/* My Clubs */}
-            <section className="mb-8">
-              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-3">
-                My Clubs
-              </p>
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {ownedClubs.map((club, i) => (
-                  <motion.div
+            {/* Club tabs — only shown when managing multiple clubs */}
+            {multiClub && (
+              <div className="flex gap-1 mb-8 p-1 rounded-xl w-fit" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                {ownedClubs.map((club) => (
+                  <button
                     key={club.clubId}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.07 }}
-                    className="rounded-2xl p-5 group"
-                    style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}
+                    onClick={() => setActiveClubId(club.clubId)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      activeClubId === club.clubId
+                        ? 'bg-white/10 text-white shadow-sm'
+                        : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-white leading-tight pr-2 tracking-tight">
-                        {club.clubName}
-                      </h3>
-                      <VerificationPip state={club.verificationState} />
-                    </div>
-                    <p className="text-[11px] text-zinc-600 mb-4">
-                      {(() => {
-                        const d = club.verifiedAt ? new Date(club.verifiedAt) : null;
-                        const valid = d && !isNaN(d.getTime()) && d.getFullYear() >= 2000;
-                        return valid
-                          ? `Claimed ${d!.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                          : 'Active';
-                      })()}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Link
-                        to={`/club-admin/clubs/${club.clubId}/edit`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors"
-                        style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '1px solid rgba(255,255,255,0.08)',
-                        }}
-                      >
-                        <Settings className="w-3 h-3" />
-                        Edit
-                      </Link>
-                      <Link
-                        to={`/club-admin/clubs/${club.clubId}/events`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors"
-                        style={{
-                          background: 'rgba(255,255,255,0.05)',
-                          border: '1px solid rgba(255,255,255,0.08)',
-                        }}
-                      >
-                        <Calendar className="w-3 h-3" />
-                        Events
-                      </Link>
-                      <Link
-                        to={`/submit-event?club=${club.clubId}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-900 transition-colors"
-                        style={{ background: 'hsl(43 74% 56%)' }}
-                      >
-                        <Plus className="w-3 h-3" />
-                        {club.verificationState === 'provisional' ? 'Draft' : 'New Event'}
-                      </Link>
-                    </div>
-                  </motion.div>
+                    {club.clubName}
+                  </button>
                 ))}
               </div>
-            </section>
+            )}
 
-            {/* Recruitment */}
-            <section className="mb-8">
-              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-3">
-                Recruitment
-              </p>
-              <div className="flex flex-col gap-2">
-                {ownedClubs.map((club) => (
+            {/* Per-club content */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeClub.clubId}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18 }}
+              >
+                {/* Club card */}
+                <div
+                  className="rounded-2xl p-5 mb-6"
+                  style={{ background: '#111', border: '1px solid rgba(255,255,255,0.07)' }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h2 className="text-lg font-display font-bold text-white tracking-tight">
+                        {activeClub.clubName}
+                      </h2>
+                      <p className="text-[11px] text-zinc-600 mt-0.5">
+                        {(() => {
+                          const d = activeClub.verifiedAt ? new Date(activeClub.verifiedAt) : null;
+                          const valid = d && !isNaN(d.getTime()) && d.getFullYear() >= 2000;
+                          return valid
+                            ? `Claimed ${d!.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                            : 'Active';
+                        })()}
+                      </p>
+                    </div>
+                    <VerificationPip state={activeClub.verificationState} />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Link
+                      to={`/club-admin/clubs/${activeClub.clubId}/edit`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    >
+                      <Settings className="w-3 h-3" />
+                      Edit
+                    </Link>
+                    <Link
+                      to={`/club-admin/clubs/${activeClub.clubId}/events`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    >
+                      <Calendar className="w-3 h-3" />
+                      Events
+                    </Link>
+                    <Link
+                      to={`/club-admin/clubs/${activeClub.clubId}/people`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    >
+                      <Users className="w-3 h-3" />
+                      People
+                    </Link>
+                    <Link
+                      to={`/club-admin/clubs/${activeClub.clubId}/analytics`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                    >
+                      <BarChart2 className="w-3 h-3" />
+                      Analytics
+                    </Link>
+                    <Link
+                      to={`/submit-event?club=${activeClub.clubId}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-900 transition-colors"
+                      style={{ background: 'hsl(43 74% 56%)' }}
+                    >
+                      <Plus className="w-3 h-3" />
+                      {activeClub.verificationState === 'provisional' ? 'Draft Event' : 'New Event'}
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Setup checklist */}
+                <div className="mb-6">
+                  <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-3">
+                    Setup
+                  </p>
+                  <OnboardingChecklist club={activeClub} />
+                </div>
+
+                {/* Recruitment */}
+                <div className="mb-6">
+                  <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-zinc-600 mb-3">
+                    Recruitment
+                  </p>
                   <Link
-                    key={club.clubId}
-                    to={`/club-admin/clubs/${club.clubId}/recruitment`}
+                    to={`/club-admin/clubs/${activeClub.clubId}/recruitment`}
                     className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors group"
                   >
                     <div>
-                      <p className="text-sm font-medium text-white">{club.clubName}</p>
+                      <p className="text-sm font-medium text-white">Recruitment Pipeline</p>
                       <p className="text-xs text-zinc-500 mt-0.5">
                         Manage stages, review applicants, run AI screening
                       </p>
@@ -249,9 +267,9 @@ export default function ClubAdminDashboard() {
                       →
                     </span>
                   </Link>
-                ))}
-              </div>
-            </section>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>

@@ -91,18 +91,28 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
         if (!isMounted) return;
         if (ownersRes.error) throw ownersRes.error;
 
-        const ownerClubs: ClubOwnership[] = (ownersRes.data || []).map((row: any) => ({
-          clubId: row.club_id,
-          clubName: row.club_name,
-          email: row.email,
-          verifiedAt: row.verified_at || '',
-          verificationState: (row.verification_state as VerificationState) || 'verified',
-          trustLevel: (row.trust_level as TrustLevel) || 'high',
-          trustScore: row.trust_score || 100,
-          restrictions: (row.restrictions as ClubRestrictions) || DEFAULT_RESTRICTIONS,
-          provisionalUntil: row.provisional_until,
-          isOwner: true,
-        }));
+        // Deduplicate owner rows by normalized clubId — the DB can have duplicate
+        // rows (same user, same club_id) which would surface as duplicate cards.
+        const ownerSeen = new Set<string>();
+        const ownerClubs: ClubOwnership[] = (ownersRes.data || [])
+          .filter((row: any) => {
+            const key = normalize(row.club_id);
+            if (ownerSeen.has(key)) return false;
+            ownerSeen.add(key);
+            return true;
+          })
+          .map((row: any) => ({
+            clubId: row.club_id,
+            clubName: row.club_name,
+            email: row.email,
+            verifiedAt: row.verified_at || '',
+            verificationState: (row.verification_state as VerificationState) || 'verified',
+            trustLevel: (row.trust_level as TrustLevel) || 'high',
+            trustScore: row.trust_score || 100,
+            restrictions: (row.restrictions as ClubRestrictions) || DEFAULT_RESTRICTIONS,
+            provisionalUntil: row.provisional_until,
+            isOwner: true,
+          }));
 
         const officerClubs: ClubOwnership[] = (officersRes.data || [])
           .filter((row: any) => !ownerClubs.some((o) => normalize(o.clubId) === normalize(row.club_id)))
