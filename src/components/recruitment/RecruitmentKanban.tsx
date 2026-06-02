@@ -11,7 +11,7 @@ import {
   FileText,
   Settings2,
   Mail,
-  Download,
+  Upload,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ApplicantDetailDrawer } from './ApplicantDetailDrawer';
@@ -342,7 +342,7 @@ export function RecruitmentKanban({
               onClick={exportCSV}
               className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-white border border-white/10 rounded-lg px-3 py-1.5 transition-colors"
             >
-              <Download className="w-3.5 h-3.5" /> Export
+              <Upload className="w-3.5 h-3.5" /> Export
             </button>
           )}
         </div>

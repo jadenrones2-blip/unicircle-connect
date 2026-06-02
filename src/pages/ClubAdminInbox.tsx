@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { AdminBreadcrumb } from '@/components/club-admin/AdminBreadcrumb';
-import { Loader2, Inbox, MailOpen, Mail, Clock } from 'lucide-react';
+import { Loader2, Inbox, MailOpen, Mail, Clock, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ClubMessage {
@@ -39,6 +39,8 @@ export default function ClubAdminInbox() {
   const [messages, setMessages] = useState<ClubMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<ClubMessage | null>(null);
+  const [replyOpen, setReplyOpen] = useState(false);
+  const replyRef = useRef<HTMLDivElement>(null);
 
   const club = ownedClubs.find(
     (c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase()
@@ -239,12 +241,52 @@ export default function ClubAdminInbox() {
                   </p>
 
                   {selected.sender_email && (
-                    <a
-                      href={`mailto:${selected.sender_email}?subject=Re: ${encodeURIComponent(selected.subject || '')}`}
-                      className="inline-flex items-center gap-2 mt-8 px-4 py-2 rounded-xl bg-gold/10 border border-gold/20 text-gold text-sm font-semibold hover:bg-gold/20 transition-all"
-                    >
-                      <Mail className="w-4 h-4" /> Reply via email
-                    </a>
+                    <div ref={replyRef} className="relative inline-block mt-8">
+                      <button
+                        onClick={() => setReplyOpen((o) => !o)}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gold/10 border border-gold/20 text-gold text-sm font-semibold hover:bg-gold/20 transition-all"
+                      >
+                        <Mail className="w-4 h-4" />
+                        Reply via email
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${replyOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      {replyOpen && (
+                        <div
+                          className="absolute left-0 top-full mt-2 w-52 rounded-xl border border-white/10 bg-zinc-900 shadow-xl overflow-hidden z-50"
+                          onMouseLeave={() => setReplyOpen(false)}
+                        >
+                          {[
+                            {
+                              label: 'Gmail',
+                              icon: '✉',
+                              href: `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(selected.sender_email)}&su=${encodeURIComponent(`Re: ${selected.subject || ''}`)}`,
+                            },
+                            {
+                              label: 'Outlook Web',
+                              icon: '📧',
+                              href: `https://outlook.live.com/mail/0/deeplink/compose?to=${encodeURIComponent(selected.sender_email)}&subject=${encodeURIComponent(`Re: ${selected.subject || ''}`)}`,
+                            },
+                            {
+                              label: 'Default mail app',
+                              icon: '🔗',
+                              href: `mailto:${selected.sender_email}?subject=${encodeURIComponent(`Re: ${selected.subject || ''}`)}`,
+                            },
+                          ].map(({ label, icon, href }) => (
+                            <a
+                              key={label}
+                              href={href}
+                              target={href.startsWith('mailto') ? undefined : '_blank'}
+                              rel="noopener noreferrer"
+                              onClick={() => setReplyOpen(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-200 hover:bg-white/[0.06] transition-colors"
+                            >
+                              <span>{icon}</span>
+                              {label}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               ) : (

@@ -662,7 +662,7 @@ export default function OrgPeopleDashboard() {
                   variant="outline"
                   className="border-white/10 text-zinc-300 hover:bg-white/5"
                 >
-                  <Download className="w-4 h-4 mr-1.5" /> Export CSV
+                  <Upload className="w-4 h-4 mr-1.5" /> Export CSV
                 </Button>
               )}
               <Button
@@ -674,7 +674,7 @@ export default function OrgPeopleDashboard() {
                 {smartImporting ? (
                   <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
                 ) : (
-                  <Upload className="w-4 h-4 mr-1.5" />
+                  <Download className="w-4 h-4 mr-1.5" />
                 )}
                 {smartImporting ? 'Importing...' : 'Import Roster'}
               </Button>
