@@ -14,7 +14,7 @@ import {
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
-import { Star, BarChart2, X } from 'lucide-react';
+import { Star, BarChart2, X, ChevronRight } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BulkAIScreen } from '../BulkAIScreen';
@@ -33,6 +33,70 @@ interface PipelineViewProps {
   onRefresh: () => Promise<void>;
   onConfigureRubric: () => void;
   onBulkMove: (ids: string[], stageId: string) => Promise<void>;
+}
+
+// Major abbreviations — longest match first to avoid partial shadowing
+const MAJOR_ABBR: [string, string][] = [
+  ['computer science and engineering', 'CS/E'],
+  ['electrical and computer engineering', 'ECE'],
+  ['mathematics-economics', 'Math-Econ'],
+  ['management science', 'Mgmt Sci'],
+  ['international studies', "Int'l Studies"],
+  ['computer science', 'CS'],
+  ['cognitive science', 'CogSci'],
+  ['political science', 'PolSci'],
+  ['electrical engineering', 'EE'],
+  ['mechanical engineering', 'MechE'],
+  ['aerospace engineering', 'AeroE'],
+  ['structural engineering', 'StructE'],
+  ['chemical engineering', 'ChemE'],
+  ['bioengineering', 'BioE'],
+  ['nano engineering', 'NanoE'],
+  ['human development', 'Human Dev'],
+  ['environmental studies', 'Enviro'],
+  ['global health', 'Global Hlth'],
+  ['public health', 'Pub Health'],
+  ['visual arts', 'Visual Arts'],
+  ['ethnic studies', 'Ethnic Std'],
+  ['data science', 'Data Sci'],
+  ['mathematics', 'Math'],
+  ['biochemistry', 'BioChem'],
+  ['psychology', 'Psych'],
+  ['economics', 'Econ'],
+  ['neuroscience', 'Neuro'],
+  ['sociology', 'Sociol'],
+  ['chemistry', 'Chem'],
+  ['philosophy', 'Phil'],
+  ['linguistics', 'Ling'],
+  ['literature', 'Lit'],
+  ['communication', 'Comm'],
+  ['history', 'Hist'],
+  ['physics', 'Phys'],
+  ['biology', 'Bio'],
+  ['business', 'Business'],
+  ['theater', 'Theater'],
+  ['music', 'Music'],
+  ['art', 'Art'],
+];
+
+function abbreviateMajor(major: string | null | undefined): string {
+  if (!major) return '';
+  const lower = major.toLowerCase().trim();
+  for (const [pattern, abbr] of MAJOR_ABBR) {
+    if (lower.includes(pattern)) return abbr;
+  }
+  return major.length > 12 ? major.slice(0, 11) + '…' : major;
+}
+
+function abbreviateYear(year: string | null | undefined): string {
+  if (!year) return '';
+  const lower = year.toLowerCase().trim();
+  if (lower === 'freshman' || lower.startsWith('1st') || lower.startsWith('first')) return '1st';
+  if (lower === 'sophomore' || lower.startsWith('2nd') || lower.startsWith('second')) return '2nd';
+  if (lower === 'junior' || lower.startsWith('3rd') || lower.startsWith('third')) return '3rd';
+  if (lower === 'senior' || lower.startsWith('4th') || lower.startsWith('fourth')) return '4th';
+  if (lower.includes('graduate') || lower.includes('grad')) return 'Grad';
+  return year;
 }
 
 function scoreColor(score: number): string {
@@ -82,14 +146,12 @@ function CompactCard({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
       onClick={onClick}
       className={`group flex items-center gap-2.5 px-3 py-2.5 rounded-lg border bg-zinc-900 hover:border-gold/30 hover:bg-zinc-800/80 transition-all cursor-pointer select-none ${
         isSelected ? 'border-blue-500/50 bg-zinc-800/60' : 'border-white/6'
       }`}
     >
-      {/* Checkbox — stop pointer so clicks here don't start a drag */}
+      {/* Checkbox — stop pointer so it doesn't bubble to card onClick */}
       <div
         className="shrink-0"
         onPointerDown={(e) => e.stopPropagation()}
@@ -104,9 +166,15 @@ function CompactCard({
         />
       </div>
 
-      {/* Avatar */}
+      {/* Avatar = drag handle only. Listeners here so the rest of the card
+          responds to onClick normally instead of DnD intercepting clicks. */}
       <div
-        className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+        {...attributes}
+        {...listeners}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        title="Drag to move"
+        className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 cursor-grab active:cursor-grabbing ${
           isStandout ? 'bg-gold text-zinc-900' : 'bg-zinc-700 text-zinc-300'
         }`}
       >
@@ -123,12 +191,14 @@ function CompactCard({
         </div>
         {(applicant.major || applicant.year) && (
           <p className="text-[11px] text-zinc-500 truncate leading-tight">
-            {[applicant.major, applicant.year].filter(Boolean).join(' · ')}
+            {[abbreviateMajor(applicant.major), abbreviateYear(applicant.year)]
+              .filter(Boolean)
+              .join(' · ')}
           </p>
         )}
       </div>
 
-      {/* Scores + vote tally */}
+      {/* Scores + vote tally + open indicator */}
       <div className="flex items-center gap-1.5 shrink-0">
         {fitScore !== null && fitScore !== undefined && (
           <span
@@ -150,6 +220,7 @@ function CompactCard({
             {vote!.maybe > 0 && <span className="text-yellow-400">{vote!.maybe}~</span>}
           </span>
         )}
+        <ChevronRight className="w-3 h-3 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </div>
   );

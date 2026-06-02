@@ -18,6 +18,65 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import type { Applicant } from '@/hooks/useRecruitment';
 import { Checkbox } from '@/components/ui/checkbox.tsx';
 
+const MAJOR_ABBR: [string, string][] = [
+  ['computer science and engineering', 'CS/E'],
+  ['electrical and computer engineering', 'ECE'],
+  ['mathematics-economics', 'Math-Econ'],
+  ['management science', 'Mgmt Sci'],
+  ['international studies', "Int'l Studies"],
+  ['computer science', 'CS'],
+  ['cognitive science', 'CogSci'],
+  ['political science', 'PolSci'],
+  ['electrical engineering', 'EE'],
+  ['mechanical engineering', 'MechE'],
+  ['aerospace engineering', 'AeroE'],
+  ['structural engineering', 'StructE'],
+  ['chemical engineering', 'ChemE'],
+  ['bioengineering', 'BioE'],
+  ['nano engineering', 'NanoE'],
+  ['human development', 'Human Dev'],
+  ['environmental studies', 'Enviro'],
+  ['global health', 'Global Hlth'],
+  ['public health', 'Pub Health'],
+  ['visual arts', 'Visual Arts'],
+  ['data science', 'Data Sci'],
+  ['mathematics', 'Math'],
+  ['biochemistry', 'BioChem'],
+  ['psychology', 'Psych'],
+  ['economics', 'Econ'],
+  ['neuroscience', 'Neuro'],
+  ['sociology', 'Sociol'],
+  ['chemistry', 'Chem'],
+  ['philosophy', 'Phil'],
+  ['linguistics', 'Ling'],
+  ['literature', 'Lit'],
+  ['communication', 'Comm'],
+  ['history', 'Hist'],
+  ['physics', 'Phys'],
+  ['biology', 'Bio'],
+  ['business', 'Business'],
+];
+
+function abbreviateMajor(major: string | null | undefined): string {
+  if (!major) return '';
+  const lower = major.toLowerCase().trim();
+  for (const [pattern, abbr] of MAJOR_ABBR) {
+    if (lower.includes(pattern)) return abbr;
+  }
+  return major.length > 12 ? major.slice(0, 11) + '…' : major;
+}
+
+function abbreviateYear(year: string | null | undefined): string {
+  if (!year) return '';
+  const lower = year.toLowerCase().trim();
+  if (lower === 'freshman' || lower.startsWith('1st') || lower.startsWith('first')) return '1st';
+  if (lower === 'sophomore' || lower.startsWith('2nd') || lower.startsWith('second')) return '2nd';
+  if (lower === 'junior' || lower.startsWith('3rd') || lower.startsWith('third')) return '3rd';
+  if (lower === 'senior' || lower.startsWith('4th') || lower.startsWith('fourth')) return '4th';
+  if (lower.includes('graduate') || lower.includes('grad')) return 'Grad';
+  return year;
+}
+
 const AVATAR_COLORS = [
   'bg-sky-500/20 text-sky-300',
   'bg-emerald-500/20 text-emerald-300',
@@ -230,12 +289,12 @@ export function ApplicantCard({
           <div className="flex items-center gap-2 mt-2 flex-wrap">
             {applicant.major && (
               <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-zinc-400">
-                {applicant.major}
+                {abbreviateMajor(applicant.major)}
               </span>
             )}
             {applicant.year && (
               <span className="text-xs px-1.5 py-0.5 rounded bg-white/10 text-zinc-400">
-                {applicant.year}
+                {abbreviateYear(applicant.year)}
               </span>
             )}
             {getFitScoreBadge()}
