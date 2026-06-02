@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
@@ -168,38 +168,58 @@ const ClubDetail = () => {
     setEventsLoading(true);
     try {
       const now = new Date().toISOString();
+      const normalizedId = id.trim().toLowerCase();
 
-      // Fetch by club_id
-      const { data: byId } = await dataClient
-        .from('events')
-        .select('*')
-        .eq('verified', true)
-        .eq('club_id', id)
-        .gte('start_time', now)
-        .order('start_time', { ascending: true })
-        .limit(20);
-
-      const results: ExternalEvent[] = (byId || []) as ExternalEvent[];
-
-      // Also fetch by instagram handle if we have one
-      if (instagramHandle) {
-        const { data: byHandle } = await dataClient
+      // Build parallel queries: by club_id, by club_handle (native events use this),
+      // and by instagram handle (scraped events use this).
+      const queries: Promise<{ data: unknown[] | null }>[] = [
+        dataClient
           .from('events')
           .select('*')
           .eq('verified', true)
-          .ilike('club_handle', instagramHandle)
+          .eq('club_id', normalizedId)
           .gte('start_time', now)
           .order('start_time', { ascending: true })
-          .limit(20);
+          .limit(20) as unknown as Promise<{ data: unknown[] | null }>,
+        dataClient
+          .from('events')
+          .select('*')
+          .eq('verified', true)
+          .ilike('club_handle', normalizedId)
+          .gte('start_time', now)
+          .order('start_time', { ascending: true })
+          .limit(20) as unknown as Promise<{ data: unknown[] | null }>,
+      ];
 
-        const handleResults = (byHandle || []) as ExternalEvent[];
-        // Merge, dedup by id
-        const seen = new Set(results.map((e) => e.id));
-        for (const e of handleResults) {
-          if (!seen.has(e.id)) results.push(e);
-        }
-        results.sort((a, b) => a.start_time.localeCompare(b.start_time));
+      if (instagramHandle && instagramHandle !== normalizedId) {
+        queries.push(
+          dataClient
+            .from('events')
+            .select('*')
+            .eq('verified', true)
+            .ilike('club_handle', instagramHandle)
+            .gte('start_time', now)
+            .order('start_time', { ascending: true })
+            .limit(20) as unknown as Promise<{ data: unknown[] | null }>
+        );
       }
+
+      const settled = await Promise.all(queries);
+      const seen = new Set<string>();
+      const results: ExternalEvent[] = [];
+      for (const res of settled) {
+        for (const e of (res.data || []) as ExternalEvent[]) {
+          if (!seen.has(e.id)) {
+            seen.add(e.id);
+            results.push(e);
+          }
+        }
+      }
+      results.sort((a, b) =>
+        (a.corrected_start_time || a.start_time).localeCompare(
+          b.corrected_start_time || b.start_time
+        )
+      );
 
       setClubEvents(results);
     } catch (err) {
@@ -285,11 +305,15 @@ const ClubDetail = () => {
       ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
       : null;
 
-  // Refetch events when user returns to this tab
+  // Refetch events when user returns to this tab (60s cooldown to avoid hammering on every tab switch)
+  const lastEventFetchRef = useRef<number>(0);
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState === 'visible' && club !== undefined) {
-        fetchClubEvents();
+        if (Date.now() - lastEventFetchRef.current > 60_000) {
+          lastEventFetchRef.current = Date.now();
+          fetchClubEvents();
+        }
       }
     };
     document.addEventListener('visibilitychange', onVisible);

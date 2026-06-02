@@ -132,7 +132,7 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [user, authLoading, refreshTick]);
+  }, [user?.id, authLoading, refreshTick]);
 
   const isOwnerOf = (clubId: string) => {
     const t = normalize(clubId);

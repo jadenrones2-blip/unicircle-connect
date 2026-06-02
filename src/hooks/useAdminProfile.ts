@@ -71,7 +71,7 @@ export function useAdminProfile() {
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user?.id]);
 
   const createProfile = async (data: {
     display_name: string;
