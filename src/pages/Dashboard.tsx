@@ -10,8 +10,18 @@ import {
   UserCircle,
   ChevronRight,
   X,
+  Menu,
+  Settings,
+  LayoutDashboard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserInterests } from '@/hooks/useUserInterests';
 import { useClubs } from '@/hooks/useExternalDB';
@@ -253,15 +263,29 @@ export default function Dashboard() {
                 <span className="hidden sm:inline">Profile</span>
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="px-2 sm:px-3 text-xs tracking-wide uppercase"
-            >
-              <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="px-2 sm:px-3">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="cursor-pointer">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Profile Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
