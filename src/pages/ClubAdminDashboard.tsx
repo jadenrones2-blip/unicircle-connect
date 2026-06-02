@@ -182,12 +182,13 @@ export default function ClubAdminDashboard() {
                       <VerificationPip state={club.verificationState} />
                     </div>
                     <p className="text-[11px] text-zinc-600 mb-4">
-                      Claimed{' '}
-                      {new Date(club.verifiedAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                      {(() => {
+                        const d = club.verifiedAt ? new Date(club.verifiedAt) : null;
+                        const valid = d && !isNaN(d.getTime()) && d.getFullYear() >= 2000;
+                        return valid
+                          ? `Claimed ${d!.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                          : 'Active';
+                      })()}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <Link

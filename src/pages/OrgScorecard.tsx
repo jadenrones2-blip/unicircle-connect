@@ -40,6 +40,7 @@ interface ScorecardRow {
   id: string;
   first_name: string;
   last_name: string;
+  email: string | null;
   stageLabel: string;
   stageColor: string;
   major: string | null;
@@ -48,6 +49,7 @@ interface ScorecardRow {
   tally: VoteTally;
   totalVotes: number;
   final_decision: string | null;
+  source: 'pipeline' | 'manual';
 }
 
 type SortKey = 'name' | 'fit' | 'votes' | 'stage';
@@ -109,12 +111,30 @@ export default function OrgScorecard() {
   const [sortKey, setSortKey] = useState<SortKey>('fit');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
+  // People-page stage labels and colors (mirrors OrgPeopleDashboard constants)
+  const PEOPLE_STAGE_LABELS: Record<string, string> = {
+    member: 'Member',
+    applied: 'Applied',
+    under_review: 'Under Review',
+    interview: 'Interview',
+    accepted: 'Accepted',
+    rejected: 'Rejected',
+  };
+  const PEOPLE_STAGE_COLORS: Record<string, string> = {
+    member: '#b8860b',
+    applied: '#3b82f6',
+    under_review: '#eab308',
+    interview: '#a855f7',
+    accepted: '#22c55e',
+    rejected: '#ef4444',
+  };
+
   useEffect(() => {
     if (!clubId) return;
     (async () => {
       setLoading(true);
 
-      // Fetch stages
+      // Fetch recruitment pipeline stages
       const { data: stages, error: stagesError } = await supabase
         .from('recruitment_stages')
         .select('id, label, order_index')
@@ -131,49 +151,58 @@ export default function OrgScorecard() {
       (stages || []).forEach((s, i) => {
         stageMap[s.id] = { label: s.label, color: STAGE_PALETTE[i % STAGE_PALETTE.length] };
       });
-      setStageLabels((stages || []).map((s) => ({ id: s.id, label: s.label })));
 
-      // Fetch applicants
-      const { data: applicants, error: appError } = await supabase
-        .from('applicants')
-        .select('id, first_name, last_name, major, year, stage_id, fit_score, final_decision')
-        .eq('club_id', clubId);
+      // Collect all unique stage labels for the filter pills (pipeline + people stages)
+      const pipelineStageLabels = (stages || []).map((s) => ({ id: s.id, label: s.label }));
 
-      if (appError) {
-        toast.error('Failed to load applicants');
-        setLoading(false);
-        return;
+      // ── Fetch from both tables in parallel ───────────────────────────────────
+      // Use (supabase as any) + select('*') so a missing column (fit_score,
+      // final_decision) doesn't silently empty the result instead of surfacing an error.
+      const [applicantsRes, peopleRes] = await Promise.all([
+        (supabase as any)
+          .from('applicants')
+          .select('*')
+          .eq('club_id', clubId),
+        (supabase as any)
+          .from('people')
+          .select('id, first_name, last_name, email, major, year, stage, created_at')
+          .eq('organization_id', clubId),
+      ]);
+
+      if (applicantsRes.error) {
+        toast.error(`Failed to load applicants: ${applicantsRes.error.message}`);
       }
-      if (!applicants?.length) {
-        setRows([]);
-        setLoading(false);
-        return;
+
+      const applicants: any[] = applicantsRes.data || [];
+      const people: any[] = peopleRes.data || [];
+
+      // Fetch deliberation votes for pipeline applicants
+      let votes: any[] = [];
+      if (applicants.length > 0) {
+        const { data: voteData } = await (supabase as any)
+          .from('deliberation_votes')
+          .select('applicant_id, vote')
+          .in('applicant_id', applicants.map((a: any) => a.id));
+        votes = voteData || [];
       }
 
-      const applicantIds = applicants.map((a: any) => a.id);
-
-      // Fetch votes
-      const { data: votes } = await (supabase as any)
-        .from('deliberation_votes')
-        .select('applicant_id, vote')
-        .in('applicant_id', applicantIds);
-
-      // Tally votes per applicant
       const tallyMap: Record<string, VoteTally> = {};
-      for (const v of votes || []) {
+      for (const v of votes) {
         if (!tallyMap[v.applicant_id]) tallyMap[v.applicant_id] = { yes: 0, no: 0, maybe: 0 };
         if (v.vote === 'yes') tallyMap[v.applicant_id].yes++;
         else if (v.vote === 'no') tallyMap[v.applicant_id].no++;
         else if (v.vote === 'maybe') tallyMap[v.applicant_id].maybe++;
       }
 
-      const scorecardRows: ScorecardRow[] = applicants.map((a: any) => {
+      // Build rows from the recruitment pipeline applicants
+      const pipelineRows: ScorecardRow[] = applicants.map((a: any) => {
         const stage = a.stage_id ? stageMap[a.stage_id] : null;
         const tally = tallyMap[a.id] || { yes: 0, no: 0, maybe: 0 };
         return {
           id: a.id,
           first_name: a.first_name,
           last_name: a.last_name,
+          email: a.email || null,
           stageLabel: stage?.label || 'Unknown',
           stageColor: stage?.color || '#71717a',
           major: a.major,
@@ -182,10 +211,52 @@ export default function OrgScorecard() {
           tally,
           totalVotes: tally.yes + tally.no + tally.maybe,
           final_decision: a.final_decision,
+          source: 'pipeline' as const,
         };
       });
 
-      setRows(scorecardRows);
+      // Build rows from the people table; skip anyone already in the pipeline (dedup by email)
+      const pipelineEmails = new Set(
+        applicants.map((a: any) => (a.email || '').trim().toLowerCase()).filter(Boolean)
+      );
+      const manualRows: ScorecardRow[] = people
+        .filter((p: any) => {
+          const email = (p.email || '').trim().toLowerCase();
+          return !email || !pipelineEmails.has(email);
+        })
+        .map((p: any) => {
+          const stageKey = p.stage || 'applied';
+          const decision =
+            stageKey === 'accepted' ? 'accepted' : stageKey === 'rejected' ? 'rejected' : 'pending';
+          return {
+            id: p.id,
+            first_name: p.first_name,
+            last_name: p.last_name,
+            email: p.email || null,
+            stageLabel: PEOPLE_STAGE_LABELS[stageKey] || stageKey,
+            stageColor: PEOPLE_STAGE_COLORS[stageKey] || '#71717a',
+            major: p.major,
+            year: p.year,
+            fit_score: null,
+            tally: { yes: 0, no: 0, maybe: 0 },
+            totalVotes: 0,
+            final_decision: decision,
+            source: 'manual' as const,
+          };
+        });
+
+      // Merge pipeline + manual; expose all stage labels for filter pills
+      const allRows = [...pipelineRows, ...manualRows];
+
+      // Build unified stage label list for filter pills
+      const manualStageLabelsInData = [
+        ...new Set(manualRows.map((r) => r.stageLabel)),
+      ].map((label) => ({ id: `manual-${label}`, label }));
+      const pipelineLabelsSet = new Set(pipelineStageLabels.map((s) => s.label));
+      const extraLabels = manualStageLabelsInData.filter((l) => !pipelineLabelsSet.has(l.label));
+
+      setStageLabels([...pipelineStageLabels, ...extraLabels]);
+      setRows(allRows);
       setLoading(false);
     })();
   }, [clubId]);
@@ -391,8 +462,15 @@ export default function OrgScorecard() {
                       >
                         <td className="px-4 py-3 text-zinc-600 font-mono text-xs">{i + 1}</td>
                         <td className="px-4 py-3">
-                          <div className="font-medium text-white">
-                            {row.first_name} {row.last_name}
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-white">
+                              {row.first_name} {row.last_name}
+                            </span>
+                            {row.source === 'manual' && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-white/5 text-zinc-500 border border-white/8">
+                                Manual
+                              </span>
+                            )}
                           </div>
                           {(row.major || row.year) && (
                             <div className="text-xs text-zinc-500 mt-0.5">

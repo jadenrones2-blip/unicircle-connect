@@ -95,7 +95,7 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
           clubId: row.club_id,
           clubName: row.club_name,
           email: row.email,
-          verifiedAt: row.verified_at,
+          verifiedAt: row.verified_at || '',
           verificationState: (row.verification_state as VerificationState) || 'verified',
           trustLevel: (row.trust_level as TrustLevel) || 'high',
           trustScore: row.trust_score || 100,
@@ -105,7 +105,7 @@ export function ClubOwnershipProvider({ children }: { children: ReactNode }) {
         }));
 
         const officerClubs: ClubOwnership[] = (officersRes.data || [])
-          .filter((row: any) => !ownerClubs.some((o) => o.clubId === row.club_id))
+          .filter((row: any) => !ownerClubs.some((o) => normalize(o.clubId) === normalize(row.club_id)))
           .map((row: any) => ({
             clubId: row.club_id,
             clubName: row.club_name,
