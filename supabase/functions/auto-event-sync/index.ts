@@ -1,17 +1,8 @@
 /**
- * auto-event-sync
- *
- * Scheduled event pipeline — runs without user auth so it can be triggered
- * by a remote cron agent. Processes clubs in batches to avoid timeouts.
- *
- * Flow:
- * 1. Fetch clubs with Instagram handles (batch of N, offset via query param)
- * 2. For each club, scrape Instagram via proxy viewers + Firecrawl
- * 3. Claude extracts structured events from scraped content
- * 4. Upsert events into the external DB with correct club_id
- * 5. Return summary — the scheduler calls repeatedly with offset until done
+ * auto-event-sync — pulls upcoming events from calendar.ucsd.edu (Localist)
+ * and upserts them into the external events table.
+ * Deduplicates via external_id = 'ucsd-localist-{localist_event_id}'.
  */
-
 import { serve } from 'https://deno.land/std@0.190.0/http/server.ts';
 
 const CORS = {
@@ -20,199 +11,205 @@ const CORS = {
 };
 
 const EXT_URL = 'https://tayhvgmterjzolvodwow.supabase.co';
-const EXT_KEY = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY') ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRheWh2Z210ZXJqem9sdm9kd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTExODIsImV4cCI6MjA4NDI2NzE4Mn0.QUBp8guzuSsRh_9hpVOsqsGFlRn7IO6adwZRMRL8UHI';
-
+const EXT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRheWh2Z210ZXJqem9sdm9kd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTExODIsImV4cCI6MjA4NDI2NzE4Mn0.QUBp8guzuSsRh_9hpVOsqsGFlRn7IO6adwZRMRL8UHI';
 const EXT_HDR = { apikey: EXT_KEY, Authorization: `Bearer ${EXT_KEY}`, 'Content-Type': 'application/json' };
 
-// ── Scrape Instagram via proxy viewers ────────────────────────────────────────
+const UCSD_API = 'https://calendar.ucsd.edu/api/2/events';
 
-async function scrapeInstagram(handle: string, firecrawlKey: string): Promise<string> {
-  const sources = [
-    `https://www.picnob.com/profile/${handle}/`,
-    `https://imginn.com/${handle}/`,
-    `https://instagram.com/${handle}/`,
-  ];
+// ── Fetch one page from the UCSD Localist calendar ────────────────────────────
 
-  let best = '';
-  for (const url of sources) {
-    try {
-      const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${firecrawlKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, formats: ['markdown'], onlyMainContent: true, waitFor: 4000 }),
-        signal: AbortSignal.timeout(15000),
-      });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const text = data.data?.markdown || data.markdown || '';
-      if (text.length > best.length) best = text;
-    } catch { /* try next source */ }
-    if (best.length > 300) break;
-  }
-  return best;
-}
-
-// ── Claude event extractor ────────────────────────────────────────────────────
-
-interface ExtractedEvent {
-  title: string;
-  description: string;
-  start_time: string;
-  end_time?: string;
-  location?: string;
-}
-
-async function extractEvents(
-  content: string,
-  clubName: string,
-  anthropicKey: string,
-): Promise<ExtractedEvent[]> {
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  const year = today.getFullYear();
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': anthropicKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 2048,
-      system: `You extract upcoming UCSD club events from scraped Instagram content.
-Today: ${todayStr}. Timezone: Pacific (UTC-7 summer, UTC-8 winter).
-Club: "${clubName}"
-
-Rules:
-- Only return events on or after ${todayStr}
-- Compute relative dates ("this Friday", "tomorrow") from today
-- Default time if missing: 18:00:00. Default year: ${year}
-- Skip past events, recruitment posts, shoutouts, and posts without a specific date
-- Output ISO 8601: YYYY-MM-DDTHH:MM:SS (no timezone suffix)
-- Return ONLY a JSON array. Empty [] if no events found. No explanation.
-
-Format: [{"title":"...","description":"1-2 sentences","start_time":"ISO","end_time":"ISO or null","location":"...or null"}]`,
-      messages: [{
-        role: 'user',
-        content: `Extract upcoming events for ${clubName}:\n\n${content.slice(0, 8000)}`,
-      }],
-    }),
-    signal: AbortSignal.timeout(20000),
+async function fetchPage(page: number, days: number): Promise<any[]> {
+  const url = `${UCSD_API}?days=${days}&pp=100&page=${page}`;
+  const res = await fetch(url, {
+    headers: { Accept: 'application/json' },
+    signal: AbortSignal.timeout(15000),
   });
-
   if (!res.ok) return [];
   const data = await res.json();
-  const raw = data.content?.[0]?.text ?? '[]';
-  try {
-    const arr = JSON.parse(raw.match(/\[[\s\S]*\]/)?.[0] ?? '[]');
-    return Array.isArray(arr) ? arr : [];
-  } catch { return []; }
+  return (data.events ?? []).map((w: any) => w.event);
 }
 
-// ── Upsert events ─────────────────────────────────────────────────────────────
+// ── Fetch all clubs for group→club matching ───────────────────────────────────
 
-async function upsertEvent(event: ExtractedEvent, clubId: string, handle: string): Promise<boolean> {
-  // Check for duplicates (same club + title + same day)
-  const day = event.start_time.split('T')[0];
-  const checkRes = await fetch(
-    `${EXT_URL}/rest/v1/events?club_id=eq.${clubId}&title=ilike.${encodeURIComponent(event.title)}&start_time=gte.${day}T00%3A00%3A00&start_time=lte.${day}T23%3A59%3A59&select=id&limit=1`,
-    { headers: EXT_HDR }
-  );
-  const existing = await checkRes.json();
-  if (Array.isArray(existing) && existing.length > 0) return false; // duplicate
+let _clubCache: { id: string; name: string }[] | null = null;
 
-  const insertRes = await fetch(`${EXT_URL}/rest/v1/events`, {
-    method: 'POST',
-    headers: { ...EXT_HDR, Prefer: 'return=minimal' },
-    body: JSON.stringify({
-      title: event.title,
-      start_time: event.start_time,
-      end_time: event.end_time || null,
-      location: event.location || null,
-      club_id: clubId,
-      club_handle: handle,
-      source: 'instagram_auto',
-      source_url: `https://instagram.com/${handle}/`,
-      verified: false,
-      caption: event.description,
-      posted_at: new Date().toISOString(),
-    }),
-  });
-  return insertRes.ok;
+async function getClubs(): Promise<{ id: string; name: string }[]> {
+  if (_clubCache) return _clubCache;
+  const res = await fetch(`${EXT_URL}/rest/v1/clubs?select=id,name&limit=1000`, { headers: EXT_HDR });
+  if (!res.ok) return [];
+  _clubCache = await res.json();
+  return _clubCache!;
+}
+
+function normalize(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+async function matchClub(groups: { name: string }[]): Promise<string | null> {
+  if (!groups?.length) return null;
+  const clubs = await getClubs();
+  for (const { name: gName } of groups) {
+    const gNorm = normalize(gName);
+    const match = clubs.find(c => normalize(c.name) === gNorm);
+    if (match) return match.id;
+    // Partial — group name contains club name or vice versa
+    const partial = clubs.find(c => {
+      const cNorm = normalize(c.name);
+      return gNorm.includes(cNorm) || cNorm.includes(gNorm);
+    });
+    if (partial) return partial.id;
+  }
+  return null;
+}
+
+// ── Parse a Localist event into our DB row ────────────────────────────────────
+
+interface EventRow {
+  title: string;
+  start_time: string;
+  end_time: string | null;
+  location: string | null;
+  source: string;
+  source_url: string;
+  external_id: string;
+  image_url: string | null;
+  caption: string | null;
+  club_id: string | null;
+  verified: boolean;
+  posted_at: string;
+}
+
+async function parseEvent(ev: any): Promise<EventRow | null> {
+  const instance = ev.event_instances?.[0]?.event_instance;
+  if (!instance?.start) return null;
+
+  const clubId = await matchClub(ev.groups ?? []);
+
+  return {
+    title: ev.title ?? 'Untitled',
+    start_time: instance.start,
+    end_time: instance.end ?? null,
+    location: ev.location_name ?? null,
+    source: 'ucsd_calendar',
+    source_url: ev.localist_url ?? `https://calendar.ucsd.edu/event/${ev.urlname ?? ev.id}`,
+    external_id: `ucsd-localist-${ev.id}`,
+    image_url: ev.photo_url ?? null,
+    caption: ev.description_text ? ev.description_text.slice(0, 2000) : null,
+    club_id: clubId,
+    verified: false,
+    posted_at: new Date().toISOString(),
+  };
+}
+
+// ── Upsert (skip existing external_ids in bulk) ───────────────────────────────
+
+async function getExistingIds(externalIds: string[]): Promise<Set<string>> {
+  if (!externalIds.length) return new Set();
+  // Query in batches of 100
+  const existing = new Set<string>();
+  for (let i = 0; i < externalIds.length; i += 100) {
+    const batch = externalIds.slice(i, i + 100);
+    const filter = batch.map(id => encodeURIComponent(id)).join(',');
+    const res = await fetch(
+      `${EXT_URL}/rest/v1/events?select=external_id&external_id=in.(${filter})`,
+      { headers: EXT_HDR }
+    );
+    if (!res.ok) continue;
+    const rows: { external_id: string }[] = await res.json();
+    rows.forEach(r => existing.add(r.external_id));
+  }
+  return existing;
+}
+
+async function bulkInsert(rows: EventRow[]): Promise<{ inserted: number; errored: number }> {
+  if (!rows.length) return { inserted: 0, errored: 0 };
+  // Insert in batches of 50
+  let inserted = 0;
+  let errored = 0;
+  for (let i = 0; i < rows.length; i += 50) {
+    const batch = rows.slice(i, i + 50);
+    const res = await fetch(`${EXT_URL}/rest/v1/events`, {
+      method: 'POST',
+      headers: { ...EXT_HDR, Prefer: 'return=minimal' },
+      body: JSON.stringify(batch),
+    });
+    if (res.ok) {
+      inserted += batch.length;
+    } else {
+      const err = await res.text();
+      console.error('Insert error:', err.slice(0, 200));
+      errored += batch.length;
+    }
+  }
+  return { inserted, errored };
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: CORS });
 
   try {
-    const FIRECRAWL_KEY = Deno.env.get('FIRECRAWL_API_KEY');
-    const ANTHROPIC_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-
-    if (!FIRECRAWL_KEY) throw new Error('FIRECRAWL_API_KEY not set');
-    if (!ANTHROPIC_KEY) throw new Error('ANTHROPIC_API_KEY not set');
-
     const body = await req.json().catch(() => ({}));
-    const batchSize = Math.min(body.batch_size ?? 15, 30);
-    const offset = body.offset ?? 0;
+    const dryRun: boolean = body.dry_run === true;
+    const days: number = Math.min(body.days ?? 60, 90);
 
-    // Fetch clubs with Instagram handles
-    const clubsRes = await fetch(
-      `${EXT_URL}/rest/v1/clubs?select=id,name,instagram&instagram=not.is.null&instagram=neq.&order=name&limit=${batchSize}&offset=${offset}`,
-      { headers: EXT_HDR }
-    );
-    const clubs: any[] = await clubsRes.json();
+    // 1. Discover total pages
+    const firstPageUrl = `${UCSD_API}?days=${days}&pp=100&page=1`;
+    const firstRes = await fetch(firstPageUrl, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!firstRes.ok) throw new Error(`UCSD calendar API returned ${firstRes.status}`);
+    const firstData = await firstRes.json();
+    const totalPages: number = firstData.page?.total ?? 1;
+    const firstEvents: any[] = (firstData.events ?? []).map((w: any) => w.event);
 
-    if (!Array.isArray(clubs) || clubs.length === 0) {
+    // 2. Fetch remaining pages (up to 10 pages = 1000 events max per run)
+    const maxPages = Math.min(totalPages, 10);
+    const allRawEvents: any[] = [...firstEvents];
+    for (let p = 2; p <= maxPages; p++) {
+      const more = await fetchPage(p, days);
+      allRawEvents.push(...more);
+    }
+
+    // 3. Parse into row objects
+    const parsed: EventRow[] = [];
+    for (const ev of allRawEvents) {
+      const row = await parseEvent(ev);
+      if (row) parsed.push(row);
+    }
+
+    // 4. Filter out events that already exist
+    const allIds = parsed.map(r => r.external_id);
+    const existingIds = await getExistingIds(allIds);
+    const newRows = parsed.filter(r => !existingIds.has(r.external_id));
+
+    if (dryRun) {
       return new Response(
-        JSON.stringify({ done: true, clubsProcessed: 0, eventsAdded: 0 }),
+        JSON.stringify({
+          dryRun: true,
+          pagesScanned: maxPages,
+          eventsFound: parsed.length,
+          alreadyExist: existingIds.size,
+          wouldInsert: newRows.length,
+          sample: newRows.slice(0, 3).map(r => ({ title: r.title, start_time: r.start_time, club_id: r.club_id })),
+        }),
         { headers: { ...CORS, 'Content-Type': 'application/json' } }
       );
     }
 
-    let eventsAdded = 0;
-    let clubsProcessed = 0;
-    const errors: string[] = [];
-
-    for (const club of clubs) {
-      try {
-        const raw = club.instagram ?? '';
-        const m = raw.match(/(?:instagram\.com\/)?@?([A-Za-z0-9_.]+)\/?$/);
-        if (!m) continue;
-        const handle = m[1].toLowerCase();
-
-        console.log(`Scraping @${handle} (${club.name})`);
-        const content = await scrapeInstagram(handle, FIRECRAWL_KEY);
-        if (content.length < 50) { console.log(`No content for ${club.name}`); continue; }
-
-        const events = await extractEvents(content, club.name, ANTHROPIC_KEY);
-        console.log(`${events.length} events extracted from ${club.name}`);
-
-        for (const ev of events) {
-          if (await upsertEvent(ev, club.id, handle)) eventsAdded++;
-        }
-        clubsProcessed++;
-      } catch (err) {
-        errors.push(`${club.name}: ${err}`);
-        console.error(`Error on ${club.name}:`, err);
-      }
-
-      // Small breathe between clubs
-      await new Promise(r => setTimeout(r, 500));
-    }
+    // 5. Insert new events
+    const { inserted, errored } = await bulkInsert(newRows);
 
     return new Response(
       JSON.stringify({
-        done: clubs.length < batchSize,
-        clubsProcessed,
-        eventsAdded,
-        offset,
-        nextOffset: offset + batchSize,
-        errors: errors.slice(0, 5),
+        success: true,
+        pagesScanned: maxPages,
+        eventsFound: parsed.length,
+        alreadyExist: existingIds.size,
+        inserted,
+        errored,
       }),
       { headers: { ...CORS, 'Content-Type': 'application/json' } }
     );

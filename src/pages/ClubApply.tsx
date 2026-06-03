@@ -348,7 +348,6 @@ export default function ClubApply() {
             .from('application_forms')
             .select('questions')
             .eq('club_id', clubId)
-            .eq('is_active', true)
             .maybeSingle()
         )
           .then((formRes: { data?: { questions?: FormQuestion[] } }) => {

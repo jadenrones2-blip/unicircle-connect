@@ -61,7 +61,9 @@ export interface RecruitmentSettings {
   updated_at: string;
 }
 
-export function useRecruitment(clubId: string | undefined) {
+export function useRecruitment(rawClubId: string | undefined) {
+  // Normalize to match whatever casing club_owners uses
+  const clubId = rawClubId?.trim().toLowerCase() || undefined;
   const { user } = useAuth();
   const [settings, setSettings] = useState<RecruitmentSettings | null>(null);
   const [stages, setStages] = useState<RecruitmentStage[]>([]);
@@ -100,7 +102,7 @@ export function useRecruitment(clubId: string | undefined) {
       return;
     }
 
-    setStages(data || []);
+    setStages((data || []) as RecruitmentStage[]);
   }, [clubId, user]);
 
   const fetchApplicants = useCallback(async () => {
@@ -215,8 +217,8 @@ export function useRecruitment(clubId: string | undefined) {
     );
 
     if (error) {
-      console.error('Error enabling recruitment:', error);
-      toast.error('Failed to enable recruitment');
+      console.error('Error enabling recruitment:', error.code, error.message, error.details);
+      toast.error(`Failed to enable recruitment: ${error.message}`);
       return false;
     }
 
@@ -614,7 +616,7 @@ export function useRecruitment(clubId: string | undefined) {
       toast.error('Failed to add stage');
       return false;
     }
-    setStages((prev) => [...prev, data]);
+    setStages((prev) => [...prev, data as RecruitmentStage]);
     return true;
   };
 

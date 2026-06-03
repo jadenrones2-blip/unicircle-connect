@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -86,15 +86,14 @@ serve(async (req) => {
       );
     }
 
-    // Verify club ownership
-    const { data: ownership, error: ownershipError } = await supabase
-      .from("club_owners")
-      .select("id")
-      .eq("club_id", club_id)
-      .eq("user_id", user.id)
-      .maybeSingle();
+    // Verify club ownership OR officer membership
+    const [ownerRes, officerRes] = await Promise.all([
+      supabase.from("club_owners").select("id").eq("club_id", club_id).eq("user_id", user.id).maybeSingle(),
+      supabase.from("club_officers").select("id").eq("club_id", club_id).eq("user_id", user.id).maybeSingle(),
+    ]);
 
-    if (ownershipError || !ownership) {
+    const isAuthorized = (!ownerRes.error && !!ownerRes.data) || (!officerRes.error && !!officerRes.data);
+    if (!isAuthorized) {
       return new Response(JSON.stringify({ error: "Not authorized for this club" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

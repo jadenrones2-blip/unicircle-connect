@@ -13,10 +13,11 @@ interface PostEventModalProps {
   onClose: () => void;
   clubId: string;
   clubName: string;
+  university?: string | null;
   onPosted: () => void;
 }
 
-export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: PostEventModalProps) {
+export function PostEventModal({ open, onClose, clubId, clubName, university, onPosted }: PostEventModalProps) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -56,6 +57,7 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
         title: title.trim(),
         club_id: clubId.trim().toLowerCase(),
         club_handle: clubId.trim().toLowerCase(),
+        club_name: clubName,
         start_time: startISO,
         end_time: endISO,
         location: location.trim() || null,
@@ -67,6 +69,8 @@ export function PostEventModal({ open, onClose, clubId, clubName, onPosted }: Po
         corrected_end_time: endISO,
         corrected_location: location.trim() || null,
       };
+
+      if (university) record.university = university.toLowerCase();
 
       if (imageUrl.trim()) record.image_url = imageUrl.trim();
 

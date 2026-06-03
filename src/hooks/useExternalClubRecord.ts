@@ -15,6 +15,7 @@ export interface ExternalClubRecord {
   cover_image: string | null;
   recruitingStatus: RecruitmentStatus | null;
   recruitment_cycle: RecruitmentCycle | null;
+  university: string | null;
 }
 
 interface UseExternalClubRecordResult {

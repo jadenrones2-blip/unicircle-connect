@@ -47,6 +47,7 @@ export default function ClubAdminEvents() {
   const [deleting, setDeleting] = useState(false);
   const [editingEvent, setEditingEvent] = useState<ExternalEvent | null>(null);
   const [postEventOpen, setPostEventOpen] = useState(false);
+  const [clubUniversity, setClubUniversity] = useState<string | null>(null);
 
   // Filter state
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -84,13 +85,16 @@ export default function ClubAdminEvents() {
         }
       }
 
-      // Also look up the club's instagram handle to fetch by that too
+      // Also look up the club's instagram handle + university from the external DB
       try {
         const { data: clubRow } = await dataClient
           .from('clubs')
-          .select('instagram')
+          .select('instagram, university')
           .or(`id.eq.${club.clubId},instagram.ilike.${club.clubId}`)
           .maybeSingle();
+        if (clubRow?.university) {
+          setClubUniversity((clubRow.university as string).toLowerCase());
+        }
         if (clubRow?.instagram && clubRow.instagram !== club.clubId) {
           const { data: byInsta } = await dataClient
             .from('events')
@@ -457,6 +461,7 @@ export default function ClubAdminEvents() {
         onClose={() => setPostEventOpen(false)}
         clubId={clubId ?? ''}
         clubName={club.clubName}
+        university={clubUniversity}
         onPosted={fetchClubEvents}
       />
     </SidebarProvider>
