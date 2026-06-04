@@ -5,7 +5,6 @@ import { useClubOwnership } from '@/hooks/useClubOwnership';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { AdminBreadcrumb } from '@/components/club-admin/AdminBreadcrumb';
-import { RecruitmentIntro } from '@/components/recruitment/RecruitmentIntro';
 import { RecruitmentSetupWizard } from '@/components/recruitment/RecruitmentSetupWizard';
 import { RecruitmentKanban } from '@/components/recruitment/RecruitmentKanban';
 import { useRecruitment } from '@/hooks/useRecruitment';
@@ -16,7 +15,6 @@ export default function ClubAdminRecruitment() {
   const { clubId } = useParams<{ clubId: string }>();
   const { user, loading: authLoading } = useAuth();
   const { isOwnerOf, isOfficerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
-  const [enabling, setEnabling] = useState(false);
   const [creatingStages, setCreatingStages] = useState(false);
 
   const {
@@ -24,7 +22,6 @@ export default function ClubAdminRecruitment() {
     stages,
     applicants,
     loading: recruitmentLoading,
-    isEnabled,
     hasStages,
     enableRecruitment,
     createStages,
@@ -60,24 +57,20 @@ export default function ClubAdminRecruitment() {
     ownedClubs.find((c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase())
       ?.clubName || 'Club';
 
-  const handleEnable = async () => {
-    setEnabling(true);
-    await enableRecruitment();
-    setEnabling(false);
-  };
-
   const handleCreateStages = async (stageLabels: string[]) => {
     setCreatingStages(true);
     await createStages(stageLabels);
     setCreatingStages(false);
   };
 
+  // Auto-enable and auto-create default stages on first visit — no manual gate
   useEffect(() => {
-    if (!recruitmentLoading && isEnabled && !hasStages && !creatingStages) {
-      handleCreateStages([]);
+    if (recruitmentLoading || creatingStages) return;
+    if (!hasStages) {
+      enableRecruitment().then(() => handleCreateStages([]));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recruitmentLoading, isEnabled, hasStages]);
+  }, [recruitmentLoading, hasStages]);
 
   const isLoading = authLoading || ownershipLoading || recruitmentLoading;
 
@@ -122,9 +115,7 @@ export default function ClubAdminRecruitment() {
               </div>
             )}
 
-            {!isEnabled ? (
-              <RecruitmentIntro onEnable={handleEnable} loading={enabling} />
-            ) : !hasStages ? (
+            {!hasStages ? (
               <RecruitmentSetupWizard onComplete={handleCreateStages} loading={creatingStages} />
             ) : (
               <RecruitmentKanban
