@@ -63,14 +63,13 @@ export default function ClubAdminRecruitment() {
     setCreatingStages(false);
   };
 
-  // Auto-enable and auto-create default stages on first visit — no manual gate
+  // Silently mark recruitment as enabled in the background — wizard handles stages
   useEffect(() => {
-    if (recruitmentLoading || creatingStages) return;
-    if (!hasStages) {
-      enableRecruitment().then(() => handleCreateStages([]));
+    if (!recruitmentLoading && !hasStages) {
+      enableRecruitment().catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recruitmentLoading, hasStages]);
+  }, [recruitmentLoading]);
 
   const isLoading = authLoading || ownershipLoading || recruitmentLoading;
 
