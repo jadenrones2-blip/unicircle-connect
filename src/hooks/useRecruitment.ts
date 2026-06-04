@@ -102,7 +102,10 @@ export function useRecruitment(rawClubId: string | undefined) {
       return;
     }
 
-    setStages((data || []) as RecruitmentStage[]);
+    // Only overwrite if DB returned rows — don't wipe an optimistic update
+    if (data && data.length > 0) {
+      setStages(data as RecruitmentStage[]);
+    }
   }, [clubId, user]);
 
   const fetchApplicants = useCallback(async () => {
@@ -131,13 +134,16 @@ export function useRecruitment(rawClubId: string | undefined) {
     setApplicants(typedApplicants);
   }, [clubId, user]);
 
-  // Effect 1: initial data load
+  // Effect 1: initial data load — reset state first so stale data never leaks
   useEffect(() => {
     if (!clubId || !user) {
       setLoading(false);
       return;
     }
     setLoading(true);
+    setStages([]);
+    setSettings(null);
+    setApplicants([]);
     Promise.all([fetchSettings(), fetchStages(), fetchApplicants()]).then(() => {
       setLoading(false);
     });
@@ -230,7 +236,6 @@ export function useRecruitment(rawClubId: string | undefined) {
   const createStages = async (stageLabels: string[]) => {
     if (!clubId || !user) return false;
 
-    // Always ensure "Applied" is the first (intake) stage
     const allLabels = [
       'Applied',
       ...stageLabels.filter((l) => l.trim().toLowerCase() !== 'applied'),
@@ -242,7 +247,8 @@ export function useRecruitment(rawClubId: string | undefined) {
       is_intake: index === 0,
     }));
 
-    const { error } = await supabase.from('recruitment_stages').insert(stagesToInsert);
+    // Use `as any` because is_intake isn't in the generated types yet
+    const { error } = await (supabase as any).from('recruitment_stages').insert(stagesToInsert);
 
     if (error) {
       console.error('Error creating stages:', error);
@@ -250,8 +256,31 @@ export function useRecruitment(rawClubId: string | undefined) {
       return false;
     }
 
-    await fetchStages();
-    toast.success('Stages created!');
+    // Try to fetch real rows from DB; if SELECT policy isn't set up yet,
+    // fall back to an optimistic update so the kanban always shows.
+    const { data: fetched } = await supabase
+      .from('recruitment_stages')
+      .select('*')
+      .eq('club_id', clubId)
+      .order('order_index', { ascending: true });
+
+    if (fetched && fetched.length > 0) {
+      setStages(fetched as RecruitmentStage[]);
+    } else {
+      // Optimistic: build stage objects with temporary IDs so hasStages → true
+      const optimistic: RecruitmentStage[] = stagesToInsert.map((s, i) => ({
+        id: `opt-${i}-${Date.now()}`,
+        club_id: s.club_id,
+        label: s.label,
+        order_index: s.order_index,
+        is_intake: s.is_intake,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }));
+      setStages(optimistic);
+    }
+
+    toast.success('Pipeline created!');
     return true;
   };
 
