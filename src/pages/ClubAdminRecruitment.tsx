@@ -16,6 +16,9 @@ export default function ClubAdminRecruitment() {
   const { user, loading: authLoading } = useAuth();
   const { isOwnerOf, isOfficerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
   const [creatingStages, setCreatingStages] = useState(false);
+  // Local flag so the kanban always shows after a successful save,
+  // regardless of whether fetchStages can read back the new rows yet.
+  const [pipelineReady, setPipelineReady] = useState(false);
 
   const {
     settings,
@@ -59,13 +62,14 @@ export default function ClubAdminRecruitment() {
 
   const handleCreateStages = async (stageLabels: string[]) => {
     setCreatingStages(true);
-    await createStages(stageLabels);
+    const ok = await createStages(stageLabels);
     setCreatingStages(false);
+    if (ok) setPipelineReady(true);
   };
 
-  // Silently mark recruitment as enabled in the background — wizard handles stages
+  // Silently enable recruitment in background — ignore all errors, no toast
   useEffect(() => {
-    if (!recruitmentLoading && !hasStages) {
+    if (!recruitmentLoading) {
       enableRecruitment().catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,7 +118,7 @@ export default function ClubAdminRecruitment() {
               </div>
             )}
 
-            {!hasStages ? (
+            {!pipelineReady && !hasStages ? (
               <RecruitmentSetupWizard onComplete={handleCreateStages} loading={creatingStages} />
             ) : (
               <RecruitmentKanban

@@ -223,13 +223,11 @@ export function useRecruitment(rawClubId: string | undefined) {
     );
 
     if (error) {
-      console.error('Error enabling recruitment:', error.code, error.message, error.details);
-      toast.error(`Failed to enable recruitment: ${error.message}`);
+      console.warn('enableRecruitment silent fail:', error.code, error.message);
       return false;
     }
 
     await fetchSettings();
-    toast.success('Recruitment enabled!');
     return true;
   };
 
