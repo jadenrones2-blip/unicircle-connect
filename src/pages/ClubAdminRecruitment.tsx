@@ -1,24 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubOwnership } from '@/hooks/useClubOwnership';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ClubAdminSidebar } from '@/components/club-admin/ClubAdminSidebar';
 import { AdminBreadcrumb } from '@/components/club-admin/AdminBreadcrumb';
-import { RecruitmentSetupWizard } from '@/components/recruitment/RecruitmentSetupWizard';
 import { RecruitmentKanban } from '@/components/recruitment/RecruitmentKanban';
 import { useRecruitment } from '@/hooks/useRecruitment';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+
+const DEFAULT_STAGES = ['Screening', 'Interview', 'Decision'];
 
 export default function ClubAdminRecruitment() {
   const navigate = useNavigate();
   const { clubId } = useParams<{ clubId: string }>();
   const { user, loading: authLoading } = useAuth();
   const { isOwnerOf, isOfficerOf, loading: ownershipLoading, ownedClubs } = useClubOwnership();
-  const [creatingStages, setCreatingStages] = useState(false);
-  // Local flag so the kanban always shows after a successful save,
-  // regardless of whether fetchStages can read back the new rows yet.
-  const [pipelineReady, setPipelineReady] = useState(false);
+  const autoSetupRan = useRef(false);
 
   const {
     settings,
@@ -56,33 +54,25 @@ export default function ClubAdminRecruitment() {
       navigate('/club-admin');
   }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, isOfficerOf, navigate]);
 
+  // On first load: if no stages exist, auto-enable and create defaults silently
+  useEffect(() => {
+    if (recruitmentLoading || hasStages || autoSetupRan.current) return;
+    autoSetupRan.current = true;
+    enableRecruitment().catch(() => {}).finally(() => {
+      createStages(DEFAULT_STAGES).catch(() => {});
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recruitmentLoading, hasStages]);
+
   const clubName =
     ownedClubs.find((c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase())
       ?.clubName || 'Club';
-
-  const handleCreateStages = async (stageLabels: string[]) => {
-    setCreatingStages(true);
-    const ok = await createStages(stageLabels);
-    setCreatingStages(false);
-    if (ok) setPipelineReady(true);
-  };
-
-  // Silently enable recruitment in background — ignore all errors, no toast
-  useEffect(() => {
-    if (!recruitmentLoading) {
-      enableRecruitment().catch(() => {});
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recruitmentLoading]);
 
   const isLoading = authLoading || ownershipLoading || recruitmentLoading;
 
   if (isLoading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: '#0A0A0A' }}
-      >
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0A0A' }}>
         <Loader2 className="w-6 h-6 text-gold animate-spin" />
       </div>
     );
@@ -109,17 +99,10 @@ export default function ClubAdminRecruitment() {
           </header>
 
           <div className="flex-1 flex flex-col p-5 sm:p-7 min-h-0">
-            {user && !user.email_confirmed_at && (
-              <div className="mb-3 flex items-center gap-3 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5">
-                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                <p className="text-sm text-amber-300">
-                  Please verify your email address — check your inbox for a confirmation link.
-                </p>
+            {stages.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center">
+                <Loader2 className="w-6 h-6 text-gold animate-spin" />
               </div>
-            )}
-
-            {!pipelineReady && !hasStages ? (
-              <RecruitmentSetupWizard onComplete={handleCreateStages} loading={creatingStages} />
             ) : (
               <RecruitmentKanban
                 clubId={clubId}
