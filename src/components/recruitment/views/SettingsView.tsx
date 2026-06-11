@@ -91,7 +91,7 @@ export function SettingsView({
   };
 
   return (
-    <div className="flex flex-col gap-5 max-w-2xl">
+    <div className="flex flex-col gap-5 w-full">
       {/* Apply Link */}
       <Section
         title="Apply Link & QR Code"

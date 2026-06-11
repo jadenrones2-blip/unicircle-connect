@@ -234,6 +234,13 @@ export function useRecruitment(rawClubId: string | undefined) {
   const createStages = async (stageLabels: string[]) => {
     if (!clubId || !user) return false;
 
+    // Guard: skip if stages already exist in DB for this club
+    const { count } = await (supabase as any)
+      .from('recruitment_stages')
+      .select('id', { count: 'exact', head: true })
+      .eq('club_id', clubId);
+    if (count && count > 0) return true;
+
     const allLabels = [
       'Applied',
       ...stageLabels.filter((l) => l.trim().toLowerCase() !== 'applied'),

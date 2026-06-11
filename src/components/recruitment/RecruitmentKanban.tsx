@@ -394,7 +394,7 @@ export function RecruitmentKanban({
         )}
 
         {activeView === 'settings' && (
-          <div className="h-full overflow-y-auto">
+          <div className="h-full overflow-y-auto pb-10">
             <SettingsView
               clubId={clubId}
               clubName={clubName}
