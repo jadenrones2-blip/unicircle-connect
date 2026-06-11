@@ -10,6 +10,7 @@ import {
   Loader2,
   Download,
   QrCode,
+  ScanLine,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,6 +68,7 @@ export function SettingsView({
   const [addingStage, setAddingStage] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [saving, setSaving] = useState(false);
+  const [checkinStage, setCheckinStage] = useState<{ id: string; label: string } | null>(null);
 
   const handleRename = async (stageId: string) => {
     if (!editLabel.trim()) return;
@@ -204,6 +206,13 @@ export function SettingsView({
                     </span>
                   )}
                   <button
+                    onClick={() => setCheckinStage({ id: stage.id, label: stage.label })}
+                    title="Check-in QR"
+                    className="p-1.5 text-zinc-600 hover:text-gold transition-colors rounded"
+                  >
+                    <ScanLine className="w-3.5 h-3.5" />
+                  </button>
+                  <button
                     onClick={() => {
                       setEditingId(stage.id);
                       setEditLabel(stage.label);
@@ -291,6 +300,58 @@ export function SettingsView({
       >
         <StudentVisibilitySettings clubId={clubId} settings={settings} />
       </Section>
+
+      {/* Check-in QR modal */}
+      {checkinStage && (() => {
+        const checkinUrl = `${window.location.origin}/checkin/${clubId}/${checkinStage.id}`;
+        const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(checkinUrl)}&bgcolor=ffffff&color=000000&margin=0`;
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+            onClick={() => setCheckinStage(null)}
+          >
+            <div
+              className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-2xl p-6 flex flex-col gap-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Check-in QR</h3>
+                  <p className="text-xs text-zinc-500 mt-0.5">
+                    Show this at <span className="text-zinc-300">{checkinStage.label}</span>. Students scan to check in automatically.
+                  </p>
+                </div>
+                <button onClick={() => setCheckinStage(null)} className="text-zinc-600 hover:text-white transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="flex justify-center">
+                <div className="p-3 bg-white rounded-xl">
+                  <img src={qrSrc} alt="Check-in QR" width={200} height={200} className="block" />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800 border border-white/8">
+                <span className="flex-1 text-xs text-zinc-400 font-mono truncate">{checkinUrl}</span>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(checkinUrl); toast.success('Copied!'); }}
+                  className="shrink-0 text-zinc-500 hover:text-white transition-colors"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <button
+                onClick={() => window.open(`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(checkinUrl)}&bgcolor=ffffff&color=000000&margin=10`, '_blank')}
+                className="flex items-center justify-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-white/10 rounded-lg py-2 transition-colors"
+              >
+                <Download className="w-3 h-3" /> Download QR
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

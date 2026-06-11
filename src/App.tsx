@@ -29,6 +29,7 @@ import ClubAdminRecruitment from './pages/ClubAdminRecruitment';
 import ClubAdminAnalytics from './pages/ClubAdminAnalytics';
 import ClubAdminMembers from './pages/ClubAdminMembers';
 import ClubApply from './pages/ClubApply';
+import ClubCheckin from './pages/ClubCheckin';
 import Opportunities from './pages/Opportunities';
 import AdminOnboarding from './pages/AdminOnboarding';
 import AdminProfileSettings from './pages/AdminProfileSettings';
@@ -91,6 +92,7 @@ const App = () => (
                   <Route path="/opportunities" element={<Opportunities />} />
                   <Route path="/clubs/:id" element={<ClubDetail />} />
                   <Route path="/clubs/:id/apply" element={<ClubApply />} />
+                  <Route path="/checkin/:clubId/:stageId" element={<ClubCheckin />} />
                   <Route path="/clubs/:id/survey" element={<ClubSurvey />} />
                   <Route path="/survey" element={<PlatformSurvey />} />
                   <Route path="/apply/:slug" element={<ApplyBySlug />} />
