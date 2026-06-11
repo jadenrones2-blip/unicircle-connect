@@ -234,22 +234,26 @@ export function useRecruitment(rawClubId: string | undefined) {
   const createStages = async (stageLabels: string[]) => {
     if (!clubId || !user) return false;
 
-    // Guard: skip if stages already exist in DB for this club
-    const { count } = await (supabase as any)
+    // Check what already exists — skip entirely if a full pipeline is present
+    const { data: existing } = await (supabase as any)
       .from('recruitment_stages')
-      .select('id', { count: 'exact', head: true })
-      .eq('club_id', clubId);
-    if (count && count > 0) return true;
+      .select('label, is_intake, order_index')
+      .eq('club_id', clubId)
+      .order('order_index', { ascending: true });
+    const existingCount = existing?.length ?? 0;
+    if (existingCount > 1) return true;
 
-    const allLabels = [
-      'Applied',
-      ...stageLabels.filter((l) => l.trim().toLowerCase() !== 'applied'),
-    ];
-    const stagesToInsert = allLabels.map((label, index) => ({
+    // If only the intake stage exists, append the remaining defaults after it
+    const hasIntake = existingCount === 1;
+    const nonIntakeLabels = stageLabels.filter((l) => l.trim().toLowerCase() !== 'applied');
+    const labelsToAdd = hasIntake ? nonIntakeLabels : ['Applied', ...nonIntakeLabels];
+    const startIndex = hasIntake ? 1 : 0;
+
+    const stagesToInsert = labelsToAdd.map((label, i) => ({
       club_id: clubId,
       label,
-      order_index: index,
-      is_intake: index === 0,
+      order_index: startIndex + i,
+      is_intake: !hasIntake && i === 0,
     }));
 
     // Use `as any` because is_intake isn't in the generated types yet

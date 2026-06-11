@@ -260,7 +260,7 @@ export function SettingsView({
           ) : (
             <button
               onClick={() => setAddingStage(true)}
-              className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition-colors pt-1"
+              className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-white border border-dashed border-white/15 hover:border-white/30 rounded-lg px-3 py-2 w-full transition-colors mt-1"
             >
               <Plus className="w-3.5 h-3.5" /> Add stage
             </button>

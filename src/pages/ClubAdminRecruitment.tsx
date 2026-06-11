@@ -54,15 +54,17 @@ export default function ClubAdminRecruitment() {
       navigate('/club-admin');
   }, [authLoading, ownershipLoading, user, clubId, isOwnerOf, isOfficerOf, navigate]);
 
-  // On first load: if no stages exist, auto-enable and create defaults silently
+  // On first load: auto-enable + create full default pipeline if missing or incomplete
   useEffect(() => {
-    if (recruitmentLoading || hasStages || autoSetupRan.current) return;
+    // "complete" means more than just the single intake stage
+    const pipelineComplete = stages.length > 1;
+    if (recruitmentLoading || pipelineComplete || autoSetupRan.current) return;
     autoSetupRan.current = true;
     enableRecruitment().catch(() => {}).finally(() => {
       createStages(DEFAULT_STAGES).catch(() => {});
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recruitmentLoading, hasStages]);
+  }, [recruitmentLoading, stages.length]);
 
   const clubName =
     ownedClubs.find((c) => c.clubId?.trim().toLowerCase() === clubId?.trim().toLowerCase())
