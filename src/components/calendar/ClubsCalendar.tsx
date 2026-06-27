@@ -20,6 +20,9 @@ import {
   LayoutGrid,
   Clock,
   ChevronRight,
+  GraduationCap,
+  Globe,
+  Dumbbell,
   type LucideIcon,
 } from 'lucide-react';
 import { dataClient } from '@/integrations/supabase/dataClient';
@@ -61,6 +64,129 @@ function getDisplayTitle(event: ExternalEvent): string {
 const EVENT_TYPES = [
   { label: 'All', icon: LayoutGrid, color: 'hsl(43 74% 56%)', keywords: [] },
   {
+    label: 'Food',
+    icon: UtensilsCrossed,
+    color: '#fb923c',
+    keywords: [
+      'food',
+      'pizza',
+      'lunch',
+      'dinner',
+      'potluck',
+      'free food',
+      'snacks',
+      'boba',
+      'brunch',
+      'bbq',
+      'taco',
+      'donuts',
+      'coffee',
+      'catered',
+    ],
+  },
+  {
+    // Recruitment folded in here — career + club recruiting
+    label: 'Professional',
+    icon: Briefcase,
+    color: '#818cf8',
+    keywords: [
+      'career',
+      'networking',
+      'resume',
+      'internship',
+      'career fair',
+      'employer',
+      'recruiter',
+      'industry',
+      'professional',
+      'mock interview',
+      'tech talk',
+      'recruitment',
+      'rush',
+      'apply',
+      'applications',
+      'interest meeting',
+      'info night',
+      'recruiting',
+    ],
+  },
+  {
+    label: 'Academic',
+    icon: GraduationCap,
+    color: '#34d399',
+    keywords: [
+      'study',
+      'tutoring',
+      'research',
+      'exam',
+      'review session',
+      'academic',
+      'homework',
+      'study jam',
+      'lecture',
+      'seminar',
+      'thesis',
+      'scholarship',
+    ],
+  },
+  {
+    label: 'Cultural',
+    icon: Globe,
+    color: '#c084fc',
+    keywords: [
+      'cultural',
+      'culture',
+      'heritage',
+      'language',
+      'festival',
+      'lunar',
+      'diwali',
+      'religious',
+      'faith',
+      'tradition',
+      'international',
+      'identity',
+    ],
+  },
+  {
+    label: 'Sports & Fitness',
+    icon: Dumbbell,
+    color: '#f87171',
+    keywords: [
+      'sports',
+      'fitness',
+      'intramural',
+      'run club',
+      'yoga',
+      'workout',
+      'gym',
+      'pickup',
+      'basketball',
+      'soccer',
+      'volleyball',
+      'climbing',
+      'hike',
+      'tournament',
+    ],
+  },
+  {
+    label: 'Workshop',
+    icon: BookOpen,
+    color: '#60a5fa',
+    keywords: [
+      'workshop',
+      'training',
+      'webinar',
+      'panel',
+      'talk',
+      'speaker',
+      'learn',
+      'hands-on',
+      'bootcamp',
+      'info session',
+    ],
+  },
+  {
     label: 'Social',
     icon: Users,
     color: '#f472b6',
@@ -75,56 +201,7 @@ const EVENT_TYPES = [
       'bonding',
       'picnic',
       'gathering',
-    ],
-  },
-  {
-    label: 'Food',
-    icon: UtensilsCrossed,
-    color: '#fb923c',
-    keywords: [
-      'food',
-      'pizza',
-      'lunch',
-      'dinner',
-      'potluck',
-      'free food',
-      'snacks',
-      'boba',
-      'brunch',
-      'eat',
-      'taco',
-      'bbq',
-    ],
-  },
-  {
-    label: 'Workshop',
-    icon: BookOpen,
-    color: '#60a5fa',
-    keywords: [
-      'workshop',
-      'training',
-      'seminar',
-      'lecture',
-      'info session',
-      'webinar',
-      'panel',
-      'talk',
-      'speaker',
-      'learn',
-    ],
-  },
-  {
-    label: 'Recruitment',
-    icon: Briefcase,
-    color: '#818cf8',
-    keywords: [
-      'recruitment',
-      'rush',
-      'apply',
-      'applications',
-      'interest meeting',
-      'info night',
-      'recruiting',
+      'kickback',
     ],
   },
   {
@@ -137,15 +214,66 @@ const EVENT_TYPES = [
       'show',
       'showcase',
       'exhibit',
-      'demo',
       'film',
       'screening',
       'recital',
+      'dance',
+      'open mic',
     ],
   },
 ] as const;
 
 type EventTypeLabel = (typeof EVENT_TYPES)[number]['label'];
+
+// Explicit "free food" phrases that immediately qualify for the badge
+const FREE_FOOD_PHRASES = [
+  'free food',
+  'free pizza',
+  'free snacks',
+  'free boba',
+  'free lunch',
+  'free dinner',
+  'free breakfast',
+  'free coffee',
+  'free donuts',
+  'free tacos',
+  'free drinks',
+  'free meal',
+  'free refreshments',
+];
+
+// Food words used for the "free" + food fallback check
+const FOOD_WORDS = [
+  'food',
+  'pizza',
+  'snacks',
+  'boba',
+  'lunch',
+  'dinner',
+  'breakfast',
+  'coffee',
+  'brunch',
+  'bbq',
+  'taco',
+  'donuts',
+  'catered',
+  'refreshments',
+];
+
+// Decide whether an event is offering FREE food (drives the badge)
+function isFreeFood(event: ExternalEvent): boolean {
+  const text = [
+    event.corrected_title || event.title || '',
+    event.caption || '',
+    event.description || '',
+  ]
+    .join(' ')
+    .toLowerCase();
+  // Direct phrase match
+  if (FREE_FOOD_PHRASES.some((p) => text.includes(p))) return true;
+  // Fallback: the word "free" appears alongside a food word
+  return text.includes('free') && FOOD_WORDS.some((w) => text.includes(w));
+}
 
 function inferEventType(event: ExternalEvent, foodFlagIds?: Set<string>): EventTypeLabel {
   // AI-classified food flag takes priority over keyword matching
@@ -191,7 +319,7 @@ export default function ClubsCalendar() {
 
     try {
       const _d = new Date();
-      const startOfToday = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}T00:00:00`;
+      const startOfToday = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}T00:00:00`;
       const { data, error: dbError } = await dataClient
         .from('events')
         .select('*')
@@ -528,6 +656,7 @@ function EventBrowseCard({
   const time = date ? formatEventTime(date) : '';
   const loc = event.corrected_location || event.location;
   const title = event.corrected_title || event.title || 'Event';
+  const free = isFreeFood(event);
 
   return (
     <button
@@ -565,6 +694,11 @@ function EventBrowseCard({
 
       {/* Content */}
       <div className="p-4">
+        {free && (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold uppercase tracking-wide bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            🍕 Free Food
+          </span>
+        )}
         <p className="text-sm font-semibold text-zinc-100 line-clamp-2 leading-snug mb-2 group-hover:text-white transition-colors">
           {title}
         </p>
