@@ -121,27 +121,42 @@ async function getExistingIds(externalIds: string[]): Promise<Set<string>> {
   return existing;
 }
 
-async function bulkInsert(rows: EventRow[]): Promise<{ inserted: number; errored: number }> {
-  if (!rows.length) return { inserted: 0, errored: 0 };
-  // Insert in batches of 50
+async function bulkInsert(rows: EventRow[]): Promise<{ inserted: number; errored: number; skipped: number }> {
+  if (!rows.length) return { inserted: 0, errored: 0, skipped: 0 };
+  // Insert in batches of 50. Uses upsert with on_conflict so a duplicate
+  // external_id is skipped at the DB level instead of failing the whole batch.
   let inserted = 0;
   let errored = 0;
+  let skipped = 0;
   for (let i = 0; i < rows.length; i += 50) {
     const batch = rows.slice(i, i + 50);
-    const res = await fetch(`${EXT_URL}/rest/v1/events`, {
-      method: 'POST',
-      headers: { ...EXT_HDR, Prefer: 'return=minimal' },
-      body: JSON.stringify(batch),
-    });
+    const res = await fetch(
+      `${EXT_URL}/rest/v1/events?on_conflict=external_id`,
+      {
+        method: 'POST',
+        headers: {
+          ...EXT_HDR,
+          // resolution=ignore-duplicates → existing external_ids are skipped,
+          // new rows in the same batch still insert.
+          Prefer: 'return=minimal,resolution=ignore-duplicates',
+        },
+        body: JSON.stringify(batch),
+      }
+    );
     if (res.ok) {
       inserted += batch.length;
     } else {
       const err = await res.text();
-      console.error('Insert error:', err.slice(0, 200));
-      errored += batch.length;
+      // 23505 = duplicate key. Treat as skipped (already synced), not a failure.
+      if (err.includes('23505') || err.includes('duplicate key')) {
+        skipped += batch.length;
+      } else {
+        console.error('Insert error:', err.slice(0, 200));
+        errored += batch.length;
+      }
     }
   }
-  return { inserted, errored };
+  return { inserted, errored, skipped };
 }
 
 // ── Main handler ──────────────────────────────────────────────────────────────
@@ -200,7 +215,7 @@ serve(async (req: Request) => {
     }
 
     // 5. Insert new events
-    const { inserted, errored } = await bulkInsert(newRows);
+    const { inserted, errored, skipped } = await bulkInsert(newRows);
 
     return new Response(
       JSON.stringify({
@@ -210,6 +225,7 @@ serve(async (req: Request) => {
         alreadyExist: existingIds.size,
         inserted,
         errored,
+        skipped,
       }),
       { headers: { ...CORS, 'Content-Type': 'application/json' } }
     );
