@@ -11,8 +11,13 @@ const CORS = {
 };
 
 const EXT_URL = 'https://tayhvgmterjzolvodwow.supabase.co';
-const EXT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRheWh2Z210ZXJqem9sdm9kd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTExODIsImV4cCI6MjA4NDI2NzE4Mn0.QUBp8guzuSsRh_9hpVOsqsGFlRn7IO6adwZRMRL8UHI';
-const EXT_HDR = { apikey: EXT_KEY, Authorization: `Bearer ${EXT_KEY}`, 'Content-Type': 'application/json' };
+const EXT_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRheWh2Z210ZXJqem9sdm9kd293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2OTExODIsImV4cCI6MjA4NDI2NzE4Mn0.QUBp8guzuSsRh_9hpVOsqsGFlRn7IO6adwZRMRL8UHI';
+const EXT_HDR = {
+  apikey: EXT_KEY,
+  Authorization: `Bearer ${EXT_KEY}`,
+  'Content-Type': 'application/json',
+};
 
 const UCSD_API = 'https://calendar.ucsd.edu/api/2/events';
 
@@ -35,14 +40,20 @@ let _clubCache: { id: string; name: string }[] | null = null;
 
 async function getClubs(): Promise<{ id: string; name: string }[]> {
   if (_clubCache) return _clubCache;
-  const res = await fetch(`${EXT_URL}/rest/v1/clubs?select=id,name&limit=1000`, { headers: EXT_HDR });
+  const res = await fetch(`${EXT_URL}/rest/v1/clubs?select=id,name&limit=1000`, {
+    headers: EXT_HDR,
+  });
   if (!res.ok) return [];
   _clubCache = await res.json();
   return _clubCache!;
 }
 
 function normalize(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function matchClub(groups: { name: string }[]): Promise<string | null> {
@@ -50,10 +61,10 @@ async function matchClub(groups: { name: string }[]): Promise<string | null> {
   const clubs = await getClubs();
   for (const { name: gName } of groups) {
     const gNorm = normalize(gName);
-    const match = clubs.find(c => normalize(c.name) === gNorm);
+    const match = clubs.find((c) => normalize(c.name) === gNorm);
     if (match) return match.id;
     // Partial — group name contains club name or vice versa
-    const partial = clubs.find(c => {
+    const partial = clubs.find((c) => {
       const cNorm = normalize(c.name);
       return gNorm.includes(cNorm) || cNorm.includes(gNorm);
     });
@@ -109,19 +120,21 @@ async function getExistingIds(externalIds: string[]): Promise<Set<string>> {
   const existing = new Set<string>();
   for (let i = 0; i < externalIds.length; i += 100) {
     const batch = externalIds.slice(i, i + 100);
-    const filter = batch.map(id => encodeURIComponent(id)).join(',');
+    const filter = batch.map((id) => encodeURIComponent(id)).join(',');
     const res = await fetch(
       `${EXT_URL}/rest/v1/events?select=external_id&external_id=in.(${filter})`,
       { headers: EXT_HDR }
     );
     if (!res.ok) continue;
     const rows: { external_id: string }[] = await res.json();
-    rows.forEach(r => existing.add(r.external_id));
+    rows.forEach((r) => existing.add(r.external_id));
   }
   return existing;
 }
 
-async function bulkInsert(rows: EventRow[]): Promise<{ inserted: number; errored: number; skipped: number }> {
+async function bulkInsert(
+  rows: EventRow[]
+): Promise<{ inserted: number; errored: number; skipped: number }> {
   if (!rows.length) return { inserted: 0, errored: 0, skipped: 0 };
   // Insert in batches of 50. Uses upsert with on_conflict so a duplicate
   // external_id is skipped at the DB level instead of failing the whole batch.
@@ -130,19 +143,16 @@ async function bulkInsert(rows: EventRow[]): Promise<{ inserted: number; errored
   let skipped = 0;
   for (let i = 0; i < rows.length; i += 50) {
     const batch = rows.slice(i, i + 50);
-    const res = await fetch(
-      `${EXT_URL}/rest/v1/events?on_conflict=external_id`,
-      {
-        method: 'POST',
-        headers: {
-          ...EXT_HDR,
-          // resolution=ignore-duplicates → existing external_ids are skipped,
-          // new rows in the same batch still insert.
-          Prefer: 'return=minimal,resolution=ignore-duplicates',
-        },
-        body: JSON.stringify(batch),
-      }
-    );
+    const res = await fetch(`${EXT_URL}/rest/v1/events?on_conflict=external_id`, {
+      method: 'POST',
+      headers: {
+        ...EXT_HDR,
+        // resolution=ignore-duplicates → existing external_ids are skipped,
+        // new rows in the same batch still insert.
+        Prefer: 'return=minimal,resolution=ignore-duplicates',
+      },
+      body: JSON.stringify(batch),
+    });
     if (res.ok) {
       inserted += batch.length;
     } else {
@@ -196,9 +206,9 @@ serve(async (req: Request) => {
     }
 
     // 4. Filter out events that already exist
-    const allIds = parsed.map(r => r.external_id);
+    const allIds = parsed.map((r) => r.external_id);
     const existingIds = await getExistingIds(allIds);
-    const newRows = parsed.filter(r => !existingIds.has(r.external_id));
+    const newRows = parsed.filter((r) => !existingIds.has(r.external_id));
 
     if (dryRun) {
       return new Response(
@@ -208,7 +218,9 @@ serve(async (req: Request) => {
           eventsFound: parsed.length,
           alreadyExist: existingIds.size,
           wouldInsert: newRows.length,
-          sample: newRows.slice(0, 3).map(r => ({ title: r.title, start_time: r.start_time, club_id: r.club_id })),
+          sample: newRows
+            .slice(0, 3)
+            .map((r) => ({ title: r.title, start_time: r.start_time, club_id: r.club_id })),
         }),
         { headers: { ...CORS, 'Content-Type': 'application/json' } }
       );
@@ -229,11 +241,10 @@ serve(async (req: Request) => {
       }),
       { headers: { ...CORS, 'Content-Type': 'application/json' } }
     );
-
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: String(err) }),
-      { status: 500, headers: { ...CORS, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: String(err) }), {
+      status: 500,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    });
   }
 });
