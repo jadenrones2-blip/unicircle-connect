@@ -102,7 +102,7 @@ function scoreClub(club: Club, userClusters: Set<string>): number {
 }
 
 const EVENT_FIELDS =
-  'id, title, description, start_time, end_time, location, club_id, club_handle, source, source_url, verified, corrected_title, corrected_start_time, corrected_end_time, corrected_location, caption';
+  'id, title, start_time, end_time, location, club_id, club_handle, source, source_url, verified, corrected_title, corrected_start_time, corrected_end_time, corrected_location, caption';
 
 /**
  * Single unified hook for recommended events.
