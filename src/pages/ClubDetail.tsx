@@ -102,7 +102,6 @@ const ClubDetail = () => {
       .from('application_forms')
       .select('id')
       .eq('club_id', id.trim().toLowerCase())
-      .eq('is_active', true)
       .maybeSingle()
       .then(({ data }: { data: any }) => setHasActiveForm(!!data));
   }, [id]);
