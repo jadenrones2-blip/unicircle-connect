@@ -111,6 +111,7 @@ export default function StudentProfile() {
   const { fetchInterests, saveInterests } = useUserInterests();
   const navigate = useNavigate();
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const initialBioRef = useRef<string>('');
 
   const [profile, setProfile] = useState<Profile>({
     display_name: '',
@@ -157,6 +158,7 @@ export default function StudentProfile() {
           bio: p.bio || null,
           resume_url: p.resume_url || null,
         });
+        initialBioRef.current = p.bio || '';
       } else {
         setProfile((f) => ({
           ...f,
@@ -322,6 +324,36 @@ export default function StudentProfile() {
     }
     toast.success('Profile saved');
     setSaving(false);
+
+    // Only re-analyze if the bio actually changed — parsing hits Claude, so we
+    // skip it on unrelated saves (e.g. changing major). Fires even when the bio
+    // was cleared, so parse-bio can wipe stale signals.
+    const bioChanged = (profile.bio?.trim() || '') !== (initialBioRef.current.trim() || '');
+    if (bioChanged) {
+      initialBioRef.current = profile.bio || '';
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const toastId = 'parse-bio';
+        toast.loading('Analyzing your bio…', { id: toastId });
+        fetch(`${supabaseUrl}/functions/v1/parse-bio`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+          .then(async (r) => {
+            if (r.ok) {
+              const d = await r.json();
+              const count = d.signals?.length ?? 0;
+              toast.success(`Bio analyzed — ${count} keywords extracted`, { id: toastId });
+            } else {
+              toast.dismiss(toastId);
+            }
+          })
+          .catch(() => toast.dismiss(toastId));
+      }
+    }
   };
 
   const toggleInterest = (key: string) => {
@@ -495,16 +527,16 @@ export default function StudentProfile() {
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs text-zinc-500">Bio</Label>
-              <span className="text-xs text-zinc-700">{(profile.bio || '').length}/280</span>
+              <Label className="text-xs text-zinc-500">Tell clubs about yourself</Label>
+              <span className="text-xs text-zinc-700">{(profile.bio || '').length}/300</span>
             </div>
             <Textarea
               value={profile.bio || ''}
               onChange={(e) => setProfile((p) => ({ ...p, bio: e.target.value }))}
               className="bg-white/5 border-white/8 text-white placeholder:text-zinc-600 resize-none focus:border-gold/40 focus:ring-0"
               rows={3}
-              placeholder="A short intro about yourself…"
-              maxLength={280}
+              placeholder="What you're into, what you're looking for, what makes you you…"
+              maxLength={300}
             />
           </div>
 

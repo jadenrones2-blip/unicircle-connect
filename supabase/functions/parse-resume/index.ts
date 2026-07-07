@@ -36,34 +36,37 @@ serve(async (req) => {
       });
     }
 
-    // Download PDF from the resumes bucket (uploaded by upload-resume function)
-    const { data: pdfBlob, error: storageErr } = await serviceClient.storage
-      .from("resumes")
-      .download(`${user.id}/resume.pdf`);
+    // Read the student's bio from their profile
+    const { data: profile, error: profileErr } = await serviceClient
+      .from("profiles")
+      .select("bio")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    if (storageErr || !pdfBlob) {
-      return new Response(JSON.stringify({ error: "Resume not found — upload it first" }), {
-        status: 404,
+    if (profileErr) {
+      console.error("profile fetch error:", profileErr);
+      throw new Error("Could not load profile");
+    }
+
+    const bio = (profile?.bio ?? "").trim();
+
+    // No bio to parse — clear any stale signals and return empty (no Claude call)
+    if (!bio) {
+      await serviceClient
+        .from("profiles")
+        .upsert({ user_id: user.id, bio_signals: [] }, { onConflict: "user_id" });
+      return new Response(JSON.stringify({ signals: [] }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Convert PDF to base64 in chunks to avoid spread argument limit
-    const bytes = new Uint8Array(await pdfBlob.arrayBuffer());
-    let binary = "";
-    const chunkSize = 8192;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-    }
-    const base64Pdf = btoa(binary);
-
-    // Call Claude Haiku with native PDF document support
+    // Call Claude Haiku with the bio text
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": anthropicKey,
         "anthropic-version": "2023-06-01",
-        "anthropic-beta": "pdfs-2024-09-25",
         "content-type": "application/json",
       },
       body: JSON.stringify({
@@ -72,24 +75,16 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: [
-              {
-                type: "document",
-                source: {
-                  type: "base64",
-                  media_type: "application/pdf",
-                  data: base64Pdf,
-                },
-              },
-              {
-                type: "text",
-                text: `Extract skills, job titles, technologies, and domain keywords from this resume for matching the student to college clubs and organizations.
+            content: `A student wrote this short bio for a college club-matching app. Extract keywords representing their skills, interests, goals, and personality for matching them to clubs and organizations.
 
-Return ONLY a JSON array of 10-25 lowercase strings. Example: ["machine learning", "python", "pre-med", "finance", "research", "data analysis"].
+Bio:
+"""
+${bio}
+"""
 
-Focus on domain-specific terms. Skip generic words like "communication", "teamwork", or "leadership".`,
-              },
-            ],
+Return ONLY a JSON array of 8-20 lowercase strings. Example: ["machine learning", "photography", "leadership", "startups", "community service", "creative"].
+
+Focus on specific, matchable terms — fields, activities, skills, values. Skip filler like "passionate", "hardworking", or "motivated".`,
           },
         ],
       }),
@@ -120,17 +115,17 @@ Focus on domain-specific terms. Skip generic words like "communication", "teamwo
       console.error("Failed to parse Claude response:", content);
     }
 
-    // Save signals to profiles.resume_signals
+    // Save signals to profiles.bio_signals
     await serviceClient
       .from("profiles")
-      .upsert({ user_id: user.id, resume_signals: signals }, { onConflict: "user_id" });
+      .upsert({ user_id: user.id, bio_signals: signals }, { onConflict: "user_id" });
 
     return new Response(JSON.stringify({ signals }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("parse-resume error:", err);
+    console.error("parse-bio error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
