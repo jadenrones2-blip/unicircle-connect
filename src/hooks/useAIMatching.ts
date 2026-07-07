@@ -16,15 +16,30 @@ const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 interface CacheEntry {
   userId: string;
   ts: number;
+  sig: string; // fingerprint of the signals used — busts cache when they change
   scores: Record<string, AIMatchResult>;
 }
 
-function loadCache(userId: string): Record<string, AIMatchResult> | null {
+/** Stable fingerprint of the student's signals. Sorted + normalized so a mere
+ *  reordering doesn't count as a change, but adding/removing/editing any
+ *  interest, resume keyword, or bio keyword does — which invalidates the cache. */
+function signalFingerprint(
+  interests: string[],
+  resume: string[],
+  bio: string[]
+): string {
+  const norm = (a: string[]) =>
+    [...a].map((s) => s.toLowerCase().trim()).sort().join(',');
+  return `${norm(interests)}|${norm(resume)}|${norm(bio)}`;
+}
+
+function loadCache(userId: string, sig: string): Record<string, AIMatchResult> | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const entry: CacheEntry = JSON.parse(raw);
     if (entry.userId !== userId) return null;
+    if (entry.sig !== sig) return null; // signals changed — recompute
     if (Date.now() - entry.ts > CACHE_TTL) return null;
     return entry.scores;
   } catch {
@@ -32,9 +47,9 @@ function loadCache(userId: string): Record<string, AIMatchResult> | null {
   }
 }
 
-function saveCache(userId: string, scores: Record<string, AIMatchResult>) {
+function saveCache(userId: string, sig: string, scores: Record<string, AIMatchResult>) {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ userId, ts: Date.now(), scores }));
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ userId, sig, ts: Date.now(), scores }));
   } catch {
     /* storage full */
   }
@@ -52,23 +67,30 @@ export function clearAIMatchCache() {
  * 1. Instantly returns cluster scores for ALL clubs (fast, local)
  * 2. Fires Claude in background to re-score the top 30 by cluster
  * 3. Merges AI scores back in — components re-render with better scores
- * 4. Caches per-user for 1 hour in localStorage
+ * 4. Caches per-user for 1 hour in localStorage (busted when signals change)
  */
 export function useAIMatching(
   clubs: Club[],
   enrichments: Record<string, ClubEnrichment>,
   interestValues: string[],
   resumeKeywords: string[],
+  bioKeywords: string[],
   userId: string | null
 ) {
   const [aiScores, setAiScores] = useState<Record<string, AIMatchResult>>({});
   const [loading, setLoading] = useState(false);
 
   const runAIMatching = useCallback(async () => {
-    if (!userId || !clubs.length || (!interestValues.length && !resumeKeywords.length)) return;
+    if (
+      !userId ||
+      !clubs.length ||
+      (!interestValues.length && !resumeKeywords.length && !bioKeywords.length)
+    )
+      return;
 
-    // Check cache first
-    const cached = loadCache(userId);
+    // Check cache first — keyed on userId + a fingerprint of the current signals
+    const sig = signalFingerprint(interestValues, resumeKeywords, bioKeywords);
+    const cached = loadCache(userId, sig);
     if (cached) {
       setAiScores(cached);
       return;
@@ -81,7 +103,7 @@ export function useAIMatching(
       const withCluster = clubs
         .map((club) => ({
           club,
-          clusterScore: calculateMatchScore(club, interestValues, resumeKeywords),
+          clusterScore: calculateMatchScore(club, interestValues, resumeKeywords, bioKeywords),
         }))
         .filter(({ clusterScore }) => clusterScore > 0)
         .sort((a, b) => b.clusterScore - a.clusterScore)
@@ -131,6 +153,10 @@ export function useAIMatching(
       }));
 
       // Step 5: call edge function
+      // NOTE: bioKeywords is included in the student payload so the AI has it
+      // available, but the ai-match-clubs edge function's prompt must be updated
+      // (separate server-side change) for the AI path to actually weigh it. The
+      // cluster path above already factors bio in regardless.
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session) {
         setLoading(false);
@@ -144,7 +170,7 @@ export function useAIMatching(
           Authorization: `Bearer ${session.session.access_token}`,
         },
         body: JSON.stringify({
-          student: { major, careerGoals, interests, resumeKeywords },
+          student: { major, careerGoals, interests, resumeKeywords, bioKeywords },
           clubs: clubPayload,
         }),
       });
@@ -163,14 +189,14 @@ export function useAIMatching(
         }
       }
 
-      saveCache(userId, scores);
+      saveCache(userId, sig, scores);
       setAiScores(scores);
     } catch (err) {
       console.error('AI matching failed:', err);
     } finally {
       setLoading(false);
     }
-  }, [userId, clubs, enrichments, interestValues, resumeKeywords]);
+  }, [userId, clubs, enrichments, interestValues, resumeKeywords, bioKeywords]);
 
   useEffect(() => {
     runAIMatching();
@@ -186,12 +212,13 @@ export function useAIMatching(
       const clusterScore = calculateMatchScore(
         clubs.find((c) => c.id === clubId) as Club,
         interestValues,
-        resumeKeywords
+        resumeKeywords,
+        bioKeywords
       );
       if (clusterScore > 0) return { score: clusterScore, reason: '', source: 'cluster' };
       return null;
     },
-    [aiScores, clubs, interestValues, resumeKeywords]
+    [aiScores, clubs, interestValues, resumeKeywords, bioKeywords]
   );
 
   return {

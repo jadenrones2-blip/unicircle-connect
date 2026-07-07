@@ -126,15 +126,12 @@ const ClubsDirectory = () => {
   const [interestValues, setInterestValues] = useState<string[]>([]);
   const [resumeSignals, setResumeSignals] = useState<string[]>([]);
   const [bioSignals, setBioSignals] = useState<string[]>([]);
-  // TODO (SCRUM-31): thread `bioSignals` into useAIMatching so bio keywords affect
-  // scoring. Requires updating the hook's signature + its fallback calculateMatchScore
-  // call (and the AI path) to accept bio signals. Until then, bioSignals is fetched
-  // but unused, so match scores do NOT yet reflect the bio.
   const { getScore } = useAIMatching(
     clubs,
     enrichments,
     interestValues,
     resumeSignals,
+    bioSignals,
     user?.id ?? null
   );
   const [appliedClubIds, setAppliedClubIds] = useState<Set<string>>(new Set());
@@ -263,20 +260,21 @@ const ClubsDirectory = () => {
 
   const hasActiveFilters = searchText || selectedCategory !== 'All' || recruitingOnly;
 
-  // Match scores per club — blended if resume signals present
+  // Match scores per club — blended across interests / resume / bio signals
   const matchScores = useMemo(() => {
-    if (!interestValues.length && !resumeSignals.length) return {} as Record<string, number>;
+    if (!interestValues.length && !resumeSignals.length && !bioSignals.length)
+      return {} as Record<string, number>;
     const scores: Record<string, number> = {};
     for (const club of filteredClubs) {
       const result = getScore(club.id);
       if (result && result.score > 0) scores[club.id] = result.score;
     }
     return scores;
-  }, [filteredClubs, interestValues, resumeSignals, getScore]);
+  }, [filteredClubs, interestValues, resumeSignals, bioSignals, getScore]);
 
   // Top 10 recommended clubs — AI-scored when available, cluster fallback
   const recommendedClubs = useMemo(() => {
-    if (!user || (!interestValues.length && !resumeSignals.length)) return [];
+    if (!user || (!interestValues.length && !resumeSignals.length && !bioSignals.length)) return [];
     return clubs
       .map((club) => {
         const aiResult = getScore(club.id);
@@ -292,7 +290,7 @@ const ClubsDirectory = () => {
       .filter(({ score, club }) => score >= 40 && !appliedClubIds.has(club.id))
       .sort((a, b) => b.score - a.score)
       .slice(0, 10);
-  }, [clubs, interestValues, resumeSignals, user, getScore]);
+  }, [clubs, interestValues, resumeSignals, bioSignals, user, getScore]);
 
   const [showAllRanked, setShowAllRanked] = useState(false);
 
@@ -421,7 +419,7 @@ const ClubsDirectory = () => {
         </div>
       </section>
 
-      {/* Top 10 ranked matches — shown when user has interest/resume signals */}
+      {/* Top 10 ranked matches — shown when user has interest/resume/bio signals */}
       {recommendedClubs.length > 0 && !hasActiveFilters && (
         <section className="pb-6 px-4">
           <div className="max-w-5xl mx-auto">
