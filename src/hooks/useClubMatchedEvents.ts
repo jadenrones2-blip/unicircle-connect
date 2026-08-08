@@ -72,7 +72,7 @@ export function useClubMatchedEvents(
 
       const now = new Date().toISOString();
       const eventFields =
-        'id, title, description, start_time, end_time, location, club_id, club_handle, source, source_url, verified, corrected_title, corrected_start_time, corrected_end_time, corrected_location, caption';
+        'id, title, start_time, end_time, location, club_id, club_handle, source, source_url, verified, corrected_title, corrected_start_time, corrected_end_time, corrected_location, caption';
 
       // Fetch upcoming events for those clubs from external DB
       const { data, error: dbError } = await (dataClient as any)

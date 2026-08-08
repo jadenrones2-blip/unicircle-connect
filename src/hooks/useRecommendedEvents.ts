@@ -102,7 +102,7 @@ function scoreClub(club: Club, userClusters: Set<string>): number {
 }
 
 const EVENT_FIELDS =
-  'id, title, description, start_time, end_time, location, club_id, club_handle, source, source_url, verified, corrected_title, corrected_start_time, corrected_end_time, corrected_location, caption';
+  'id, title, start_time, end_time, location, club_id, club_handle, source, source_url, verified, corrected_title, corrected_start_time, corrected_end_time, corrected_location, caption';
 
 /**
  * Single unified hook for recommended events.
@@ -132,7 +132,7 @@ export function useRecommendedEvents(clubs: Club[], interestValues: string[], li
         .slice(0, 40);
 
       const _d = new Date();
-      const now = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}T00:00:00`;
+      const now = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}T00:00:00`;
 
       const merged: any[] = [];
 
@@ -238,8 +238,7 @@ export function useRecommendedEvents(clubs: Club[], interestValues: string[], li
 
       const result: RecommendedEvent[] = merged
         .map((ev) => {
-          const info =
-            lookup[ev.club_id] ??
+          const info = lookup[ev.club_id] ??
             lookup[ev.club_handle] ?? { score: 5, name: ev.club_handle ?? '' };
           return { ...ev, club_name: info.name, matchScore: info.score };
         })
