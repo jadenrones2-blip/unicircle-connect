@@ -1,5 +1,5 @@
 import type { Club } from '@/data/mockData';
-
+ 
 // ─── Stop‑words to ignore when extracting keywords ───
 const STOP_WORDS = new Set([
   'the',
@@ -206,7 +206,7 @@ const STOP_WORDS = new Set([
   'look',
   'looking',
 ]);
-
+ 
 // ─── Domain keyword groups: semantically related terms that should match ───
 const KEYWORD_CLUSTERS: Record<string, string[]> = {
   // STEM / Tech
@@ -279,7 +279,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'mental health',
     'wellness',
   ],
-
+ 
   // Business & Professional
   business: [
     'business',
@@ -333,7 +333,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'pre-law',
   ],
   consulting: ['consulting', 'consultant', 'strategy', 'advisory', 'case', 'problem solving'],
-
+ 
   // Arts & Creative
   arts: [
     'art',
@@ -405,7 +405,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'blog',
     'publishing',
   ],
-
+ 
   // Cultural & Identity
   cultural: [
     'cultural',
@@ -458,7 +458,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'sexuality',
     'nonbinary',
   ],
-
+ 
   // Greek Life
   greek: [
     'fraternity',
@@ -472,7 +472,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'pledge',
     'rush',
   ],
-
+ 
   // Service & Social Impact
   service: [
     'service',
@@ -509,7 +509,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'human rights',
     'empowerment',
   ],
-
+ 
   // Sports & Fitness
   sports: [
     'sport',
@@ -558,7 +558,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'triathlon',
     'marathon',
   ],
-
+ 
   // Spiritual & Religious
   spiritual: [
     'spiritual',
@@ -580,7 +580,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'meditation',
     'mindfulness',
   ],
-
+ 
   // Gaming & Hobbies
   gaming: [
     'gaming',
@@ -606,7 +606,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'dining',
   ],
   photography: ['photography', 'photo', 'camera', 'visual', 'videography', 'editing'],
-
+ 
   // Academic & Professional Development
   academic: [
     'academic',
@@ -647,7 +647,7 @@ const KEYWORD_CLUSTERS: Record<string, string[]> = {
     'model un',
   ],
 };
-
+ 
 // Build a reverse lookup: keyword → cluster name
 const keywordToCluster = new Map<string, string>();
 for (const [cluster, keywords] of Object.entries(KEYWORD_CLUSTERS)) {
@@ -655,7 +655,7 @@ for (const [cluster, keywords] of Object.entries(KEYWORD_CLUSTERS)) {
     keywordToCluster.set(kw, cluster);
   }
 }
-
+ 
 /** Extract meaningful keywords from a club's text fields */
 export function extractClubKeywords(club: Club): Set<string> {
   const text = [
@@ -668,9 +668,9 @@ export function extractClubKeywords(club: Club): Set<string> {
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
-
+ 
   const keywords = new Set<string>();
-
+ 
   // Check multi-word phrases first (order matters)
   for (const [cluster, phrases] of Object.entries(KEYWORD_CLUSTERS)) {
     for (const phrase of phrases) {
@@ -679,7 +679,7 @@ export function extractClubKeywords(club: Club): Set<string> {
       }
     }
   }
-
+ 
   // Then check individual words
   const words = text.replace(/[^a-z0-9\s-]/g, '').split(/\s+/);
   for (const word of words) {
@@ -689,14 +689,14 @@ export function extractClubKeywords(club: Club): Set<string> {
       keywords.add(cluster);
     }
   }
-
+ 
   // Also add direct category/bucket as a keyword
   if (club.category) keywords.add(club.category.toLowerCase());
   if (club.categoryBucket) keywords.add(club.categoryBucket.toLowerCase());
-
+ 
   return keywords;
 }
-
+ 
 /** Score similarity between two clubs using keyword overlap */
 export function calculateClubSimilarity(
   candidateKeywords: Set<string>,
@@ -704,17 +704,17 @@ export function calculateClubSimilarity(
 ): { score: number; matchedClusters: string[] } {
   const matchedClusters: string[] = [];
   let score = 0;
-
+ 
   for (const keyword of candidateKeywords) {
     if (targetKeywords.has(keyword)) {
       score += 1;
       matchedClusters.push(keyword);
     }
   }
-
+ 
   return { score, matchedClusters };
 }
-
+ 
 // Interest value → relevant search terms (used for match % scoring)
 export const INTEREST_TERM_MAP: Record<string, string[]> = {
   network: ['professional', 'networking', 'career', 'industry'],
@@ -744,7 +744,7 @@ export const INTEREST_TERM_MAP: Record<string, string[]> = {
   competitive: ['competition', 'competitive', 'tournament'],
   creative_vibe: ['creative', 'arts', 'experimental'],
 };
-
+ 
 // Human-readable labels for interest values (used in recommendation reasons)
 const INTEREST_DISPLAY_MAP: Record<string, string> = {
   tech: 'Tech & Coding',
@@ -785,7 +785,7 @@ const INTEREST_DISPLAY_MAP: Record<string, string> = {
   professional: 'Professional Development',
   creative_vibe: 'Creative Projects',
 };
-
+ 
 // Maps each interest quiz answer to the semantic cluster names in KEYWORD_CLUSTERS
 // This is more accurate than raw text matching — "computer", "coding", "software"
 // all resolve to the same cluster so a CS club scores high on any of them.
@@ -841,33 +841,33 @@ const INTEREST_TO_CLUSTERS: Record<string, string[]> = {
   committed: [],
   all_in: ['leadership'],
 };
-
+ 
 function calcInterestScore(club: Club, interestValues: string[]): number {
   const clubClusters = extractClubKeywords(club); // semantic clusters the club belongs to
-
+ 
   // Collect all clusters the user cares about (deduplicated)
   const userClusters = new Set<string>();
   for (const val of interestValues) {
     const clusters = INTEREST_TO_CLUSTERS[val] ?? [];
     clusters.forEach((c) => userClusters.add(c));
   }
-
+ 
   if (userClusters.size === 0) return 0;
-
+ 
   // Count how many of the user's interest clusters the club actually matches
   let matches = 0;
   for (const cluster of userClusters) {
     if (clubClusters.has(cluster)) matches++;
   }
-
+ 
   if (matches === 0) return 0;
-
+ 
   // Score = % of user's interest clusters that matched, with a small bonus for deep overlap
   const pct = (matches / userClusters.size) * 100;
   const bonus = matches >= 3 ? 12 : matches >= 2 ? 5 : 0;
   return Math.min(100, Math.round(pct + bonus));
 }
-
+ 
 function calcResumeScore(club: Club, resumeKeywords: string[]): number {
   const clubText = [
     club.name,
@@ -879,7 +879,7 @@ function calcResumeScore(club: Club, resumeKeywords: string[]): number {
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
-
+ 
   // Direct text match only — cluster matching is too broad for specific resume terms
   let hits = 0;
   for (const kw of resumeKeywords) {
@@ -887,7 +887,7 @@ function calcResumeScore(club: Club, resumeKeywords: string[]): number {
   }
   return Math.min(100, Math.round((hits / resumeKeywords.length) * 100 * 2.5));
 }
-
+ 
 export function resumeHitsClub(club: Club, resumeKeywords: string[]): boolean {
   const clubText = [
     club.name,
@@ -901,27 +901,47 @@ export function resumeHitsClub(club: Club, resumeKeywords: string[]): boolean {
     .toLowerCase();
   return resumeKeywords.some((kw) => clubText.includes(kw.toLowerCase().trim()));
 }
-
-/** Score a club against user interest values and optional resume keywords (0–100).
- *  Weighted 60% interests / 40% resume when both are present. */
+ 
+/** Score a club against interest values, resume keywords, and bio keywords (0–100).
+ *  Bio keywords use the same text-match scoring as resume keywords (calcResumeScore).
+ *  Weighting:
+ *    - all three present:      50% interests / 30% resume / 20% bio
+ *    - interests + resume:     60% interests / 40% resume   (existing behavior)
+ *    - interests + bio:        60% interests / 40% bio
+ *    - resume + bio:           60% resume / 40% bio          (resume is the more specific signal)
+ *    - any single signal:      that score alone
+ */
 export function calculateMatchScore(
   club: Club,
   interestValues: string[],
-  resumeKeywords: string[] = []
+  resumeKeywords: string[] = [],
+  bioKeywords: string[] = []
 ): number {
   const hasInterests = interestValues.length > 0;
   const hasResume = resumeKeywords.length > 0;
-
-  if (!hasInterests && !hasResume) return 0;
-
+  const hasBio = bioKeywords.length > 0;
+ 
+  if (!hasInterests && !hasResume && !hasBio) return 0;
+ 
   const interestScore = hasInterests ? calcInterestScore(club, interestValues) : 0;
   const resumeScore = hasResume ? calcResumeScore(club, resumeKeywords) : 0;
-
-  if (hasInterests && !hasResume) return interestScore;
-  if (!hasInterests && hasResume) return resumeScore;
-  return Math.round(interestScore * 0.6 + resumeScore * 0.4);
+  const bioScore = hasBio ? calcResumeScore(club, bioKeywords) : 0;
+ 
+  // All three signals
+  if (hasInterests && hasResume && hasBio) {
+    return Math.round(interestScore * 0.5 + resumeScore * 0.3 + bioScore * 0.2);
+  }
+  // Two signals
+  if (hasInterests && hasResume) return Math.round(interestScore * 0.6 + resumeScore * 0.4);
+  if (hasInterests && hasBio) return Math.round(interestScore * 0.6 + bioScore * 0.4);
+  if (hasResume && hasBio) return Math.round(resumeScore * 0.6 + bioScore * 0.4);
+ 
+  // Single signal
+  if (hasInterests) return interestScore;
+  if (hasResume) return resumeScore;
+  return bioScore;
 }
-
+ 
 /** Return a human-readable sentence explaining why a club matches.
  *  Checks resume keywords first (more specific), then interests. */
 export function getTopMatchTerm(
@@ -940,7 +960,7 @@ export function getTopMatchTerm(
     .join(' ')
     .toLowerCase();
   const clubKeywords = extractClubKeywords(club);
-
+ 
   // Resume keywords first — they're the most specific signal
   for (const kw of resumeKeywords) {
     const lower = kw.toLowerCase().trim();
@@ -953,7 +973,7 @@ export function getTopMatchTerm(
       return `Aligns with your ${kw} skills`;
     }
   }
-
+ 
   // Fall back to interest-based reasons — skip meaningless values, use matched term for specificity
   const SKIP_VALUES = new Set([
     'fun',
@@ -991,10 +1011,10 @@ export function getTopMatchTerm(
       }
     }
   }
-
+ 
   return null;
 }
-
+ 
 /** Get recommended clubs based on a set of saved clubs + user interests */
 export function getRecommendationsFromSaved(
   allClubs: Club[],
@@ -1004,16 +1024,16 @@ export function getRecommendationsFromSaved(
   limit = 6
 ): { club: Club; score: number; matchedCategories: string[] }[] {
   if (savedClubIds.size === 0) return [];
-
+ 
   const savedClubs = allClubs.filter((c) => savedClubIds.has(c.id));
-
+ 
   // Build a combined keyword profile from all saved clubs
   const savedKeywords = new Set<string>();
   for (const club of savedClubs) {
     const kws = extractClubKeywords(club);
     kws.forEach((kw) => savedKeywords.add(kw));
   }
-
+ 
   // Enrich with user quiz interests mapped to clusters
   for (const { value } of userInterests) {
     const mappedTerms = interestMapping[value] || [value];
@@ -1024,24 +1044,25 @@ export function getRecommendationsFromSaved(
       else savedKeywords.add(lower);
     }
   }
-
+ 
   // Score all non-saved clubs
   const scored = allClubs
     .filter((c) => !savedClubIds.has(c.id))
     .map((club) => {
       const clubKeywords = extractClubKeywords(club);
       const { score, matchedClusters } = calculateClubSimilarity(clubKeywords, savedKeywords);
-
+ 
       // Format matched clusters for display
       const displayCategories = matchedClusters.map((c) =>
         c.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
       );
-
+ 
       return { club, score, matchedCategories: displayCategories };
     })
     .filter((c) => c.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
-
+ 
   return scored;
 }
+ 

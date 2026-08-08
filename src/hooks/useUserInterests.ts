@@ -96,6 +96,21 @@ export function useUserInterests() {
     }
   }, []);
 
+  const fetchBioSignals = useCallback(async (userId: string): Promise<string[]> => {
+    try {
+      const { data, error: fetchError } = await (supabase as any)
+        .from('profiles')
+        .select('bio_signals')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (fetchError || !data) return [];
+      return Array.isArray(data.bio_signals) ? data.bio_signals : [];
+    } catch {
+      return [];
+    }
+  }, []);
+
   return {
     loading,
     error,
@@ -103,5 +118,6 @@ export function useUserInterests() {
     saveInterests,
     hasCompletedOnboarding,
     fetchResumeSignals,
+    fetchBioSignals,
   };
 }
